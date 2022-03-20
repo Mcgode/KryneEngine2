@@ -27,10 +27,21 @@ namespace KryneEngine
     private:
         struct QueueIndices
         {
-            static constexpr s8 kInvalid = -1;
-            s8 m_graphicsQueueIndex = kInvalid;
-            s8 m_transferQueueIndex = kInvalid;
-            s8 m_computeQueueIndex = kInvalid;
+            static constexpr s32 kInvalid = -1;
+            struct Pair {
+                s32 m_familyIndex = kInvalid;
+                s32 m_indexInFamily = kInvalid;
+
+                [[nodiscard]] bool IsInvalid() const
+                {
+                    return m_familyIndex == kInvalid || m_indexInFamily == kInvalid;
+                }
+            };
+
+            Pair m_graphicsQueueIndex {};
+            Pair m_transferQueueIndex {};
+            Pair m_computeQueueIndex {};
+            Pair m_presentQueueIndex {};
         };
 
         const GraphicsCommon::ApplicationInfo m_appInfo;
@@ -41,10 +52,12 @@ namespace KryneEngine
         vk::DebugUtilsMessengerEXT m_debugMessenger;
         vk::PhysicalDevice m_physicalDevice;
         vk::Device m_device;
+        vk::SurfaceKHR m_surface;
 
         vk::Queue m_graphicsQueue;
         vk::Queue m_transferQueue;
         vk::Queue m_computeQueue;
+        vk::Queue m_presentQueue;
 
         static void _PrepareValidationLayers(vk::InstanceCreateInfo& _createInfo);
 
@@ -57,10 +70,11 @@ namespace KryneEngine
         void _SelectPhysicalDevice();
 
         static bool _SelectQueues(const GraphicsCommon::ApplicationInfo &_appInfo, const vk::PhysicalDevice &_device,
-                                  QueueIndices &_indices);
+                                  const vk::SurfaceKHR &_surface, QueueIndices &_indices);
 
         void _CreateDevice();
         void _RetrieveQueues(const QueueIndices &_queueIndices);
+        void _SetupSurface();
     };
 }
 

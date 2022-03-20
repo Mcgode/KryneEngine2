@@ -26,7 +26,8 @@ namespace KryneEngine
 
         virtual ~Window();
 
-        bool WaitForEvents() const;
+        [[nodiscard]] bool WaitForEvents() const;
+        [[nodiscard]] GLFWwindow* GetGlfwWindow() const { return m_glfwWindow; }
 
     private:
         GLFWwindow* m_glfwWindow;

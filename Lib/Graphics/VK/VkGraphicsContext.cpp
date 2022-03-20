@@ -58,8 +58,12 @@ namespace KryneEngine
 
     VkGraphicsContext::VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo)
         : m_appInfo(_appInfo)
-        , m_window(eastl::make_unique<Window>(Window::Params()))
     {
+        if (m_appInfo.m_features.m_present)
+        {
+            m_window = eastl::make_unique<Window>(Window::Params());
+        }
+
         vk::ApplicationInfo applicationInfo(
                 m_appInfo.m_applicationName,
                 MakeVersion(m_appInfo.m_applicationVersion),
@@ -93,6 +97,12 @@ namespace KryneEngine
         VkAssert(vk::createInstance(&instanceCreateInfo, nullptr, &m_instance));
 
         _SetupValidationLayersCallback();
+
+        if (m_appInfo.m_features.m_present)
+        {
+            _SetupSurface();
+        }
+
         _SelectPhysicalDevice();
         _CreateDevice();
     }
@@ -194,7 +204,7 @@ namespace KryneEngine
             bool suitable = true;
 
             auto placeholderQueueIndices = QueueIndices();
-            suitable &= _SelectQueues(m_appInfo, _physicalDevice, placeholderQueueIndices);
+            suitable &= _SelectQueues(m_appInfo, _physicalDevice, m_surface, placeholderQueueIndices);
 
 //            if (_appInfo.m_features.m_display)
 //            {
@@ -225,11 +235,14 @@ namespace KryneEngine
         }
     }
 
-    bool VkGraphicsContext::_SelectQueues(const GraphicsCommon::ApplicationInfo &_appInfo,
-                                          const vk::PhysicalDevice &_device,
-                                          QueueIndices &_indices)
+    bool
+    VkGraphicsContext::_SelectQueues(const GraphicsCommon::ApplicationInfo &_appInfo,
+                                     const vk::PhysicalDevice &_device,
+                                     const vk::SurfaceKHR &_surface,
+                                     QueueIndices &_indices)
     {
         const auto familyProperties = _device.getQueueFamilyProperties();
+        eastl::vector_map<u32, u32> indices;
 
         bool foundAll = true;
 
@@ -237,6 +250,16 @@ namespace KryneEngine
 
         Assert(features.m_transfer && (features.m_graphics || features.m_transferQueue), "Not supported yet");
         Assert(features.m_compute && (features.m_graphics || features.m_asyncCompute), "Not supported yet");
+
+        const auto GetIndexOfFamily = [&indices](u32 _familyIndex) -> u32&
+        {
+            auto it = indices.find(_familyIndex);
+            if (it == indices.end())
+            {
+                it = indices.emplace(_familyIndex, 0).first;
+            }
+            return it->second;
+        };
 
         if (features.m_graphics)
         {
@@ -248,13 +271,15 @@ namespace KryneEngine
                 const bool transferOk = !features.m_transfer || features.m_transferQueue || bool(flags & vk::QueueFlagBits::eTransfer);
                 const bool computeOk = !features.m_compute || features.m_asyncCompute || bool(flags & vk::QueueFlagBits::eCompute);
 
-                if (graphicsOk && transferOk && computeOk)
+                auto& index = GetIndexOfFamily(i);
+
+                if (graphicsOk && transferOk && computeOk && index < familyProperties[i].queueCount)
                 {
-                    _indices.m_graphicsQueueIndex = i;
+                    _indices.m_graphicsQueueIndex = { i, static_cast<s32>(index++) };
                     break;
                 }
             }
-            foundAll &= _indices.m_graphicsQueueIndex != QueueIndices::kInvalid;
+            foundAll &= !_indices.m_graphicsQueueIndex.IsInvalid();
         }
 
         if (features.m_transferQueue)
@@ -264,7 +289,7 @@ namespace KryneEngine
             for (s8 i = 0; i < familyProperties.size(); i++)
             {
                 const auto flags = familyProperties[i].queueFlags;
-                if (flags & vk::QueueFlagBits::eTransfer)
+                if (flags & vk::QueueFlagBits::eTransfer && GetIndexOfFamily(i) < familyProperties[i].queueCount)
                 {
                     u8 score = 0;
                     score += flags & vk::QueueFlagBits::eGraphics ? 0 : 4;
@@ -277,8 +302,9 @@ namespace KryneEngine
                     }
                 }
             }
-            _indices.m_transferQueueIndex = topIndex;
-            foundAll &= _indices.m_transferQueueIndex != QueueIndices::kInvalid;
+            _indices.m_transferQueueIndex = { topIndex,
+                                              static_cast<s32>(GetIndexOfFamily(topIndex)++) };
+            foundAll &= !_indices.m_transferQueueIndex.IsInvalid();
         }
 
         if (features.m_asyncCompute)
@@ -288,7 +314,7 @@ namespace KryneEngine
             for (s8 i = 0; i < familyProperties.size(); i++)
             {
                 const auto flags = familyProperties[i].queueFlags;
-                if (flags & vk::QueueFlagBits::eCompute)
+                if (flags & vk::QueueFlagBits::eCompute && GetIndexOfFamily(i) < familyProperties[i].queueCount)
                 {
                     u8 score = 0;
                     score += flags & vk::QueueFlagBits::eTransfer ? 0 : 1;
@@ -301,8 +327,35 @@ namespace KryneEngine
                     }
                 }
             }
-            _indices.m_computeQueueIndex = topIndex;
-            foundAll &= _indices.m_computeQueueIndex != QueueIndices::kInvalid;
+            _indices.m_computeQueueIndex = { topIndex,
+                                             static_cast<s32>(GetIndexOfFamily(topIndex)++) };
+            foundAll &= !_indices.m_computeQueueIndex.IsInvalid();
+        }
+
+        if (features.m_present)
+        {
+            u8 topScore = 0;
+            s8 topIndex = QueueIndices::kInvalid;
+            for (s8 i = 0; i < familyProperties.size(); i++)
+            {
+                const auto flags = familyProperties[i].queueFlags;
+                if (_device.getSurfaceSupportKHR(i, _surface) && GetIndexOfFamily(i) < familyProperties[i].queueCount)
+                {
+                    u8 score = 0;
+                    score += flags & vk::QueueFlagBits::eGraphics ? 1 : 5;
+                    score += flags & vk::QueueFlagBits::eTransfer ? 1 : 4;
+                    score += flags & vk::QueueFlagBits::eCompute ? 1 : 3;
+
+                    if (score > topScore)
+                    {
+                        topScore = score;
+                        topIndex = i;
+                    }
+                }
+            }
+            _indices.m_presentQueueIndex = {topIndex,
+                                            static_cast<s32>(GetIndexOfFamily(topIndex)++) };
+            foundAll &= !_indices.m_presentQueueIndex.IsInvalid();
         }
 
         return foundAll;
@@ -311,27 +364,48 @@ namespace KryneEngine
     void VkGraphicsContext::_CreateDevice()
     {
         eastl::vector<vk::DeviceQueueCreateInfo> queueCreateInfo;
-        eastl::vector<float> queuePriorities;
+        eastl::vector<eastl::vector<float>> queuePriorities;
 
         QueueIndices queueIndices;
-        Assert(_SelectQueues(m_appInfo, m_physicalDevice, queueIndices));
+        Assert(_SelectQueues(m_appInfo, m_physicalDevice, m_surface, queueIndices));
         {
-            const auto createQueueInfo = [&queueCreateInfo, &queuePriorities](s8 _index, float _priority)
+            const auto createQueueInfo = [&queueCreateInfo, &queuePriorities](QueueIndices::Pair _index, float _priority)
             {
-                if (_index != QueueIndices::kInvalid)
+                if (_index.IsInvalid())
                 {
-                    auto& createInfo = queueCreateInfo.emplace_back();
-                    createInfo.queueFamilyIndex = static_cast<u32>(_index);
-                    createInfo.queueCount = 1;
-                    auto& priority = queuePriorities.emplace_back();
-                    priority = _priority;
-                    createInfo.pQueuePriorities = &priority;
+                    return;
                 }
+
+                auto it = eastl::find(queueCreateInfo.begin(), queueCreateInfo.end(), _index.m_familyIndex,
+                                      [](const vk::DeviceQueueCreateInfo& _info, u32 _familyIndex)
+                                      { return _info.queueFamilyIndex == _familyIndex; });
+                bool alreadyInserted = it != queueCreateInfo.end();
+
+                if (!alreadyInserted)
+                {
+                    it = queueCreateInfo.emplace(queueCreateInfo.end());
+                    queuePriorities.push_back();
+                    it->queueFamilyIndex = _index.m_familyIndex;
+                }
+                it->queueCount++;
+                auto& prioritiesVector = queuePriorities[eastl::distance(queueCreateInfo.begin(), it)];
+                if (_index.m_indexInFamily + 1 >= prioritiesVector.size())
+                {
+                    prioritiesVector.resize(_index.m_indexInFamily + 1);
+                    it->pQueuePriorities = prioritiesVector.data();
+                }
+                prioritiesVector[_index.m_indexInFamily] = _priority;
             };
 
             createQueueInfo(queueIndices.m_graphicsQueueIndex, 1.0);
             createQueueInfo(queueIndices.m_transferQueueIndex, 0.5);
             createQueueInfo(queueIndices.m_computeQueueIndex, 0.5);
+            createQueueInfo(queueIndices.m_presentQueueIndex, 1.0);
+
+            for (u32 i = 0; i < queueCreateInfo.size(); i++)
+            {
+                Assert(queueCreateInfo[i].queueCount == queuePriorities[i].size());
+            }
         }
 
         vk::PhysicalDeviceFeatures features;
@@ -353,25 +427,23 @@ namespace KryneEngine
 
     void VkGraphicsContext::_RetrieveQueues(const QueueIndices &_queueIndices)
     {
-        eastl::vector_map<u32, u32> queueIndexPerFamily;
-
-        const auto RetrieveQueue = [this, &queueIndexPerFamily](s8 _queueIndex, vk::Queue& destQueue_)
+        const auto RetrieveQueue = [this](QueueIndices::Pair _queueIndex, vk::Queue& destQueue_)
         {
-            if (_queueIndex != QueueIndices::kInvalid)
+            if (!_queueIndex.IsInvalid())
             {
-                const u32 familyIndex = _queueIndex;
-                auto it = queueIndexPerFamily.find(familyIndex);
-                if (it == queueIndexPerFamily.end())
-                {
-                    it = queueIndexPerFamily.emplace(familyIndex, 0).first;
-                }
-
-                destQueue_ = m_device.getQueue(familyIndex, it->second++);
+                destQueue_ = m_device.getQueue(_queueIndex.m_familyIndex, _queueIndex.m_indexInFamily);
             }
         };
 
         RetrieveQueue(_queueIndices.m_graphicsQueueIndex, m_graphicsQueue);
         RetrieveQueue(_queueIndices.m_transferQueueIndex, m_transferQueue);
         RetrieveQueue(_queueIndices.m_computeQueueIndex, m_computeQueue);
+        RetrieveQueue(_queueIndices.m_presentQueueIndex, m_presentQueue);
+    }
+
+    void VkGraphicsContext::_SetupSurface()
+    {
+        VkAssert(glfwCreateWindowSurface(m_instance, m_window->GetGlfwWindow(), nullptr,
+                                         reinterpret_cast<VkSurfaceKHR*>(&m_surface)));
     }
 }
