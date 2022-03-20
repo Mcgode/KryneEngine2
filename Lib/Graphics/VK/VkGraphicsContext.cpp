@@ -200,16 +200,19 @@ namespace KryneEngine
         {
             const auto properties = _physicalDevice.getProperties();
             const auto features = _physicalDevice.getFeatures();
+            const auto extensions = _physicalDevice.enumerateDeviceExtensionProperties();
+            auto requiredExtensions = _GetRequiredDeviceExtensions();
 
             bool suitable = true;
 
             auto placeholderQueueIndices = QueueIndices();
             suitable &= _SelectQueues(m_appInfo, _physicalDevice, m_surface, placeholderQueueIndices);
 
-//            if (_appInfo.m_features.m_display)
-//            {
-//                suitable &= features.geometryShader;
-//            }
+            for (const auto& extension: extensions)
+            {
+                requiredExtensions.erase(eastl::string{ extension.extensionName });
+            }
+            suitable &= requiredExtensions.empty();
 
             return suitable;
         });
@@ -410,15 +413,22 @@ namespace KryneEngine
 
         vk::PhysicalDeviceFeatures features;
 
+        const auto requiredExtensionsSet = _GetRequiredDeviceExtensions();
+        eastl::vector<const char*> requiredExtensions;
+        eastl::for_each(requiredExtensions.begin(), requiredExtensions.end(),
+                        [&requiredExtensions](const eastl::string& _extension)
+                        { requiredExtensions.push_back(_extension.c_str()); });
+
         vk::ArrayProxyNoTemporaries<const char* const> enabledLayerNames;
         if (m_appInfo.m_features.m_validationLayers)
         {
             enabledLayerNames = MakeArrayProxy(kValidationLayerNames);
         }
 
-        vk::DeviceCreateInfo createInfo({},MakeArrayProxy(queueCreateInfo),
+        vk::DeviceCreateInfo createInfo({}, MakeArrayProxy(queueCreateInfo),
                                         enabledLayerNames,
-                                        {}, &features);
+                                        MakeArrayProxy(requiredExtensions),
+                                        &features);
 
         VkAssert(m_physicalDevice.createDevice(&createInfo, nullptr, &m_device));
 
@@ -445,5 +455,17 @@ namespace KryneEngine
     {
         VkAssert(glfwCreateWindowSurface(m_instance, m_window->GetGlfwWindow(), nullptr,
                                          reinterpret_cast<VkSurfaceKHR*>(&m_surface)));
+    }
+
+    eastl::vector_set<eastl::string> VkGraphicsContext::_GetRequiredDeviceExtensions() const
+    {
+        eastl::vector_set<eastl::string> result;
+
+        if (m_appInfo.m_features.m_present)
+        {
+            result.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        }
+
+        return result;
     }
 }

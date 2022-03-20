@@ -9,6 +9,7 @@
 #include <vulkan/vulkan.hpp>
 #include <EASTL/unique_ptr.h>
 #include <EASTL/vector.h>
+#include <EASTL/vector_set.h>
 #include <Graphics/Common/GraphicsCommon.hpp>
 
 namespace KryneEngine
@@ -67,6 +68,7 @@ namespace KryneEngine
 
         void _SetupValidationLayersCallback();
 
+        [[nodiscard]] eastl::vector_set<eastl::string> _GetRequiredDeviceExtensions() const;
         void _SelectPhysicalDevice();
 
         static bool _SelectQueues(const GraphicsCommon::ApplicationInfo &_appInfo, const vk::PhysicalDevice &_device,
