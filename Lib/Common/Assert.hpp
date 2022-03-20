@@ -28,4 +28,10 @@ namespace KryneEngine
         Assert(_condition);
         return _condition;
     }
+
+    inline bool Verify(bool _condition, const eastl::string_view& _message)
+    {
+        Assert(_condition, _message);
+        return _condition;
+    }
 }

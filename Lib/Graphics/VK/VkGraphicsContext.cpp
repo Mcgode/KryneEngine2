@@ -7,6 +7,7 @@
 #include "VkGraphicsContext.hpp"
 
 #include <iostream>
+#include <EASTL/algorithm.h>
 #include <Graphics/VK/HelperFunctions.hpp>
 #include <GLFW/glfw3.h>
 
@@ -54,13 +55,14 @@ namespace KryneEngine
     }
 
     VkGraphicsContext::VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo)
+        : m_appInfo(_appInfo)
     {
         vk::ApplicationInfo applicationInfo(
-                _appInfo.m_applicationName,
-                MakeVersion(_appInfo.m_applicationVersion),
+                m_appInfo.m_applicationName,
+                MakeVersion(m_appInfo.m_applicationVersion),
                 "KryneEngine2",
-                MakeVersion(_appInfo.m_engineVersion),
-                GetApiVersion(_appInfo.m_api));
+                MakeVersion(m_appInfo.m_engineVersion),
+                GetApiVersion(m_appInfo.m_api));
 
         vk::InstanceCreateInfo instanceCreateInfo;
         instanceCreateInfo.pApplicationInfo = &applicationInfo;
@@ -74,18 +76,22 @@ namespace KryneEngine
         }
 
         vk::DebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo;
-        if (_appInfo.m_features.m_validationLayers)
+        if (m_appInfo.m_features.m_validationLayers)
         {
             _PrepareValidationLayers(instanceCreateInfo);
             debugMessengerCreateInfo = _PopulateDebugCreateInfo(this);
             instanceCreateInfo.pNext = &debugMessengerCreateInfo;
         }
 
-        auto extensions = _RetrieveRequiredExtensionNames(_appInfo);
+        auto extensions = _RetrieveRequiredExtensionNames(m_appInfo);
         instanceCreateInfo.enabledExtensionCount = extensions.size();
         instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
         VkAssert(vk::createInstance(&instanceCreateInfo, nullptr, &m_instance));
+
+        _SetupValidationLayersCallback();
+        _SelectPhysicalDevice();
+        _CreateDevice();
     }
 
     VkGraphicsContext::~VkGraphicsContext()
@@ -169,5 +175,174 @@ namespace KryneEngine
             VkAssert(func(m_instance, reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&createInfo),
                           nullptr, reinterpret_cast<VkDebugUtilsMessengerEXT*>(&m_debugMessenger)));
         }
+    }
+
+    void VkGraphicsContext::_SelectPhysicalDevice()
+    {
+        const auto availableDevices = m_instance.enumeratePhysicalDevices();
+        eastl::vector<vk::PhysicalDevice> suitableDevices;
+        eastl::copy_if(availableDevices.begin(), availableDevices.end(),
+                       eastl::back_inserter(suitableDevices),
+                       [this](const vk::PhysicalDevice& _physicalDevice)
+        {
+            const auto properties = _physicalDevice.getProperties();
+            const auto features = _physicalDevice.getFeatures();
+
+            bool suitable = true;
+
+            auto placeholderQueueIndices = QueueIndices();
+            suitable &= _SelectQueues(m_appInfo, _physicalDevice, placeholderQueueIndices);
+
+//            if (_appInfo.m_features.m_display)
+//            {
+//                suitable &= features.geometryShader;
+//            }
+
+            return suitable;
+        });
+
+        if (Verify(!suitableDevices.empty(), "No suitable device found!"))
+        {
+            u32 maxScore = 0;
+            vk::PhysicalDevice selectedDevice;
+
+            for (const auto& suitableDevice: suitableDevices)
+            {
+                u32 score = 0;
+                const auto properties = suitableDevice.getProperties();
+                score += properties.limits.maxImageDimension2D;
+
+                if (score >= maxScore)
+                {
+                    selectedDevice = suitableDevice;
+                }
+            }
+
+            m_physicalDevice = selectedDevice;
+        }
+    }
+
+    bool VkGraphicsContext::_SelectQueues(const GraphicsCommon::ApplicationInfo &_appInfo,
+                                          const vk::PhysicalDevice &_device,
+                                          QueueIndices &_indices)
+    {
+        const auto familyProperties = _device.getQueueFamilyProperties();
+
+        bool foundAll = true;
+
+        const auto& features = _appInfo.m_features;
+
+        Assert(features.m_transfer && (features.m_graphics || features.m_transferQueue), "Not supported yet");
+        Assert(features.m_compute && (features.m_graphics || features.m_asyncCompute), "Not supported yet");
+
+        if (features.m_graphics)
+        {
+            for (s8 i = 0; i < familyProperties.size(); i++)
+            {
+                const auto flags = familyProperties[i].queueFlags;
+
+                const bool graphicsOk = bool(flags & vk::QueueFlagBits::eGraphics);
+                const bool transferOk = !features.m_transfer || features.m_transferQueue || bool(flags & vk::QueueFlagBits::eTransfer);
+                const bool computeOk = !features.m_compute || features.m_asyncCompute || bool(flags & vk::QueueFlagBits::eCompute);
+
+                if (graphicsOk && transferOk && computeOk)
+                {
+                    _indices.m_graphicsQueueIndex = i;
+                    break;
+                }
+            }
+            foundAll &= _indices.m_graphicsQueueIndex != QueueIndices::kInvalid;
+        }
+
+        if (features.m_transferQueue)
+        {
+            u8 topScore = 0;
+            s8 topIndex = QueueIndices::kInvalid;
+            for (s8 i = 0; i < familyProperties.size(); i++)
+            {
+                const auto flags = familyProperties[i].queueFlags;
+                if (flags & vk::QueueFlagBits::eTransfer)
+                {
+                    u8 score = 0;
+                    score += flags & vk::QueueFlagBits::eGraphics ? 0 : 4;
+                    score += flags & vk::QueueFlagBits::eCompute ? 0 : 3;
+
+                    if (score > topScore)
+                    {
+                        topScore = score;
+                        topIndex = i;
+                    }
+                }
+            }
+            _indices.m_transferQueueIndex = topIndex;
+            foundAll &= _indices.m_transferQueueIndex != QueueIndices::kInvalid;
+        }
+
+        if (features.m_asyncCompute)
+        {
+            u8 topScore = 0;
+            s8 topIndex = QueueIndices::kInvalid;
+            for (s8 i = 0; i < familyProperties.size(); i++)
+            {
+                const auto flags = familyProperties[i].queueFlags;
+                if (flags & vk::QueueFlagBits::eCompute)
+                {
+                    u8 score = 0;
+                    score += flags & vk::QueueFlagBits::eTransfer ? 0 : 1;
+                    score += flags & vk::QueueFlagBits::eGraphics ? 0 : 3;
+
+                    if (score > topScore)
+                    {
+                        topScore = score;
+                        topIndex = i;
+                    }
+                }
+            }
+            _indices.m_computeQueueIndex = topIndex;
+            foundAll &= _indices.m_computeQueueIndex != QueueIndices::kInvalid;
+        }
+
+        return foundAll;
+    }
+
+    void VkGraphicsContext::_CreateDevice()
+    {
+        eastl::vector<vk::DeviceQueueCreateInfo> queueCreateInfo;
+        eastl::vector<float> queuePriorities;
+        {
+            QueueIndices queueIndices;
+            Assert(_SelectQueues(m_appInfo, m_physicalDevice, queueIndices));
+
+            const auto createQueueInfo = [&queueCreateInfo, &queuePriorities](s8 _index, float _priority)
+            {
+                if (_index != QueueIndices::kInvalid)
+                {
+                    auto& createInfo = queueCreateInfo.emplace_back();
+                    createInfo.queueFamilyIndex = static_cast<u32>(_index);
+                    createInfo.queueCount = 1;
+                    auto& priority = queuePriorities.emplace_back();
+                    priority = _priority;
+                    createInfo.pQueuePriorities = &priority;
+                }
+            };
+
+            createQueueInfo(queueIndices.m_graphicsQueueIndex, 1.0);
+            createQueueInfo(queueIndices.m_transferQueueIndex, 0.5);
+            createQueueInfo(queueIndices.m_computeQueueIndex, 0.5);
+        }
+
+        vk::PhysicalDeviceFeatures features;
+
+        vk::ArrayProxyNoTemporaries<const char* const> enabledLayerNames;
+        if (m_appInfo.m_features.m_validationLayers)
+        {
+            enabledLayerNames = MakeArrayProxy(kValidationLayerNames);
+        }
+
+        vk::DeviceCreateInfo createInfo({},MakeArrayProxy(queueCreateInfo),
+                                        enabledLayerNames,
+                                        {}, &features);
+
+        VkAssert(m_physicalDevice.createDevice(&createInfo, nullptr, &m_device));
     }
 }

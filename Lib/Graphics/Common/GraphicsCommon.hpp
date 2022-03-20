@@ -39,6 +39,14 @@ namespace KryneEngine::GraphicsCommon
         struct Features
         {
             bool m_validationLayers = true;
+
+            bool m_graphics = true;
+            bool m_present = true;
+            bool m_transfer = true;
+            bool m_compute = true;
+
+            bool m_transferQueue = true;
+            bool m_asyncCompute = false;
         }
         m_features {};
     };

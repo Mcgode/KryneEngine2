@@ -20,8 +20,19 @@ namespace KryneEngine
         virtual ~VkGraphicsContext();
 
     private:
+        struct QueueIndices
+        {
+            static constexpr s8 kInvalid = -1;
+            s8 m_graphicsQueueIndex = kInvalid;
+            s8 m_transferQueueIndex = kInvalid;
+            s8 m_computeQueueIndex = kInvalid;
+        };
+
+        const GraphicsCommon::ApplicationInfo m_appInfo;
         vk::Instance m_instance;
         vk::DebugUtilsMessengerEXT m_debugMessenger;
+        vk::PhysicalDevice m_physicalDevice;
+        vk::Device m_device;
 
         static void _PrepareValidationLayers(vk::InstanceCreateInfo& _createInfo);
 
@@ -30,6 +41,13 @@ namespace KryneEngine
         static vk::DebugUtilsMessengerCreateInfoEXT _PopulateDebugCreateInfo(void *_userData);
 
         void _SetupValidationLayersCallback();
+
+        void _SelectPhysicalDevice();
+
+        static bool _SelectQueues(const GraphicsCommon::ApplicationInfo &_appInfo, const vk::PhysicalDevice &_device,
+                                  QueueIndices &_indices);
+
+        void _CreateDevice();
     };
 }
 

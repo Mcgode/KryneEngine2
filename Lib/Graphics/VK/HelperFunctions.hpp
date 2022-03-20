@@ -33,6 +33,12 @@ namespace KryneEngine::VkHelperFunctions
         }
     }
 
+    template<class Container>
+    inline vk::ArrayProxyNoTemporaries<const typename Container::value_type> MakeArrayProxy(const Container& _container)
+    {
+        return vk::ArrayProxyNoTemporaries<const typename Container::value_type>(_container.size(), _container.data());
+    }
+
     inline void VkAssert(vk::Result _result)
     {
         Assert(_result == vk::Result::eSuccess);
