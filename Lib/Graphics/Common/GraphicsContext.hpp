@@ -6,11 +6,13 @@
 
 #pragma once
 
+#if defined(KE_GRAPHICS_API_VK)
+#include <Graphics/VK/VkGraphicsContext.hpp>
+#endif
+
 #include <EASTL/unique_ptr.h>
 
-#if defined(KE_GRAPHICS_API_VK)
-    #include <Graphics/VK/VkGraphicsContext.hpp>
-#endif
+
 
 namespace KryneEngine
 {
@@ -19,7 +21,7 @@ namespace KryneEngine
     class GraphicsContext
     {
     public:
-        GraphicsContext();
+        GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo);
 
         bool EndFrame();
 

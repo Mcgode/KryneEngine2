@@ -4,7 +4,8 @@
 int main() {
     std::cout << "Hello, World!" << std::endl;
 
-    KryneEngine::GraphicsContext graphicsContext;
+    auto appInfo = KryneEngine::GraphicsCommon::ApplicationInfo();
+    KryneEngine::GraphicsContext graphicsContext(appInfo);
 
     while (graphicsContext.EndFrame());
 

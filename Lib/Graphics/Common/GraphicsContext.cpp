@@ -10,8 +10,9 @@
 
 namespace KryneEngine
 {
-    GraphicsContext::GraphicsContext()
+    GraphicsContext::GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo)
         : m_window(eastl::make_unique<Window>(Window::Params()))
+        , m_implementation(_appInfo)
     {
     }
 
