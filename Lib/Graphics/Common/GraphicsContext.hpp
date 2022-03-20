@@ -6,30 +6,26 @@
 
 #pragma once
 
-#if defined(KE_GRAPHICS_API_VK)
-#include <Graphics/VK/VkGraphicsContext.hpp>
-#endif
-
 #include <EASTL/unique_ptr.h>
-
-
+#include <Graphics/Common/GraphicsCommon.hpp>
 
 namespace KryneEngine
 {
     class Window;
+    class VkGraphicsContext;
 
     class GraphicsContext
     {
     public:
-        GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo);
+        explicit GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo);
+
+        [[nodiscard]] Window* GetWindow() const;
 
         bool EndFrame();
 
     private:
-        eastl::unique_ptr<Window> m_window;
-
 #if defined(KE_GRAPHICS_API_VK)
-        VkGraphicsContext m_implementation;
+        eastl::unique_ptr<VkGraphicsContext> m_implementation;
 #endif
     };
 }

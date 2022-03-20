@@ -6,18 +6,27 @@
 
 #include "GraphicsContext.hpp"
 
+#if defined(KE_GRAPHICS_API_VK)
+#include <Graphics/VK/VkGraphicsContext.hpp>
+#endif
+
 #include <Graphics/Common/Window.hpp>
+
 
 namespace KryneEngine
 {
     GraphicsContext::GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo)
-        : m_window(eastl::make_unique<Window>(Window::Params()))
-        , m_implementation(_appInfo)
+        : m_implementation(eastl::make_unique<VkGraphicsContext>(_appInfo))
     {
+    }
+
+    Window *GraphicsContext::GetWindow() const
+    {
+        return m_implementation->GetWindow();
     }
 
     bool GraphicsContext::EndFrame()
     {
-        return m_window->WaitForEvents();
+        return GetWindow()->WaitForEvents();
     }
 }

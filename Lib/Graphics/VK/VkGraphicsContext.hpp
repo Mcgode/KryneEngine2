@@ -7,17 +7,22 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <EASTL/unique_ptr.h>
 #include <EASTL/vector.h>
 #include <Graphics/Common/GraphicsCommon.hpp>
 
 namespace KryneEngine
 {
+    class Window;
+
     class VkGraphicsContext
     {
     public:
         explicit VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo);
 
         virtual ~VkGraphicsContext();
+
+        [[nodiscard]] Window* GetWindow() const { return m_window.get(); }
 
     private:
         struct QueueIndices
@@ -29,6 +34,9 @@ namespace KryneEngine
         };
 
         const GraphicsCommon::ApplicationInfo m_appInfo;
+
+        eastl::unique_ptr<Window> m_window;
+
         vk::Instance m_instance;
         vk::DebugUtilsMessengerEXT m_debugMessenger;
         vk::PhysicalDevice m_physicalDevice;

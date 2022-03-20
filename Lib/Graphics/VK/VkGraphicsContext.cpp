@@ -9,6 +9,7 @@
 #include <iostream>
 #include <EASTL/algorithm.h>
 #include <EASTL/vector_map.h>
+#include <Graphics/Common/Window.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
 #include <GLFW/glfw3.h>
 
@@ -57,6 +58,7 @@ namespace KryneEngine
 
     VkGraphicsContext::VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo)
         : m_appInfo(_appInfo)
+        , m_window(eastl::make_unique<Window>(Window::Params()))
     {
         vk::ApplicationInfo applicationInfo(
                 m_appInfo.m_applicationName,
