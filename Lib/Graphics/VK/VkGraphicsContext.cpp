@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <EASTL/algorithm.h>
+#include <EASTL/vector_map.h>
 #include <Graphics/VK/HelperFunctions.hpp>
 #include <GLFW/glfw3.h>
 
@@ -309,10 +310,10 @@ namespace KryneEngine
     {
         eastl::vector<vk::DeviceQueueCreateInfo> queueCreateInfo;
         eastl::vector<float> queuePriorities;
-        {
-            QueueIndices queueIndices;
-            Assert(_SelectQueues(m_appInfo, m_physicalDevice, queueIndices));
 
+        QueueIndices queueIndices;
+        Assert(_SelectQueues(m_appInfo, m_physicalDevice, queueIndices));
+        {
             const auto createQueueInfo = [&queueCreateInfo, &queuePriorities](s8 _index, float _priority)
             {
                 if (_index != QueueIndices::kInvalid)
@@ -344,5 +345,31 @@ namespace KryneEngine
                                         {}, &features);
 
         VkAssert(m_physicalDevice.createDevice(&createInfo, nullptr, &m_device));
+
+        _RetrieveQueues(queueIndices);
+    }
+
+    void VkGraphicsContext::_RetrieveQueues(const QueueIndices &_queueIndices)
+    {
+        eastl::vector_map<u32, u32> queueIndexPerFamily;
+
+        const auto RetrieveQueue = [this, &queueIndexPerFamily](s8 _queueIndex, vk::Queue& destQueue_)
+        {
+            if (_queueIndex != QueueIndices::kInvalid)
+            {
+                const u32 familyIndex = _queueIndex;
+                auto it = queueIndexPerFamily.find(familyIndex);
+                if (it == queueIndexPerFamily.end())
+                {
+                    it = queueIndexPerFamily.emplace(familyIndex, 0).first;
+                }
+
+                destQueue_ = m_device.getQueue(familyIndex, it->second++);
+            }
+        };
+
+        RetrieveQueue(_queueIndices.m_graphicsQueueIndex, m_graphicsQueue);
+        RetrieveQueue(_queueIndices.m_transferQueueIndex, m_transferQueue);
+        RetrieveQueue(_queueIndices.m_computeQueueIndex, m_computeQueue);
     }
 }

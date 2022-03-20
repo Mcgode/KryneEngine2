@@ -34,6 +34,10 @@ namespace KryneEngine
         vk::PhysicalDevice m_physicalDevice;
         vk::Device m_device;
 
+        vk::Queue m_graphicsQueue;
+        vk::Queue m_transferQueue;
+        vk::Queue m_computeQueue;
+
         static void _PrepareValidationLayers(vk::InstanceCreateInfo& _createInfo);
 
         static eastl::vector<const char*> _RetrieveRequiredExtensionNames(const GraphicsCommon::ApplicationInfo& _appInfo);
@@ -48,6 +52,7 @@ namespace KryneEngine
                                   QueueIndices &_indices);
 
         void _CreateDevice();
+        void _RetrieveQueues(const QueueIndices &_queueIndices);
     };
 }
 
