@@ -1,22 +1,24 @@
 set(VkFiles
-        VK/VkGraphicsContext.hpp VK/VkGraphicsContext.cpp)
+        VK/VkGraphicsContext.hpp VK/VkGraphicsContext.cpp
+        VK/HelperFunctions.hpp
+        VK/VkSwapChain.cpp VK/VkSwapChain.hpp
+        VK/VkSurface.cpp VK/VkSurface.hpp
+        )
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
-        Common/Window.cpp Common/Window.hpp)
+        Common/Window.cpp Common/Window.hpp
+        Common/GraphicsCommon.hpp)
 
-if (NOT GraphicsApi STREQUAL "VK")
-    set(VkFiles Common/GraphicsCommon.hpp VK/HelperFunctions.hpp)
+if (GraphicsApi STREQUAL "VK")
+    set(SrcFiles ${CommonFiles} ${VkFiles})
 endif()
 
-add_library(KryneEngineGraphics STATIC
-        ${VkFiles}
-        ${CommonFiles})
+add_library(KryneEngineGraphics STATIC ${SrcFiles})
 target_link_libraries(KryneEngineGraphics EASTL glfw)
 target_include_directories(KryneEngineGraphics PUBLIC ${RootDir})
 
 if (GraphicsApi STREQUAL "VK")
-    set(ENV{VULKAN_SDK} "C:\\VulkanSDK\\1.3.204.1")
     message(STATUS "Finding and linking Vulkan lib")
     find_package(Vulkan REQUIRED FATAL_ERROR)
 

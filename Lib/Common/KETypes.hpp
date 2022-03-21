@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include <EASTL/string.h>
+#include <EASTL/string.h> // NOLINT(modernize-deprecated-headers)
+#include <EASTL/vector.h>
 
 namespace KryneEngine
 {

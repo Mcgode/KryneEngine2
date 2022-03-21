@@ -11,6 +11,7 @@
 #include <EASTL/vector_map.h>
 #include <Graphics/Common/Window.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
+#include <Graphics/VK/VkSurface.hpp>
 #include <GLFW/glfw3.h>
 
 namespace KryneEngine
@@ -100,10 +101,16 @@ namespace KryneEngine
 
         if (m_appInfo.m_features.m_present)
         {
-            _SetupSurface();
+            m_surface = eastl::make_unique<VkSurface>(m_instance, m_window->GetGlfwWindow());
         }
 
         _SelectPhysicalDevice();
+
+        if (m_appInfo.m_features.m_present)
+        {
+            m_surface->UpdateCapabilities(m_physicalDevice);
+        }
+
         _CreateDevice();
     }
 
@@ -206,7 +213,7 @@ namespace KryneEngine
             bool suitable = true;
 
             auto placeholderQueueIndices = QueueIndices();
-            suitable &= _SelectQueues(m_appInfo, _physicalDevice, m_surface, placeholderQueueIndices);
+            suitable &= _SelectQueues(m_appInfo, _physicalDevice, m_surface->GetSurface(), placeholderQueueIndices);
 
             for (const auto& extension: extensions)
             {
@@ -370,7 +377,7 @@ namespace KryneEngine
         eastl::vector<eastl::vector<float>> queuePriorities;
 
         QueueIndices queueIndices;
-        Assert(_SelectQueues(m_appInfo, m_physicalDevice, m_surface, queueIndices));
+        Assert(_SelectQueues(m_appInfo, m_physicalDevice, m_surface->GetSurface(), queueIndices));
         {
             const auto createQueueInfo = [&queueCreateInfo, &queuePriorities](QueueIndices::Pair _index, float _priority)
             {
@@ -449,12 +456,6 @@ namespace KryneEngine
         RetrieveQueue(_queueIndices.m_transferQueueIndex, m_transferQueue);
         RetrieveQueue(_queueIndices.m_computeQueueIndex, m_computeQueue);
         RetrieveQueue(_queueIndices.m_presentQueueIndex, m_presentQueue);
-    }
-
-    void VkGraphicsContext::_SetupSurface()
-    {
-        VkAssert(glfwCreateWindowSurface(m_instance, m_window->GetGlfwWindow(), nullptr,
-                                         reinterpret_cast<VkSurfaceKHR*>(&m_surface)));
     }
 
     eastl::vector_set<eastl::string> VkGraphicsContext::_GetRequiredDeviceExtensions() const

@@ -15,6 +15,7 @@
 namespace KryneEngine
 {
     class Window;
+    class VkSurface;
 
     class VkGraphicsContext
     {
@@ -53,7 +54,8 @@ namespace KryneEngine
         vk::DebugUtilsMessengerEXT m_debugMessenger;
         vk::PhysicalDevice m_physicalDevice;
         vk::Device m_device;
-        vk::SurfaceKHR m_surface;
+
+        eastl::unique_ptr<VkSurface> m_surface;
 
         vk::Queue m_graphicsQueue;
         vk::Queue m_transferQueue;
@@ -76,7 +78,6 @@ namespace KryneEngine
 
         void _CreateDevice();
         void _RetrieveQueues(const QueueIndices &_queueIndices);
-        void _SetupSurface();
     };
 }
 
