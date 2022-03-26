@@ -11,6 +11,7 @@
 #include <EASTL/vector.h>
 #include <EASTL/vector_set.h>
 #include <Graphics/Common/GraphicsCommon.hpp>
+#include <Graphics/VK/CommonStructures.hpp>
 
 namespace KryneEngine
 {
@@ -27,25 +28,6 @@ namespace KryneEngine
         [[nodiscard]] Window* GetWindow() const { return m_window.get(); }
 
     private:
-        struct QueueIndices
-        {
-            static constexpr s32 kInvalid = -1;
-            struct Pair {
-                s32 m_familyIndex = kInvalid;
-                s32 m_indexInFamily = kInvalid;
-
-                [[nodiscard]] bool IsInvalid() const
-                {
-                    return m_familyIndex == kInvalid || m_indexInFamily == kInvalid;
-                }
-            };
-
-            Pair m_graphicsQueueIndex {};
-            Pair m_transferQueueIndex {};
-            Pair m_computeQueueIndex {};
-            Pair m_presentQueueIndex {};
-        };
-
         const GraphicsCommon::ApplicationInfo m_appInfo;
 
         eastl::unique_ptr<Window> m_window;
@@ -74,10 +56,10 @@ namespace KryneEngine
         void _SelectPhysicalDevice();
 
         static bool _SelectQueues(const GraphicsCommon::ApplicationInfo &_appInfo, const vk::PhysicalDevice &_device,
-                                  const vk::SurfaceKHR &_surface, QueueIndices &_indices);
+                                  const vk::SurfaceKHR &_surface, VkCommonStructures::QueueIndices &_indices);
 
         void _CreateDevice();
-        void _RetrieveQueues(const QueueIndices &_queueIndices);
+        void _RetrieveQueues(const VkCommonStructures::QueueIndices &_queueIndices);
     };
 }
 

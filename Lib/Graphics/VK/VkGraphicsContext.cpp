@@ -17,6 +17,7 @@
 namespace KryneEngine
 {
     using namespace VkHelperFunctions;
+    using namespace VkCommonStructures;
 
     namespace
     {

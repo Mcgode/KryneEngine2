@@ -28,6 +28,7 @@ namespace KryneEngine
         void UpdateCapabilities(const vk::PhysicalDevice& _physicalDevice);
 
         [[nodiscard]] const vk::SurfaceKHR& GetSurface() const { return m_surface; }
+        [[nodiscard]] const Capabilities& GetCapabilities() const { return m_capabilities; }
 
     private:
         vk::SurfaceKHR m_surface;

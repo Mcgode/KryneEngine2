@@ -19,6 +19,7 @@ namespace KryneEngine::GraphicsCommon
 
     enum class Api
     {
+        None,
         Vulkan_1_0,
         Vulkan_1_1,
         Vulkan_1_2,
@@ -28,13 +29,20 @@ namespace KryneEngine::GraphicsCommon
         VulkanEnd = Vulkan_1_3,
     };
 
+    enum class SoftEnable: u8
+    {
+        Disabled,
+        TryEnable,
+        ForceEnabled
+    };
+
     struct ApplicationInfo
     {
         const char* m_applicationName = "Unnamed app";
         Version m_applicationVersion {};
 
         Version m_engineVersion { 1, 0, 0 };
-        Api m_api;
+        Api m_api = Api::None;
 
         struct Features
         {
@@ -47,7 +55,18 @@ namespace KryneEngine::GraphicsCommon
 
             bool m_transferQueue = true;
             bool m_asyncCompute = false;
+            bool m_concurrentQueues = true;
         }
         m_features {};
+
+        struct DisplayOptions
+        {
+            u16 m_width = 1280;
+            u16 m_height = 720;
+
+            SoftEnable m_sRgbPresent = SoftEnable::TryEnable;
+            SoftEnable m_tripleBuffering = SoftEnable::TryEnable;
+        }
+        m_displayOptions {};
     };
 }
