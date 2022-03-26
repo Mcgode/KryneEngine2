@@ -20,7 +20,8 @@ namespace KryneEngine
     class VkSwapChain
     {
     public:
-        VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo, const vk::Device &_device,
+        VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
+                    VkSharedDeviceRef &&_deviceRef,
                     const VkSurface *_surface, GLFWwindow *_window,
                     const VkCommonStructures::QueueIndices &_queueIndices, VkSwapChain *_oldSwapChain);
 
@@ -28,6 +29,7 @@ namespace KryneEngine
 
     private:
         vk::SwapchainKHR m_swapChain;
+        VkSharedDeviceRef m_deviceRef;
         vk::SharingMode m_sharingMode;
     };
 }

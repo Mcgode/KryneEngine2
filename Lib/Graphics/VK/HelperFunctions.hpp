@@ -48,4 +48,10 @@ namespace KryneEngine::VkHelperFunctions
     {
         VkAssert(vk::Result(_vkResult));
     }
+
+    template<class VkType>
+    inline bool IsNull(const VkType& _vkObject)
+    {
+        return static_cast<typename VkType::CType>(_vkObject) == VK_NULL_HANDLE;
+    }
 }

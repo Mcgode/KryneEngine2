@@ -13,9 +13,10 @@
 
 namespace KryneEngine
 {
-    VkSwapChain::VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo, const vk::Device &_device,
+    VkSwapChain::VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo, VkSharedDeviceRef &&_deviceRef,
                              const VkSurface *_surface, GLFWwindow *_window,
                              const VkCommonStructures::QueueIndices &_queueIndices, VkSwapChain *_oldSwapChain)
+        : m_deviceRef(eastl::move(_deviceRef))
     {
         const auto& capabilities = _surface->GetCapabilities();
         Assert(!capabilities.m_formats.empty() && !capabilities.m_presentModes.empty());
@@ -128,6 +129,11 @@ namespace KryneEngine
                 true,
                 _oldSwapChain == nullptr ? vk::SwapchainKHR{} : _oldSwapChain->m_swapChain);
 
-        VkHelperFunctions::VkAssert(_device.createSwapchainKHR(&createInfo, nullptr, &m_swapChain));
+        VkHelperFunctions::VkAssert(m_deviceRef->createSwapchainKHR(&createInfo, nullptr, &m_swapChain));
+    }
+
+    VkSwapChain::~VkSwapChain()
+    {
+        m_deviceRef->destroy(m_swapChain);
     }
 }

@@ -32,10 +32,10 @@ namespace KryneEngine
 
         eastl::unique_ptr<Window> m_window;
 
-        vk::Instance m_instance;
+        VkSharedInstance m_sharedInstance;
         vk::DebugUtilsMessengerEXT m_debugMessenger;
         vk::PhysicalDevice m_physicalDevice;
-        vk::Device m_device;
+        VkSharedDevice m_sharedDevice;
 
         eastl::unique_ptr<VkSurface> m_surface;
 

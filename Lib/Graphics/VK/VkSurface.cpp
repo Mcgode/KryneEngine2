@@ -13,9 +13,10 @@ namespace KryneEngine
 {
     using VkHelperFunctions::VkAssert;
 
-    VkSurface::VkSurface(const vk::Instance &_instance, GLFWwindow *_window)
+    VkSurface::VkSurface(VkSharedInstanceRef &&_instanceRef, GLFWwindow *_window)
+        : m_sharedInstanceRef(eastl::move(_instanceRef))
     {
-        VkAssert(glfwCreateWindowSurface(_instance, _window, nullptr,
+        VkAssert(glfwCreateWindowSurface(*m_sharedInstanceRef, _window, nullptr,
                 reinterpret_cast<VkSurfaceKHR*>(&m_surface)));
     }
 
@@ -31,5 +32,10 @@ namespace KryneEngine
                 eastl::back_inserter(m_capabilities.m_presentModes));
 
         Assert(!formats.empty() && !presentModes.empty());
+    }
+
+    VkSurface::~VkSurface()
+    {
+        m_sharedInstanceRef->destroy(m_surface);
     }
 }

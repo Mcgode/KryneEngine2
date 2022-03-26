@@ -60,6 +60,8 @@ namespace KryneEngine
 
     VkGraphicsContext::VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo)
         : m_appInfo(_appInfo)
+        , m_sharedInstance({})
+        , m_sharedDevice({})
     {
         if (m_appInfo.m_features.m_present)
         {
@@ -96,13 +98,13 @@ namespace KryneEngine
         instanceCreateInfo.enabledExtensionCount = extensions.size();
         instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
-        VkAssert(vk::createInstance(&instanceCreateInfo, nullptr, &m_instance));
+        VkAssert(vk::createInstance(&instanceCreateInfo, nullptr, &m_sharedInstance.m_object));
 
         _SetupValidationLayersCallback();
 
         if (m_appInfo.m_features.m_present)
         {
-            m_surface = eastl::make_unique<VkSurface>(m_instance, m_window->GetGlfwWindow());
+            m_surface = eastl::make_unique<VkSurface>(eastl::move(m_sharedInstance.MakeRef()), m_window->GetGlfwWindow());
         }
 
         _SelectPhysicalDevice();
@@ -117,14 +119,16 @@ namespace KryneEngine
 
     VkGraphicsContext::~VkGraphicsContext()
     {
+        m_surface.reset();
+        m_sharedDevice.Destroy();
         if (m_debugMessenger)
         {
-            auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) m_instance.getProcAddr("vkDestroyDebugUtilsMessengerEXT");
+            auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) m_sharedInstance->getProcAddr("vkDestroyDebugUtilsMessengerEXT");
             if (func != nullptr) {
-                func(m_instance, m_debugMessenger, nullptr);
+                func(*m_sharedInstance, m_debugMessenger, nullptr);
             }
         }
-        m_instance.destroy();
+        m_sharedInstance.Destroy();
     }
 
     void VkGraphicsContext::_PrepareValidationLayers(vk::InstanceCreateInfo& _createInfo)
@@ -189,18 +193,18 @@ namespace KryneEngine
     void VkGraphicsContext::_SetupValidationLayersCallback()
     {
         auto createInfo = _PopulateDebugCreateInfo(this);
-        auto func = (PFN_vkCreateDebugUtilsMessengerEXT)m_instance.getProcAddr("vkCreateDebugUtilsMessengerEXT");
+        auto func = (PFN_vkCreateDebugUtilsMessengerEXT)m_sharedInstance->getProcAddr("vkCreateDebugUtilsMessengerEXT");
 
         if (Verify(func != nullptr))
         {
-            VkAssert(func(m_instance, reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&createInfo),
+            VkAssert(func(*m_sharedInstance, reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&createInfo),
                           nullptr, reinterpret_cast<VkDebugUtilsMessengerEXT*>(&m_debugMessenger)));
         }
     }
 
     void VkGraphicsContext::_SelectPhysicalDevice()
     {
-        const auto availableDevices = m_instance.enumeratePhysicalDevices();
+        const auto availableDevices = m_sharedInstance->enumeratePhysicalDevices();
         eastl::vector<vk::PhysicalDevice> suitableDevices;
         eastl::copy_if(availableDevices.begin(), availableDevices.end(),
                        eastl::back_inserter(suitableDevices),
@@ -438,7 +442,7 @@ namespace KryneEngine
                                         MakeArrayProxy(requiredExtensions),
                                         &features);
 
-        VkAssert(m_physicalDevice.createDevice(&createInfo, nullptr, &m_device));
+        VkAssert(m_physicalDevice.createDevice(&createInfo, nullptr, &m_sharedDevice.m_object));
 
         _RetrieveQueues(queueIndices);
     }
@@ -449,7 +453,7 @@ namespace KryneEngine
         {
             if (!_queueIndex.IsInvalid())
             {
-                destQueue_ = m_device.getQueue(_queueIndex.m_familyIndex, _queueIndex.m_indexInFamily);
+                destQueue_ = m_sharedDevice->getQueue(_queueIndex.m_familyIndex, _queueIndex.m_indexInFamily);
             }
         };
 

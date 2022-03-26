@@ -8,6 +8,7 @@
 
 #include <vulkan/vulkan.hpp>
 #include <Common/KETypes.hpp>
+#include <Graphics/VK/CommonStructures.hpp>
 
 struct GLFWwindow;
 
@@ -23,7 +24,9 @@ namespace KryneEngine
             eastl::vector<vk::PresentModeKHR> m_presentModes;
         };
 
-        VkSurface(const vk::Instance &_instance, GLFWwindow *_window);
+        VkSurface(VkSharedInstanceRef &&_instanceRef, GLFWwindow *_window);
+
+        virtual ~VkSurface();
 
         void UpdateCapabilities(const vk::PhysicalDevice& _physicalDevice);
 
@@ -32,6 +35,7 @@ namespace KryneEngine
 
     private:
         vk::SurfaceKHR m_surface;
+        VkSharedInstanceRef m_sharedInstanceRef;
         Capabilities m_capabilities;
     };
 }
