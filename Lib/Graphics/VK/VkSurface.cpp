@@ -16,8 +16,10 @@ namespace KryneEngine
     VkSurface::VkSurface(VkSharedInstanceRef &&_instanceRef, GLFWwindow *_window)
         : m_sharedInstanceRef(eastl::move(_instanceRef))
     {
-        VkAssert(glfwCreateWindowSurface(*m_sharedInstanceRef, _window, nullptr,
-                reinterpret_cast<VkSurfaceKHR*>(&m_surface)));
+        VkAssert(glfwCreateWindowSurface(*m_sharedInstanceRef,
+                                         _window,
+                                         nullptr,
+                                         reinterpret_cast<VkSurfaceKHR*>(&m_surface)));
     }
 
     void VkSurface::UpdateCapabilities(const vk::PhysicalDevice& _physicalDevice)

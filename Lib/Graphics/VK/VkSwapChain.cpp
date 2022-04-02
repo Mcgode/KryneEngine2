@@ -118,7 +118,7 @@ namespace KryneEngine
                 imageCount,
                 selectedFormat.format,
                 selectedFormat.colorSpace,
-                extent,
+                {},
                 1,
                 vk::ImageUsageFlagBits::eColorAttachment,
                 m_sharingMode,

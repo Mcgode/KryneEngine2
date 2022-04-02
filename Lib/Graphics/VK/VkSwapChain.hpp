@@ -22,8 +22,10 @@ namespace KryneEngine
     public:
         VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
                     VkSharedDeviceRef &&_deviceRef,
-                    const VkSurface *_surface, GLFWwindow *_window,
-                    const VkCommonStructures::QueueIndices &_queueIndices, VkSwapChain *_oldSwapChain);
+                    const VkSurface *_surface,
+                    GLFWwindow *_window,
+                    const VkCommonStructures::QueueIndices &_queueIndices,
+                    VkSwapChain *_oldSwapChain = nullptr);
 
         virtual ~VkSwapChain();
 

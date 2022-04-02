@@ -17,6 +17,7 @@ namespace KryneEngine
 {
     class Window;
     class VkSurface;
+    class VkSwapChain;
 
     class VkGraphicsContext
     {
@@ -38,7 +39,9 @@ namespace KryneEngine
         VkSharedDevice m_sharedDevice;
 
         eastl::unique_ptr<VkSurface> m_surface;
+        eastl::unique_ptr<VkSwapChain> m_swapChain;
 
+        VkCommonStructures::QueueIndices m_queueIndices {};
         vk::Queue m_graphicsQueue;
         vk::Queue m_transferQueue;
         vk::Queue m_computeQueue;

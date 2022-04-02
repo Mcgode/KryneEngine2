@@ -13,6 +13,7 @@
 #include <Graphics/Common/Window.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
 #include <Graphics/VK/VkSurface.hpp>
+#include <Graphics/VK/VkSwapChain.hpp>
 #include <GLFW/glfw3.h>
 
 namespace KryneEngine
@@ -26,7 +27,7 @@ namespace KryneEngine
                 "VK_LAYER_KHRONOS_validation"
         };
 
-        static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
+        VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
                 VkDebugUtilsMessageSeverityFlagBitsEXT _messageSeverity,
                 VkDebugUtilsMessageTypeFlagsEXT _messageType,
                 const VkDebugUtilsMessengerCallbackDataEXT* _pCallbackData,
@@ -50,7 +51,7 @@ namespace KryneEngine
                 severity += "error|";
             }
 
-            if (_messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+            if (_messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
             {
                 std::cerr << "Validation layer (" << severity.c_str() << "): " << _pCallbackData->pMessage << std::endl;
             }
@@ -116,10 +117,22 @@ namespace KryneEngine
         }
 
         _CreateDevice();
+
+        if (m_appInfo.m_features.m_present)
+        {
+            m_swapChain = eastl::make_unique<VkSwapChain>(
+                    m_appInfo,
+                    eastl::move(m_sharedDevice.MakeRef()),
+                    m_surface.get(),
+                    m_window->GetGlfwWindow(),
+                    m_queueIndices
+                    );
+        }
     }
 
     VkGraphicsContext::~VkGraphicsContext()
     {
+        m_swapChain.reset();
         m_surface.reset();
         m_sharedDevice.Destroy();
         if (m_debugMessenger)
@@ -382,8 +395,7 @@ namespace KryneEngine
         eastl::vector<vk::DeviceQueueCreateInfo> queueCreateInfo;
         eastl::vector<eastl::vector<float>> queuePriorities;
 
-        QueueIndices queueIndices;
-        Assert(_SelectQueues(m_appInfo, m_physicalDevice, m_surface->GetSurface(), queueIndices));
+        Assert(_SelectQueues(m_appInfo, m_physicalDevice, m_surface->GetSurface(), m_queueIndices));
         {
             const auto createQueueInfo = [&queueCreateInfo, &queuePriorities](QueueIndices::Pair _index, float _priority)
             {
@@ -413,10 +425,10 @@ namespace KryneEngine
                 prioritiesVector[_index.m_indexInFamily] = _priority;
             };
 
-            createQueueInfo(queueIndices.m_graphicsQueueIndex, 1.0);
-            createQueueInfo(queueIndices.m_transferQueueIndex, 0.5);
-            createQueueInfo(queueIndices.m_computeQueueIndex, 0.5);
-            createQueueInfo(queueIndices.m_presentQueueIndex, 1.0);
+            createQueueInfo(m_queueIndices.m_graphicsQueueIndex, 1.0);
+            createQueueInfo(m_queueIndices.m_transferQueueIndex, 0.5);
+            createQueueInfo(m_queueIndices.m_computeQueueIndex, 0.5);
+            createQueueInfo(m_queueIndices.m_presentQueueIndex, 1.0);
 
             for (u32 i = 0; i < queueCreateInfo.size(); i++)
             {
@@ -441,7 +453,7 @@ namespace KryneEngine
 
         VkAssert(m_physicalDevice.createDevice(&createInfo, nullptr, &m_sharedDevice.m_object));
 
-        _RetrieveQueues(queueIndices);
+        _RetrieveQueues(m_queueIndices);
     }
 
     void VkGraphicsContext::_RetrieveQueues(const QueueIndices &_queueIndices)
