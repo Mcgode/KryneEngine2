@@ -9,6 +9,7 @@
 #include <iostream>
 #include <EASTL/algorithm.h>
 #include <EASTL/vector_map.h>
+#include <Common/KEStringHelpers.hpp>
 #include <Graphics/Common/Window.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
 #include <Graphics/VK/VkSurface.hpp>
@@ -425,11 +426,7 @@ namespace KryneEngine
 
         vk::PhysicalDeviceFeatures features;
 
-        const auto requiredExtensionsSet = _GetRequiredDeviceExtensions();
-        eastl::vector<const char*> requiredExtensions;
-        eastl::for_each(requiredExtensions.begin(), requiredExtensions.end(),
-                        [&requiredExtensions](const eastl::string& _extension)
-                        { requiredExtensions.push_back(_extension.c_str()); });
+        const auto requiredExtensions = StringHelpers::RetrieveStringPointerContainer(_GetRequiredDeviceExtensions());
 
         vk::ArrayProxyNoTemporaries<const char* const> enabledLayerNames;
         if (m_appInfo.m_features.m_validationLayers)
