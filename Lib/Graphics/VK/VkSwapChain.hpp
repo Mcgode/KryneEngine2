@@ -33,5 +33,6 @@ namespace KryneEngine
         vk::SwapchainKHR m_swapChain;
         VkSharedDeviceRef m_deviceRef;
         vk::SharingMode m_sharingMode;
+        eastl::vector<vk::Image> m_swapChainImages;
     };
 }

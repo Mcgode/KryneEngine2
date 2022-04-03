@@ -5,6 +5,7 @@
  */
 
 #include "VkSwapChain.hpp"
+#include "Common/KEEastlHelpers.hpp"
 
 #include <Common/Assert.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
@@ -130,6 +131,10 @@ namespace KryneEngine
                 _oldSwapChain == nullptr ? vk::SwapchainKHR{} : _oldSwapChain->m_swapChain);
 
         VkHelperFunctions::VkAssert(m_deviceRef->createSwapchainKHR(&createInfo, nullptr, &m_swapChain));
+
+        EastlHelpers::CopyToEastlBackInsertingContainer(
+                _deviceRef->getSwapchainImagesKHR(m_swapChain),
+                m_swapChainImages);
     }
 
     VkSwapChain::~VkSwapChain()
