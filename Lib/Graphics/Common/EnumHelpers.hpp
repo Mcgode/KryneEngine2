@@ -1,0 +1,15 @@
+/**
+ * @file
+ * @author Max Godefroy
+ * @date 18/04/2022.
+ */
+
+#pragma once
+
+#include <Graphics/Common/Enums.hpp>
+#include <Common/KETypes.hpp>
+
+namespace KryneEngine::GraphicsEnumHelpers
+{
+    u8 GetTextureFormatComponentCount(TextureFormat _format);
+}
