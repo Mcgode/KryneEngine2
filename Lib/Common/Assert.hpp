@@ -12,10 +12,17 @@
 
 namespace KryneEngine
 {
+    inline void Error(const eastl::string_view& _msg)
+    {
+        throw std::runtime_error(_msg.begin());
+    }
+
     inline void Assert(bool _condition, const eastl::string_view& _message)
     {
         if (!_condition)
-            throw std::runtime_error(_message.begin());
+        {
+            Error(_message);
+        }
     }
 
     inline void Assert(bool _condition)
