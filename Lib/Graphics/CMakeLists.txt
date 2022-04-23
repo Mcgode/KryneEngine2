@@ -8,7 +8,7 @@ set(VkFiles
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
         Common/Window.cpp Common/Window.hpp
-        Common/GraphicsCommon.hpp)
+        Common/GraphicsCommon.hpp Common/TextureView.cpp Common/TextureView.hpp Common/TextureMemory.cpp Common/TextureMemory.hpp Common/Enums.hpp Common/EnumHelpers.cpp Common/EnumHelpers.hpp)
 
 if (GraphicsApi STREQUAL "VK")
     set(SrcFiles ${CommonFiles} ${VkFiles})
