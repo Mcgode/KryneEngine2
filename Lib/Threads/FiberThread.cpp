@@ -51,7 +51,6 @@ namespace KryneEngine
 
         Assert(Threads::SetThreadHardwareAffinity(m_thread, _threadIndex));
     }
-#pragma clang diagnostic pop
 
     FiberThread::~FiberThread()
     {

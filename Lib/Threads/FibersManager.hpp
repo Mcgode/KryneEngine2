@@ -31,6 +31,16 @@ namespace KryneEngine
 
         [[nodiscard]] static FibersManager* GetInstance();
 
+        [[nodiscard]] static u16 GetFibersCount()
+        {
+            auto* mgr = GetInstance();
+            if (!Verify(mgr != nullptr))
+            {
+                return 0;
+            }
+            return mgr->m_fiberThreads.Size();
+        }
+
     private:
         using JobType = void*;
         using JobQueue = moodycamel::ConcurrentQueue<JobType>;
