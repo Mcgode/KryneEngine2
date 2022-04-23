@@ -4,6 +4,8 @@
  * @date 23/04/2022.
  */
 
+#pragma once
+
 #include <Common/KETypes.hpp>
 #include <Common/Assert.hpp>
 
