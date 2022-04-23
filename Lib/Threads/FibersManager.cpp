@@ -22,12 +22,16 @@ namespace KryneEngine
         }
     }
 
-    FibersManager::JobType FibersManager::_RetrieveNextJob()
+    bool FibersManager::_RetrieveNextJob(JobType &job_)
     {
         for (s32 i = (s32)m_jobQueues.size() - 1; i >= 0; i++)
         {
+            if (m_jobQueues[i].try_dequeue(job_))
+            {
+                return true;
+            }
         }
-        return nullptr;
+        return false;
     }
 
     FibersManager *FibersManager::GetInstance()

@@ -41,6 +41,6 @@ namespace KryneEngine
 
         static thread_local FibersManager* sManager;
 
-        JobType _RetrieveNextJob();
+        bool _RetrieveNextJob(JobType &job_);
     };
 } // KryneEngine
