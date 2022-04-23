@@ -11,7 +11,7 @@
 namespace KryneEngine
 {
     template<class T>
-    struct FiberTLS
+    struct FiberTls
     {
     public:
         void Init();

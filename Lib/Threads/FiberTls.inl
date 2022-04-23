@@ -10,13 +10,13 @@
 namespace KryneEngine
 {
     template<class T>
-    inline void FiberTLS<T>::Init()
+    inline void FiberTls<T>::Init()
     {
         m_array.Resize(FibersManager::GetFibersCount());
     }
 
     template<class T>
-    inline T& FiberTLS<T>::Load()
+    inline T& FiberTls<T>::Load()
     {
         Assert(FiberThread::IsFiberThread());
 
