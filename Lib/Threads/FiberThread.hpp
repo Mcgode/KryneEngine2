@@ -28,6 +28,9 @@ namespace KryneEngine
         bool m_shouldStop = false;
         std::thread m_thread;
 
+        static constexpr u32 kRetrieveSpinCount = 50;
+        static constexpr bool kSleepToSavePerformance = true;
+
         static thread_local ThreadIndex sThreadIndex;
         static thread_local bool sIsThread;
     };

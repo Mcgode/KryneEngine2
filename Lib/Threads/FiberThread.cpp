@@ -26,12 +26,32 @@ namespace KryneEngine
 
             while (!m_shouldStop)
             {
+                FibersManager::JobType job;
+                bool foundJob = false;
 
+                for (u32 i = 0; i < kRetrieveSpinCount; i++)
+                {
+                    foundJob = FibersManager::GetInstance()->_RetrieveNextJob(job);
+                    if (foundJob)
+                    {
+                        break;
+                    }
+                }
+
+                if (foundJob)
+                {
+                    // TODO: run job
+                }
+                else if (kSleepToSavePerformance)
+                {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(0));
+                }
             }
         });
 
         Assert(Threads::SetThreadHardwareAffinity(m_thread, _threadIndex));
     }
+#pragma clang diagnostic pop
 
     FiberThread::~FiberThread()
     {
