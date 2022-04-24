@@ -106,8 +106,25 @@ namespace KryneEngine
         Ptr Init(u64 _index, Args... args)
         {
             Assert(_index < m_count, "Beyond max index!");
-            void* memSpace = m_array + _index;
-            return new (memSpace) T(args...);
+            Ptr memSpace = m_array + _index;
+            return new ((void*)memSpace) T(args...);
+        }
+
+        template<class... Args>
+        void InitAll(Args... args)
+        {
+            for (Ptr valuePtr = begin(); valuePtr != end(); valuePtr++)
+            {
+                new ((void*)valuePtr) T(args...);
+            }
+        }
+
+        void SetAll(const T& _value)
+        {
+            for (auto& value: *this)
+            {
+                value = _value;
+            }
         }
 
         Ref operator[](u64 _index) const
