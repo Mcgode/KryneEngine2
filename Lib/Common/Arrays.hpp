@@ -8,6 +8,7 @@
 
 #include <Common/KETypes.hpp>
 #include <Common/Assert.hpp>
+#include <EASTL/initializer_list.h>
 
 namespace KryneEngine
 {
@@ -17,6 +18,63 @@ namespace KryneEngine
         using Ptr = T*;
         using Ref = T&;
         using Iterator = Ptr;
+
+        DynamicArray() = default;
+
+        explicit DynamicArray(u64 _count)
+        {
+            Resize(_count);
+        }
+
+        DynamicArray(u64 _count, const T& _value)
+        {
+            Resize(_count);
+            SetAll(_value);
+        }
+
+        DynamicArray(const std::initializer_list<T>& _initializerList)
+        {
+            Resize(_initializerList.size());
+
+            auto it = _initializerList.begin();
+            for (Ptr valuePtr = begin(); valuePtr != end(); valuePtr++, it++)
+            {
+                *valuePtr = *it;
+            }
+        }
+
+        DynamicArray(const DynamicArray& _other)
+        {
+            Resize(_other.m_count);
+            memcpy(m_array, _other.m_array, sizeof(T) * m_count);
+        }
+
+        DynamicArray& operator=(const DynamicArray& _other)
+        {
+            Resize(_other.m_count);
+            memcpy(m_array, _other.m_array, sizeof(T) * m_count);
+            return *this;
+        }
+
+        DynamicArray(DynamicArray&& _other) noexcept
+        {
+            m_count = _other.m_count;
+            m_array = _other.m_array;
+
+            _other.m_count = 0;
+            _other.m_array = nullptr;
+        }
+
+        DynamicArray& operator=(DynamicArray&& _other) noexcept
+        {
+            m_count = _other.m_count;
+            m_array = _other.m_array;
+
+            _other.m_count = 0;
+            _other.m_array = nullptr;
+
+            return *this;
+        }
 
         virtual ~DynamicArray()
         {
