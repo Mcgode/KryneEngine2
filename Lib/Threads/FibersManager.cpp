@@ -64,4 +64,10 @@ namespace KryneEngine
     {
         return sManager;
     }
+
+    FibersManager::~FibersManager()
+    {
+        // Make sure to end and join all the fiber threads before anything else.
+        m_fiberThreads.Clear();
+    }
 }

@@ -29,6 +29,8 @@ namespace KryneEngine
     public:
         explicit FibersManager(u16 _fiberThreadCount);
 
+        ~FibersManager();
+
         [[nodiscard]] static FibersManager* GetInstance();
 
         [[nodiscard]] static u16 GetFibersCount()
