@@ -6,22 +6,14 @@
 
 #pragma once
 
-#include <Common/KETypes.hpp>
 #include <EASTL/array.h>
 #include <moodycamel/concurrentqueue.h>
 #include <Threads/FiberThread.hpp>
+#include <Threads/FiberJob.hpp>
 #include <Threads/FiberTls.hpp>
 
 namespace KryneEngine
 {
-    enum class FibersJobPriority: u8
-    {
-        Low,
-        Medium,
-        High,
-        Count
-    };
-
     class FibersManager
     {
         friend FiberThread;
@@ -40,15 +32,15 @@ namespace KryneEngine
             {
                 return 0;
             }
-            return mgr->m_fiberThreads.Size();
+            return mgr->GetFiberThreadCount();
         }
 
         [[nodiscard]] u16 GetFiberThreadCount() const { return m_fiberThreads.Size(); }
 
     private:
-        using JobType = void*;
+        using JobType = FiberJob*;
         using JobQueue = moodycamel::ConcurrentQueue<JobType>;
-        static constexpr u8 kJobQueuesCount = static_cast<u8>(FibersJobPriority::Count) + 1;
+        static constexpr u8 kJobQueuesCount = FiberJob::PriorityType::kJobPriorityTypes;
         eastl::array<JobQueue, kJobQueuesCount> m_jobQueues;
 
         using JobProducerTokenArray = eastl::array<moodycamel::ProducerToken, kJobQueuesCount>;
