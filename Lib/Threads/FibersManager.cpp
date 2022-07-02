@@ -50,7 +50,7 @@ namespace KryneEngine
     bool FibersManager::_RetrieveNextJob(JobType &job_, u16 _fiberIndex)
     {
         auto& consumerTokens = m_jobConsumerTokens.Load(_fiberIndex);
-        for (s32 i = (s32)m_jobQueues.size() - 1; i >= 0; i++)
+        for (s32 i = (s32)m_jobQueues.size() - 1; i >= 0; i--)
         {
             if (m_jobQueues[i].try_dequeue(consumerTokens[i], job_))
             {
