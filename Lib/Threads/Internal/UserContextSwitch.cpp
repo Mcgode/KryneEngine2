@@ -228,34 +228,32 @@ namespace
             0xc3 // retq
     };
 
-    using KryneEngine::Context;
+    using KryneEngine::FiberContext;
 
-#if defined(_WIN32)
-    void (*_GetContext)(Context*) = (void (*)(Context*))get_context_win_asm;
-    void (*_SetContext)(Context*) = (void (*)(Context*))set_context_win_asm;
-    void (*_SwapContext)(Context*, Context*) = (void (*)(Context*, Context*))swap_context_win_asm;
-#elif __linux__
-    void (*_GetContext)(Context*) = (void (*)(Context*))get_context_sysV_asm;
-    void (*_SetContext)(Context*) = (void (*)(Context*))set_context_sysV_asm;
-    void (*_SwapContext)(Context*, Context*) = (void (*)(Context*, Context*))swap_context_sysV_asm;
-#else
-#error Unsupported platform
+#if CONTEXT_SWITCH_ABI_WINDOWS
+    void (*_GetContext)(FiberContext*) = (void (*)(FiberContext*))get_context_win_asm;
+    void (*_SetContext)(FiberContext*) = (void (*)(FiberContext*))set_context_win_asm;
+    void (*_SwapContext)(FiberContext*, FiberContext*) = (void (*)(FiberContext*, FiberContext*))swap_context_win_asm;
+#elif CONTEXT_SWITCH_ABI_SYS_V
+    void (*_GetContext)(FiberContext*) = (void (*)(FiberContext*))get_context_sysV_asm;
+    void (*_SetContext)(FiberContext*) = (void (*)(FiberContext*))set_context_sysV_asm;
+    void (*_SwapContext)(FiberContext*, FiberContext*) = (void (*)(FiberContext*, FiberContext*))swap_context_sysV_asm;
 #endif
 }
 
 namespace KryneEngine
 {
-    void GetContext(Context *_current)
+    void GetContext(FiberContext *_current)
     {
         _GetContext(_current);
     }
 
-    void SetContext(Context *_new)
+    void SetContext(FiberContext *_new)
     {
         _SetContext(_new);
     }
 
-    void SwapContext(Context *_current, Context *_new)
+    void SwapContext(FiberContext *_current, FiberContext *_new)
     {
         _SwapContext(_current, _new);
     }
