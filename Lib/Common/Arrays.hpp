@@ -150,6 +150,8 @@ namespace KryneEngine
                 instance.~T();
             }
             delete m_buffer;
+            m_buffer = nullptr;
+            m_count = 0;
         }
 
     private:
