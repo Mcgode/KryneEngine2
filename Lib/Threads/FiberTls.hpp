@@ -23,7 +23,7 @@ namespace KryneEngine
         void Init(const FibersManager *_fibersManager, const T &_value);
 
         template <typename F>
-        void Init(const FibersManager* _fibersManager, F _initFunction);
+        void InitFunc(const FibersManager* _fibersManager, F _initFunction);
 
         [[nodiscard]] T& Load();
 

@@ -22,7 +22,7 @@ namespace KryneEngine
 
         // Init FiberTls objects before initializing the threads, to avoid racing conditions.
         {
-            m_jobProducerTokens.Init(this, [this](JobProducerTokenArray &_array)
+            m_jobProducerTokens.InitFunc(this, [this](JobProducerTokenArray &_array)
             {
                 for (u64 i = 0; i < _array.size(); i++)
                 {
@@ -31,7 +31,7 @@ namespace KryneEngine
                 }
             });
 
-            m_jobConsumerTokens.Init(this, [this](JobConsumerTokenArray &_array)
+            m_jobConsumerTokens.InitFunc(this, [this](JobConsumerTokenArray &_array)
             {
                 for (u64 i = 0; i < _array.size(); i++)
                 {
@@ -39,6 +39,23 @@ namespace KryneEngine
                     ::new(&_array[i]) moodycamel::ConsumerToken(m_jobQueues[i]);
                 }
             });
+
+            m_currentJobs.Init(this, nullptr);
+            m_contexts.Init(this, {});
+        }
+
+        {
+            for (u16 i = 0; i < kSmallStackCount; i++)
+            {
+                m_availableSmallStacksIds.enqueue(i);
+            }
+            m_smallStacks = new u8[kSmallStackSize * (u64) kSmallStackCount];
+
+            for (u16 i = 0; i < kBigStackCount; i++)
+            {
+                m_availableBigStacksIds.enqueue(i);
+            }
+            m_bigStacks = new u8[kBigStackSize * (u64) kBigStackCount];
         }
 
         for (u16 i = 0; i < _fiberThreadCount; i++)
@@ -54,6 +71,23 @@ namespace KryneEngine
         {
             if (m_jobQueues[i].try_dequeue(consumerTokens[i], job_))
             {
+                if (!job_->_HasStackAssigned())
+                {
+                    const bool useBigStack = job_->m_bigStack;
+                    auto& queue = useBigStack ? m_availableBigStacksIds : m_availableSmallStacksIds;
+
+                    u16 stackId;
+                    if (!Verify(queue.try_dequeue(stackId), "Out of Fiber stacks!"))
+                    {
+                        m_jobQueues[i].enqueue(m_jobProducerTokens.Load(_fiberIndex)[i], job_);
+                        return false;
+                    }
+
+                    auto* bufferPtr = useBigStack
+                            ? &m_bigStacks[kBigStackSize * stackId]
+                            : &m_smallStacks[kSmallStackSize * stackId];
+                    job_->_SetStackPointer(stackId, bufferPtr, useBigStack ? kBigStackSize : kSmallStackSize);
+                }
                 return true;
             }
         }
@@ -69,5 +103,19 @@ namespace KryneEngine
     {
         // Make sure to end and join all the fiber threads before anything else.
         m_fiberThreads.Clear();
+
+        delete m_smallStacks;
+        delete m_bigStacks;
+    }
+
+    FiberJob *FibersManager::GetCurrentJob()
+    {
+        return m_currentJobs.Load();
+    }
+
+    void FibersManager::YieldJob()
+    {
+        const auto fiberIndex = FiberThread::GetCurrentFiberThreadIndex();
+        SwapContext(&m_currentJobs.Load(fiberIndex)->m_context, &m_contexts.Load(fiberIndex));
     }
 }

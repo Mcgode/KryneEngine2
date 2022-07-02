@@ -8,6 +8,7 @@
 
 #include <Common/KETypes.hpp>
 #include <Common/Assert.hpp>
+#include <Threads/Internal/UserContextSwitch.hpp>
 
 namespace KryneEngine
 {
@@ -59,12 +60,40 @@ namespace KryneEngine
             }
         };
 
+        enum class Status
+        {
+            Unkicked,
+            Kicked,
+            Finished
+        };
+
+        friend class FibersManager;
+
     public:
-        explicit FiberJob(Priority _priority)
-            : m_priority(_priority)
-        {}
+        typedef void (JobFunc)(void*);
+
+        explicit FiberJob(JobFunc* _func, void* _userData, Priority _priority = Priority::Medium,
+                          bool _bigStack = false);
+
+        [[nodiscard]] Status GetStatus() const { return m_status; }
+
+    protected:
+        [[nodiscard]] bool _HasStackAssigned() const { return m_stackId != kInvalidStackId; }
+
+        void _SetStackPointer(u16 _stackId, u8 *_stackPtr, u64 _stackSize);
 
     private:
-        Priority m_priority;
+        JobFunc* m_functionPtr;
+        void* m_userData;
+        const Priority m_priority;
+        const bool m_bigStack;
+
+        Status m_status = Status::Unkicked;
+
+        static constexpr s32 kInvalidStackId = -1;
+        s32 m_stackId = kInvalidStackId;
+        FiberContext m_context {};
+
+        static void _KickJob();
     };
 } // KryneEngine

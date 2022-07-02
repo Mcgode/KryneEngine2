@@ -18,7 +18,7 @@ namespace KryneEngine
 
     template<class T>
     template<typename F>
-    void FiberTls<T>::Init(const FibersManager *_fibersManager, F _initFunction)
+    void FiberTls<T>::InitFunc(const FibersManager *_fibersManager, F _initFunction)
     {
         m_array.Resize(_fibersManager->GetFiberThreadCount());
 
