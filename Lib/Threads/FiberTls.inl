@@ -10,9 +10,22 @@
 namespace KryneEngine
 {
     template<class T>
-    inline void FiberTls<T>::Init()
+    inline void FiberTls<T>::Init(const FibersManager *_fibersManager, const T &_value)
     {
-        m_array.Resize(FibersManager::GetFibersCount());
+        m_array.Resize(_fibersManager->GetFiberThreadCount());
+        m_array.SetAll(_value);
+    }
+
+    template<class T>
+    template<typename F>
+    void FiberTls<T>::Init(const FibersManager *_fibersManager, F _initFunction)
+    {
+        m_array.Resize(_fibersManager->GetFiberThreadCount());
+
+        for (auto& localFiberValue: m_array)
+        {
+            _initFunction(localFiberValue);
+        }
     }
 
     template<class T>

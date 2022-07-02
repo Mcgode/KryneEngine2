@@ -10,11 +10,21 @@
 
 namespace KryneEngine
 {
+    class FibersManager;
+
     template<class T>
     struct FiberTls
     {
     public:
-        void Init();
+        using Type = T;
+        using Ptr = typename DynamicArray<T>::Ptr;
+        using Ref = typename DynamicArray<T>::Ref;
+
+        void Init(const FibersManager *_fibersManager, const T &_value);
+
+        template <typename F>
+        void Init(const FibersManager* _fibersManager, F _initFunction);
+
         [[nodiscard]] T& Load();
 
         [[nodiscard]] inline T& Load(u16 _fiberIndex)

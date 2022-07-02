@@ -31,7 +31,7 @@ namespace KryneEngine
 
                 for (u32 i = 0; i < kRetrieveSpinCount; i++)
                 {
-                    foundJob = FibersManager::GetInstance()->_RetrieveNextJob(job);
+                    foundJob = FibersManager::GetInstance()->_RetrieveNextJob(job, _threadIndex);
                     if (foundJob)
                     {
                         break;
