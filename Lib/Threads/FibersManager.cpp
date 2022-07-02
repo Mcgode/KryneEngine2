@@ -16,23 +16,31 @@ namespace KryneEngine
     {
         Assert(_fiberThreadCount > 0, "You need at least one fiber thread");
 
-        m_jobProducerTokens.Init(this, [this](JobProducerTokenArray& _array)
-        {
-            for (u64 i = 0; i < _array.size(); i++)
-            {
-                _array[i] = moodycamel::ProducerToken(m_jobQueues[i]);
-            }
-        });
-
-        m_jobConsumerTokens.Init(this, [this](JobConsumerTokenArray& _array)
-        {
-            for (u64 i = 0; i < _array.size(); i++)
-            {
-                _array[i] = moodycamel::ConsumerToken(m_jobQueues[i]);
-            }
-        });
-
+        // Resize array first!
+        // This size is used to init the FiberTls objects,
         m_fiberThreads.Resize(_fiberThreadCount);
+
+        // Init FiberTls objects before initializing the threads, to avoid racing conditions.
+        {
+            m_jobProducerTokens.Init(this, [this](JobProducerTokenArray &_array)
+            {
+                for (u64 i = 0; i < _array.size(); i++)
+                {
+                    // Do in-place memory init, else it will try to interpret uninitialized memory as a valid object.
+                    ::new(&_array[i]) moodycamel::ProducerToken(m_jobQueues[i]);
+                }
+            });
+
+            m_jobConsumerTokens.Init(this, [this](JobConsumerTokenArray &_array)
+            {
+                for (u64 i = 0; i < _array.size(); i++)
+                {
+                    // Do in-place memory init, else it will try to interpret uninitialized memory as a valid object.
+                    ::new(&_array[i]) moodycamel::ConsumerToken(m_jobQueues[i]);
+                }
+            });
+        }
+
         for (u16 i = 0; i < _fiberThreadCount; i++)
         {
             m_fiberThreads.Init(i, this, i);
