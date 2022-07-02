@@ -62,8 +62,9 @@ namespace KryneEngine
 
         enum class Status
         {
-            Unkicked,
-            Kicked,
+            PendingStart,
+            Running,
+            Paused,
             Finished
         };
 
@@ -88,7 +89,7 @@ namespace KryneEngine
         const Priority m_priority;
         const bool m_bigStack;
 
-        Status m_status = Status::Unkicked;
+        Status m_status = Status::PendingStart;
 
         static constexpr s32 kInvalidStackId = -1;
         s32 m_stackId = kInvalidStackId;

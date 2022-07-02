@@ -67,12 +67,14 @@ namespace KryneEngine
     bool FibersManager::_RetrieveNextJob(JobType &job_, u16 _fiberIndex)
     {
         auto& consumerTokens = m_jobConsumerTokens.Load(_fiberIndex);
-        for (u64 i = 0; i < kJobQueuesCount; i++)
+        for (s64 i = 0; i < (s64)kJobQueuesCount; i++)
         {
             if (m_jobQueues[i].try_dequeue(consumerTokens[i], job_))
             {
                 if (!job_->_HasStackAssigned())
                 {
+                    Assert(job_->GetStatus() == FiberJob::Status::PendingStart);
+
                     const bool useBigStack = job_->m_bigStack;
                     auto& queue = useBigStack ? m_availableBigStacksIds : m_availableSmallStacksIds;
 
@@ -87,6 +89,14 @@ namespace KryneEngine
                             ? &m_bigStacks[kBigStackSize * stackId]
                             : &m_smallStacks[kSmallStackSize * stackId];
                     job_->_SetStackPointer(stackId, bufferPtr, useBigStack ? kBigStackSize : kSmallStackSize);
+                }
+                else if (job_->GetStatus() == FiberJob::Status::Finished || job_->GetStatus() == FiberJob::Status::Running)
+                {
+                    // If job is already finished or still running, ignore it and keep trying to retrieve the next job.
+                    // This might happen because the job was run by skipping this step, which is legal.
+                    job_ = nullptr;
+                    i--; // Roll back index to try retrieving again from this queue.
+                    continue;
                 }
                 return true;
             }
@@ -116,6 +126,12 @@ namespace KryneEngine
     void FibersManager::YieldJob()
     {
         const auto fiberIndex = FiberThread::GetCurrentFiberThreadIndex();
-        SwapContext(&m_currentJobs.Load(fiberIndex)->m_context, &m_contexts.Load(fiberIndex));
+        auto* currentJob = m_currentJobs.Load(fiberIndex);
+        if (currentJob->GetStatus() == FiberJob::Status::Running)
+        {
+            currentJob->m_status = FiberJob::Status::Paused;
+        }
+
+        SwapContext(&currentJob->m_context, &m_contexts.Load(fiberIndex));
     }
 }
