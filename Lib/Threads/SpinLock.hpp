@@ -7,6 +7,7 @@
 #pragma once
 
 #include <atomic>
+#include <Threads/HelperFunctions.hpp>
 
 namespace KryneEngine
 {
@@ -29,7 +30,7 @@ namespace KryneEngine
                 {
                     // Issue X86 PAUSE or ARM YIELD instruction to reduce contention between
                     // hyper-threads
-                    _mm_pause();
+                    Threads::CpuYield();
                 }
             }
         }
