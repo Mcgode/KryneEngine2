@@ -11,7 +11,9 @@ set(ThreadsSrc
         Threads/HelperFunctions.cpp Threads/HelperFunctions.hpp
         Threads/FiberTls.inl Threads/FiberTls.hpp
         Threads/FiberJob.cpp Threads/FiberJob.hpp
-        Threads/Internal/UserContextSwitch.cpp Threads/Internal/UserContextSwitch.hpp)
+        Threads/Internal/UserContextSwitch.cpp Threads/Internal/UserContextSwitch.hpp
+        Threads/LightweightBinarySemaphore.hpp
+        Threads/LightweightMutex.hpp)
 
 add_library(KryneEngine ${CommonSrc} ${ThreadsSrc})
-target_link_libraries(KryneEngine KryneEngineGraphics moodycamel)
+target_link_libraries(KryneEngine KryneEngineGraphics moodycamel concurrency_kit)
