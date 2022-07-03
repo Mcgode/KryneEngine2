@@ -12,6 +12,7 @@ set(ThreadsSrc
         Threads/FiberTls.inl Threads/FiberTls.hpp
         Threads/FiberJob.cpp Threads/FiberJob.hpp
         Threads/Internal/UserContextSwitch.cpp Threads/Internal/UserContextSwitch.hpp
+        Threads/SyncCounterPool.cpp Threads/SyncCounterPool.hpp
         Threads/LightweightBinarySemaphore.hpp
         Threads/LightweightMutex.hpp)
 

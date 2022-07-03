@@ -64,7 +64,7 @@ namespace KryneEngine
             ck_spinlock_unlock(&m_spinlock);
         }
 
-        Lock&& AutoLock()
+        [[nodiscard]] Lock&& AutoLock()
         {
             return eastl::move(Lock(this));
         }

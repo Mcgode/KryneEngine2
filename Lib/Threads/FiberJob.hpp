@@ -9,6 +9,7 @@
 #include <Common/KETypes.hpp>
 #include <Common/Assert.hpp>
 #include <Threads/Internal/UserContextSwitch.hpp>
+#include <Threads/SyncCounterPool.hpp>
 
 namespace KryneEngine
 {
@@ -90,6 +91,8 @@ namespace KryneEngine
             return status == Status::PendingStart || status == Status::Paused;
         }
 
+        [[nodiscard]] u32 GetWaitingForCounterValue() const { return m_waitingForCounterValue; }
+
     protected:
         [[nodiscard]] bool _HasStackAssigned() const { return m_stackId != kInvalidStackId; }
 
@@ -108,6 +111,9 @@ namespace KryneEngine
         static constexpr s32 kInvalidStackId = -1;
         s32 m_stackId = kInvalidStackId;
         FiberContext m_context {};
+
+        SyncCounterId m_associatedCounterId = kInvalidSynCounterId;
+        u32 m_waitingForCounterValue = 0;
 
         static void _KickJob();
     };
