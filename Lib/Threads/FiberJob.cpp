@@ -63,5 +63,7 @@ namespace KryneEngine
         job->m_status = Status::Running;
         job->m_functionPtr(job->m_userData);
         job->m_status = Status::Finished;
+
+        fibersManager->YieldJob();
     }
 } // KryneEngine
