@@ -64,12 +64,9 @@ namespace KryneEngine
         }
     }
 
-    FibersManager::SyncCounterId FibersManager::QueueJob(FibersManager::JobType _job)
+    void FibersManager::QueueJob(FibersManager::JobType _job)
     {
-        if (!Verify(_job != nullptr)) [[unlikely]]
-        {
-            return;
-        }
+        VERIFY_OR_RETURN_VOID(_job != nullptr && _job->m_associatedCounterId != kInvalidSynCounterId);
 
         Assert(_job->CanRun());
 
@@ -165,6 +162,9 @@ namespace KryneEngine
 
         if (oldJob != nullptr && oldJob->GetStatus() == FiberJob::Status::Finished)
         {
+            // Decrement counter
+            m_syncCounterPool.DecrementCounterValue(oldJob->m_associatedCounterId);
+
             // Free stack pointer
             if (oldJob->m_bigStack)
             {
@@ -180,5 +180,29 @@ namespace KryneEngine
 
         oldJob = newJob;
         newJob = nullptr;
+    }
+
+    SyncCounterId FibersManager::InitAndBatchJobs(FiberJob *_jobArray,
+                                                  FiberJob::JobFunc *_jobFunc,
+                                                  void *_userData,
+                                                  u32 _count,
+                                                  FiberJob::Priority _priority,
+                                                  bool _useBigStack)
+    {
+        const auto syncCounter = m_syncCounterPool.AcquireCounter(_count);
+
+        VERIFY_OR_RETURN(syncCounter != kInvalidSynCounterId, kInvalidSynCounterId);
+
+        for (u32 i = 0; i < _count; i++)
+        {
+            auto& job = _jobArray[i];
+            job.m_functionPtr = _jobFunc;
+            job.m_userData = _userData;
+            job.m_priority = _priority;
+            job.m_associatedCounterId = syncCounter;
+            QueueJob(&job);
+        }
+
+        return syncCounter;
     }
 }

@@ -75,8 +75,7 @@ namespace KryneEngine
     public:
         typedef void (JobFunc)(void*);
 
-        explicit FiberJob(JobFunc* _func, void* _userData, Priority _priority = Priority::Medium,
-                          bool _bigStack = false);
+        FiberJob();
 
         [[nodiscard]] Status GetStatus() const { return m_status; }
 
@@ -101,10 +100,10 @@ namespace KryneEngine
         void _ResetStackPointer();
 
     private:
-        JobFunc* m_functionPtr;
-        void* m_userData;
-        const Priority m_priority;
-        const bool m_bigStack;
+        JobFunc* m_functionPtr = nullptr;
+        void* m_userData = nullptr;
+        Priority m_priority = Priority::Medium;
+        bool m_bigStack = false;
 
         volatile Status m_status = Status::PendingStart;
 

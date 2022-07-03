@@ -11,6 +11,7 @@
 #include <Threads/FiberThread.hpp>
 #include <Threads/FiberJob.hpp>
 #include <Threads/FiberTls.hpp>
+#include <Threads/SyncCounterPool.hpp>
 
 namespace KryneEngine
 {
@@ -21,7 +22,6 @@ namespace KryneEngine
 
     public:
         using JobType = FiberJob*;
-        using SyncCounterId = void;
 
         explicit FibersManager(u16 _fiberThreadCount);
 
@@ -43,7 +43,14 @@ namespace KryneEngine
 
         [[nodiscard]] FiberJob* GetCurrentJob();
 
-        SyncCounterId QueueJob(JobType _job);
+        SyncCounterId InitAndBatchJobs(FiberJob* _jobArray,
+                                       FiberJob::JobFunc* _jobFunc,
+                                       void* _userData,
+                                       u32 _count = 1,
+                                       FiberJob::Priority _priority = FiberJob::Priority::Medium,
+                                       bool _useBigStack = false);
+
+        void QueueJob(JobType _job);
 
         void YieldJob(JobType _nextJob = nullptr);
 
@@ -69,6 +76,8 @@ namespace KryneEngine
         FiberTls<JobType> m_currentJobs;
         FiberTls<JobType> m_nextJob;
         FiberTls<FiberContext> m_contexts;
+
+        SyncCounterPool m_syncCounterPool {};
 
         static thread_local FibersManager* sManager;
 

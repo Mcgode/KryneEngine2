@@ -9,11 +9,7 @@
 
 namespace KryneEngine
 {
-    FiberJob::FiberJob(JobFunc* _func, void *_userData, Priority _priority, bool _bigStack)
-            : m_functionPtr(_func)
-            , m_userData(_userData)
-            , m_priority(_priority)
-            , m_bigStack(_bigStack)
+    FiberJob::FiberJob()
     {
         m_context.rsp = nullptr;
         m_context.rip = (void*)_KickJob;
