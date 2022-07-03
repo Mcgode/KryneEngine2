@@ -90,7 +90,7 @@ namespace KryneEngine
                     auto& queue = useBigStack ? m_availableBigStacksIds : m_availableSmallStacksIds;
 
                     u16 stackId;
-                    if (!Verify(queue.try_dequeue(stackId), "Out of Fiber stacks!"))
+                    IF_NOT_VERIFY_MSG(queue.try_dequeue(stackId), "Out of Fiber stacks!")
                     {
                         m_jobQueues[i].enqueue(m_jobProducerTokens.Load(_fiberIndex)[i], job_);
                         return false;
@@ -145,7 +145,7 @@ namespace KryneEngine
             QueueJob(currentJob);
         }
 
-        if (!Verify(_nextJob != nullptr && _nextJob->CanRun()))
+        IF_NOT_VERIFY(_nextJob != nullptr && _nextJob->CanRun())
         {
             _nextJob = nullptr;
         }
@@ -199,6 +199,7 @@ namespace KryneEngine
             job.m_functionPtr = _jobFunc;
             job.m_userData = _userData;
             job.m_priority = _priority;
+            job.m_bigStack = _useBigStack;
             job.m_associatedCounterId = syncCounter;
             QueueJob(&job);
         }

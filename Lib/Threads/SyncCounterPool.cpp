@@ -23,10 +23,7 @@ namespace KryneEngine
     SyncCounterId SyncCounterPool::AcquireCounter(u32 _initialValue)
     {
         const s32 initValue = static_cast<s32>(_initialValue);
-        if (!Verify(initValue > 0))
-        {
-            return kInvalidSynCounterId;
-        }
+        VERIFY_OR_RETURN(initValue > 0, kInvalidSynCounterId);
 
         u16 id;
         if (m_idQueue.try_dequeue(id))
@@ -39,10 +36,7 @@ namespace KryneEngine
 
     void SyncCounterPool::AddWaitingJob(SyncCounterId _id, FiberJob *_newJob)
     {
-        if (!Verify(_id >= 0 && _id < kPoolSize))
-        {
-            return;
-        }
+        VERIFY_OR_RETURN_VOID(_id >= 0 && _id < kPoolSize);
 
         auto& entry = m_entries[_id];
         const auto lock = entry.m_mutex.AutoLock();
@@ -58,10 +52,7 @@ namespace KryneEngine
 
     u32 SyncCounterPool::DecrementCounterValue(SyncCounterId _id)
     {
-        if (!Verify(_id >= 0 && _id < kPoolSize))
-        {
-            return 0;
-        }
+        VERIFY_OR_RETURN(_id >= 0 && _id < kPoolSize, 0);
 
         auto& entry = m_entries[_id];
 
@@ -89,10 +80,7 @@ namespace KryneEngine
 
     void SyncCounterPool::FreeCounter(SyncCounterId &_id)
     {
-        if (!Verify(_id >= 0 && _id < kPoolSize))
-        {
-            return;
-        }
+        VERIFY_OR_RETURN_VOID(_id >= 0 && _id < kPoolSize);
 
         m_idQueue.enqueue(_id);
         _id = kInvalidSynCounterId;

@@ -51,14 +51,12 @@ namespace KryneEngine
         fibersManager->_OnContextSwitched();
         auto* job = fibersManager->GetCurrentJob();
 
-        if (!Verify(job->m_status == Status::PendingStart))
+        if (Verify(job->m_status == Status::PendingStart))
         {
-            return;
+            job->m_status = Status::Running;
+            job->m_functionPtr(job->m_userData);
+            job->m_status = Status::Finished;
         }
-
-        job->m_status = Status::Running;
-        job->m_functionPtr(job->m_userData);
-        job->m_status = Status::Finished;
 
         fibersManager->YieldJob();
     }
