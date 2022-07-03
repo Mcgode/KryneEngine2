@@ -43,14 +43,23 @@ namespace KryneEngine
 
         [[nodiscard]] FiberJob* GetCurrentJob();
 
-        SyncCounterId InitAndBatchJobs(FiberJob* _jobArray,
-                                       FiberJob::JobFunc* _jobFunc,
-                                       void* _userData,
-                                       u32 _count = 1,
-                                       FiberJob::Priority _priority = FiberJob::Priority::Medium,
-                                       bool _useBigStack = false);
+        [[nodiscard]] SyncCounterId InitAndBatchJobs(FiberJob* _jobArray,
+                                                     FiberJob::JobFunc* _jobFunc,
+                                                     void* _userData,
+                                                     u32 _count = 1,
+                                                     FiberJob::Priority _priority = FiberJob::Priority::Medium,
+                                                     bool _useBigStack = false);
 
         void QueueJob(JobType _job);
+
+        void WaitForCounter(SyncCounterId _syncCounter);
+        void ResetCounter(SyncCounterId _syncCounter);
+
+        inline void WaitForCounterAndReset(SyncCounterId _syncCounter)
+        {
+            WaitForCounter(_syncCounter);
+            ResetCounter(_syncCounter);
+        }
 
         void YieldJob(JobType _nextJob = nullptr);
 

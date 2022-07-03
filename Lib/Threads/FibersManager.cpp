@@ -206,4 +206,14 @@ namespace KryneEngine
 
         return syncCounter;
     }
+
+    void FibersManager::WaitForCounter(SyncCounterId _syncCounter)
+    {
+        m_syncCounterPool.AddWaitingJob(_syncCounter, GetCurrentJob());
+    }
+
+    void FibersManager::ResetCounter(SyncCounterId _syncCounter)
+    {
+        m_syncCounterPool.FreeCounter(_syncCounter);
+    }
 }
