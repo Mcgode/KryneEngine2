@@ -71,8 +71,15 @@ namespace KryneEngine
         Assert(_job->CanRun());
 
         const u8 priorityId = (u8)_job->GetPriorityType();
-        auto& producerToken = m_jobProducerTokens.Load()[priorityId];
-        m_jobQueues[priorityId].enqueue(producerToken, _job);
+        if (FiberThread::IsFiberThread())
+        {
+            auto& producerToken = m_jobProducerTokens.Load()[priorityId];
+            m_jobQueues[priorityId].enqueue(producerToken, _job);
+        }
+        else
+        {
+            m_jobQueues[priorityId].enqueue(_job);
+        }
     }
 
     bool FibersManager::_RetrieveNextJob(JobType &job_, u16 _fiberIndex)
