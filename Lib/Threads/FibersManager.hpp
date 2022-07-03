@@ -45,7 +45,7 @@ namespace KryneEngine
 
         SyncCounterId QueueJob(JobType _job);
 
-        void YieldJob();
+        void YieldJob(JobType _nextJob = nullptr);
 
     protected:
 

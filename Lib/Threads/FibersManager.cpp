@@ -137,7 +137,7 @@ namespace KryneEngine
         return m_currentJobs.Load();
     }
 
-    void FibersManager::YieldJob()
+    void FibersManager::YieldJob(JobType _nextJob)
     {
         const auto fiberIndex = FiberThread::GetCurrentFiberThreadIndex();
         auto* currentJob = m_currentJobs.Load(fiberIndex);
@@ -148,7 +148,12 @@ namespace KryneEngine
             QueueJob(currentJob);
         }
 
-        m_fiberThreads[fiberIndex].SwitchToNextJob(this, currentJob);
+        if (!Verify(_nextJob != nullptr && _nextJob->CanRun()))
+        {
+            _nextJob = nullptr;
+        }
+
+        m_fiberThreads[fiberIndex].SwitchToNextJob(this, currentJob, _nextJob);
     }
 
     void FibersManager::_OnContextSwitched()
