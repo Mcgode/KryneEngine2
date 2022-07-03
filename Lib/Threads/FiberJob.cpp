@@ -42,9 +42,18 @@ namespace KryneEngine
         m_context.rsp = stackPtr;
     }
 
+    void FiberJob::_ResetStackPointer()
+    {
+        m_stackId = kInvalidStackId;
+        m_context.rsp = nullptr;
+    }
+
     void FiberJob::_KickJob()
     {
-        auto* job = FibersManager::GetInstance()->GetCurrentJob();
+        const auto fibersManager = FibersManager::GetInstance();
+
+        fibersManager->_OnContextSwitched();
+        auto* job = fibersManager->GetCurrentJob();
 
         if (!Verify(job->m_status == Status::PendingStart))
         {

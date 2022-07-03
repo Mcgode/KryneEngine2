@@ -17,6 +17,7 @@ namespace KryneEngine
     class FibersManager
     {
         friend FiberThread;
+        friend FiberJob;
 
     public:
         using JobType = FiberJob*;
@@ -43,6 +44,12 @@ namespace KryneEngine
 
         void YieldJob();
 
+    protected:
+
+        bool _RetrieveNextJob(JobType &job_, u16 _fiberIndex);
+
+        void _OnContextSwitched();
+
     private:
         using JobQueue = moodycamel::ConcurrentQueue<JobType>;
         static constexpr u8 kJobQueuesCount = FiberJob::PriorityType::kJobPriorityTypes;
@@ -56,12 +63,11 @@ namespace KryneEngine
 
         DynamicArray<FiberThread> m_fiberThreads;
 
-        FiberTls<FiberJob*> m_currentJobs;
+        FiberTls<JobType> m_currentJobs;
+        FiberTls<JobType> m_nextJob;
         FiberTls<FiberContext> m_contexts;
 
         static thread_local FibersManager* sManager;
-
-        bool _RetrieveNextJob(JobType &job_, u16 _fiberIndex);
 
     private:
         static constexpr u64 kSmallStackSize = 64 * 1024; // 64 KiB

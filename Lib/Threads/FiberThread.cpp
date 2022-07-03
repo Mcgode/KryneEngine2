@@ -26,26 +26,7 @@ namespace KryneEngine
 
             while (!m_shouldStop)
             {
-                FibersManager::JobType job;
-                bool foundJob = false;
-
-                for (u32 i = 0; i < kRetrieveSpinCount; i++)
-                {
-                    foundJob = FibersManager::GetInstance()->_RetrieveNextJob(job, _threadIndex);
-                    if (foundJob)
-                    {
-                        break;
-                    }
-                }
-
-                if (foundJob)
-                {
-                    // TODO: run job
-                }
-                else if (kSleepToSavePerformance)
-                {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(0));
-                }
+                SwitchToNextJob(_fiberManager, nullptr);
             }
         });
 
@@ -66,5 +47,58 @@ namespace KryneEngine
     bool FiberThread::IsFiberThread()
     {
         return sIsThread;
+    }
+
+    void FiberThread::SwitchToNextJob(FibersManager *_manager, FiberJob *_currentJob, FiberJob *_nextJob)
+    {
+        const auto fiberIndex = GetCurrentFiberThreadIndex();
+
+        if (_nextJob == nullptr)
+        {
+            _nextJob = _TryRetrieveNextJob(_manager, 0, _currentJob == nullptr);
+        }
+
+        // Happens when shutting down.
+        if (_nextJob == nullptr && _currentJob == nullptr)
+        {
+            return;
+        }
+
+        _manager->m_nextJob.Load(fiberIndex) = _nextJob;
+
+        auto* currentContext = _currentJob == nullptr
+                ? &_manager->m_contexts.Load(fiberIndex)
+                : &_currentJob->m_context;
+        auto* nextContext = _nextJob == nullptr
+                ? &_manager->m_contexts.Load(fiberIndex)
+                : &_nextJob->m_context;
+        SwapContext(currentContext, nextContext);
+        _manager->_OnContextSwitched();
+    }
+
+    FiberJob *FiberThread::_TryRetrieveNextJob(FibersManager *_manager, u16 _threadIndex, bool _busyWait)
+    {
+        FibersManager::JobType job;
+
+        u32 i = 0;
+        do
+        {
+            if (FibersManager::GetInstance()->_RetrieveNextJob(job, _threadIndex))
+            {
+                break;
+            }
+            else if (i >= kRetrieveSpinCount && kSleepToSavePerformance)
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(0));
+                i = 0;
+            }
+            else
+            {
+                i++;
+            }
+        }
+        while(!m_shouldStop && _busyWait);
+
+        return m_shouldStop ? nullptr : job;
     }
 } // KryneEngine

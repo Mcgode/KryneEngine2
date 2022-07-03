@@ -12,6 +12,7 @@
 namespace KryneEngine
 {
     class FibersManager;
+    class FiberJob;
 
     class FiberThread
     {
@@ -24,6 +25,8 @@ namespace KryneEngine
         [[nodiscard]] static ThreadIndex GetCurrentFiberThreadIndex();
         [[nodiscard]] static bool IsFiberThread();
 
+        void SwitchToNextJob(FibersManager *_manager, FiberJob *_currentJob, FiberJob *_nextJob = nullptr);
+
     private:
         bool m_shouldStop = false;
         std::thread m_thread;
@@ -33,5 +36,7 @@ namespace KryneEngine
 
         static thread_local ThreadIndex sThreadIndex;
         static thread_local bool sIsThread;
+
+        FiberJob *_TryRetrieveNextJob(FibersManager *_manager, u16 _threadIndex, bool _busyWait);
     };
 } // KryneEngine

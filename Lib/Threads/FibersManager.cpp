@@ -127,11 +127,38 @@ namespace KryneEngine
     {
         const auto fiberIndex = FiberThread::GetCurrentFiberThreadIndex();
         auto* currentJob = m_currentJobs.Load(fiberIndex);
-        if (currentJob->GetStatus() == FiberJob::Status::Running)
+
+        if (currentJob != nullptr && currentJob->GetStatus() == FiberJob::Status::Running)
         {
             currentJob->m_status = FiberJob::Status::Paused;
         }
 
-        SwapContext(&currentJob->m_context, &m_contexts.Load(fiberIndex));
+        m_fiberThreads[fiberIndex].SwitchToNextJob(this, currentJob);
+    }
+
+    void FibersManager::_OnContextSwitched()
+    {
+        const auto fiberIndex = FiberThread::GetCurrentFiberThreadIndex();
+
+        auto& oldJob = m_currentJobs.Load(fiberIndex);
+        auto& newJob = m_nextJob.Load(fiberIndex);
+
+        if (oldJob != nullptr && oldJob->GetStatus() == FiberJob::Status::Finished)
+        {
+            // Free stack pointer
+            if (oldJob->m_bigStack)
+            {
+                m_availableBigStacksIds.enqueue(oldJob->m_stackId);
+            }
+            else
+            {
+                m_availableSmallStacksIds.enqueue(oldJob->m_stackId);
+            }
+
+            oldJob->_ResetStackPointer();
+        }
+
+        oldJob = newJob;
+        newJob = nullptr;
     }
 }

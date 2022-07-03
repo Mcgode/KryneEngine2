@@ -69,6 +69,7 @@ namespace KryneEngine
         };
 
         friend class FibersManager;
+        friend class FiberThread;
 
     public:
         typedef void (JobFunc)(void*);
@@ -82,6 +83,8 @@ namespace KryneEngine
         [[nodiscard]] bool _HasStackAssigned() const { return m_stackId != kInvalidStackId; }
 
         void _SetStackPointer(u16 _stackId, u8 *_stackPtr, u64 _stackSize);
+
+        void _ResetStackPointer();
 
     private:
         JobFunc* m_functionPtr;
