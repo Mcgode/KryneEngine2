@@ -30,12 +30,12 @@ namespace KryneEngine
             /// kicked jobs and unkicked ones. This allows to define the priority of one over the other.
             static constexpr u8 kJobPriorityTypes = 2 * static_cast<u8>(Priority::Count);
 
-            bool m_notKicked;
+            bool m_pendingStart;
             Priority m_priority;
 
-            explicit PriorityType(Priority _priority)
+            PriorityType(Priority _priority, bool _pendingStart)
                 : m_priority(_priority)
-                , m_notKicked(true)
+                , m_pendingStart(_pendingStart)
             {
                 Assert(_priority != Priority::Count);
             }
@@ -55,8 +55,8 @@ namespace KryneEngine
             explicit operator u8() const
             {
                 return
-                    static_cast<u8>(m_notKicked) |
-                    (static_cast<u8>(m_priority) << 1);
+                        static_cast<u8>(m_pendingStart) |
+                        (static_cast<u8>(m_priority) << 1);
             }
         };
 
@@ -78,6 +78,17 @@ namespace KryneEngine
                           bool _bigStack = false);
 
         [[nodiscard]] Status GetStatus() const { return m_status; }
+
+        [[nodiscard]] PriorityType GetPriorityType() const
+        {
+            return { m_priority, m_status == Status::PendingStart };
+        }
+
+        [[nodiscard]] bool CanRun() const
+        {
+            const Status status = m_status;
+            return status == Status::PendingStart || status == Status::Paused;
+        }
 
     protected:
         [[nodiscard]] bool _HasStackAssigned() const { return m_stackId != kInvalidStackId; }

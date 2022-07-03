@@ -21,6 +21,7 @@ namespace KryneEngine
 
     public:
         using JobType = FiberJob*;
+        using SyncCounterId = void;
 
         explicit FibersManager(u16 _fiberThreadCount);
 
@@ -41,6 +42,8 @@ namespace KryneEngine
         [[nodiscard]] u16 GetFiberThreadCount() const { return m_fiberThreads.Size(); }
 
         [[nodiscard]] FiberJob* GetCurrentJob();
+
+        SyncCounterId QueueJob(JobType _job);
 
         void YieldJob();
 

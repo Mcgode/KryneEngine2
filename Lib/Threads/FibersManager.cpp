@@ -64,6 +64,20 @@ namespace KryneEngine
         }
     }
 
+    FibersManager::SyncCounterId FibersManager::QueueJob(FibersManager::JobType _job)
+    {
+        if (!Verify(_job != nullptr)) [[unlikely]]
+        {
+            return;
+        }
+
+        Assert(_job->CanRun());
+
+        const u8 priorityId = (u8)_job->GetPriorityType();
+        auto& producerToken = m_jobProducerTokens.Load()[priorityId];
+        m_jobQueues[priorityId].enqueue(producerToken, _job);
+    }
+
     bool FibersManager::_RetrieveNextJob(JobType &job_, u16 _fiberIndex)
     {
         auto& consumerTokens = m_jobConsumerTokens.Load(_fiberIndex);
@@ -90,7 +104,7 @@ namespace KryneEngine
                             : &m_smallStacks[kSmallStackSize * stackId];
                     job_->_SetStackPointer(stackId, bufferPtr, useBigStack ? kBigStackSize : kSmallStackSize);
                 }
-                else if (job_->GetStatus() == FiberJob::Status::Finished || job_->GetStatus() == FiberJob::Status::Running)
+                else if (!job_->CanRun())
                 {
                     // If job is already finished or still running, ignore it and keep trying to retrieve the next job.
                     // This might happen because the job was run by skipping this step, which is legal.
@@ -131,6 +145,7 @@ namespace KryneEngine
         if (currentJob != nullptr && currentJob->GetStatus() == FiberJob::Status::Running)
         {
             currentJob->m_status = FiberJob::Status::Paused;
+            QueueJob(currentJob);
         }
 
         m_fiberThreads[fiberIndex].SwitchToNextJob(this, currentJob);
