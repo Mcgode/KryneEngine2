@@ -41,6 +41,7 @@ namespace KryneEngine
             });
 
             m_currentJobs.Init(this, nullptr);
+            m_nextJob.Init(this, nullptr);
             m_contexts.Init(this, {});
         }
 
