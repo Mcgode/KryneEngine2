@@ -14,7 +14,7 @@ set(ThreadsSrc
         Threads/Internal/UserContextSwitch.cpp Threads/Internal/UserContextSwitch.hpp
         Threads/SyncCounterPool.cpp Threads/SyncCounterPool.hpp
         Threads/LightweightBinarySemaphore.hpp
-        Threads/LightweightMutex.hpp)
+        Threads/LightweightMutex.hpp Threads/SpinLock.hpp)
 
 add_library(KryneEngine ${CommonSrc} ${ThreadsSrc})
-target_link_libraries(KryneEngine KryneEngineGraphics moodycamel concurrency_kit)
+target_link_libraries(KryneEngine KryneEngineGraphics moodycamel)

@@ -32,7 +32,7 @@ namespace KryneEngine
         if (m_idQueue.try_dequeue(id))
         {
             m_entries[id].m_counter = initValue;
-            return id;
+            return { id };
         }
         return kInvalidSynCounterId;
     }

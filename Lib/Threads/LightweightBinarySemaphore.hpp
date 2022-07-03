@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <ck_spinlock.h>
 #include <Common/KETypes.hpp>
+#include "SpinLock.hpp"
 
 namespace KryneEngine
 {
@@ -16,25 +16,25 @@ namespace KryneEngine
     public:
         inline void Signal()
         {
-            ck_spinlock_unlock(&m_spinlock);
+            m_spinlock.Unlock();
         }
 
         inline void Wait()
         {
-            ck_spinlock_lock(&m_spinlock);
+            m_spinlock.Lock();
         }
 
         inline bool IsLocked()
         {
-            return ck_spinlock_locked(&m_spinlock);
+            return m_spinlock.IsLocked();
         }
 
         inline bool TryWait()
         {
-            return ck_spinlock_trylock(&m_spinlock);
+            return m_spinlock.TryLock();
         }
 
     private:
-        ck_spinlock_t m_spinlock = CK_SPINLOCK_INITIALIZER;
+        SpinLock m_spinlock {};
     };
 }

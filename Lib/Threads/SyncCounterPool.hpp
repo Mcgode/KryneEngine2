@@ -15,8 +15,23 @@
 
 namespace KryneEngine
 {
-    using SyncCounterId = s32;
-    static constexpr SyncCounterId kInvalidSynCounterId = -1;
+    struct SyncCounterId
+    {
+        friend class SyncCounterPool;
+
+    public:
+        SyncCounterId() = default;
+
+        inline bool operator ==(const SyncCounterId& _other) const { return m_id == _other.m_id; }
+
+    private:
+        s32 m_id = -1;
+
+        SyncCounterId(s32 _value): m_id(_value) {}
+
+        operator s32() const { return m_id; }
+    };
+    static constexpr SyncCounterId kInvalidSynCounterId = SyncCounterId();
 
     class FiberJob;
 
@@ -44,6 +59,6 @@ namespace KryneEngine
         static constexpr u16 kPoolSize = 128;
         eastl::array<Entry, kPoolSize> m_entries;
 
-        moodycamel::ConcurrentQueue<SyncCounterId> m_idQueue;
+        moodycamel::ConcurrentQueue<u16> m_idQueue;
     };
 } // KryneEngine

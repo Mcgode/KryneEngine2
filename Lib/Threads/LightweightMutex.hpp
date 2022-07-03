@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <ck_spinlock.h>
+#include <Threads/SpinLock.hpp>
 #include <EASTL/algorithm.h>
 
 namespace KryneEngine
@@ -41,6 +41,7 @@ namespace KryneEngine
             {
                 m_mutex = _other.m_mutex;
                 _other.m_mutex = nullptr;
+                return *this;
             }
 
         private:
@@ -56,12 +57,12 @@ namespace KryneEngine
     public:
         void ManualLock()
         {
-            ck_spinlock_lock(&m_spinlock);
+            m_spinlock.Lock();
         }
 
         void ManualUnlock()
         {
-            ck_spinlock_unlock(&m_spinlock);
+            m_spinlock.Unlock();
         }
 
         [[nodiscard]] Lock&& AutoLock()
@@ -70,6 +71,6 @@ namespace KryneEngine
         }
 
     private:
-        ck_spinlock_t m_spinlock = CK_SPINLOCK_INITIALIZER;
+        SpinLock m_spinlock {};
     };
 }
