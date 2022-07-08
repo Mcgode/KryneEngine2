@@ -72,6 +72,7 @@ namespace KryneEngine
         auto* nextContext = _nextJob == nullptr
                 ? &_manager->m_contexts.Load(fiberIndex)
                 : &_nextJob->m_context;
+        Assert(nextContext->rsp != nullptr);
         SwapContext(currentContext, nextContext);
         _manager->_OnContextSwitched();
     }

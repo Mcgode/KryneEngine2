@@ -23,7 +23,7 @@ namespace KryneEngine
         u8* stackPtr = _stackPtr + _stackSize;
 
         // Align stack pointer on 16-byte boundary.
-        stackPtr = (u8*)(((u64)m_context.rsp & -16L));
+        stackPtr = (u8*)(((u64)stackPtr & -16L));
 
 #if CONTEXT_SWITCH_ABI_WINDOWS
         // Windows has no concept of scratch/red zone:
