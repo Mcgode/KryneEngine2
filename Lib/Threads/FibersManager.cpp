@@ -182,7 +182,13 @@ namespace KryneEngine
 
     void FibersManager::WaitForCounter(SyncCounterId _syncCounter)
     {
-        m_syncCounterPool.AddWaitingJob(_syncCounter, GetCurrentJob());
+        auto* currentJob = GetCurrentJob();
+        m_syncCounterPool.AddWaitingJob(_syncCounter, currentJob);
+
+        // Manually pause here, to avoid auto re-queueing when yielding.
+        currentJob->m_status = FiberJob::Status::Paused;
+
+        YieldJob();
     }
 
     void FibersManager::ResetCounter(SyncCounterId _syncCounter)
