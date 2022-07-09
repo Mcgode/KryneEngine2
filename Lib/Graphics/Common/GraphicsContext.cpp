@@ -20,6 +20,8 @@ namespace KryneEngine
     {
     }
 
+    GraphicsContext::~GraphicsContext() = default;
+
     Window *GraphicsContext::GetWindow() const
     {
         return m_implementation->GetWindow();

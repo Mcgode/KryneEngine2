@@ -19,6 +19,8 @@ namespace KryneEngine
     public:
         explicit GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo);
 
+        ~GraphicsContext();
+
         [[nodiscard]] Window* GetWindow() const;
 
         bool EndFrame();
