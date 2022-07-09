@@ -1,4 +1,10 @@
 
+# Compiler flags
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa")
+endif()
+
 # Parse build type
 string(REPLACE " " ";" BUILD_TYPE ${CMAKE_BUILD_TYPE})
 

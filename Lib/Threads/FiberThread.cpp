@@ -24,9 +24,14 @@ namespace KryneEngine
             sThreadIndex = _threadIndex;
             sIsThread = true;
 
+#if CONTEXT_SWITCH_WINDOWS_FIBERS
+            auto& context = _fiberManager->m_baseContexts.Load(_threadIndex);
+            context.m_winFiber = ConvertThreadToFiber(nullptr);
+#endif
+
             while (!m_shouldStop)
             {
-
+                SwitchToNextJob(_fiberManager, nullptr);
             }
         });
 
@@ -47,5 +52,60 @@ namespace KryneEngine
     bool FiberThread::IsFiberThread()
     {
         return sIsThread;
+    }
+
+    void FiberThread::SwitchToNextJob(FibersManager *_manager, FiberJob *_currentJob, FiberJob *_nextJob)
+    {
+        const auto fiberIndex = GetCurrentFiberThreadIndex();
+
+        if (_nextJob == nullptr)
+        {
+            _nextJob = _TryRetrieveNextJob(_manager, 0, _currentJob == nullptr);
+        }
+
+        // Happens when shutting down.
+        if (_nextJob == nullptr && _currentJob == nullptr)
+        {
+            return;
+        }
+
+        _manager->m_nextJob.Load(fiberIndex) = _nextJob;
+
+        auto* currentContext = _currentJob == nullptr
+                ? &_manager->m_baseContexts.Load(fiberIndex)
+                : _currentJob->m_context;
+        auto* nextContext = _nextJob == nullptr
+                ? &_manager->m_baseContexts.Load(fiberIndex)
+                : _nextJob->m_context;
+        Assert(nextContext != nullptr);
+        currentContext->SwapContext(nextContext);
+        _manager->_OnContextSwitched();
+    }
+
+    FiberJob *FiberThread::_TryRetrieveNextJob(FibersManager *_manager, u16 _threadIndex, bool _busyWait)
+    {
+        FibersManager::JobType job = nullptr;
+
+        u32 i = 0;
+        do
+        {
+            if (FibersManager::GetInstance()->_RetrieveNextJob(job, _threadIndex))
+            {
+                break;
+            }
+            else if (i >= kRetrieveSpinCountBeforeThreadYield)
+            {
+                std::this_thread::yield();
+                i = 0;
+            }
+            else if (_busyWait)
+            {
+                Threads::CpuYield();
+                i++;
+            }
+        }
+        while(!m_shouldStop && _busyWait);
+
+        return m_shouldStop ? nullptr : job;
     }
 } // KryneEngine

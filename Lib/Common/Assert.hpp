@@ -41,4 +41,9 @@ namespace KryneEngine
         Assert(_condition, _message);
         return _condition;
     }
+
+#define IF_NOT_VERIFY(cond) if (!Verify(cond)) [[unlikely]]
+#define IF_NOT_VERIFY_MSG(cond, msg) if (!Verify(cond, msg)) [[unlikely]]
+#define VERIFY_OR_RETURN(cond, returnValue) IF_NOT_VERIFY(cond) return returnValue
+#define VERIFY_OR_RETURN_VOID(cond)  VERIFY_OR_RETURN(cond, )
 }

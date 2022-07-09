@@ -4,8 +4,11 @@
  * @date 23/04/2022.
  */
 
+#pragma once
+
 #include <Common/KETypes.hpp>
 #include <Common/Assert.hpp>
+#include <EASTL/initializer_list.h>
 
 namespace KryneEngine
 {
@@ -15,6 +18,63 @@ namespace KryneEngine
         using Ptr = T*;
         using Ref = T&;
         using Iterator = Ptr;
+
+        DynamicArray() = default;
+
+        explicit DynamicArray(u64 _count)
+        {
+            Resize(_count);
+        }
+
+        DynamicArray(u64 _count, const T& _value)
+        {
+            Resize(_count);
+            SetAll(_value);
+        }
+
+        DynamicArray(const std::initializer_list<T>& _initializerList)
+        {
+            Resize(_initializerList.size());
+
+            auto it = _initializerList.begin();
+            for (Ptr valuePtr = begin(); valuePtr != end(); valuePtr++, it++)
+            {
+                *valuePtr = *it;
+            }
+        }
+
+        DynamicArray(const DynamicArray& _other)
+        {
+            Resize(_other.m_count);
+            memcpy(m_array, _other.m_array, sizeof(T) * m_count);
+        }
+
+        DynamicArray& operator=(const DynamicArray& _other)
+        {
+            Resize(_other.m_count);
+            memcpy(m_array, _other.m_array, sizeof(T) * m_count);
+            return *this;
+        }
+
+        DynamicArray(DynamicArray&& _other) noexcept
+        {
+            m_count = _other.m_count;
+            m_array = _other.m_array;
+
+            _other.m_count = 0;
+            _other.m_array = nullptr;
+        }
+
+        DynamicArray& operator=(DynamicArray&& _other) noexcept
+        {
+            m_count = _other.m_count;
+            m_array = _other.m_array;
+
+            _other.m_count = 0;
+            _other.m_array = nullptr;
+
+            return *this;
+        }
 
         virtual ~DynamicArray()
         {
@@ -46,8 +106,25 @@ namespace KryneEngine
         Ptr Init(u64 _index, Args... args)
         {
             Assert(_index < m_count, "Beyond max index!");
-            void* memSpace = m_array + _index;
-            return new (memSpace) T(args...);
+            Ptr memSpace = m_array + _index;
+            return new ((void*)memSpace) T(args...);
+        }
+
+        template<class... Args>
+        void InitAll(Args... args)
+        {
+            for (Ptr valuePtr = begin(); valuePtr != end(); valuePtr++)
+            {
+                new ((void*)valuePtr) T(args...);
+            }
+        }
+
+        void SetAll(const T& _value)
+        {
+            for (auto& value: *this)
+            {
+                value = _value;
+            }
         }
 
         Ref operator[](u64 _index) const
@@ -73,6 +150,8 @@ namespace KryneEngine
                 instance.~T();
             }
             delete m_buffer;
+            m_buffer = nullptr;
+            m_count = 0;
         }
 
     private:
