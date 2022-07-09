@@ -24,9 +24,15 @@ namespace KryneEngine
             sThreadIndex = _threadIndex;
             sIsThread = true;
 
+#if CONTEXT_SWITCH_WINDOWS_FIBERS
+            auto& context = _fiberManager->m_baseContexts.Load(_threadIndex);
+            context.m_winFiber = ConvertThreadToFiber(nullptr);
+#endif
+
             while (!m_shouldStop)
             {
                 SwitchToNextJob(_fiberManager, nullptr);
+                _fiberManager->_OnContextSwitched();
             }
         });
 
@@ -67,13 +73,13 @@ namespace KryneEngine
         _manager->m_nextJob.Load(fiberIndex) = _nextJob;
 
         auto* currentContext = _currentJob == nullptr
-                ? &_manager->m_contexts.Load(fiberIndex)
-                : &_currentJob->m_context;
+                ? &_manager->m_baseContexts.Load(fiberIndex)
+                : _currentJob->m_context;
         auto* nextContext = _nextJob == nullptr
-                ? &_manager->m_contexts.Load(fiberIndex)
-                : &_nextJob->m_context;
-        Assert(nextContext->rsp != nullptr);
-        SwapContext(currentContext, nextContext);
+                ? &_manager->m_baseContexts.Load(fiberIndex)
+                : _nextJob->m_context;
+        Assert(nextContext != nullptr);
+        currentContext->SwapContext(nextContext);
         _manager->_OnContextSwitched();
     }
 

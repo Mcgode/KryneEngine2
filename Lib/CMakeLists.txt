@@ -11,7 +11,7 @@ set(ThreadsSrc
         Threads/HelperFunctions.cpp Threads/HelperFunctions.hpp
         Threads/FiberTls.inl Threads/FiberTls.hpp
         Threads/FiberJob.cpp Threads/FiberJob.hpp
-        Threads/Internal/UserContextSwitch.cpp Threads/Internal/UserContextSwitch.hpp
+        Threads/Internal/FiberContext.cpp Threads/Internal/FiberContext.hpp
         Threads/SyncCounterPool.cpp Threads/SyncCounterPool.hpp
         Threads/LightweightBinarySemaphore.hpp
         Threads/LightweightMutex.hpp Threads/SpinLock.hpp)

@@ -8,7 +8,7 @@
 
 #include <Common/KETypes.hpp>
 #include <Common/Assert.hpp>
-#include <Threads/Internal/UserContextSwitch.hpp>
+#include <Threads/Internal/FiberContext.hpp>
 #include <Threads/SyncCounterPool.hpp>
 
 namespace KryneEngine
@@ -71,6 +71,7 @@ namespace KryneEngine
 
         friend class FibersManager;
         friend class FiberThread;
+        friend class FiberContext;
 
     public:
         typedef void (JobFunc)(void*);
@@ -93,11 +94,11 @@ namespace KryneEngine
         [[nodiscard]] u32 GetWaitingForCounterValue() const { return m_waitingForCounterValue; }
 
     protected:
-        [[nodiscard]] bool _HasStackAssigned() const { return m_stackId != kInvalidStackId; }
+        [[nodiscard]] bool _HasContextAssigned() const { return m_contextId != kInvalidContextId; }
 
-        void _SetStackPointer(u16 _stackId, u8 *_stackPtr, u64 _stackSize);
+        void _SetContext(u16 _contextId, FiberContext *_context);
 
-        void _ResetStackPointer();
+        void _ResetContext();
 
     private:
         JobFunc* m_functionPtr = nullptr;
@@ -107,13 +108,11 @@ namespace KryneEngine
 
         volatile Status m_status = Status::PendingStart;
 
-        static constexpr s32 kInvalidStackId = -1;
-        s32 m_stackId = kInvalidStackId;
-        FiberContext m_context {};
+        static constexpr s32 kInvalidContextId = -1;
+        s32 m_contextId = kInvalidContextId;
+        FiberContext *m_context = nullptr;
 
         SyncCounterId m_associatedCounterId = kInvalidSynCounterId;
         u32 m_waitingForCounterValue = 0;
-
-        static void _KickJob();
     };
 } // KryneEngine

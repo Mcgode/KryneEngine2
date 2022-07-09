@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <Type Name="DynamicArray&lt;*&gt;">
+        <DisplayString Condition="m_count == 0">[{mpEnd - mpBegin}] {{}}</DisplayString>
+        <DisplayString Condition="m_count == 1">[{mpEnd - mpBegin}] {{ {*m_array} }}</DisplayString>
+        <DisplayString Condition="m_count == 2">[{mpEnd - mpBegin}] {{ {*m_array}, {*(m_array+1)} }}</DisplayString>
+        <DisplayString Condition="m_count == 3">[{mpEnd - mpBegin}] {{ {*m_array}, {*(m_array+1)}, {*(m_array+2)} }}</DisplayString>
+        <DisplayString Condition="m_count == 4">[{mpEnd - mpBegin}] {{ {*m_array}, {*(m_array+1)}, {*(m_array+2)}, {*(m_array+3)} }}</DisplayString>
+        <DisplayString Condition="m_count == 5">[{mpEnd - mpBegin}] {{ {*m_array}, {*(m_array+1)}, {*(m_array+2)}, {*(m_array+3)}, {*(m_array+4)} }}</DisplayString>
+        <DisplayString Condition="m_count == 6">[{mpEnd - mpBegin}] {{ {*m_array}, {*(m_array+1)}, {*(m_array+2)}, {*(m_array+3)}, {*(m_array+4)}, {*(m_array+5)} }}</DisplayString>
+        <DisplayString Condition="m_count &gt; 6">[{mpEnd - mpBegin}] {{ {*m_array}, {*(m_array+1)}, {*(m_array+2)}, {*(m_array+3)}, {*(m_array+4)}, {*(m_array+5)}, ... }}</DisplayString>
+        <Expand>
+            <Item Name="[size]">m_count</Item>
+            <ArrayItems>
+                <Size>m_count</Size>
+                <ValuePointer>m_array</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+</AutoVisualizer>

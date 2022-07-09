@@ -42,21 +42,7 @@ namespace KryneEngine
 
             m_currentJobs.Init(this, nullptr);
             m_nextJob.Init(this, nullptr);
-            m_contexts.Init(this, {});
-        }
-
-        {
-            for (u16 i = 0; i < kSmallStackCount; i++)
-            {
-                m_availableSmallStacksIds.enqueue(i);
-            }
-            m_smallStacks = new u8[kSmallStackSize * (u64) kSmallStackCount];
-
-            for (u16 i = 0; i < kBigStackCount; i++)
-            {
-                m_availableBigStacksIds.enqueue(i);
-            }
-            m_bigStacks = new u8[kBigStackSize * (u64) kBigStackCount];
+            m_baseContexts.Init(this, {});
         }
 
         for (u16 i = 0; i < _fiberThreadCount; i++)
@@ -90,24 +76,15 @@ namespace KryneEngine
         {
             if (m_jobQueues[i].try_dequeue(consumerTokens[i], job_))
             {
-                if (!job_->_HasStackAssigned())
+                if (!job_->_HasContextAssigned())
                 {
                     Assert(job_->GetStatus() == FiberJob::Status::PendingStart);
 
-                    const bool useBigStack = job_->m_bigStack;
-                    auto& queue = useBigStack ? m_availableBigStacksIds : m_availableSmallStacksIds;
-
-                    u16 stackId;
-                    IF_NOT_VERIFY_MSG(queue.try_dequeue(stackId), "Out of Fiber stacks!")
+                    u16 id;
+                    if (m_contextAllocator.Allocate(job_->m_bigStack, id))
                     {
-                        m_jobQueues[i].enqueue(m_jobProducerTokens.Load(_fiberIndex)[i], job_);
-                        return false;
+                        job_->_SetContext(id, m_contextAllocator.GetContext(id));
                     }
-
-                    auto* bufferPtr = useBigStack
-                            ? &m_bigStacks[kBigStackSize * stackId]
-                            : &m_smallStacks[kSmallStackSize * stackId];
-                    job_->_SetStackPointer(stackId, bufferPtr, useBigStack ? kBigStackSize : kSmallStackSize);
                 }
                 else if (!job_->CanRun())
                 {
@@ -132,9 +109,6 @@ namespace KryneEngine
     {
         // Make sure to end and join all the fiber threads before anything else.
         m_fiberThreads.Clear();
-
-        delete m_smallStacks;
-        delete m_bigStacks;
     }
 
     FiberJob *FibersManager::GetCurrentJob()
@@ -153,7 +127,7 @@ namespace KryneEngine
             QueueJob(currentJob);
         }
 
-        IF_NOT_VERIFY(_nextJob != nullptr && _nextJob->CanRun())
+        IF_NOT_VERIFY(_nextJob == nullptr || _nextJob->CanRun())
         {
             _nextJob = nullptr;
         }
@@ -173,17 +147,8 @@ namespace KryneEngine
             // Decrement counter
             m_syncCounterPool.DecrementCounterValue(oldJob->m_associatedCounterId);
 
-            // Free stack pointer
-            if (oldJob->m_bigStack)
-            {
-                m_availableBigStacksIds.enqueue(oldJob->m_stackId);
-            }
-            else
-            {
-                m_availableSmallStacksIds.enqueue(oldJob->m_stackId);
-            }
-
-            oldJob->_ResetStackPointer();
+            m_contextAllocator.Free(oldJob->m_contextId);
+            oldJob->_ResetContext();
         }
 
         oldJob = newJob;

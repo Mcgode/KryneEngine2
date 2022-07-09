@@ -18,7 +18,7 @@ namespace KryneEngine
     class FibersManager
     {
         friend FiberThread;
-        friend FiberJob;
+        friend FiberContext;
 
     public:
         using JobType = FiberJob*;
@@ -84,23 +84,12 @@ namespace KryneEngine
 
         FiberTls<JobType> m_currentJobs;
         FiberTls<JobType> m_nextJob;
-        FiberTls<FiberContext> m_contexts;
+        FiberTls<FiberContext> m_baseContexts;
+
+        FiberContextAllocator m_contextAllocator;
 
         SyncCounterPool m_syncCounterPool {};
 
         static thread_local FibersManager* sManager;
-
-    private:
-        static constexpr u64 kSmallStackSize = 64 * 1024; // 64 KiB
-        static constexpr u16 kSmallStackCount = 128;
-        static constexpr u64 kBigStackSize = 512 * 1024; // 512 KiB
-        static constexpr u16 kBigStackCount = 32;
-
-        using StackIdQueue = moodycamel::ConcurrentQueue<u16>;
-        StackIdQueue m_availableSmallStacksIds;
-        StackIdQueue m_availableBigStacksIds;
-
-        u8* m_smallStacks = nullptr;
-        u8* m_bigStacks = nullptr;
     };
 } // KryneEngine
