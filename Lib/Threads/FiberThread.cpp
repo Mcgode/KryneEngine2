@@ -32,7 +32,6 @@ namespace KryneEngine
             while (!m_shouldStop)
             {
                 SwitchToNextJob(_fiberManager, nullptr);
-                _fiberManager->_OnContextSwitched();
             }
         });
 

@@ -138,10 +138,10 @@ namespace KryneEngine
     [[noreturn]] void FiberContext::RunFiber(void *)
     {
         const auto fibersManager = FibersManager::GetInstance();
+        fibersManager->_OnContextSwitched();
 
         while (true)
         {
-            fibersManager->_OnContextSwitched();
             auto* job = fibersManager->GetCurrentJob();
 
             if (Verify(job->m_status == FiberJob::Status::PendingStart))
