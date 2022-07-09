@@ -93,13 +93,14 @@ namespace KryneEngine
             {
                 break;
             }
-            else if (i >= kRetrieveSpinCount && kSleepToSavePerformance)
+            else if (i >= kRetrieveSpinCountBeforeThreadYield)
             {
-                std::this_thread::sleep_for(std::chrono::milliseconds(0));
+                std::this_thread::yield();
                 i = 0;
             }
-            else
+            else if (_busyWait)
             {
+                Threads::CpuYield();
                 i++;
             }
         }
