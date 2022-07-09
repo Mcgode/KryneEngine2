@@ -91,8 +91,6 @@ namespace KryneEngine
             return status == Status::PendingStart || status == Status::Paused;
         }
 
-        [[nodiscard]] u32 GetWaitingForCounterValue() const { return m_waitingForCounterValue; }
-
     protected:
         [[nodiscard]] bool _HasContextAssigned() const { return m_contextId != kInvalidContextId; }
 
@@ -113,6 +111,5 @@ namespace KryneEngine
         FiberContext *m_context = nullptr;
 
         SyncCounterId m_associatedCounterId = kInvalidSynCounterId;
-        u32 m_waitingForCounterValue = 0;
     };
 } // KryneEngine
