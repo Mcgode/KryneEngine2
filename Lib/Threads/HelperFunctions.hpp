@@ -17,7 +17,7 @@ namespace KryneEngine::Threads
 
     inline void CpuYield()
     {
-#if defined(__x86_64__) || defined(__i386__)
+#if defined(__x86_64__) || defined(__i386__) || defined(_WIN32)
         _mm_pause();
 #elif defined(__arm__)
         __yield()

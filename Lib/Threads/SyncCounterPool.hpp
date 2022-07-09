@@ -23,6 +23,7 @@ namespace KryneEngine
         SyncCounterId() = default;
 
         inline bool operator ==(const SyncCounterId& _other) const { return m_id == _other.m_id; }
+        inline bool operator !=(const SyncCounterId& _other) const { return !(*this == _other); }
 
     private:
         s32 m_id = -1;
@@ -31,7 +32,7 @@ namespace KryneEngine
 
         operator s32() const { return m_id; }
     };
-    static constexpr SyncCounterId kInvalidSynCounterId = SyncCounterId();
+    static const SyncCounterId kInvalidSynCounterId = SyncCounterId();
 
     class FiberJob;
 
