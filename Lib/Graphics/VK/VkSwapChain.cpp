@@ -119,7 +119,7 @@ namespace KryneEngine
                 imageCount,
                 selectedFormat.format,
                 selectedFormat.colorSpace,
-                {},
+                extent,
                 1,
                 vk::ImageUsageFlagBits::eColorAttachment,
                 m_sharingMode,
@@ -132,9 +132,12 @@ namespace KryneEngine
 
         VkHelperFunctions::VkAssert(m_deviceRef->createSwapchainKHR(&createInfo, nullptr, &m_swapChain));
 
-        EastlHelpers::CopyToEastlBackInsertingContainer(
-                _deviceRef->getSwapchainImagesKHR(m_swapChain),
-                m_swapChainImages);
+        {
+            u32 imageCount;
+            m_deviceRef->getSwapchainImagesKHR(m_swapChain, &imageCount, nullptr);
+            m_swapChainImages.resize(imageCount);
+            m_deviceRef->getSwapchainImagesKHR(m_swapChain, &imageCount, m_swapChainImages.data());
+        }
     }
 
     VkSwapChain::~VkSwapChain()
