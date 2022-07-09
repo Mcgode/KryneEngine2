@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
-    <Type Name="DynamicArray&lt;*&gt;">
+    <Type Name="KryneEngine::DynamicArray&lt;*&gt;">
         <DisplayString Condition="m_count == 0">[{mpEnd - mpBegin}] {{}}</DisplayString>
         <DisplayString Condition="m_count == 1">[{mpEnd - mpBegin}] {{ {*m_array} }}</DisplayString>
         <DisplayString Condition="m_count == 2">[{mpEnd - mpBegin}] {{ {*m_array}, {*(m_array+1)} }}</DisplayString>
@@ -14,6 +14,17 @@
             <ArrayItems>
                 <Size>m_count</Size>
                 <ValuePointer>m_array</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+
+    <Type Name="KryneEngine::FiberTls&lt;*&gt;">
+        <DisplayString>{{ FiberTls }}</DisplayString>
+        <Expand>
+            <Item Name="[size]">m_array.m_count</Item>
+            <ArrayItems>
+                <Size>m_array.m_count</Size>
+                <ValuePointer>m_array.m_array</ValuePointer>
             </ArrayItems>
         </Expand>
     </Type>
