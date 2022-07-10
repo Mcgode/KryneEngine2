@@ -42,6 +42,10 @@ namespace KryneEngine
                 return *this;
             }
 
+            inline bool operator!() const { return m_sharedObject == nullptr; }
+            inline bool operator==(std::nullptr_t) const { return m_sharedObject == nullptr; }
+            inline bool operator!=(std::nullptr_t) const { return m_sharedObject != nullptr; }
+
             virtual ~Ref()
             {
                 _Unref();

@@ -28,12 +28,14 @@ namespace KryneEngine
         /// @brief A function to call in the derived class before reaching the base class destructor.
         void _BeforeDestruct();
 
-    private:
-        std::atomic<s32> m_userCount;
-        const bool m_manualDestroy;
-        mutable bool m_beforeDestructCalled = false;
-
         void _AddView() { m_userCount++; }
         void _RemoveView() { m_userCount--; }
+
+    protected:
+        const bool m_manualDestroy;
+
+    private:
+        std::atomic<s32> m_userCount;
+        mutable bool m_beforeDestructCalled = false;
     };
 }

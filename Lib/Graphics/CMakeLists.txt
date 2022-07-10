@@ -3,7 +3,7 @@ set(VkFiles
         VK/HelperFunctions.hpp
         VK/VkSwapChain.cpp VK/VkSwapChain.hpp
         VK/VkSurface.cpp VK/VkSurface.hpp
-        VK/CommonStructures.hpp)
+        VK/CommonStructures.hpp VK/VkTextureMemory.cpp VK/VkTextureMemory.hpp)
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
