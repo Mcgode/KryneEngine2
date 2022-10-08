@@ -2,7 +2,7 @@
 # Compiler flags
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa -ftime-trace")
 endif()
 
 # Parse build type
