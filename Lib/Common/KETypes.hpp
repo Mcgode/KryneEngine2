@@ -8,6 +8,9 @@
 
 #include <EASTL/string.h> // NOLINT(modernize-deprecated-headers)
 #include <EASTL/vector.h>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 namespace KryneEngine
 {
