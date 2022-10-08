@@ -60,26 +60,43 @@ namespace KryneEngine
             }
         };
 
-        struct SharedInstanceDestructor
+        template<class SharedObjectType>
+        struct SharedObjectDestructor
         {
-            void operator()(vk::Instance& _instance)
+            void operator()(SharedObjectType& _object)
             {
-                _instance.destroy();
+                _object.destroy();
             }
         };
 
-        struct SharedDeviceDestructor
+        template<class SharedObjectType, class OwnerRef>
+        struct SharedObjectDestructorWithOwner
         {
-            void operator()(vk::Device& _device)
+            explicit SharedObjectDestructorWithOwner(const OwnerRef& _ownerRef)
+                    : m_ownerRef(_ownerRef)
+            {}
+
+            void operator()(SharedObjectType& _object)
             {
-                _device.destroy();
+                m_ownerRef.destroy(_object);
             }
+
+            OwnerRef m_ownerRef;
         };
+
+        template <class T>
+        using VkSharedObject = SharedObject<T, SharedObjectDestructor<T>>;
+
+        template <class T, class O>
+        using VkSharedObjectWithOwner = SharedObject<T, SharedObjectDestructorWithOwner<T, O>>;
     }
 
-    using VkSharedInstance = SharedObject<vk::Instance, VkCommonStructures::SharedInstanceDestructor>;
+    using VkSharedInstance = VkCommonStructures::VkSharedObject<vk::Instance>;
     using VkSharedInstanceRef = VkSharedInstance::Ref;
 
-    using VkSharedDevice = SharedObject<vk::Device, VkCommonStructures::SharedDeviceDestructor>;
+    using VkSharedDevice = VkCommonStructures::VkSharedObject<vk::Device>;
     using VkSharedDeviceRef = VkSharedDevice::Ref;
+
+    using VkSharedImage = VkCommonStructures::VkSharedObjectWithOwner<vk::Image, VkSharedDeviceRef>;
+    using VkSharedImageRef = VkSharedImage::Ref;
 }

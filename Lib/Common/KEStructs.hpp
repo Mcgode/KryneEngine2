@@ -25,10 +25,34 @@ namespace KryneEngine
 
             Ref() = default;
 
-            Ref(const Ref&) = delete;
-            Ref& operator=(const Ref&) = delete;
+            Ref(const Ref& _other)
+            {
+                m_sharedObject = _other.m_sharedObject;
 
-            Ref(Ref&& _other)
+                if (m_sharedObject)
+                {
+                    m_sharedObject->m_referencesCount++;
+                }
+            }
+
+            Ref& operator=(const Ref& _other)
+            {
+                if (&_other == this) [[unlikely]]
+                {
+                    return *this;
+                }
+
+                _Unref();
+
+                m_sharedObject = _other.m_sharedObject;
+
+                if (m_sharedObject)
+                {
+                    m_sharedObject->m_referencesCount++;
+                }
+            }
+
+            Ref(Ref&& _other) noexcept
                 : m_sharedObject(_other.m_sharedObject)
             {
                 _other.m_sharedObject = nullptr;
