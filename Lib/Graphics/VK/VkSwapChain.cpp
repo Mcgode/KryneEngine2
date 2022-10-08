@@ -134,9 +134,9 @@ namespace KryneEngine
 
         {
             u32 imageCount;
-            m_deviceRef->getSwapchainImagesKHR(m_swapChain, &imageCount, nullptr);
+            VkHelperFunctions::VkAssert(m_deviceRef->getSwapchainImagesKHR(m_swapChain, &imageCount, nullptr));
             m_swapChainImages.resize(imageCount);
-            m_deviceRef->getSwapchainImagesKHR(m_swapChain, &imageCount, m_swapChainImages.data());
+            VkHelperFunctions::VkAssert((m_deviceRef->getSwapchainImagesKHR(m_swapChain, &imageCount, m_swapChainImages.data())));
         }
     }
 
