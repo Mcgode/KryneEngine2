@@ -15,7 +15,7 @@ if (GraphicsApi STREQUAL "VK")
 endif()
 
 add_library(KryneEngineGraphics STATIC ${SrcFiles})
-target_link_libraries(KryneEngineGraphics EASTL glfw)
+target_link_libraries(KryneEngineGraphics EASTL glfw glm)
 target_include_directories(KryneEngineGraphics PUBLIC ${RootDir})
 
 if (GraphicsApi STREQUAL "VK")

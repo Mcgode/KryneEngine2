@@ -12,10 +12,15 @@ namespace KryneEngine
 {
     enum class TextureFormat : u32
     {
+        NoFormat,
+
         R8_UNorm,
         RG8_UNorm,
         RGB8_UNorm,
         RGBA8_UNorm,
+
+        RGB8_UNorm_sRGB,
+        RGBA8_UNorm_sRGB,
 
         R8_SNorm,
         RG8_SNorm,
