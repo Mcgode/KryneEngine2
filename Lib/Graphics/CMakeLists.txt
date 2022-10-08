@@ -3,15 +3,19 @@ set(VkFiles
         VK/HelperFunctions.hpp
         VK/VkSwapChain.cpp VK/VkSwapChain.hpp
         VK/VkSurface.cpp VK/VkSurface.hpp
-        VK/CommonStructures.hpp VK/VkTextureMemory.cpp VK/VkTextureMemory.hpp)
+        VK/CommonStructures.hpp
+        )
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
         Common/Window.cpp Common/Window.hpp
-        Common/GraphicsCommon.hpp Common/TextureView.cpp Common/TextureView.hpp Common/TextureMemory.cpp Common/TextureMemory.hpp Common/Enums.hpp Common/EnumHelpers.cpp Common/EnumHelpers.hpp)
+        Common/GraphicsCommon.hpp
+        Common/Texture.cpp Common/Texture.hpp
+        Common/Enums.hpp
+        Common/EnumHelpers.cpp Common/EnumHelpers.hpp)
 
 if (GraphicsApi STREQUAL "VK")
-    set(SrcFiles ${CommonFiles} ${VkFiles})
+    set(SrcFiles ${CommonFiles} ${VkFiles} VK/VkTexture.cpp VK/VkTexture.hpp)
 endif()
 
 add_library(KryneEngineGraphics STATIC ${SrcFiles})

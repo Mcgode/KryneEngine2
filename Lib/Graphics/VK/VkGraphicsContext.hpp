@@ -7,6 +7,7 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <vma/vk_mem_alloc.h>
 #include <EASTL/unique_ptr.h>
 #include <EASTL/vector.h>
 #include <EASTL/vector_set.h>
@@ -46,6 +47,8 @@ namespace KryneEngine
         vk::Queue m_transferQueue;
         vk::Queue m_computeQueue;
         vk::Queue m_presentQueue;
+
+        VmaAllocator m_allocator;
 
         static void _PrepareValidationLayers(vk::InstanceCreateInfo& _createInfo);
 
