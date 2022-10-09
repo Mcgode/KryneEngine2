@@ -141,7 +141,7 @@ namespace KryneEngine
                     TextureTypes::Single2D,
                     Texture::Options::kDefaultAspectType,
                     0,
-                    0,
+                    1,
                     0,
                     1,
             };
