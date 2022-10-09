@@ -78,7 +78,7 @@ namespace KryneEngine
 
             void operator()(SharedObjectType& _object)
             {
-                m_ownerRef.destroy(_object);
+                m_ownerRef->destroy(_object);
             }
 
             OwnerRef m_ownerRef;

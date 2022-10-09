@@ -6,7 +6,9 @@
 
 #pragma once
 
+#include <EASTL/span.h>
 #include <Graphics/Common/Enums.hpp>
+#include <Graphics/Common/GraphicsCommon.hpp>
 #include <Common/KETypes.hpp>
 
 namespace KryneEngine
@@ -16,6 +18,21 @@ namespace KryneEngine
     class Texture
     {
     public:
+        struct Options
+        {
+            TextureFormat m_format = TextureFormat::RGBA8_sRGB;
+            TextureTypes m_type = TextureTypes::Single2D;
+
+            static constexpr eastl::array<TextureAspectType, 1> kDefaultAspectType = { TextureAspectType::Color };
+            eastl::span<const TextureAspectType> m_textureAspect { kDefaultAspectType };
+
+            u32 m_baseMipLevel = 0;
+            u32 m_mipLevelCount = 1;
+
+            u32 m_baseArrayLayer = 0;
+            u32 m_arrayLayerCount = 1;
+        };
+
         virtual ~Texture() = default;
 
         [[nodiscard]] TextureFormat GetFormat() const { return m_format; }
@@ -26,6 +43,6 @@ namespace KryneEngine
     protected:
         TextureFormat m_format = TextureFormat::NoFormat;
 
-        glm::vec2 m_size;
+        glm::uvec2 m_size;
     };
 }

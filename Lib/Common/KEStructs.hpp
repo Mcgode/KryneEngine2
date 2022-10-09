@@ -85,6 +85,12 @@ namespace KryneEngine
                 return m_sharedObject->m_object;
             }
 
+            void Reset()
+            {
+                _Unref();
+                m_sharedObject = nullptr;
+            }
+
         private:
             explicit Ref(SharedObject* _sharedObject)
                     : m_sharedObject(_sharedObject)

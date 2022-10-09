@@ -133,10 +133,24 @@ namespace KryneEngine
         VkHelperFunctions::VkAssert(m_deviceRef->createSwapchainKHR(&createInfo, nullptr, &m_swapChain));
 
         {
-            u32 imageCount;
-            VkHelperFunctions::VkAssert(m_deviceRef->getSwapchainImagesKHR(m_swapChain, &imageCount, nullptr));
-            m_swapChainImages.resize(imageCount);
-            VkHelperFunctions::VkAssert((m_deviceRef->getSwapchainImagesKHR(m_swapChain, &imageCount, m_swapChainImages.data())));
+            const auto images = m_deviceRef->getSwapchainImagesKHR(m_swapChain);
+            Assert(!images.empty(), "Unable to retrieve swapchain images");
+
+            Texture::Options textureOptions = {
+                    VkHelperFunctions::FromVkFormat(selectedFormat.format),
+                    TextureTypes::Single2D,
+                    Texture::Options::kDefaultAspectType,
+                    0,
+                    0,
+                    0,
+                    1,
+            };
+
+            m_swapChainTextures.Resize(images.size());
+            for (u32 i = 0; i < images.size(); i++)
+            {
+                m_swapChainTextures.Init(i, m_deviceRef, images[i], textureOptions, extent);
+            }
         }
     }
 

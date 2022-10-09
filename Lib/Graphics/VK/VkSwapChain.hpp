@@ -10,6 +10,8 @@
 #include <Common/KETypes.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <Graphics/VK/CommonStructures.hpp>
+#include <Common/Arrays.hpp>
+#include "VkTexture.hpp"
 
 struct GLFWwindow;
 
@@ -33,6 +35,6 @@ namespace KryneEngine
         vk::SwapchainKHR m_swapChain;
         VkSharedDeviceRef m_deviceRef;
         vk::SharingMode m_sharingMode;
-        eastl::vector<vk::Image> m_swapChainImages;
+        DynamicArray<VkTexture> m_swapChainTextures;
     };
 }

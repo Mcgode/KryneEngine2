@@ -27,7 +27,9 @@ namespace KryneEngine
 
     private:
 #if defined(KE_GRAPHICS_API_VK)
-        eastl::unique_ptr<VkGraphicsContext> m_implementation;
+        using ContextType = VkGraphicsContext;
+
+        eastl::unique_ptr<ContextType> m_implementation;
 #endif
     };
 }
