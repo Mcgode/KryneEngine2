@@ -10,12 +10,21 @@
 
 namespace KryneEngine
 {
-    enum class TextureFormat : u32
+    enum class TextureFormat : u16
     {
+        NoFormat,
+
         R8_UNorm,
         RG8_UNorm,
         RGB8_UNorm,
         RGBA8_UNorm,
+
+        RGB8_sRGB,
+        RGBA8_sRGB,
+
+        // Present special formats
+        BRGA8_UNorm,
+        BRGA8_sRGB,
 
         R8_SNorm,
         RG8_SNorm,
@@ -27,5 +36,23 @@ namespace KryneEngine
         D24S8,
         D32F,
         D32FS8,
+    };
+
+    enum class TextureTypes: u8
+    {
+        Single1D,
+        Single2D,
+        Single3D,
+        Array1D,
+        Array2D,
+        SingleCube,
+        ArrayCube,
+    };
+
+    enum class TextureAspectType: u8
+    {
+        Color,
+        Depth,
+        Stencil,
     };
 }

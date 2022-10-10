@@ -191,8 +191,8 @@ namespace KryneEngine
     vk::DebugUtilsMessengerCreateInfoEXT VkGraphicsContext::_PopulateDebugCreateInfo(void *_userData)
     {
         const auto severityFlags =
-                vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
-                vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
+//                vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+//                vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
                 vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
                 vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
 
@@ -438,7 +438,8 @@ namespace KryneEngine
 
         vk::PhysicalDeviceFeatures features;
 
-        const auto requiredExtensions = StringHelpers::RetrieveStringPointerContainer(_GetRequiredDeviceExtensions());
+        const auto requiredExtensionsStrings = _GetRequiredDeviceExtensions();
+        const auto requiredExtensions = StringHelpers::RetrieveStringPointerContainer(requiredExtensionsStrings);
 
         vk::ArrayProxyNoTemporaries<const char* const> enabledLayerNames;
         if (m_appInfo.m_features.m_validationLayers)

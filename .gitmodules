@@ -1,3 +1,7 @@
 [submodule "External"]
 	path = External
 	url = ../KryneEngineExternal.git
+
+[submodule "Tools"]
+	path = Tools
+	url = ../KryneEngineTools.git

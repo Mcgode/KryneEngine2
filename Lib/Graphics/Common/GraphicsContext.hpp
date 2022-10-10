@@ -19,13 +19,17 @@ namespace KryneEngine
     public:
         explicit GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo);
 
+        ~GraphicsContext();
+
         [[nodiscard]] Window* GetWindow() const;
 
         bool EndFrame();
 
     private:
 #if defined(KE_GRAPHICS_API_VK)
-        eastl::unique_ptr<VkGraphicsContext> m_implementation;
+        using ContextType = VkGraphicsContext;
+
+        eastl::unique_ptr<ContextType> m_implementation;
 #endif
     };
 }

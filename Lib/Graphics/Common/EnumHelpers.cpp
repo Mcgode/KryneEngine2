@@ -29,15 +29,25 @@ KryneEngine::u8 KryneEngine::GraphicsEnumHelpers::GetTextureFormatComponentCount
         }
 
         case TextureFormat::RGB8_UNorm:
+        case TextureFormat::RGB8_sRGB:
         case TextureFormat::RGB8_SNorm:
         {
             return 3;
         }
 
         case TextureFormat::RGBA8_UNorm:
+        case TextureFormat::RGBA8_sRGB:
+        case TextureFormat::BRGA8_UNorm:
+        case TextureFormat::BRGA8_sRGB:
         case TextureFormat::RGBA8_SNorm:
         {
             return 4;
+        }
+
+        case TextureFormat::NoFormat:
+        {
+            Error("No format set");
+            return 0;
         }
     }
 

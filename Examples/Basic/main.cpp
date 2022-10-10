@@ -34,16 +34,14 @@ int main() {
         KryneEngine::FiberJob initJob;
         auto syncCounter = fibersManager.InitAndBatchJobs(&initJob, Job1, nullptr);
 
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-
         fibersManager.ResetCounter(syncCounter);
+
+        auto appInfo = KryneEngine::GraphicsCommon::ApplicationInfo();
+        appInfo.m_api = KryneEngine::GraphicsCommon::Api::Vulkan_1_2;
+        KryneEngine::GraphicsContext graphicsContext(appInfo);
+
+        while (graphicsContext.EndFrame());
     }
-
-    auto appInfo = KryneEngine::GraphicsCommon::ApplicationInfo();
-    appInfo.m_api = KryneEngine::GraphicsCommon::Api::Vulkan_1_2;
-    KryneEngine::GraphicsContext graphicsContext(appInfo);
-
-    while (graphicsContext.EndFrame());
 
     return 0;
 }

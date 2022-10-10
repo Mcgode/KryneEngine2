@@ -28,4 +28,20 @@
             </ArrayItems>
         </Expand>
     </Type>
+
+    <Type Name="KryneEngine::SharedObject&lt;*,*&gt;">
+        <DisplayString>{{ {m_object} }}</DisplayString>
+        <Expand>
+            <Item Name="[object]">m_object</Item>
+        </Expand>
+    </Type>
+
+    <Type Name="KryneEngine::SharedObject&lt;*,*&gt;::Ref">
+        <DisplayString Condition="m_sharedObject == 0">{{ No referenced object }}</DisplayString>
+        <DisplayString Condition="m_sharedObject != 0">{{ {m_sharedObject->m_object} }}</DisplayString>
+
+        <Expand>
+            <Item Name="[object]" Condition="m_sharedObject != 0">m_sharedObject->m_object</Item>
+        </Expand>
+    </Type>
 </AutoVisualizer>

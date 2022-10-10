@@ -16,8 +16,8 @@ namespace KryneEngine::StringHelpers
     eastl::vector<const char*> RetrieveStringPointerContainer(const Container& _container)
     {
         static_assert(
-                std::is_same<Container::value_type, eastl::string>::value ||
-                std::is_same<Container::value_type, std::string>::value,
+                std::is_same<typename Container::value_type, eastl::string>::value ||
+                std::is_same<typename Container::value_type, std::string>::value,
                 "Container value type should be a string"
         );
         eastl::vector<const char*> result;
