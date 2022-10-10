@@ -12,6 +12,33 @@
 
 namespace KryneEngine::StringHelpers
 {
+    struct StringHash
+    {
+        explicit StringHash(u64 _value)
+            : m_hash(_value)
+        {}
+
+        explicit StringHash(const eastl::string_view& _string)
+            : m_string(_string)
+            , m_hash(Hash64(_string))
+        {}
+
+        u64 m_hash;
+        eastl::string m_string {};
+
+        // Based on FNV hash
+        // http://isthe.com/chongo/tech/comp/fnv/
+        static u64 Hash64(const eastl::string_view& _string)
+        {
+            u64 hash = 14695981039346656037u;
+            for (char c: _string)
+            {
+                hash = (hash * 1099511628211u) ^ static_cast<u64>(c);
+            }
+            return hash;
+        }
+    };
+
     template <class Container, bool Reserve = true>
     eastl::vector<const char*> RetrieveStringPointerContainer(const Container& _container)
     {
