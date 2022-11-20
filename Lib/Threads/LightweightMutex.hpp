@@ -14,47 +14,6 @@ namespace KryneEngine
     struct LightweightMutex
     {
     public:
-        struct Lock
-        {
-            friend LightweightMutex;
-
-        public:
-            Lock() = default;
-
-            ~Lock()
-            {
-                if (m_mutex != nullptr)
-                {
-                    m_mutex->ManualUnlock();
-                }
-            }
-
-            Lock(Lock& _other) = delete;
-            Lock& operator=(Lock& _other) = delete;
-
-            Lock(Lock&& _other) noexcept
-                : m_mutex(_other.m_mutex)
-            {
-                _other.m_mutex = nullptr;
-            }
-            Lock& operator=(Lock&& _other) noexcept
-            {
-                m_mutex = _other.m_mutex;
-                _other.m_mutex = nullptr;
-                return *this;
-            }
-
-        private:
-            explicit Lock(LightweightMutex* _mutex)
-                : m_mutex(_mutex)
-            {
-                m_mutex->ManualLock();
-            }
-
-            LightweightMutex* m_mutex = nullptr;
-        };
-
-    public:
         void ManualLock()
         {
             m_spinlock.Lock();
@@ -65,12 +24,15 @@ namespace KryneEngine
             m_spinlock.Unlock();
         }
 
-        [[nodiscard]] Lock&& AutoLock()
-        {
-            return eastl::move(Lock(this));
-        }
-
     private:
         SpinLock m_spinlock {};
+
+        using LockGuardT = Threads::SyncLockGuard<LightweightMutex, &LightweightMutex::ManualLock, &LightweightMutex::ManualUnlock>;
+
+    public:
+        [[nodiscard]] LockGuardT&& AutoLock()
+        {
+            return eastl::move(LockGuardT(this));
+        }
     };
 }
