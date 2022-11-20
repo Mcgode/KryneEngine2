@@ -14,7 +14,9 @@ set(ThreadsSrc
         Threads/Internal/FiberContext.cpp Threads/Internal/FiberContext.hpp
         Threads/SyncCounterPool.cpp Threads/SyncCounterPool.hpp
         Threads/LightweightBinarySemaphore.hpp
-        Threads/LightweightMutex.hpp Threads/SpinLock.hpp)
+        Threads/LightweightMutex.hpp Threads/SpinLock.hpp
+        Threads/RwMutex.hpp
+        Threads/Semaphore.hpp)
 
 add_library(KryneEngine ${CommonSrc} ${ThreadsSrc})
 target_link_libraries(KryneEngine KryneEngineGraphics moodycamel)

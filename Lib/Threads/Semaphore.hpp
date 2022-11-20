@@ -19,12 +19,10 @@ namespace KryneEngine
     class BusySpinSemaphore
     {
     public:
-        explicit BusySpinSemaphore(u32 _count, u32 _spinCount = 10'000)
+        explicit BusySpinSemaphore(u32 _count, u32 _spinCount = 1'000)
             : m_count(_count)
             , m_yieldSpinCount(_spinCount)
-        {
-            Assert(_count > 0);
-        }
+        {}
 
         inline void Signal(u32 _count) noexcept
         {
