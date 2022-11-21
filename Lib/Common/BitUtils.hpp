@@ -44,6 +44,7 @@ namespace KryneEngine::BitUtils
         inline BitFieldMember& operator=(TrueType _v)
         {
             m_value = _v & Maximum() << Offset;
+            return *this;
         }
 
         inline bool operator!() const
