@@ -1,6 +1,8 @@
 #include <iostream>
 #include <Graphics/Common/GraphicsContext.hpp>
 #include <Threads/FibersManager.hpp>
+#include <Threads/Semaphore.hpp>
+#include <Threads/RwMutex.hpp>
 
 std::atomic<KryneEngine::u32> counter = 0;
 
@@ -27,6 +29,38 @@ void Job1(void*)
 
 int main() {
     std::cout << "Hello, World!" << std::endl;
+
+    {
+        KryneEngine::BusySpinSemaphore semaphore(2);
+        KryneEngine::SpinLock lock;
+
+        lock.Lock();
+
+        std::thread j0([&]() {
+            auto sLock = semaphore.AutoLock();
+            std::cout << "J 0 semaphore go" << std::endl;
+            lock.Lock();
+            semaphore.SignalOnce();
+            lock.Unlock();
+        });
+        std::thread j1([&]() {
+            semaphore.Wait();
+            std::cout << "J 1 semaphore go" << std::endl;
+            lock.Lock();
+            semaphore.SignalOnce();
+            lock.Unlock();
+        });
+        std::thread j2([&]() {
+            semaphore.Wait();
+            std::cout << "J 2 semaphore go" << std::endl;
+            lock.Unlock();
+            semaphore.SignalOnce();
+        });
+
+        j0.join();
+        j1.join();
+        j2.join();
+    }
 
     {
         auto fibersManager = KryneEngine::FibersManager(6);
