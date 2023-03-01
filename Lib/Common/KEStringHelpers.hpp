@@ -9,6 +9,7 @@
 #include <EASTL/vector.h>
 #include <EASTL/string.h>
 #include <string>
+#include <Common/KETypes.hpp>
 
 namespace KryneEngine
 {
@@ -32,8 +33,8 @@ namespace KryneEngine
             return Murmur2Hash64(_string.data(), _string.size());
         }
 
-        static constexpr u64 kFnvPrime = 1099511628211u;
-        static constexpr u64 kFnvOffsetBasis = 14695981039346656037u;
+        static constexpr u64 kFnvPrime = 1'099'511'628'211u;
+        static constexpr u64 kFnvOffsetBasis = 14'695'981'039'346'656'037u;
 
         // Based on FNV hash
         // http://isthe.com/chongo/tech/comp/fnv/
@@ -59,8 +60,8 @@ namespace KryneEngine
             return hash;
         }
 
-        static constexpr u64 kMurmurSeed = 123456789u;
-        static constexpr u64 kMurmurPrime = 14313749767032793493u;
+        static constexpr u64 kMurmurSeed = 123'456'789u;
+        static constexpr u64 kMurmurPrime = 14'313'749'767'032'793'493u;
         static constexpr u64 kMurmurShift = 47u;
 
         // https://github.com/abrandoned/murmur2/blob/master/MurmurHash2.c
