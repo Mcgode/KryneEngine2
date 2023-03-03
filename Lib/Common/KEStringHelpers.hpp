@@ -24,9 +24,29 @@ namespace KryneEngine
             , m_hash(Hash64(_string))
         {}
 
+        StringHash(const StringHash& _other) = default;
+        StringHash(StringHash&& _other) noexcept
+            : m_hash(_other.m_hash)
+            , m_string(eastl::move(_other.m_string))
+        {
+        }
+
         u64 m_hash;
         eastl::string m_string {};
 
+
+        StringHash& operator=(const StringHash& _other) = default;
+        StringHash& operator=(StringHash&& _other) = default;
+
+        bool operator==(const StringHash &rhs) const
+        {
+            return m_hash == rhs.m_hash;
+        }
+
+        bool operator<(const StringHash &rhs) const
+        {
+            return m_hash < rhs.m_hash;
+        }
 
         static u64 Hash64(const eastl::string_view& _string)
         {
