@@ -5,6 +5,11 @@ set(CommonSrc
         Common/additional_impl.cpp
         )
 
+set(FilesSrc
+        Files/FileWatcher.cpp Files/FileWatcher.hpp
+        Files/WatchedDirectory.cpp Files/WatchedDirectory.hpp
+        Files/FileSystemHelper.cpp Files/FileSystemHelper.hpp)
+
 set(ThreadsSrc
         Threads/FibersManager.cpp Threads/FibersManager.hpp
         Threads/FiberThread.cpp Threads/FiberThread.hpp
@@ -16,7 +21,8 @@ set(ThreadsSrc
         Threads/LightweightBinarySemaphore.hpp
         Threads/LightweightMutex.hpp Threads/SpinLock.hpp
         Threads/RwMutex.hpp
-        Threads/Semaphore.hpp)
+        Threads/Semaphore.hpp
+        )
 
-add_library(KryneEngine ${CommonSrc} ${ThreadsSrc})
+add_library(KryneEngine ${CommonSrc} ${FilesSrc} ${ThreadsSrc})
 target_link_libraries(KryneEngine KryneEngineGraphics moodycamel)
