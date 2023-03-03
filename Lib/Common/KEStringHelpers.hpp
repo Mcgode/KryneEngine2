@@ -131,3 +131,12 @@ namespace KryneEngine
         }
     }
 }
+
+namespace eastl
+{
+    template <>
+    struct hash<KryneEngine::StringHash>
+    {
+        size_t operator()(const KryneEngine::StringHash& _val) const { return static_cast<size_t>(_val.m_hash); }
+    };
+}
