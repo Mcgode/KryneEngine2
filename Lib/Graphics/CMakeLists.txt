@@ -4,6 +4,7 @@ set(VkFiles
         VK/VkSwapChain.cpp VK/VkSwapChain.hpp
         VK/VkSurface.cpp VK/VkSurface.hpp
         VK/CommonStructures.hpp
+        VK/VkTexture.cpp VK/VkTexture.hpp
         )
 
 set(CommonFiles
@@ -15,7 +16,10 @@ set(CommonFiles
         Common/EnumHelpers.cpp Common/EnumHelpers.hpp)
 
 if (GraphicsApi STREQUAL "VK")
-    set(SrcFiles ${CommonFiles} ${VkFiles} VK/VkTexture.cpp VK/VkTexture.hpp)
+    set(SrcFiles ${CommonFiles} ${VkFiles})
+elseif(GraphicsApi STREQUAL "DX12")
+    set(SrcFiles ${CommonFiles})
+    message(WARNING "No DX12 sources yet")
 endif()
 
 add_library(KryneEngineGraphics STATIC ${SrcFiles})
@@ -31,4 +35,7 @@ if (GraphicsApi STREQUAL "VK")
 
     message(STATUS "Vulkan lib: " ${Vulkan_LIBRARIES})
     target_link_libraries(KryneEngineGraphics ${Vulkan_LIBRARIES})
+elseif(GraphicsApi STREQUAL "DX12")
+    message(STATUS "Linking DirectX12 lib")
+    target_link_libraries(KryneEngineGraphics "d3d12.lib" "dxgi.lib" "d3dcompiler.lib")
 endif()

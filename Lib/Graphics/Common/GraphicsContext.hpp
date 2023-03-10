@@ -28,9 +28,11 @@ namespace KryneEngine
     private:
 #if defined(KE_GRAPHICS_API_VK)
         using ContextType = VkGraphicsContext;
-
-        eastl::unique_ptr<ContextType> m_implementation;
+#elif defined(KE_GRAPHICS_API_DX12)
+        //using ContextType = Dx12GraphicsContext;
+        using ContextType = void;
 #endif
+        eastl::unique_ptr<ContextType> m_implementation;
     };
 }
 
