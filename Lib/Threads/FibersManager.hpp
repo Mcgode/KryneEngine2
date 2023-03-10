@@ -95,6 +95,6 @@ namespace KryneEngine
         std::mutex m_waitMutex;
         std::condition_variable m_waitVariable;
 
-        static thread_local FibersManager* sManager;
+        static thread_local FibersManager* s_manager;
     };
 } // KryneEngine

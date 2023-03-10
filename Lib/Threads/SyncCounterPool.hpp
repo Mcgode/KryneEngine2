@@ -32,7 +32,7 @@ namespace KryneEngine
 
         operator s32() const { return m_id; }
     };
-    static const SyncCounterId kInvalidSynCounterId = SyncCounterId();
+    static const SyncCounterId kInvalidSyncCounterId = SyncCounterId();
 
     class FiberJob;
 

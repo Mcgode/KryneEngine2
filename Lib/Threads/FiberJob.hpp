@@ -110,6 +110,6 @@ namespace KryneEngine
         s32 m_contextId = kInvalidContextId;
         FiberContext *m_context = nullptr;
 
-        SyncCounterId m_associatedCounterId = kInvalidSynCounterId;
+        SyncCounterId m_associatedCounterId = kInvalidSyncCounterId;
     };
 } // KryneEngine

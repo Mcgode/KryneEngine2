@@ -20,7 +20,7 @@ namespace KryneEngine
         {
             Assert(Threads::DisableThreadSignals());
 
-            FibersManager::sManager = _fiberManager;
+            FibersManager::s_manager = _fiberManager;
             sThreadIndex = _threadIndex;
             sIsThread = true;
 

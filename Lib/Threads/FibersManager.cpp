@@ -10,7 +10,7 @@
 
 namespace KryneEngine
 {
-    thread_local FibersManager* FibersManager::sManager = nullptr;
+    thread_local FibersManager* FibersManager::s_manager = nullptr;
 
     FibersManager::FibersManager(u16 _fiberThreadCount)
     {
@@ -53,7 +53,7 @@ namespace KryneEngine
 
     void FibersManager::QueueJob(FibersManager::JobType _job)
     {
-        VERIFY_OR_RETURN_VOID(_job != nullptr && _job->m_associatedCounterId != kInvalidSynCounterId);
+        VERIFY_OR_RETURN_VOID(_job != nullptr && _job->m_associatedCounterId != kInvalidSyncCounterId);
 
         Assert(_job->CanRun());
 
@@ -103,7 +103,7 @@ namespace KryneEngine
 
     FibersManager *FibersManager::GetInstance()
     {
-        return sManager;
+        return s_manager;
     }
 
     FibersManager::~FibersManager()
@@ -165,7 +165,7 @@ namespace KryneEngine
     {
         const auto syncCounter = m_syncCounterPool.AcquireCounter(_count);
 
-        VERIFY_OR_RETURN(syncCounter != kInvalidSynCounterId, kInvalidSynCounterId);
+        VERIFY_OR_RETURN(syncCounter != kInvalidSyncCounterId, kInvalidSyncCounterId);
 
         for (u32 i = 0; i < _count; i++)
         {
