@@ -67,6 +67,7 @@ namespace KryneEngine
         {
             m_jobQueues[priorityId].enqueue(_job);
         }
+        m_waitVariable.notify_one();
     }
 
     bool FibersManager::_RetrieveNextJob(JobType &job_, u16 _fiberIndex)
@@ -194,5 +195,11 @@ namespace KryneEngine
     void FibersManager::ResetCounter(SyncCounterId _syncCounter)
     {
         m_syncCounterPool.FreeCounter(_syncCounter);
+    }
+
+    void FibersManager::_ThreadWaitForJob()
+    {
+        std::unique_lock<std::mutex> lock(m_waitMutex);
+        m_waitVariable.wait(lock);
     }
 }

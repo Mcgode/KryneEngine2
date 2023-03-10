@@ -93,9 +93,9 @@ namespace KryneEngine
             {
                 break;
             }
-            else if (i >= kRetrieveSpinCountBeforeThreadYield)
+            else if (i >= kRetrieveSpinCountBeforeThreadWait)
             {
-                std::this_thread::yield();
+                FibersManager::GetInstance()->_ThreadWaitForJob();
                 i = 0;
             }
             else if (_busyWait)

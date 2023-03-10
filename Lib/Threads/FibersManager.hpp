@@ -69,6 +69,8 @@ namespace KryneEngine
 
         void _OnContextSwitched();
 
+        void _ThreadWaitForJob();
+
     private:
         using JobQueue = moodycamel::ConcurrentQueue<JobType>;
         static constexpr u8 kJobQueuesCount = FiberJob::PriorityType::kJobPriorityTypes;
@@ -89,6 +91,9 @@ namespace KryneEngine
         FiberContextAllocator m_contextAllocator;
 
         SyncCounterPool m_syncCounterPool {};
+
+        std::mutex m_waitMutex;
+        std::condition_variable m_waitVariable;
 
         static thread_local FibersManager* sManager;
     };

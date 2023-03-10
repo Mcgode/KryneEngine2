@@ -31,7 +31,7 @@ namespace KryneEngine
         bool m_shouldStop = false;
         std::thread m_thread;
 
-        static constexpr u32 kRetrieveSpinCountBeforeThreadYield = 50;
+        static constexpr u32 kRetrieveSpinCountBeforeThreadWait = 50;
 
         static thread_local ThreadIndex sThreadIndex;
         static thread_local bool sIsThread;
