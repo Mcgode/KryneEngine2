@@ -7,7 +7,6 @@
 #pragma once
 
 #include <EASTL/array.h>
-#include <moodycamel/concurrentqueue.h>
 #include <Threads/FiberThread.hpp>
 #include <Threads/FiberJob.hpp>
 #include <Threads/FiberTls.hpp>
@@ -15,10 +14,13 @@
 
 namespace KryneEngine
 {
+    class IoQueryManager;
+
     class FibersManager
     {
         friend FiberThread;
         friend FiberContext;
+        friend IoQueryManager;
 
     public:
         using JobType = FiberJob*;
@@ -96,5 +98,6 @@ namespace KryneEngine
         std::condition_variable m_waitVariable;
 
         static thread_local FibersManager* s_manager;
+        IoQueryManager* m_ioManager = nullptr;
     };
 } // KryneEngine

@@ -8,7 +8,9 @@ set(CommonSrc
 set(FilesSrc
         Files/FileWatcher.cpp Files/FileWatcher.hpp
         Files/WatchedDirectory.cpp Files/WatchedDirectory.hpp
-        Files/FileSystemHelper.cpp Files/FileSystemHelper.hpp)
+        Files/FileSystemHelper.cpp Files/FileSystemHelper.hpp
+        Files/IoQueryManager.cpp Files/IoQueryManager.hpp
+        )
 
 set(ThreadsSrc
         Threads/FibersManager.cpp Threads/FibersManager.hpp
