@@ -7,19 +7,22 @@ set(VkFiles
         VK/VkTexture.cpp VK/VkTexture.hpp
         )
 
+set (DX12Files
+        DX12/Dx12GraphicsContext.cpp DX12/Dx12GraphicsContext.hpp)
+
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
         Common/Window.cpp Common/Window.hpp
         Common/GraphicsCommon.hpp
         Common/Texture.cpp Common/Texture.hpp
         Common/Enums.hpp
-        Common/EnumHelpers.cpp Common/EnumHelpers.hpp)
+        Common/EnumHelpers.cpp Common/EnumHelpers.hpp
+        )
 
 if (GraphicsApi STREQUAL "VK")
     set(SrcFiles ${CommonFiles} ${VkFiles})
 elseif(GraphicsApi STREQUAL "DX12")
-    set(SrcFiles ${CommonFiles})
-    message(WARNING "No DX12 sources yet")
+    set(SrcFiles ${CommonFiles} ${DX12Files})
 endif()
 
 add_library(KryneEngineGraphics STATIC ${SrcFiles})

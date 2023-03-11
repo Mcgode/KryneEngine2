@@ -6,13 +6,17 @@
 
 #pragma once
 
-#include <EASTL/unique_ptr.h>
-#include <Graphics/Common/GraphicsCommon.hpp>
+#if defined(KE_GRAPHICS_API_VK)
+#   include <Graphics/VK/VkGraphicsContext.hpp>
+#elif defined(KE_GRAPHICS_API_DX12)
+#   include <Graphics/DX12/Dx12GraphicsContext.hpp>
+#else
+#   error No valid graphics API
+#endif
 
 namespace KryneEngine
 {
     class Window;
-    class VkGraphicsContext;
 
     class GraphicsContext
     {
@@ -26,13 +30,12 @@ namespace KryneEngine
         bool EndFrame();
 
     private:
+
 #if defined(KE_GRAPHICS_API_VK)
-        using ContextType = VkGraphicsContext;
+        VkGraphicsContext m_implementation;
 #elif defined(KE_GRAPHICS_API_DX12)
-        //using ContextType = Dx12GraphicsContext;
-        using ContextType = void;
+        Dx12GraphicsContext m_implementation;
 #endif
-        eastl::unique_ptr<ContextType> m_implementation;
     };
 }
 
