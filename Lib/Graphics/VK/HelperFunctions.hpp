@@ -25,7 +25,7 @@ namespace KryneEngine::VkHelperFunctions
 
     inline u32 GetApiVersion(GraphicsCommon::Api _api)
     {
-        Assert(_api >= GraphicsCommon::Api::VulkanStart && _api <= GraphicsCommon::Api::VulkanEnd);
+        Assert(_api >= GraphicsCommon::Api::Vulkan_Start && _api <= GraphicsCommon::Api::Vulkan_End);
         switch (_api)
         {
             case GraphicsCommon::Api::Vulkan_1_1: return VK_API_VERSION_1_1;

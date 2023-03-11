@@ -20,13 +20,21 @@ namespace KryneEngine::GraphicsCommon
     enum class Api
     {
         None,
+
         Vulkan_1_0,
         Vulkan_1_1,
         Vulkan_1_2,
         Vulkan_1_3,
 
-        VulkanStart = Vulkan_1_0,
-        VulkanEnd = Vulkan_1_3,
+        Vulkan_Start = Vulkan_1_0,
+        Vulkan_End = Vulkan_1_3,
+
+        DirectX12_0,
+        DirectX12_1,
+        DirectX12_2,
+
+        DirectX12_Start = DirectX12_0,
+        DirectX12_End = DirectX12_2,
     };
 
     enum class SoftEnable: u8
@@ -68,5 +76,15 @@ namespace KryneEngine::GraphicsCommon
             SoftEnable m_tripleBuffering = SoftEnable::TryEnable;
         }
         m_displayOptions {};
+
+        [[nodiscard]] bool IsVulkanApi() const
+        {
+            return m_api >= Api::Vulkan_Start && m_api <= Api::Vulkan_End;
+        }
+
+        [[nodiscard]] bool IsDirectX12Api() const
+        {
+            return m_api >= Api::DirectX12_Start && m_api <= Api::DirectX12_End;
+        }
     };
 }
