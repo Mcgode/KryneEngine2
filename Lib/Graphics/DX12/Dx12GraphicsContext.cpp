@@ -21,6 +21,7 @@ namespace KryneEngine
         }
 
         _CreateDevice();
+        _CreateCommandQueues();
     }
 
     Window *Dx12GraphicsContext::GetWindow() const
@@ -92,5 +93,43 @@ namespace KryneEngine
         }
 
         *_adapter = adapter.Detach();
+    }
+
+    void Dx12GraphicsContext::_CreateCommandQueues()
+    {
+        const auto& features = m_appInfo.m_features;
+
+        if (features.m_graphics)
+        {
+            D3D12_COMMAND_QUEUE_DESC directQueueDesc {};
+            directQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+            directQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+            directQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+            directQueueDesc.NodeMask = 0;
+
+            Dx12Assert(m_device->CreateCommandQueue(&directQueueDesc, IID_PPV_ARGS(&m_directQueue)));
+        }
+
+        if ((!features.m_graphics || features.m_asyncCompute) && features.m_compute )
+        {
+            D3D12_COMMAND_QUEUE_DESC computeQueueDesc {};
+            computeQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+            computeQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+            computeQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+            computeQueueDesc.NodeMask = 0;
+
+            Dx12Assert(m_device->CreateCommandQueue(&computeQueueDesc, IID_PPV_ARGS(&m_computeQueue)));
+        }
+
+        if ((!features.m_graphics && !features.m_compute || features.m_transferQueue) && features.m_transfer)
+        {
+            D3D12_COMMAND_QUEUE_DESC copyQueueDesc {};
+            copyQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
+            copyQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+            copyQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+            copyQueueDesc.NodeMask = 0;
+
+            Dx12Assert(m_device->CreateCommandQueue(&copyQueueDesc, IID_PPV_ARGS(&m_copyQueue)));
+        }
     }
 } // KryneEngine

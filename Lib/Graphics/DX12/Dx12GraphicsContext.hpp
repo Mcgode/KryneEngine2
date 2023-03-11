@@ -28,7 +28,13 @@ namespace KryneEngine
 
         ComPtr<ID3D12Device> m_device;
 
+        ComPtr<ID3D12CommandQueue> m_directQueue;
+        ComPtr<ID3D12CommandQueue> m_computeQueue;
+        ComPtr<ID3D12CommandQueue> m_copyQueue;
+
         void _CreateDevice();
         void _FindAdapter(IDXGIFactory1* _factory, IDXGIAdapter1** _adapter);
+
+        void _CreateCommandQueues();
     };
 } // KryneEngine
