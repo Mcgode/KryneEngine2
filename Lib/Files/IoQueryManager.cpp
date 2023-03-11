@@ -32,27 +32,27 @@ namespace KryneEngine
         m_thread.join();
     }
 
-    void IoQueryManager::MakeQueryAsync(IoQueryManager::IoQuery *_query)
+    void IoQueryManager::MakeQueryAsync(IoQueryManager::Query *_query)
     {
         m_queriesQueue.enqueue(_query);
         m_waitConditionVariable.notify_one();
     }
 
-    void IoQueryManager::MakeQuerySync(IoQueryManager::IoQuery *_query)
+    void IoQueryManager::MakeQuerySync(IoQueryManager::Query *_query)
     {
         _HandleQuery(_query, nullptr);
     }
 
     void IoQueryManager::_ProcessIoQueries(FibersManager *_fibersManager)
     {
-        IoQuery* query = nullptr;
+        Query* query = nullptr;
         while(m_queriesQueue.try_dequeue(query))
         {
             _HandleQuery(query, _fibersManager);
         }
     }
 
-    void IoQueryManager::_HandleQuery(IoQueryManager::IoQuery *_query, FibersManager *_fibersManager)
+    void IoQueryManager::_HandleQuery(IoQueryManager::Query *_query, FibersManager *_fibersManager)
     {
         const auto offset = _query->m_offset;
         s64 fileSize = -1;
@@ -82,7 +82,7 @@ namespace KryneEngine
         {
             fseek(_query->m_file, offset, SEEK_SET);
 
-            if (_query->m_type == IoQuery::Type::Read)
+            if (_query->m_type == Query::Type::Read)
             {
                 const u64 readSize = fileSize < 0 ? _query->m_size : eastl::min<u64>(_query->m_size, fileSize);
 

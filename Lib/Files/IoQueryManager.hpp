@@ -23,7 +23,7 @@ namespace KryneEngine
 
         ~IoQueryManager();
 
-        struct IoQuery
+        struct Query
         {
             enum class Type: u8 {
                 Read,
@@ -36,7 +36,7 @@ namespace KryneEngine
 
             u8* m_data = nullptr;
 
-            u64 m_size = eastl::numeric_limits<u64>::max();
+            u64 m_size = UINT64_MAX;
 
             union
             {
@@ -51,12 +51,12 @@ namespace KryneEngine
             bool m_deleteQuery = false;
         };
 
-        void MakeQueryAsync(IoQuery* _query);
-        void MakeQuerySync(IoQuery* _query);
+        void MakeQueryAsync(Query* _query);
+        static void MakeQuerySync(Query* _query);
 
     private:
 
-        moodycamel::ConcurrentQueue<IoQuery*> m_queriesQueue;
+        moodycamel::ConcurrentQueue<Query*> m_queriesQueue;
 
         volatile bool m_shouldStop = false;
         std::thread m_thread;
@@ -65,6 +65,6 @@ namespace KryneEngine
 
         void _ProcessIoQueries(FibersManager *_fibersManager);
 
-        static void _HandleQuery(IoQuery* _query, FibersManager* _fibersManager);
+        static void _HandleQuery(Query* _query, FibersManager* _fibersManager);
     };
 } // KryneEngine

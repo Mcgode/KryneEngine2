@@ -67,6 +67,8 @@ namespace KryneEngine
 
         void YieldJob(JobType _nextJob = nullptr);
 
+        [[nodiscard]] IoQueryManager* GetIoQueryManager() const { return m_ioManager; }
+
     protected:
 
         bool _RetrieveNextJob(JobType &job_, u16 _fiberIndex);
