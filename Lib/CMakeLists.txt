@@ -10,6 +10,7 @@ set(FilesSrc
         Files/WatchedDirectory.cpp Files/WatchedDirectory.hpp
         Files/FileSystemHelper.cpp Files/FileSystemHelper.hpp
         Files/IoQueryManager.cpp Files/IoQueryManager.hpp
+        Files/File.cpp Files/File.hpp
         )
 
 set(ThreadsSrc
