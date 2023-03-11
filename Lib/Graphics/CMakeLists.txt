@@ -8,7 +8,7 @@ set(VkFiles
         )
 
 set (DX12Files
-        DX12/Dx12GraphicsContext.cpp DX12/Dx12GraphicsContext.hpp)
+        DX12/Dx12GraphicsContext.cpp DX12/Dx12GraphicsContext.hpp DX12/Dx12Headers.hpp)
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
@@ -23,6 +23,7 @@ if (GraphicsApi STREQUAL "VK")
     set(SrcFiles ${CommonFiles} ${VkFiles})
 elseif(GraphicsApi STREQUAL "DX12")
     set(SrcFiles ${CommonFiles} ${DX12Files})
+    set(PrecompileHeaders DX12/Dx12Headers.hpp)
 endif()
 
 add_library(KryneEngineGraphics STATIC ${SrcFiles})
@@ -40,5 +41,10 @@ if (GraphicsApi STREQUAL "VK")
     target_link_libraries(KryneEngineGraphics ${Vulkan_LIBRARIES})
 elseif(GraphicsApi STREQUAL "DX12")
     message(STATUS "Linking DirectX12 lib")
-    target_link_libraries(KryneEngineGraphics "d3d12.lib" "dxgi.lib" "d3dcompiler.lib")
+    target_link_libraries(KryneEngineGraphics d3d12 dxgi d3dcompiler dxguid DirectX-Headers)
+endif()
+
+if (PrecompileHeaders)
+    message(STATUS "Precompiling indicated headers: ${PrecompileHeaders}")
+    target_precompile_headers(KryneEngineGraphics PUBLIC ${PrecompileHeaders})
 endif()
