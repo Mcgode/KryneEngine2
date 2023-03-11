@@ -181,6 +181,11 @@ namespace KryneEngine
         return syncCounter;
     }
 
+    SyncCounterPool::AutoSyncCounter FibersManager::AcquireAutoSyncCounter(u32 _count)
+    {
+        return eastl::move(m_syncCounterPool.AcquireAutoCounter(_count));
+    }
+
     void FibersManager::WaitForCounter(SyncCounterId _syncCounter)
     {
         auto* currentJob = GetCurrentJob();

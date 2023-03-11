@@ -52,6 +52,8 @@ namespace KryneEngine
                                                      FiberJob::Priority _priority = FiberJob::Priority::Medium,
                                                      bool _useBigStack = false);
 
+        [[nodiscard]] SyncCounterPool::AutoSyncCounter AcquireAutoSyncCounter(u32 _count = 1);
+
         void QueueJob(JobType _job);
 
         void WaitForCounter(SyncCounterId _syncCounter);

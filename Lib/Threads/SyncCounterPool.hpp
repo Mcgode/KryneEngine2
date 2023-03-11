@@ -49,6 +49,30 @@ namespace KryneEngine
 
         void FreeCounter(SyncCounterId &_id);
 
+        class AutoSyncCounter
+        {
+            friend SyncCounterPool;
+
+        public:
+            ~AutoSyncCounter();
+
+            AutoSyncCounter(const AutoSyncCounter& _other) = delete;
+            AutoSyncCounter(AutoSyncCounter&& _other);
+
+            AutoSyncCounter& operator=(const AutoSyncCounter& _other) = delete;
+            AutoSyncCounter& operator=(AutoSyncCounter&& _other) = delete;
+
+            [[nodiscard]] const SyncCounterId &GetId() const { return m_id; }
+
+        private:
+            AutoSyncCounter(SyncCounterId _id, SyncCounterPool* _pool);
+
+            SyncCounterId m_id;
+            SyncCounterPool* m_pool;
+        };
+
+        AutoSyncCounter&& AcquireAutoCounter(u32 _count);
+
     private:
         struct Entry
         {

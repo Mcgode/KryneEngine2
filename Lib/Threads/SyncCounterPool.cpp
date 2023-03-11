@@ -85,4 +85,29 @@ namespace KryneEngine
         m_idQueue.enqueue(_id);
         _id = kInvalidSyncCounterId;
     }
+
+    SyncCounterPool::AutoSyncCounter::~AutoSyncCounter()
+    {
+        m_pool->FreeCounter(m_id);
+    }
+
+    SyncCounterPool::AutoSyncCounter::AutoSyncCounter(SyncCounterPool::AutoSyncCounter &&_other)
+        : m_id(_other.m_id)
+        , m_pool(_other.m_pool)
+    {
+        _other.m_id = kInvalidSyncCounterId;
+        _other.m_pool = nullptr;
+    }
+
+    SyncCounterPool::AutoSyncCounter::AutoSyncCounter(SyncCounterId _id, SyncCounterPool *_pool)
+        : m_id(_id)
+        , m_pool(_pool)
+    {
+    }
+
+    SyncCounterPool::AutoSyncCounter &&SyncCounterPool::AcquireAutoCounter(u32 _count)
+    {
+        const auto syncCounter = AcquireCounter(_count);
+        return eastl::move(AutoSyncCounter(syncCounter, this));
+    }
 } // KryneEngine
