@@ -12,19 +12,19 @@
 
 namespace KryneEngine
 {
-    bool Dx12Verify(HRESULT _hr)
+    inline bool Dx12Verify(HRESULT _hr)
     {
         return Verify(SUCCEEDED(_hr));
     }
 
-    void Dx12Assert(HRESULT _hr)
+    inline void Dx12Assert(HRESULT _hr)
     {
         Assert(SUCCEEDED(_hr));
     }
 
     namespace Dx12Converters
     {
-        D3D_FEATURE_LEVEL GetFeatureLevel(const GraphicsCommon::ApplicationInfo& _appInfo)
+        [[nodiscard]] inline D3D_FEATURE_LEVEL GetFeatureLevel(const GraphicsCommon::ApplicationInfo& _appInfo)
         {
             Assert(_appInfo.IsDirectX12Api());
 
