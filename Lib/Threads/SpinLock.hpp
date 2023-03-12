@@ -59,9 +59,9 @@ namespace KryneEngine
         using LockGuardT = Threads::SyncLockGuard<SpinLock, &SpinLock::Lock, &SpinLock::Unlock>;
 
     public:
-        [[nodiscard]] LockGuardT&& AutoLock() noexcept
+        [[nodiscard]] LockGuardT AutoLock() noexcept
         {
-            return std::move(LockGuardT(this));
+            return LockGuardT(this);
         }
     };
 } // KryneEngine

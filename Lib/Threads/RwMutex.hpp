@@ -138,14 +138,14 @@ namespace KryneEngine
         using WriterLockGuardT = Threads::SyncLockGuard<RwMutexBase, &RwMutexBase::LockWriter, &RwMutexBase::UnlockWriter>;
 
     public:
-        ReaderLockGuardT&& AutoLockReader()
+        ReaderLockGuardT AutoLockReader()
         {
-            return std::move(ReaderLockGuardT(this));
+            return ReaderLockGuardT(this);
         }
 
-        WriterLockGuardT && AutoLockWriter()
+        WriterLockGuardT AutoLockWriter()
         {
-            return std::move(WriterLockGuardT(this));
+            return WriterLockGuardT(this);
         }
     };
 
