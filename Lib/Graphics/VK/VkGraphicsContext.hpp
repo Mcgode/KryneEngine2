@@ -6,12 +6,11 @@
 
 #pragma once
 
-#include <vulkan/vulkan.hpp>
+#include "VkHeaders.hpp"
 #include <vma/vk_mem_alloc.h>
 #include <EASTL/unique_ptr.h>
 #include <EASTL/vector.h>
 #include <EASTL/vector_set.h>
-#include <Graphics/Common/GraphicsCommon.hpp>
 #include <Graphics/VK/CommonStructures.hpp>
 
 namespace KryneEngine

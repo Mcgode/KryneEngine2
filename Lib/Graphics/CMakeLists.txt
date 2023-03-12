@@ -5,6 +5,7 @@ set(VkFiles
         VK/VkSurface.cpp VK/VkSurface.hpp
         VK/CommonStructures.hpp
         VK/VkTexture.cpp VK/VkTexture.hpp
+        VK/VkHeaders.hpp
         )
 
 set (DX12Files
@@ -25,6 +26,7 @@ set(CommonFiles
 
 if (GraphicsApi STREQUAL "VK")
     set(SrcFiles ${CommonFiles} ${VkFiles})
+    set(PrecompileHeaders VK/VkHeaders.hpp)
 elseif(GraphicsApi STREQUAL "DX12")
     set(SrcFiles ${CommonFiles} ${DX12Files})
     set(PrecompileHeaders DX12/Dx12Headers.hpp)

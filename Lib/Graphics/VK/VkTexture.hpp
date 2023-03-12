@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <vulkan/vulkan.hpp>
+#include "VkHeaders.hpp"
 #include <EASTL/optional.h>
 #include <Graphics/Common/Texture.hpp>
 #include <Graphics/VK/CommonStructures.hpp>

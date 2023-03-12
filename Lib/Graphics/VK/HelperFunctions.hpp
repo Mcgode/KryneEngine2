@@ -10,7 +10,6 @@
 #include <vulkan/vulkan.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <Graphics/Common/Enums.hpp>
-#include <Common/Assert.hpp>
 
 namespace KryneEngine::VkHelperFunctions
 {

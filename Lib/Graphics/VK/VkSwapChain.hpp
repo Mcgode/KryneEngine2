@@ -6,11 +6,7 @@
 
 #pragma once
 
-#include <vulkan/vulkan.hpp>
-#include <Common/KETypes.hpp>
-#include <Graphics/Common/GraphicsCommon.hpp>
-#include <Graphics/VK/CommonStructures.hpp>
-#include <Common/Arrays.hpp>
+#include "VkHeaders.hpp"
 #include "VkTexture.hpp"
 
 struct GLFWwindow;
