@@ -6,10 +6,9 @@
 
 #pragma once
 
-#include "VkHeaders.hpp"
+#include "VkFrameContext.hpp"
 #include <vma/vk_mem_alloc.h>
 #include <EASTL/unique_ptr.h>
-#include <EASTL/vector.h>
 #include <EASTL/vector_set.h>
 #include <Graphics/VK/CommonStructures.hpp>
 
@@ -52,6 +51,7 @@ namespace KryneEngine
         VmaAllocator m_allocator;
 
         u8 m_frameContextCount;
+        DynamicArray<VkFrameContext> m_frameContexts;
 
         static void _PrepareValidationLayers(vk::InstanceCreateInfo& _createInfo);
 

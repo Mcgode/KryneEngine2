@@ -6,6 +6,7 @@ set(VkFiles
         VK/CommonStructures.hpp
         VK/VkTexture.cpp VK/VkTexture.hpp
         VK/VkHeaders.hpp
+        VK/VkFrameContext.cpp VK/VkFrameContext.hpp
         )
 
 set (DX12Files

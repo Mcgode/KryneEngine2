@@ -135,6 +135,9 @@ namespace KryneEngine
             // If no display, keep double buffering.
             m_frameContextCount = 2;
         }
+
+        m_frameContexts.Resize(m_frameContextCount);
+        m_frameContexts.InitAll(&m_sharedDevice, m_queueIndices);
     }
 
     VkGraphicsContext::~VkGraphicsContext()
