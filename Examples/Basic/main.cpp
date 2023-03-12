@@ -71,7 +71,11 @@ int main() {
         fibersManager.ResetCounter(syncCounter);
 
         auto appInfo = KryneEngine::GraphicsCommon::ApplicationInfo();
+#if defined(KE_GRAPHICS_API_VK)
         appInfo.m_api = KryneEngine::GraphicsCommon::Api::Vulkan_1_2;
+#elif defined(KE_GRAPHICS_API_DX12)
+        appInfo.m_api = KryneEngine::GraphicsCommon::Api::DirectX12_1;
+#endif
         KryneEngine::GraphicsContext graphicsContext(appInfo);
 
         while (graphicsContext.EndFrame());
