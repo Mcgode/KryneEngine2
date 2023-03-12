@@ -88,9 +88,9 @@ namespace KryneEngine
         using LockGuardT = Threads::SyncLockGuard<BusySpinSemaphore, &BusySpinSemaphore::Wait, &BusySpinSemaphore::SignalOnce>;
 
     public:
-        [[nodiscard]] LockGuardT&& AutoLock()
+        [[nodiscard]] LockGuardT AutoLock()
         {
-            return std::move(LockGuardT(this));
+            return LockGuardT(this);
         }
     };
 }

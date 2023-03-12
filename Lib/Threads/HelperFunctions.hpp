@@ -32,7 +32,10 @@ namespace KryneEngine::Threads
         explicit SyncLockGuard(SyncPrimitive* _primitive)
         {
             m_syncPrimitive = _primitive;
-            _Lock();
+            if (m_syncPrimitive != nullptr)
+            {
+                (m_syncPrimitive->*LockMethod)();
+            }
         }
 
         SyncLockGuard(const SyncLockGuard& _other) = delete;
@@ -40,42 +43,19 @@ namespace KryneEngine::Threads
 
         SyncLockGuard(SyncLockGuard&& _other) noexcept
         {
-            _Unlock();
             m_syncPrimitive = _other.m_syncPrimitive;
             _other.m_syncPrimitive = nullptr;
         }
 
-        SyncLockGuard& operator=(SyncLockGuard&& _other) noexcept
+        ~SyncLockGuard()
         {
-            _Unlock();
-            m_syncPrimitive = _other.m_syncPrimitive;
-            _other.m_syncPrimitive = nullptr;
-
-            return *this;
-        }
-
-        virtual ~SyncLockGuard()
-        {
-            _Unlock();
+            if (m_syncPrimitive != nullptr)
+            {
+                (m_syncPrimitive->*UnlockMethod)();
+            }
         }
 
     private:
         SyncPrimitive* m_syncPrimitive = nullptr;
-
-        void _Lock()
-        {
-            if (m_syncPrimitive != nullptr)
-            {
-                ((*m_syncPrimitive).*LockMethod)();
-            }
-        }
-
-        void _Unlock()
-        {
-            if (m_syncPrimitive != nullptr)
-            {
-                ((*m_syncPrimitive).*UnlockMethod)();
-            }
-        }
     };
 }

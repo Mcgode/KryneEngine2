@@ -37,7 +37,9 @@ int main() {
         lock.Lock();
 
         std::thread j0([&]() {
-            auto sLock = semaphore.AutoLock();
+            {
+                auto sLock = semaphore.AutoLock();
+            }
             std::cout << "J 0 semaphore go" << std::endl;
             lock.Lock();
             semaphore.SignalOnce();

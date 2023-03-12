@@ -30,7 +30,11 @@ namespace KryneEngine
                 // Optimistically assume the lock is free on the first try
                 if (!m_lock.exchange(true, std::memory_order_acquire))
                 {
-                    m_systemMutex.lock();
+                    if (m_systemMutexThreshold != 0)
+                    {
+                        m_systemMutex.lock();
+                        systemMutexLocked = true;
+                    }
                     return;
                 }
 
@@ -45,6 +49,7 @@ namespace KryneEngine
                     {
                         i = 0;
                         m_systemMutex.lock();
+                        systemMutexLocked = true;
                     }
                     else if (i % m_threadYieldThreshold == 0)
                     {
@@ -57,7 +62,11 @@ namespace KryneEngine
 
         void ManualUnlock()
         {
-            m_systemMutex.unlock();
+            if (systemMutexLocked)
+            {
+                systemMutexLocked = false;
+                m_systemMutex.unlock();
+            }
             m_lock.store(false, std::memory_order_release);
         }
 
@@ -66,13 +75,14 @@ namespace KryneEngine
         u32 m_threadYieldThreshold;
         u32 m_systemMutexThreshold;
         std::mutex m_systemMutex;
-
-        using LockGuardT = Threads::SyncLockGuard<LightweightMutex, &LightweightMutex::ManualLock, &LightweightMutex::ManualUnlock>;
+        bool systemMutexLocked = false;
 
     public:
-        [[nodiscard]] LockGuardT&& AutoLock()
+        using LockGuardT = Threads::SyncLockGuard<LightweightMutex, &LightweightMutex::ManualLock, &LightweightMutex::ManualUnlock>;
+
+        [[nodiscard]] LockGuardT AutoLock()
         {
-            return eastl::move(LockGuardT(this));
+            return LockGuardT(this);
         }
     };
 }
