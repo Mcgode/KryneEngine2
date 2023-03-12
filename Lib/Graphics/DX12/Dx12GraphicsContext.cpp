@@ -54,6 +54,12 @@ namespace KryneEngine
             // If no display, remain on double buffering.
             m_frameContextCount = 2;
         }
+
+        m_frameContexts.Resize(m_frameContextCount);
+        m_frameContexts.InitAll(m_device.Get(),
+                                m_directQueue != nullptr,
+                                m_computeQueue != nullptr,
+                                m_copyQueue != nullptr);
     }
 
     Dx12GraphicsContext::~Dx12GraphicsContext() = default;

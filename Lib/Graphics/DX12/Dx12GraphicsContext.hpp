@@ -7,7 +7,8 @@
 #pragma once
 
 #include "Dx12Headers.hpp"
-#include <Graphics/Common/GraphicsCommon.hpp>
+#include "Dx12FrameContext.hpp"
+#include <Common/Arrays.hpp>
 #include <EASTL/unique_ptr.h>
 
 namespace KryneEngine
@@ -40,6 +41,7 @@ namespace KryneEngine
         eastl::unique_ptr<Dx12SwapChain> m_swapChain;
 
         u8 m_frameContextCount;
+        DynamicArray<Dx12FrameContext> m_frameContexts;
 
         void _CreateDevice(IDXGIFactory4 *_factory4);
         void _FindAdapter(IDXGIFactory4* _factory, IDXGIAdapter1** _adapter);

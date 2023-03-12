@@ -52,7 +52,7 @@ namespace KryneEngine
     private:
         VkSharedDeviceRef m_deviceRef;
 
-        struct PoolSet
+        struct CommandPoolSet
         {
             vk::CommandPool m_commandPool;
 
@@ -67,8 +67,8 @@ namespace KryneEngine
             void Destroy(VkSharedDeviceRef& _deviceRef);
         };
 
-        PoolSet m_graphicsCommandPoolSet;
-        PoolSet m_computeCommandPoolSet;
-        PoolSet m_transferCommandPoolSet;
+        CommandPoolSet m_graphicsCommandPoolSet;
+        CommandPoolSet m_computeCommandPoolSet;
+        CommandPoolSet m_transferCommandPoolSet;
     };
 } // KryneEngine

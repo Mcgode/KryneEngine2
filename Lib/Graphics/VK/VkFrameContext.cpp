@@ -16,7 +16,7 @@ namespace KryneEngine
     {
         const auto CreateCommandPool = [this](
                 const VkCommonStructures::QueueIndices::Pair& _pair,
-                PoolSet& _commandPoolSet)
+                CommandPoolSet& _commandPoolSet)
         {
             if (!_pair.IsInvalid())
             {
@@ -40,7 +40,7 @@ namespace KryneEngine
         m_transferCommandPoolSet.Destroy(m_deviceRef);
     }
 
-    vk::CommandBuffer VkFrameContext::PoolSet::BeginCommandBuffer(VkSharedDeviceRef& _deviceRef)
+    vk::CommandBuffer VkFrameContext::CommandPoolSet::BeginCommandBuffer(VkSharedDeviceRef& _deviceRef)
     {
         m_mutex.ManualLock();
 
@@ -62,14 +62,14 @@ namespace KryneEngine
         return commandBuffer;
     }
 
-    void VkFrameContext::PoolSet::EndCommandBuffer()
+    void VkFrameContext::CommandPoolSet::EndCommandBuffer()
     {
         m_usedCommandBuffers.back().end();
 
         m_mutex.ManualUnlock();
     }
 
-    void VkFrameContext::PoolSet::Destroy(VkSharedDeviceRef &_deviceRef)
+    void VkFrameContext::CommandPoolSet::Destroy(VkSharedDeviceRef &_deviceRef)
     {
         const auto lock = m_mutex.AutoLock();
         Assert(m_usedCommandBuffers.empty(), "PoolSet should be reset before destroy");
