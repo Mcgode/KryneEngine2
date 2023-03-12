@@ -67,11 +67,11 @@ namespace KryneEngine
     {
         if (m_appInfo.m_features.m_present)
         {
-            m_window = eastl::make_unique<Window>(Window::Params());
+            m_window = eastl::make_unique<Window>(m_appInfo);
         }
 
         vk::ApplicationInfo applicationInfo(
-                m_appInfo.m_applicationName,
+                m_appInfo.m_applicationName.c_str(),
                 MakeVersion(m_appInfo.m_applicationVersion),
                 "KryneEngine2",
                 MakeVersion(m_appInfo.m_engineVersion),

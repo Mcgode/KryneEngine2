@@ -17,7 +17,7 @@ namespace KryneEngine
 
         if (m_appInfo.m_features.m_present)
         {
-            m_window = eastl::make_unique<Window>(Window::Params());
+            m_window = eastl::make_unique<Window>(m_appInfo);
         }
 
         _CreateDevice();

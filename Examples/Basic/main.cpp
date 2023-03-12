@@ -73,10 +73,13 @@ int main() {
         fibersManager.ResetCounter(syncCounter);
 
         auto appInfo = KryneEngine::GraphicsCommon::ApplicationInfo();
+        appInfo.m_applicationName = "Basic Example - Kryne Engine 2";
 #if defined(KE_GRAPHICS_API_VK)
         appInfo.m_api = KryneEngine::GraphicsCommon::Api::Vulkan_1_2;
+        appInfo.m_applicationName += " - Vulkan";
 #elif defined(KE_GRAPHICS_API_DX12)
         appInfo.m_api = KryneEngine::GraphicsCommon::Api::DirectX12_1;
+        appInfo.m_applicationName += " - DirectX 12";
 #endif
         KryneEngine::GraphicsContext graphicsContext(appInfo);
 

@@ -8,21 +8,15 @@
 
 #include <GLFW/glfw3.h>
 #include <Common/KETypes.hpp>
+#include <Graphics/Common/GraphicsCommon.hpp>
 
 namespace KryneEngine
 {
     class Window
     {
     public:
-        struct Params
-        {
-            u16 m_width = 1280;
-            u16 m_height = 720;
-            bool m_resizable = false;
-            eastl::string m_windowName = "KryneEngine2";
-        };
 
-        explicit Window(const Params& _params);
+        explicit Window(const GraphicsCommon::ApplicationInfo& _appInfo);
 
         virtual ~Window();
 

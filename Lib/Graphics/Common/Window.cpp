@@ -8,16 +8,22 @@
 
 namespace KryneEngine
 {
-    Window::Window(const KryneEngine::Window::Params &_params)
+    Window::Window(const GraphicsCommon::ApplicationInfo &_appInfo)
     {
         glfwInit();
 
 #if defined(KE_GRAPHICS_API_VK)
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
-        glfwWindowHint(GLFW_RESIZABLE, _params.m_resizable);
+        const auto& displayInfo = _appInfo.m_displayOptions;
 
-        m_glfwWindow = glfwCreateWindow(_params.m_width, _params.m_height, _params.m_windowName.c_str(), nullptr, nullptr);
+        glfwWindowHint(GLFW_RESIZABLE, displayInfo.m_resizableWindow);
+
+        m_glfwWindow = glfwCreateWindow(displayInfo.m_width,
+                                        displayInfo.m_height,
+                                        _appInfo.m_applicationName.c_str(),
+                                        nullptr,
+                                        nullptr);
     }
 
     Window::~Window()

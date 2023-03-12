@@ -46,7 +46,7 @@ namespace KryneEngine::GraphicsCommon
 
     struct ApplicationInfo
     {
-        const char* m_applicationName = "Unnamed app";
+        eastl::string m_applicationName = "Unnamed app";
         Version m_applicationVersion {};
 
         Version m_engineVersion { 1, 0, 0 };
@@ -74,6 +74,9 @@ namespace KryneEngine::GraphicsCommon
 
             SoftEnable m_sRgbPresent = SoftEnable::TryEnable;
             SoftEnable m_tripleBuffering = SoftEnable::TryEnable;
+
+            bool m_fullscreen = false;
+            bool m_resizableWindow = false;
         }
         m_displayOptions {};
 
