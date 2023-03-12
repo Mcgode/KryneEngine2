@@ -127,6 +127,13 @@ namespace KryneEngine
                     m_window->GetGlfwWindow(),
                     m_queueIndices
                     );
+
+            m_frameContextCount = m_swapChain->m_swapChainTextures.Size();
+        }
+        else
+        {
+            // If no display, keep double buffering.
+            m_frameContextCount = 2;
         }
     }
 

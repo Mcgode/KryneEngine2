@@ -15,6 +15,8 @@ namespace KryneEngine
 
     class Dx12SwapChain
     {
+        friend class Dx12GraphicsContext;
+
     public:
         Dx12SwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
                       Window *_processWindow,

@@ -25,7 +25,9 @@ namespace KryneEngine
 
         ~GraphicsContext();
 
-        [[nodiscard]] Window* GetWindow() const;
+        [[nodiscard]] Window* GetWindow() const { return m_implementation.GetWindow(); }
+
+        [[nodiscard]] u8 GetFrameContextCount() const { return m_implementation.GetFrameContextCount(); }
 
         bool EndFrame();
 

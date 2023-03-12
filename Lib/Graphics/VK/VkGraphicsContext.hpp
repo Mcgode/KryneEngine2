@@ -29,6 +29,8 @@ namespace KryneEngine
 
         [[nodiscard]] Window* GetWindow() const { return m_window.get(); }
 
+        [[nodiscard]] u8 GetFrameContextCount() const { return m_frameContextCount; }
+
     private:
         const GraphicsCommon::ApplicationInfo m_appInfo;
 
@@ -49,6 +51,8 @@ namespace KryneEngine
         vk::Queue m_presentQueue;
 
         VmaAllocator m_allocator;
+
+        u8 m_frameContextCount;
 
         static void _PrepareValidationLayers(vk::InstanceCreateInfo& _createInfo);
 

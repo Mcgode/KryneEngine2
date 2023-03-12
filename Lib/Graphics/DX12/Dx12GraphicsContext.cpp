@@ -46,6 +46,13 @@ namespace KryneEngine
                                                             factory4.Get(),
                                                             m_device.Get(),
                                                             m_directQueue.Get());
+
+            m_frameContextCount = m_swapChain->m_renderTargets.Size();
+        }
+        else
+        {
+            // If no display, remain on double buffering.
+            m_frameContextCount = 2;
         }
     }
 

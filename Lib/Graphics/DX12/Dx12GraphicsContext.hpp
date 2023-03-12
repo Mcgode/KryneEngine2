@@ -24,6 +24,8 @@ namespace KryneEngine
 
         [[nodiscard]] Window* GetWindow() const;
 
+        [[nodiscard]] u8 GetFrameContextCount() const { return m_frameContextCount; }
+
     private:
         GraphicsCommon::ApplicationInfo m_appInfo;
 
@@ -36,6 +38,8 @@ namespace KryneEngine
         ComPtr<ID3D12CommandQueue> m_copyQueue;
 
         eastl::unique_ptr<Dx12SwapChain> m_swapChain;
+
+        u8 m_frameContextCount;
 
         void _CreateDevice(IDXGIFactory4 *_factory4);
         void _FindAdapter(IDXGIFactory4* _factory, IDXGIAdapter1** _adapter);

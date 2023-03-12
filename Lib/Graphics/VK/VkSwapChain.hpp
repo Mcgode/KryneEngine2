@@ -21,6 +21,8 @@ namespace KryneEngine
 
     class VkSwapChain
     {
+        friend class VkGraphicsContext;
+
     public:
         VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
                     VkSharedDeviceRef &&_deviceRef,
