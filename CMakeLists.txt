@@ -6,4 +6,5 @@ include(./CMake/BuildSystem.cmake)
 
 add_subdirectory(External)
 add_subdirectory(Lib)
+add_subdirectory(Tools/DataCooker)
 add_subdirectory(Examples)
