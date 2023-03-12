@@ -38,3 +38,4 @@ using Microsoft::WRL::ComPtr;
 #include <directx/d3dx12.h>
 
 #include <Common/KETypes.hpp>
+#include <Graphics/Common/GraphicsCommon.hpp>

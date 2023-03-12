@@ -7,6 +7,7 @@
 #include "Dx12GraphicsContext.hpp"
 #include "HelperFunctions.hpp"
 #include <Graphics/Common/Window.hpp>
+#include "Dx12SwapChain.hpp"
 
 namespace KryneEngine
 {
@@ -15,22 +16,7 @@ namespace KryneEngine
     {
         Assert(m_appInfo.IsDirectX12Api());
 
-        if (m_appInfo.m_features.m_present)
-        {
-            m_window = eastl::make_unique<Window>(m_appInfo);
-        }
-
-        _CreateDevice();
-        _CreateCommandQueues();
-    }
-
-    Window *Dx12GraphicsContext::GetWindow() const
-    {
-        return m_window.get();
-    }
-
-    void Dx12GraphicsContext::_CreateDevice()
-    {
+        ComPtr<IDXGIFactory4> factory4;
         UINT dxgiFactoryFlags = 0;
 
 #if !defined(KE_FINAL)
@@ -47,18 +33,40 @@ namespace KryneEngine
         }
 #endif
 
-        ComPtr<IDXGIFactory4> factory4;
         Dx12Assert(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory4)));
 
+        _CreateDevice(factory4.Get());
+        _CreateCommandQueues();
+
+        if (m_appInfo.m_features.m_present)
+        {
+            m_window = eastl::make_unique<Window>(m_appInfo);
+            m_swapChain = eastl::make_unique<Dx12SwapChain>(m_appInfo,
+                                                            m_window.get(),
+                                                            factory4.Get(),
+                                                            m_device.Get(),
+                                                            m_directQueue.Get());
+        }
+    }
+
+    Dx12GraphicsContext::~Dx12GraphicsContext() = default;
+
+    Window *Dx12GraphicsContext::GetWindow() const
+    {
+        return m_window.get();
+    }
+
+    void Dx12GraphicsContext::_CreateDevice(IDXGIFactory4 *_factory4)
+    {
         ComPtr<IDXGIAdapter1> hardwareAdapter;
-        _FindAdapter(factory4.Get(), &hardwareAdapter);
+        _FindAdapter(_factory4, &hardwareAdapter);
 
         Dx12Assert(D3D12CreateDevice(hardwareAdapter.Get(),
                                      Dx12Converters::GetFeatureLevel(m_appInfo),
                                      IID_PPV_ARGS(&m_device)));
     }
 
-    void Dx12GraphicsContext::_FindAdapter(IDXGIFactory1 *_factory, IDXGIAdapter1 **_adapter)
+    void Dx12GraphicsContext::_FindAdapter(IDXGIFactory4 *_factory, IDXGIAdapter1 **_adapter)
     {
         *_adapter = nullptr;
 

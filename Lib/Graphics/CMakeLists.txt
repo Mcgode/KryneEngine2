@@ -8,7 +8,11 @@ set(VkFiles
         )
 
 set (DX12Files
-        DX12/Dx12GraphicsContext.cpp DX12/Dx12GraphicsContext.hpp DX12/Dx12Headers.hpp DX12/HelperFunctions.hpp)
+        DX12/Dx12GraphicsContext.cpp DX12/Dx12GraphicsContext.hpp
+        DX12/Dx12Headers.hpp
+        DX12/HelperFunctions.hpp
+        DX12/Dx12SwapChain.cpp DX12/Dx12SwapChain.hpp
+        )
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
