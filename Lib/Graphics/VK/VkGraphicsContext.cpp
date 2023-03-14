@@ -142,6 +142,7 @@ namespace KryneEngine
 
     VkGraphicsContext::~VkGraphicsContext()
     {
+        m_frameContexts.Clear();
         m_swapChain.reset();
         m_surface.reset();
         m_sharedDevice.Destroy();

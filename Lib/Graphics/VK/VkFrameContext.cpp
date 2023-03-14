@@ -73,8 +73,16 @@ namespace KryneEngine
     {
         const auto lock = m_mutex.AutoLock();
         Assert(m_usedCommandBuffers.empty(), "PoolSet should be reset before destroy");
-        _deviceRef->free(m_commandPool, m_usedCommandBuffers);
-        _deviceRef->free(m_commandPool, m_availableCommandBuffers);
+
+        if (!m_usedCommandBuffers.empty())
+        {
+            _deviceRef->free(m_commandPool, m_usedCommandBuffers);
+        }
+        if (!m_availableCommandBuffers.empty())
+        {
+            _deviceRef->free(m_commandPool, m_availableCommandBuffers);
+        }
+
         _deviceRef->destroy(m_commandPool);
     }
 } // KryneEngine
