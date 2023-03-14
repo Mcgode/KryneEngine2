@@ -40,7 +40,6 @@ namespace KryneEngine
     template <class T>
     inline void SafeRelease(ComPtr<T>& _pointer)
     {
-        // Com pointers do internal release on assignment, so simply reset value to nullptr
         _pointer = nullptr;
     }
 

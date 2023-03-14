@@ -32,20 +32,16 @@ namespace KryneEngine
             m_renderTargets.InitAll();
         }
 
+        // sRGB format not supported as a swap-chain texture format, so if needed use 10bit-precision instead.
         const auto format = displayInfo.m_sRgbPresent == GraphicsCommon::SoftEnable::Disabled
                 ? DXGI_FORMAT_B8G8R8A8_UNORM
-                : DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+                : DXGI_FORMAT_R10G10B10A2_UNORM;
 
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc {};
         swapChainDesc.BufferCount = m_renderTargets.Size();
         swapChainDesc.Width = displayInfo.m_width;
         swapChainDesc.Height = displayInfo.m_height;
-
-        // sRGB will come from render target. See:
-        // - https://gamedev.net/forums/topic/670546-d3d12srgb-buffer-format-for-swap-chain/5243987/
-        // - https://learn.microsoft.com/en-us/previous-versions/windows/desktop/legacy/bb173064(v=vs.85)
-        swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-
+        swapChainDesc.Format = format;
         swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         swapChainDesc.SampleDesc.Count = 1; // Disable MultiSampling
@@ -82,14 +78,10 @@ namespace KryneEngine
         {
             CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
 
-            D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
-            rtvDesc.Format = format;
-            rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-
             for (u32 i = 0; i < m_renderTargets.Size(); i++)
             {
                 Dx12Assert(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])));
-                _device->CreateRenderTargetView(m_renderTargets[i].Get(), &rtvDesc, rtvHandle);
+                _device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
                 rtvHandle.Offset(1, m_rtvDescriptorSize);
             }
         }
