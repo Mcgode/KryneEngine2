@@ -77,14 +77,13 @@ namespace KryneEngine
         {
             for (auto commandList: _vector)
             {
-                commandList->Release();
+                SafeRelease(commandList);
             }
             _vector.clear();
         };
         freeCommandListVector(m_usedCommandLists);
         freeCommandListVector(m_availableCommandLists);
 
-        m_commandAllocator->Release();
-        m_commandAllocator = nullptr;
+        SafeRelease(m_commandAllocator);
     }
 } // KryneEngine

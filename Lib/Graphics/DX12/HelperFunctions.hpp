@@ -27,6 +27,23 @@ namespace KryneEngine
         }
     }
 
+    template <class T>
+    inline void SafeRelease(T& _pointer)
+    {
+        if (_pointer != nullptr) [[likely]]
+        {
+            _pointer->Release();
+            _pointer = nullptr;
+        }
+    }
+
+    template <class T>
+    inline void SafeRelease(ComPtr<T>& _pointer)
+    {
+        // Com pointers do internal release on assignment, so simply reset value to nullptr
+        _pointer = nullptr;
+    }
+
     namespace Dx12Converters
     {
         [[nodiscard]] inline D3D_FEATURE_LEVEL GetFeatureLevel(const GraphicsCommon::ApplicationInfo& _appInfo)

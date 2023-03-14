@@ -62,7 +62,18 @@ namespace KryneEngine
                                 m_copyQueue != nullptr);
     }
 
-    Dx12GraphicsContext::~Dx12GraphicsContext() = default;
+    Dx12GraphicsContext::~Dx12GraphicsContext()
+    {
+        m_frameContexts.Clear();
+
+        m_swapChain.release();
+
+        SafeRelease(m_copyQueue);
+        SafeRelease(m_computeQueue);
+        SafeRelease(m_directQueue);
+
+        SafeRelease(m_device);
+    }
 
     Window *Dx12GraphicsContext::GetWindow() const
     {
