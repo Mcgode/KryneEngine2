@@ -8,6 +8,7 @@
 
 #include <Common/Assert.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
+#include <comdef.h>
 #include "Dx12Headers.hpp"
 
 namespace KryneEngine
@@ -19,7 +20,11 @@ namespace KryneEngine
 
     inline void Dx12Assert(HRESULT _hr)
     {
-        Assert(SUCCEEDED(_hr));
+        if (!SUCCEEDED(_hr))
+        {
+            _com_error e(_hr);
+            Assert(false, e.ErrorMessage());
+        }
     }
 
     namespace Dx12Converters
