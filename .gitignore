@@ -1,4 +1,6 @@
 cmake-build**
 .idea**
+out**
+.vs**
 
 Doc
