@@ -59,7 +59,7 @@ namespace KryneEngine
 
         if (_nextJob == nullptr)
         {
-            _nextJob = _TryRetrieveNextJob(_manager, 0, _currentJob == nullptr);
+            _nextJob = _TryRetrieveNextJob(_manager, fiberIndex, _currentJob == nullptr);
         }
 
         // Happens when shutting down.
