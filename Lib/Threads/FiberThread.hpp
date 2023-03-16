@@ -27,6 +27,8 @@ namespace KryneEngine
 
         void SwitchToNextJob(FibersManager *_manager, FiberJob *_currentJob, FiberJob *_nextJob = nullptr);
 
+        void Stop(std::condition_variable& _waitVariable);
+
     private:
         bool m_shouldStop = false;
         std::thread m_thread;

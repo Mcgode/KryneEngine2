@@ -108,6 +108,10 @@ namespace KryneEngine
 
     FibersManager::~FibersManager()
     {
+        for (auto& fiberThread: m_fiberThreads)
+        {
+            fiberThread.Stop(m_waitVariable);
+        }
         // Make sure to end and join all the fiber threads before anything else.
         m_fiberThreads.Clear();
     }

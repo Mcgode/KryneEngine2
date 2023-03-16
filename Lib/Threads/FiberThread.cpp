@@ -40,8 +40,7 @@ namespace KryneEngine
 
     FiberThread::~FiberThread()
     {
-        m_shouldStop = true;
-        m_thread.join();
+        Assert(!m_thread.joinable(), "Should have been stopped beforehand");
     }
 
     FiberThread::ThreadIndex FiberThread::GetCurrentFiberThreadIndex()
@@ -80,6 +79,13 @@ namespace KryneEngine
         Assert(nextContext != nullptr);
         currentContext->SwapContext(nextContext);
         _manager->_OnContextSwitched();
+    }
+
+    void FiberThread::Stop(std::condition_variable &_waitVariable)
+    {
+        m_shouldStop = true;
+        _waitVariable.notify_all();
+        m_thread.join();
     }
 
     FiberJob *FiberThread::_TryRetrieveNextJob(FibersManager *_manager, u16 _threadIndex, bool _busyWait)
