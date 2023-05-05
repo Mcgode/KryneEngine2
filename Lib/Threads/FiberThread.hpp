@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <condition_variable>
 #include <thread>
 #include <Common/KETypes.hpp>
 
