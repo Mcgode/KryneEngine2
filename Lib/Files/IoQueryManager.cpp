@@ -20,7 +20,7 @@ namespace KryneEngine
                 _ProcessIoQueries(_fibersManager);
 
                 std::unique_lock<std::mutex> lock(m_waitMutex);
-                m_waitConditionVariable.wait(lock);
+                m_waitConditionVariable.wait(lock); // Allow spurious wakeup
             }
         });
     }

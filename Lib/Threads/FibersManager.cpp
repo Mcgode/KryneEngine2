@@ -209,6 +209,6 @@ namespace KryneEngine
     void FibersManager::_ThreadWaitForJob()
     {
         std::unique_lock<std::mutex> lock(m_waitMutex);
-        m_waitVariable.wait(lock);
+        m_waitVariable.wait(lock); // Allow spurious wakeup.
     }
 }
