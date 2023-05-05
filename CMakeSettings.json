@@ -1,10 +1,10 @@
 ﻿{
   "configurations": [
     {
-      "name": "x64-Debug",
+      "name": "x64-Debug-DX12",
       "generator": "Ninja",
-      "configurationType": "Debug",
-      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "configurationType": "Debug DX12",
+      "inheritEnvironments": [ "clang_cl_x64_x64" ],
       "buildRoot": "${projectDir}\\out\\build\\${name}",
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "cmakeCommandArgs": "",
@@ -12,9 +12,57 @@
       "ctestCommandArgs": "",
       "variables": [
         {
-          "name": "CMAKE_BUILD_TYPE",
-          "value": "Debug DX12",
-          "type": "STRING"
+          "name": "GLFW_INSTALL",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "GLFW_BUILD_EXAMPLES",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "GLFW_BUILD_TESTS",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "GLFW_BUILD_DOCS",
+          "value": "False",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Debug-VK",
+      "generator": "Ninja",
+      "configurationType": "Debug VK",
+      "inheritEnvironments": [ "clang_cl_x64_x64" ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "GLFW_INSTALL",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "GLFW_BUILD_EXAMPLES",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "GLFW_BUILD_TESTS",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "GLFW_BUILD_DOCS",
+          "value": "False",
+          "type": "BOOL"
         }
       ]
     }

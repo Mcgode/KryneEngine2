@@ -11,7 +11,7 @@
 
 namespace KryneEngine
 {
-    Dx12GraphicsContext::Dx12GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo)
+    Dx12GraphicsContext::Dx12GraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo)
         : m_appInfo(_appInfo)
     {
         Assert(m_appInfo.IsDirectX12Api());
