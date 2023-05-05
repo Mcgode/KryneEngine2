@@ -33,12 +33,12 @@ namespace KryneEngine
 
         [[nodiscard]] static u16 GetFibersCount()
         {
-            auto* mgr = GetInstance();
-            if (!Verify(mgr != nullptr))
+            const auto* manager = GetInstance();
+            if (Verify(manager != nullptr))
             {
-                return 0;
+                return manager->GetFiberThreadCount();
             }
-            return mgr->GetFiberThreadCount();
+        	return 0;
         }
 
         [[nodiscard]] u16 GetFiberThreadCount() const { return m_fiberThreads.Size(); }
