@@ -5,6 +5,7 @@
  */
 
 #include "Dx12GraphicsContext.hpp"
+#include <dxgidebug.h>
 #include "HelperFunctions.hpp"
 #include <Graphics/Common/Window.hpp>
 #include "Dx12SwapChain.hpp"
@@ -48,11 +49,15 @@ namespace KryneEngine
                                                             m_directQueue.Get());
 
             m_frameContextCount = m_swapChain->m_renderTargets.Size();
+
+            m_frameContextIndex = m_swapChain->GetBackBufferIndex();
         }
         else
         {
             // If no display, remain on double buffering.
             m_frameContextCount = 2;
+
+            m_frameContextIndex = 0;
         }
 
         m_frameContexts.Resize(m_frameContextCount);
@@ -60,10 +65,21 @@ namespace KryneEngine
                                 m_directQueue != nullptr,
                                 m_computeQueue != nullptr,
                                 m_copyQueue != nullptr);
+
+        // Create the frame fence
+        Dx12Assert(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_frameFence)));
+#if !defined(KE_FINAL)
+        Dx12SetName(m_frameFence.Get(), L"Frame fence");
+#endif
+        m_frameFenceEvent = CreateEvent(nullptr, false, false, nullptr);
+        Assert(m_frameFenceEvent != nullptr);
     }
 
     Dx12GraphicsContext::~Dx12GraphicsContext()
     {
+        CloseHandle(m_frameFenceEvent);
+        SafeRelease(m_frameFence);
+
         m_frameContexts.Clear();
 
         m_swapChain.release();
@@ -73,11 +89,87 @@ namespace KryneEngine
         SafeRelease(m_directQueue);
 
         SafeRelease(m_device);
+
+        if (m_appInfo.m_features.m_validationLayers)
+        {
+            IDXGIDebug* debugDev;
+            Dx12Assert(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debugDev)));
+            Dx12Assert(debugDev->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL));
+        }
     }
 
     Window *Dx12GraphicsContext::GetWindow() const
     {
         return m_window.get();
+    }
+
+    void Dx12GraphicsContext::BeginFrame(u64 _frameId)
+    {
+	    
+    }
+
+    void Dx12GraphicsContext::EndFrame(u64 _frameId)
+    {
+        auto& frameContext = _GetFrameContext();
+
+        // Execute the command lists
+        ID3D12CommandQueue* queue = nullptr;
+        {
+            const auto executeCommands = [&](ID3D12CommandQueue* _queue, Dx12FrameContext::CommandAllocationSet& _allocationSet)
+            {
+                if (_queue != nullptr && !_allocationSet.m_usedCommandLists.empty())
+                {
+                    queue = _queue;
+                    auto** commandLists = reinterpret_cast<ID3D12CommandList**>(_allocationSet.m_usedCommandLists.data());
+                    _queue->ExecuteCommandLists(_allocationSet.m_usedCommandLists.size(), commandLists);
+                }
+            };
+
+            executeCommands(m_copyQueue.Get(), frameContext.m_copyCommandAllocationSet);
+            executeCommands(m_computeQueue.Get(), frameContext.m_computeCommandAllocationSet);
+            executeCommands(m_directQueue.Get(), frameContext.m_directCommandAllocationSet);
+        }
+
+        // Present the frame (if applicable)
+        if (m_swapChain != nullptr)
+        {
+            m_swapChain->Present();
+        }
+
+        // Increment fence signal
+        if (queue != nullptr)
+        {
+            Dx12Assert(queue->Signal(m_frameFence.Get(), _frameId));
+        }
+        else
+        {
+            // If there was no submitted command list, simply wait for the previous frame and set the frame as completed.
+            WaitForFrame(_frameId - 1);
+            Dx12Assert(m_frameFence->Signal(_frameId));
+        }
+        _GetFrameContext().m_frameId = _frameId;
+
+        // Retrieve next frame index
+        if (m_swapChain != nullptr)
+        {
+            m_frameContextIndex = m_swapChain->GetBackBufferIndex();
+        }
+        else
+        {
+            m_frameContextIndex = (m_frameContextIndex + 1) % m_frameContextCount;
+        }
+
+        // Wait for the previous frame with this index.
+        WaitForFrame(_GetFrameContext().m_frameId);
+    }
+
+    void Dx12GraphicsContext::WaitForFrame(u64 _frameId) const
+    {
+        if (m_frameFence->GetCompletedValue() < _frameId)
+        {
+            Dx12Assert(m_frameFence->SetEventOnCompletion(_frameId, m_frameFenceEvent));
+            WaitForSingleObject(m_frameFenceEvent, INFINITE);
+        }
     }
 
     void Dx12GraphicsContext::_CreateDevice(IDXGIFactory4 *_factory4)
@@ -88,6 +180,9 @@ namespace KryneEngine
         Dx12Assert(D3D12CreateDevice(hardwareAdapter.Get(),
                                      Dx12Converters::GetFeatureLevel(m_appInfo),
                                      IID_PPV_ARGS(&m_device)));
+#if !defined(KE_FINAL)
+        Dx12SetName(m_device.Get(), L"Device");
+#endif
     }
 
     void Dx12GraphicsContext::_FindAdapter(IDXGIFactory4 *_factory, IDXGIAdapter1 **_adapter)
@@ -140,6 +235,9 @@ namespace KryneEngine
             directQueueDesc.NodeMask = 0;
 
             Dx12Assert(m_device->CreateCommandQueue(&directQueueDesc, IID_PPV_ARGS(&m_directQueue)));
+#if !defined(KE_FINAL)
+            Dx12SetName(m_directQueue.Get(), L"Direct queue");
+#endif
         }
 
         if ((!features.m_graphics || features.m_asyncCompute) && features.m_compute )
@@ -151,6 +249,9 @@ namespace KryneEngine
             computeQueueDesc.NodeMask = 0;
 
             Dx12Assert(m_device->CreateCommandQueue(&computeQueueDesc, IID_PPV_ARGS(&m_computeQueue)));
+#if !defined(KE_FINAL)
+            Dx12SetName(m_computeQueue.Get(), L"Compute queue");
+#endif
         }
 
         if ((!features.m_graphics && !features.m_compute || features.m_transferQueue) && features.m_transfer)
@@ -162,6 +263,9 @@ namespace KryneEngine
             copyQueueDesc.NodeMask = 0;
 
             Dx12Assert(m_device->CreateCommandQueue(&copyQueueDesc, IID_PPV_ARGS(&m_copyQueue)));
+#if !defined(KE_FINAL)
+            Dx12SetName(m_copyQueue.Get(), L"Copy queue");
+#endif
         }
     }
 } // KryneEngine

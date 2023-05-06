@@ -53,7 +53,7 @@ namespace KryneEngine
 
             if (_messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
             {
-                std::cerr << "Validation layer (" << severity.c_str() << "): " << _pCallbackData->pMessage << std::endl;
+                std::cout << "Validation layer (" << severity.c_str() << "): " << _pCallbackData->pMessage << std::endl;
             }
 
             return VK_FALSE;
@@ -154,6 +154,66 @@ namespace KryneEngine
             }
         }
         m_sharedInstance.Destroy();
+    }
+
+    void VkGraphicsContext::EndFrame(u64 _frameId)
+    {
+        const u8 frameIndex = _frameId % m_frameContextCount;
+        auto& frameContext = m_frameContexts[frameIndex];
+        eastl::fixed_vector<vk::Semaphore, 3> queueSemaphores;
+
+        vk::Semaphore imageAvailableSemaphore;
+        if (m_swapChain != nullptr)
+        {
+            imageAvailableSemaphore  = m_swapChain->AcquireNextImage(frameIndex);
+        }
+
+        // Submit command buffers
+	    {
+            const auto submitQueue = [&](vk::Queue _queue, VkFrameContext::CommandPoolSet& _commandPoolSet)
+            {
+	            if (_queue && !_commandPoolSet.m_usedCommandBuffers.empty())
+	            {
+                    // Reset fence
+                    {
+                        Assert(m_sharedDevice->getFenceStatus(_commandPoolSet.m_fence) == vk::Result::eSuccess);
+                        m_sharedDevice->resetFences(_commandPoolSet.m_fence);
+                    }
+
+                    vk::SubmitInfo submitInfo;
+
+                    constexpr vk::PipelineStageFlags stages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
+                    submitInfo.waitSemaphoreCount = m_swapChain != nullptr ? 1 : 0;
+                    submitInfo.pWaitSemaphores = &imageAvailableSemaphore;
+                    submitInfo.pWaitDstStageMask = stages; // Only need image for render target output
+
+                    submitInfo.commandBufferCount = _commandPoolSet.m_usedCommandBuffers.size();
+                    submitInfo.pCommandBuffers = _commandPoolSet.m_usedCommandBuffers.data();
+                    
+                    submitInfo.signalSemaphoreCount = 1;
+	            	submitInfo.pSignalSemaphores = &_commandPoolSet.m_semaphore;
+                    queueSemaphores.push_back(_commandPoolSet.m_semaphore);
+
+                    _queue.submit(submitInfo, _commandPoolSet.m_fence);
+	            }
+            };
+
+            submitQueue(m_transferQueue, frameContext.m_transferCommandPoolSet);
+            submitQueue(m_computeQueue, frameContext.m_computeCommandPoolSet);
+            submitQueue(m_graphicsQueue, frameContext.m_graphicsCommandPoolSet);
+	    }
+
+        // Present image
+        if (m_swapChain != nullptr)
+    	{
+            m_swapChain->Present(m_presentQueue, queueSemaphores);
+        }
+    }
+
+    void VkGraphicsContext::WaitForFrame(u64 _frameId) const
+    {
+        const u8 frameIndex = _frameId % m_frameContextCount;
+        m_frameContexts[frameIndex].WaitForFences(_frameId);
     }
 
     void VkGraphicsContext::_PrepareValidationLayers(vk::InstanceCreateInfo& _createInfo)

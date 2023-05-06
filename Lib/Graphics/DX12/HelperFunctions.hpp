@@ -43,11 +43,20 @@ namespace KryneEngine
         _pointer = nullptr;
     }
 
+    template <class DxObject, class... Args>
+    void Dx12SetName(DxObject* _object, const wchar_t* _format, Args... _args)
+    {
+        eastl::wstring name;
+        name.sprintf(_format, _args...);
+        name = L"[App] " + name;
+        Dx12Assert(_object->SetPrivateData(WKPDID_D3DDebugObjectNameW, name.size() * sizeof(wchar_t), name.c_str()));
+    }
+
     namespace Dx12Converters
     {
         [[nodiscard]] inline D3D_FEATURE_LEVEL GetFeatureLevel(const GraphicsCommon::ApplicationInfo& _appInfo)
         {
-            Assert(_appInfo.IsDirectX12Api());
+        	Assert(_appInfo.IsDirectX12Api());
 
             switch (_appInfo.m_api)
             {

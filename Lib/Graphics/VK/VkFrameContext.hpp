@@ -10,10 +10,14 @@
 #include "CommonStructures.hpp"
 #include <Threads/LightweightMutex.hpp>
 
+#include "EASTL/fixed_vector.h"
+
 namespace KryneEngine
 {
     class VkFrameContext
     {
+        friend class VkGraphicsContext;
+
     public:
         VkFrameContext(VkSharedDevice* _device, const VkCommonStructures::QueueIndices& _queueIndices);
 
@@ -49,6 +53,8 @@ namespace KryneEngine
             m_transferCommandPoolSet.EndCommandBuffer();
         }
 
+        void WaitForFences(u64 _frameId);
+
     private:
         VkSharedDeviceRef m_deviceRef;
 
@@ -61,6 +67,9 @@ namespace KryneEngine
 
             LightweightMutex m_mutex {};
 
+            vk::Fence m_fence;
+            vk::Semaphore m_semaphore;
+
             vk::CommandBuffer BeginCommandBuffer(VkSharedDeviceRef& _deviceRef);
             void EndCommandBuffer();
 
@@ -70,5 +79,7 @@ namespace KryneEngine
         CommandPoolSet m_graphicsCommandPoolSet;
         CommandPoolSet m_computeCommandPoolSet;
         CommandPoolSet m_transferCommandPoolSet;
+        eastl::fixed_vector<vk::Fence, 3> m_fencesArray;
+        u64 m_frameId = 0;
     };
 } // KryneEngine

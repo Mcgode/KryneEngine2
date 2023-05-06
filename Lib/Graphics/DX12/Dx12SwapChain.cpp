@@ -48,20 +48,25 @@ namespace KryneEngine
 
         ComPtr<IDXGISwapChain1> swapChain;
         auto hwndWindow = glfwGetWin32Window(_processWindow->GetGlfwWindow());
-        Dx12Assert(_factory->CreateSwapChainForHwnd(_directQueue,
-                                                    hwndWindow,
-                                                    &swapChainDesc,
-                                                    nullptr,
-                                                    nullptr,
-                                                    &swapChain));
+        Dx12Assert(_factory->CreateSwapChainForHwnd(
+            _directQueue,
+            hwndWindow,
+            &swapChainDesc,
+            nullptr,
+            nullptr,
+            &swapChain
+        ));
 
         Dx12Assert(_factory->MakeWindowAssociation(hwndWindow, DXGI_MWA_NO_ALT_ENTER));
 
         Dx12Assert(swapChain.As(&m_swapChain));
+#if !defined(KE_FINAL)
+        Dx12SetName(m_swapChain.Get(), L"Swap Chain");
+#endif
 
         m_currentFrame = m_swapChain->GetCurrentBackBufferIndex();
 
-        // Create heap
+        // Create RTV Descriptor Heap
         {
             D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
             rtvHeapDesc.NumDescriptors = m_renderTargets.Size();
@@ -70,9 +75,13 @@ namespace KryneEngine
             rtvHeapDesc.NodeMask = 0;
 
             Dx12Assert(_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
-
-            m_rtvDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+#if !defined(KE_FINAL)
+            Dx12SetName(m_rtvHeap.Get(), L"SwapChain RTV descriptor heap");
+#endif
         }
+
+        // Retrieve RTV descriptor size
+        m_rtvDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
         // Create frame render targets
         {
@@ -83,7 +92,22 @@ namespace KryneEngine
                 Dx12Assert(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])));
                 _device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
                 rtvHandle.Offset(1, m_rtvDescriptorSize);
+#if !defined(KE_FINAL)
+                Dx12SetName(m_renderTargets[i].Get(), L"SwapChain Render Target View %d", i);
+#endif
             }
         }
+    }
+
+    Dx12SwapChain::~Dx12SwapChain()
+    {
+        m_renderTargets.Clear();
+        SafeRelease(m_rtvHeap);
+        SafeRelease(m_swapChain);
+    }
+
+    void Dx12SwapChain::Present() const
+    {
+        Dx12Assert(m_swapChain->Present(0, 0));
     }
 } // KryneEngine

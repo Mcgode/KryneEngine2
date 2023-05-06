@@ -149,6 +149,11 @@ namespace KryneEngine
             {
                 instance.~T();
             }
+            ResetLooseMemory();
+        }
+
+        void ResetLooseMemory()
+        {
             delete m_buffer;
             m_buffer = nullptr;
             m_count = 0;

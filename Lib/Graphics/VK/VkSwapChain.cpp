@@ -147,9 +147,11 @@ namespace KryneEngine
             };
 
             m_swapChainTextures.Resize(images.size());
+            m_imageAvailableSemaphores.Resize(images.size());
             for (u32 i = 0; i < images.size(); i++)
             {
                 m_swapChainTextures.Init(i, m_deviceRef, images[i], textureOptions, extent);
+                m_imageAvailableSemaphores[i] = m_deviceRef->createSemaphore(vk::SemaphoreCreateInfo{});
             }
         }
     }
@@ -157,5 +159,22 @@ namespace KryneEngine
     VkSwapChain::~VkSwapChain()
     {
         m_deviceRef->destroy(m_swapChain);
+    }
+
+    vk::Semaphore VkSwapChain::AcquireNextImage(u8 _frameIndex)
+    {
+	    m_imageIndex = m_deviceRef->acquireNextImageKHR(m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[_frameIndex], nullptr).value;
+        return m_imageAvailableSemaphores[_frameIndex];
+    }
+
+    void VkSwapChain::Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore>& _semaphores)
+    {
+	    const vk::PresentInfoKHR presentInfo = {
+        	_semaphores,
+        	m_swapChain,
+            m_imageIndex
+        };
+
+        VkHelperFunctions::VkAssert(_presentQueue.presentKHR(presentInfo));
     }
 }

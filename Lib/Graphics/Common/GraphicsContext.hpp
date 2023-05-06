@@ -31,13 +31,16 @@ namespace KryneEngine
 
         bool EndFrame();
 
-    private:
+        void WaitForLastFrame() const;
 
+    private:
 #if defined(KE_GRAPHICS_API_VK)
         VkGraphicsContext m_implementation;
 #elif defined(KE_GRAPHICS_API_DX12)
         Dx12GraphicsContext m_implementation;
 #endif
+
+        u64 m_frameId = 1;
     };
 }
 

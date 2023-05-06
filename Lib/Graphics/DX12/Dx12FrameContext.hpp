@@ -13,6 +13,8 @@ namespace KryneEngine
 {
     class Dx12FrameContext
     {
+        friend class Dx12GraphicsContext;
+
     public:
         Dx12FrameContext(ID3D12Device* _device, bool _directAllocator, bool _computeAllocator, bool _copyAllocator);
 
@@ -69,5 +71,6 @@ namespace KryneEngine
         CommandAllocationSet m_directCommandAllocationSet;
         CommandAllocationSet m_computeCommandAllocationSet;
         CommandAllocationSet m_copyCommandAllocationSet;
+        u64 m_frameId = 0;
     };
 } // KryneEngine

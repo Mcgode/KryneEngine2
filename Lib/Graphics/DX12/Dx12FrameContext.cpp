@@ -14,18 +14,21 @@ namespace KryneEngine
     {
         m_device = _device;
 
-        const auto initAllocator = [this]
-                (bool _alloc,CommandAllocationSet& _set, D3D12_COMMAND_LIST_TYPE _type)
+        const auto initAllocator = [this] (bool _alloc,CommandAllocationSet& _set, D3D12_COMMAND_LIST_TYPE _type, const wchar_t* _name)
         {
             if (_alloc)
             {
                 Dx12Assert(m_device->CreateCommandAllocator(_type, IID_PPV_ARGS(&_set.m_commandAllocator)));
+
+#if !defined(KE_FINAL)
+                Dx12SetName(_set.m_commandAllocator.Get(), L"%s Command Allocator", _name);
+#endif
             }
         };
 
-        initAllocator(_directAllocator, m_directCommandAllocationSet, D3D12_COMMAND_LIST_TYPE_DIRECT);
-        initAllocator(_computeAllocator, m_computeCommandAllocationSet, D3D12_COMMAND_LIST_TYPE_COMPUTE);
-        initAllocator(_copyAllocator, m_copyCommandAllocationSet, D3D12_COMMAND_LIST_TYPE_COPY);
+        initAllocator(_directAllocator, m_directCommandAllocationSet, D3D12_COMMAND_LIST_TYPE_DIRECT, L"Direct");
+        initAllocator(_computeAllocator, m_computeCommandAllocationSet, D3D12_COMMAND_LIST_TYPE_COMPUTE, L"Compute");
+        initAllocator(_copyAllocator, m_copyCommandAllocationSet, D3D12_COMMAND_LIST_TYPE_COPY, L"Copy");
     }
 
     Dx12FrameContext::~Dx12FrameContext()
@@ -54,6 +57,7 @@ namespace KryneEngine
         {
             m_usedCommandLists.push_back(m_availableCommandLists.back());
             m_availableCommandLists.pop_back();
+            Dx12Assert(m_usedCommandLists.back()->Reset(m_commandAllocator.Get(), nullptr));
         }
 
         return m_usedCommandLists.back();

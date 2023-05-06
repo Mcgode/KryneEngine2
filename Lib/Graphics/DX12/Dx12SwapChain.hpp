@@ -24,6 +24,15 @@ namespace KryneEngine
                       ID3D12Device *_device,
                       ID3D12CommandQueue *_directQueue);
 
+        ~Dx12SwapChain();
+
+        [[nodiscard]] u8 GetBackBufferIndex() const
+        {
+	        return m_swapChain->GetCurrentBackBufferIndex();
+        }
+
+        void Present() const;
+
     private:
         ComPtr<IDXGISwapChain3> m_swapChain;
         ComPtr<ID3D12DescriptorHeap> m_rtvHeap;

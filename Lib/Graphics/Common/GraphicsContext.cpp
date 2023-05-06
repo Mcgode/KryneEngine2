@@ -16,10 +16,20 @@ namespace KryneEngine
     {
     }
 
-    GraphicsContext::~GraphicsContext() = default;
+    GraphicsContext::~GraphicsContext()
+    {
+        WaitForLastFrame();
+    }
 
     bool GraphicsContext::EndFrame()
     {
+        m_implementation.EndFrame(m_frameId);
+        m_frameId++;
         return GetWindow()->WaitForEvents();
+    }
+
+    void GraphicsContext::WaitForLastFrame() const
+    {
+        m_implementation.WaitForFrame(m_frameId - 1);
     }
 }

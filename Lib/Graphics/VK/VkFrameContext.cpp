@@ -20,11 +20,32 @@ namespace KryneEngine
         {
             if (!_pair.IsInvalid())
             {
-                vk::CommandPoolCreateInfo createInfo {};
-                createInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
-                createInfo.queueFamilyIndex = _pair.m_familyIndex;
+                // Create command pool
+	            {
+		            const vk::CommandPoolCreateInfo createInfo {
+                        vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                        static_cast<u32>(_pair.m_familyIndex)
+		            };
 
-                VkAssert(m_deviceRef->createCommandPool(&createInfo, nullptr, &_commandPoolSet.m_commandPool));
+                    _commandPoolSet.m_commandPool = m_deviceRef->createCommandPool(createInfo);
+	            }
+
+                // Create fence
+	            {
+		            constexpr vk::FenceCreateInfo createInfo {
+		            	vk::FenceCreateFlagBits::eSignaled // Create as signaled for first wait
+					};
+                    _commandPoolSet.m_fence = m_deviceRef->createFence(createInfo);
+
+                    // Save fences into single array for mutualized waits and resets
+                    m_fencesArray.push_back(_commandPoolSet.m_fence);
+	            }
+
+                // Create semaphore
+	            {
+                    constexpr vk::SemaphoreCreateInfo createInfo = {};
+                    _commandPoolSet.m_semaphore = m_deviceRef->createSemaphore(createInfo);
+	            }
             }
         };
 
@@ -40,13 +61,24 @@ namespace KryneEngine
         m_transferCommandPoolSet.Destroy(m_deviceRef);
     }
 
+    void VkFrameContext::WaitForFences(u64 _frameId)
+    {
+        // If fences have already been reset to a later frame, then previous fence was signaled, no need to wait.
+        if (m_frameId > _frameId)
+        {
+            return;
+        }
+
+        VkAssert(m_deviceRef->waitForFences(m_fencesArray.size(), m_fencesArray.data(), true, UINT64_MAX));
+    }
+
     vk::CommandBuffer VkFrameContext::CommandPoolSet::BeginCommandBuffer(VkSharedDeviceRef& _deviceRef)
     {
         m_mutex.ManualLock();
 
         if (m_availableCommandBuffers.empty())
         {
-            vk::CommandBufferAllocateInfo allocateInfo { m_commandPool };
+	        const vk::CommandBufferAllocateInfo allocateInfo { m_commandPool };
             VkAssert(_deviceRef->allocateCommandBuffers(&allocateInfo, &m_availableCommandBuffers.push_back()));
         }
         else
@@ -71,6 +103,12 @@ namespace KryneEngine
 
     void VkFrameContext::CommandPoolSet::Destroy(VkSharedDeviceRef &_deviceRef)
     {
+        _deviceRef->destroy(m_semaphore);
+
+        // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkGetFenceStatus.html
+        Assert(!m_fence || _deviceRef->getFenceStatus(m_fence) == vk::Result::eSuccess, "Fence should be signaled by the time the frame is destroyed");
+        _deviceRef->destroy(m_fence);
+
         const auto lock = m_mutex.AutoLock();
         Assert(m_usedCommandBuffers.empty(), "PoolSet should be reset before destroy");
 

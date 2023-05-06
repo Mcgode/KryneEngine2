@@ -29,6 +29,10 @@ namespace KryneEngine
 
         [[nodiscard]] u8 GetFrameContextCount() const { return m_frameContextCount; }
 
+        void EndFrame(u64 _frameId);
+
+        void WaitForFrame(u64 _frameId) const;
+
     private:
         const GraphicsCommon::ApplicationInfo m_appInfo;
 
