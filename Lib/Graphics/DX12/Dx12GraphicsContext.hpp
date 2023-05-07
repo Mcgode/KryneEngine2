@@ -11,6 +11,9 @@
 #include <Common/Arrays.hpp>
 #include <EASTL/unique_ptr.h>
 
+#define RPS_D3D12_RUNTIME 1
+#include <rps/rps.h>
+
 namespace KryneEngine
 {
     class Window;
@@ -31,6 +34,8 @@ namespace KryneEngine
 
         void WaitForFrame(u64 _frameId) const;
 
+        [[nodiscard]] RpsDevice GetRpsDevice() const { return m_rpsDevice; }
+
     private:
         GraphicsCommon::ApplicationInfo m_appInfo;
 
@@ -49,6 +54,8 @@ namespace KryneEngine
         DynamicArray<Dx12FrameContext> m_frameContexts;
         ComPtr<ID3D12Fence> m_frameFence;
         HANDLE m_frameFenceEvent;
+
+        RpsDevice m_rpsDevice;
 
         void _CreateDevice(IDXGIFactory4 *_factory4);
         void _FindAdapter(IDXGIFactory4* _factory, IDXGIAdapter1** _adapter);

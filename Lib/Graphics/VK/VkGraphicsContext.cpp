@@ -138,10 +138,24 @@ namespace KryneEngine
 
         m_frameContexts.Resize(m_frameContextCount);
         m_frameContexts.InitAll(&m_sharedDevice, m_queueIndices);
+
+        if (m_appInfo.m_features.m_renderPipelineShaders)
+        {
+            RpsVKRuntimeDeviceCreateInfo createInfo {};
+            createInfo.pDeviceCreateInfo = nullptr;
+            createInfo.pRuntimeCreateInfo = nullptr;
+            createInfo.hVkDevice = m_sharedDevice.m_object;
+            createInfo.hVkPhysicalDevice = m_physicalDevice;
+            createInfo.flags = RPS_VK_RUNTIME_FLAG_NONE;
+
+            GraphicsCommon::RpsAssert(rpsVKRuntimeDeviceCreate(&createInfo, &m_rpsDevice));
+        }
     }
 
     VkGraphicsContext::~VkGraphicsContext()
     {
+        rpsDeviceDestroy(m_rpsDevice);
+
         m_frameContexts.Clear();
         m_swapChain.reset();
         m_surface.reset();

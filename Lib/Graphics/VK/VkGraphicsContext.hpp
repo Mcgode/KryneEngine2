@@ -12,6 +12,9 @@
 #include <EASTL/vector_set.h>
 #include <Graphics/VK/CommonStructures.hpp>
 
+#define RPS_VK_RUNTIME 1
+#include <rps/rps.h>
+
 namespace KryneEngine
 {
     class Window;
@@ -32,6 +35,8 @@ namespace KryneEngine
         void EndFrame(u64 _frameId);
 
         void WaitForFrame(u64 _frameId) const;
+
+        [[nodiscard]] RpsDevice GetRpsDevice() const { return m_rpsDevice; }
 
     private:
         const GraphicsCommon::ApplicationInfo m_appInfo;
@@ -56,6 +61,8 @@ namespace KryneEngine
 
         u8 m_frameContextCount;
         DynamicArray<VkFrameContext> m_frameContexts;
+
+        RpsDevice m_rpsDevice;
 
         static void _PrepareValidationLayers(vk::InstanceCreateInfo& _createInfo);
 

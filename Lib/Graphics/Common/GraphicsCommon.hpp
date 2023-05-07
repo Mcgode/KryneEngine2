@@ -7,6 +7,9 @@
 #pragma once
 
 #include "Common/KETypes.hpp"
+#include "Common/Assert.hpp"
+
+#include <rps/core/rps_result.h>
 
 namespace KryneEngine::GraphicsCommon
 {
@@ -54,6 +57,8 @@ namespace KryneEngine::GraphicsCommon
 
         struct Features
         {
+            bool m_renderPipelineShaders = true;
+
             bool m_validationLayers = true;
 
             bool m_graphics = true;
@@ -90,4 +95,9 @@ namespace KryneEngine::GraphicsCommon
             return m_api >= Api::DirectX12_Start && m_api <= Api::DirectX12_End;
         }
     };
+
+    inline void RpsAssert(RpsResult _result)
+    {
+        Assert(RPS_SUCCEEDED(_result), rpsResultGetName(_result));
+    }
 }

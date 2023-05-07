@@ -46,10 +46,10 @@ if (GraphicsApi STREQUAL "VK")
     target_include_directories(KryneEngineGraphics PUBLIC ${Vulkan_INCLUDE_DIRS})
 
     message(STATUS "Vulkan lib: " ${Vulkan_LIBRARIES})
-    target_link_libraries(KryneEngineGraphics ${Vulkan_LIBRARIES})
+    target_link_libraries(KryneEngineGraphics ${Vulkan_LIBRARIES} rps_runtime_vk)
 elseif(GraphicsApi STREQUAL "DX12")
     message(STATUS "Linking DirectX12 lib")
-    target_link_libraries(KryneEngineGraphics d3d12 dxgi d3dcompiler dxguid DirectX-Headers)
+    target_link_libraries(KryneEngineGraphics d3d12 dxgi d3dcompiler dxguid DirectX-Headers rps_runtime_d3d12)
 endif()
 
 if (PrecompileHeaders)

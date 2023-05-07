@@ -33,6 +33,8 @@ namespace KryneEngine
 
         void WaitForLastFrame() const;
 
+        [[nodiscard]] RpsDevice GetRpsDevice() const { return m_implementation.GetRpsDevice(); }
+
     private:
 #if defined(KE_GRAPHICS_API_VK)
         VkGraphicsContext m_implementation;

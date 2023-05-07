@@ -50,6 +50,7 @@ namespace KryneEngine
                 {
                     m_sharedObject->m_referencesCount++;
                 }
+                return *this;
             }
 
             Ref(Ref&& _other) noexcept

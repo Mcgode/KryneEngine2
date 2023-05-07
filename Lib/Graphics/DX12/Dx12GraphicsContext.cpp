@@ -73,10 +73,20 @@ namespace KryneEngine
 #endif
         m_frameFenceEvent = CreateEvent(nullptr, false, false, nullptr);
         Assert(m_frameFenceEvent != nullptr);
+
+        if (m_appInfo.m_features.m_renderPipelineShaders)
+        {
+            RpsD3D12RuntimeDeviceCreateInfo createInfo;
+            createInfo.pDeviceCreateInfo = nullptr;
+            createInfo.pRuntimeCreateInfo = nullptr;
+            createInfo.pD3D12Device = m_device.Get();
+        }
     }
 
     Dx12GraphicsContext::~Dx12GraphicsContext()
     {
+        rpsDeviceDestroy(m_rpsDevice);
+
         CloseHandle(m_frameFenceEvent);
         SafeRelease(m_frameFence);
 
@@ -101,11 +111,6 @@ namespace KryneEngine
     Window *Dx12GraphicsContext::GetWindow() const
     {
         return m_window.get();
-    }
-
-    void Dx12GraphicsContext::BeginFrame(u64 _frameId)
-    {
-	    
     }
 
     void Dx12GraphicsContext::EndFrame(u64 _frameId)
