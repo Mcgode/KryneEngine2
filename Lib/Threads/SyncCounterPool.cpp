@@ -57,7 +57,7 @@ namespace KryneEngine
         auto& entry = m_entries[_id];
 
         const s32 value = --entry.m_counter;
-        if (Verify(value >= 0))
+        if (KE_VERIFY(value >= 0))
         {
             if (value == 0)
             {

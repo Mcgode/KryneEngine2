@@ -9,8 +9,6 @@
 
 namespace KryneEngine
 {
-    using VkHelperFunctions::VkAssert;
-
     VkFrameContext::VkFrameContext(VkSharedDevice *_device, const VkCommonStructures::QueueIndices &_queueIndices)
         : m_deviceRef(eastl::move(_device->MakeRef()))
     {
@@ -106,11 +104,11 @@ namespace KryneEngine
         _deviceRef->destroy(m_semaphore);
 
         // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkGetFenceStatus.html
-        Assert(!m_fence || _deviceRef->getFenceStatus(m_fence) == vk::Result::eSuccess, "Fence should be signaled by the time the frame is destroyed");
+        KE_ASSERT_MSG(!m_fence || _deviceRef->getFenceStatus(m_fence) == vk::Result::eSuccess, "Fence should be signaled by the time the frame is destroyed");
         _deviceRef->destroy(m_fence);
 
         const auto lock = m_mutex.AutoLock();
-        Assert(m_usedCommandBuffers.empty(), "PoolSet should be reset before destroy");
+        KE_ASSERT_MSG(m_usedCommandBuffers.empty(), "PoolSet should be reset before destroy");
 
         if (!m_usedCommandBuffers.empty())
         {

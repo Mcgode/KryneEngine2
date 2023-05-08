@@ -86,7 +86,7 @@ namespace KryneEngine
             {
                 const u64 readSize = fileSize < 0 ? _query->m_size : eastl::min<u64>(_query->m_size, fileSize);
 
-                if (_query->m_data != nullptr && Verify(fileSize >= 0))
+                if (_query->m_data != nullptr && KE_VERIFY(fileSize >= 0))
                 {
                     _query->m_data = new u8[readSize];
                 }
@@ -95,7 +95,8 @@ namespace KryneEngine
             }
             else
             {
-                if (!Verify(_query->m_data != nullptr))
+                
+                IF_NOT_VERIFY(_query->m_data != nullptr)
                 {
                     return;
                 }
@@ -112,7 +113,7 @@ namespace KryneEngine
         }
 
         // Update sync counter if provided.
-        if (_query->m_syncCounterId != kInvalidSyncCounterId && Verify(_fibersManager != nullptr))
+        if (_query->m_syncCounterId != kInvalidSyncCounterId && KE_VERIFY(_fibersManager != nullptr))
         {
             _fibersManager->m_syncCounterPool.DecrementCounterValue(_query->m_syncCounterId);
         }

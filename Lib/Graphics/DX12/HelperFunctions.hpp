@@ -13,17 +13,14 @@
 
 namespace KryneEngine
 {
-    inline bool Dx12Verify(HRESULT _hr)
-    {
-        return Verify(SUCCEEDED(_hr));
-    }
+#define Dx12Verify(condition) KE_VERIFY(SUCCEEDED(condition))
 
     inline void Dx12Assert(HRESULT _hr)
     {
         if (!SUCCEEDED(_hr))
         {
             _com_error e(_hr);
-            Assert(false, e.ErrorMessage());
+            KE_ERROR(e.ErrorMessage());
         }
     }
 
@@ -56,7 +53,7 @@ namespace KryneEngine
     {
         [[nodiscard]] inline D3D_FEATURE_LEVEL GetFeatureLevel(const GraphicsCommon::ApplicationInfo& _appInfo)
         {
-        	Assert(_appInfo.IsDirectX12Api());
+        	KE_ASSERT(_appInfo.IsDirectX12Api());
 
             switch (_appInfo.m_api)
             {

@@ -75,7 +75,7 @@ namespace KryneEngine
     void Dx12FrameContext::CommandAllocationSet::Destroy()
     {
         const auto lock = m_mutex.AutoLock();
-        Assert(m_usedCommandLists.empty(), "Allocation set should have been reset");
+        KE_ASSERT_MSG(m_usedCommandLists.empty(), "Allocation set should have been reset");
 
         const auto freeCommandListVector = [](eastl::vector<ID3D12GraphicsCommandList*>& _vector)
         {

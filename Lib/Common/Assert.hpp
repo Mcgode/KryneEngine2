@@ -6,44 +6,31 @@
 
 #pragma once
 
-#include <stdexcept>
-#include <EASTL/string_view.h>
-
-
-namespace KryneEngine
+namespace KryneEngine::Assertion
 {
-    inline void Error(const eastl::string_view& _msg)
-    {
-        throw std::runtime_error(_msg.begin());
-    }
+	bool Error(const char* _function, u32 _line, const char* _file, const char* _formatMessage, ...);
+}
 
-    inline void Assert(bool _condition, const eastl::string_view& _message)
-    {
-        if (!_condition)
-        {
-            Error(_message);
-        }
-    }
+#define KE_ASSERT_MSG(condition, message, args...) do \
+	{ \
+		if (!(condition)) [[unlikely]] \
+		{\
+			if (KryneEngine::Assertion::Error(__builtin_FUNCTION(), __builtin_LINE(), __builtin_FILE(), message, args)) \
+			{ \
+				__debugbreak(); \
+			} \
+		} \
+	} \
+	while(0)
+#define KE_ASSERT(condition) KE_ASSERT_MSG(condition, #condition)
 
-    inline void Assert(bool _condition)
-    {
-        Assert(_condition, "Condition not met");
-    }
+#define KE_VERIFY_MSG(condition, message, args...) ((condition) ? true: \
+	KryneEngine::Assertion::Error(__builtin_FUNCTION(), __builtin_LINE(), __builtin_FILE(), message, args) ? __debugbreak(), false: false)
+#define KE_VERIFY(condition) KE_VERIFY_MSG(condition, #condition)
 
-    inline bool Verify(bool _condition)
-    {
-        Assert(_condition);
-        return _condition;
-    }
+#define KE_ERROR(message, args...) do { if (KryneEngine::Assertion::Error(__builtin_FUNCTION(), __builtin_LINE(), __builtin_FILE(), message, args)) __debugbreak(); } while (0)
 
-    inline bool Verify(bool _condition, const eastl::string_view& _message)
-    {
-        Assert(_condition, _message);
-        return _condition;
-    }
-
-#define IF_NOT_VERIFY(cond) if (!Verify(cond)) [[unlikely]]
-#define IF_NOT_VERIFY_MSG(cond, msg) if (!Verify(cond, msg)) [[unlikely]]
+#define IF_NOT_VERIFY(cond) if (!KE_VERIFY(cond)) [[unlikely]]
+#define IF_NOT_VERIFY_MSG(cond, message, args...) if (!KE_VERIFY_MSG(cond, message, args)) [[unlikely]]
 #define VERIFY_OR_RETURN(cond, returnValue) IF_NOT_VERIFY(cond) return returnValue
 #define VERIFY_OR_RETURN_VOID(cond)  VERIFY_OR_RETURN(cond, )
-}

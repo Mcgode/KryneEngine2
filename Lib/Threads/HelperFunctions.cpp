@@ -26,7 +26,7 @@ namespace KryneEngine::Threads
         {
             eastl::string msg;
             msg.sprintf("Unable to set thread affinity mask: %s", GetLastError());
-            Assert(false, msg);
+            KE_ERROR(msg.c_str());
         }
         return dw != 0;
 #elif defined(PTHREADS)

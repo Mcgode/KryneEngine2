@@ -105,7 +105,7 @@ namespace KryneEngine
         template<class... Args>
         Ptr Init(u64 _index, Args... args)
         {
-            Assert(_index < m_count, "Beyond max index!");
+            KE_ASSERT_MSG(_index < m_count, "Beyond max index!");
             Ptr memSpace = m_array + _index;
             return new ((void*)memSpace) T(args...);
         }
@@ -129,7 +129,7 @@ namespace KryneEngine
 
         Ref operator[](u64 _index) const
         {
-            Assert(_index < m_count, "Beyond max index!");
+            KE_ASSERT_MSG(_index < m_count, "Beyond max index!");
             return m_array[_index];
         }
 

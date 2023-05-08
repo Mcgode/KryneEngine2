@@ -11,8 +11,6 @@
 
 namespace KryneEngine
 {
-    using VkHelperFunctions::VkAssert;
-
     VkSurface::VkSurface(VkSharedInstanceRef &&_instanceRef, GLFWwindow *_window)
         : m_sharedInstanceRef(eastl::move(_instanceRef))
     {
@@ -33,7 +31,7 @@ namespace KryneEngine
         eastl::copy(presentModes.begin(), presentModes.end(),
                 eastl::back_inserter(m_capabilities.m_presentModes));
 
-        Assert(!formats.empty() && !presentModes.empty());
+        KE_ASSERT(!formats.empty() && !presentModes.empty());
     }
 
     VkSurface::~VkSurface()

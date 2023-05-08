@@ -24,7 +24,7 @@ namespace KryneEngine::VkHelperFunctions
 
     inline u32 GetApiVersion(GraphicsCommon::Api _api)
     {
-        Assert(_api >= GraphicsCommon::Api::Vulkan_Start && _api <= GraphicsCommon::Api::Vulkan_End);
+        KE_ASSERT(_api >= GraphicsCommon::Api::Vulkan_Start && _api <= GraphicsCommon::Api::Vulkan_End);
         switch (_api)
         {
             case GraphicsCommon::Api::Vulkan_1_1: return VK_API_VERSION_1_1;
@@ -40,15 +40,7 @@ namespace KryneEngine::VkHelperFunctions
         return vk::ArrayProxyNoTemporaries<const typename Container::value_type>(_container.size(), _container.data());
     }
 
-    inline void VkAssert(vk::Result _result)
-    {
-        Assert(_result == vk::Result::eSuccess);
-    }
-
-    inline void VkAssert(VkResult _vkResult)
-    {
-        VkAssert(vk::Result(_vkResult));
-    }
+#define VkAssert(condition) KE_ASSERT_MSG(vk::Result(condition) == vk::Result::eSuccess, #condition)
 
     template<class VkType>
     inline bool IsNull(const VkType& _vkObject)
@@ -86,7 +78,7 @@ namespace KryneEngine::VkHelperFunctions
             MAP(D24S8, eD24UnormS8Uint);
             MAP(D32FS8, eD32SfloatS8Uint);
             default:
-                Assert(_format != TextureFormat::NoFormat, "Unknown format");
+                KE_ASSERT_MSG(_format != TextureFormat::NoFormat, "Unknown format");
                 format = vk::Format::eUndefined;
         }
 
@@ -125,7 +117,7 @@ namespace KryneEngine::VkHelperFunctions
             MAP(D24S8, eD24UnormS8Uint);
             MAP(D32FS8, eD32SfloatS8Uint);
             default:
-                Assert(_format != vk::Format::eUndefined, "Unknown format");
+                KE_ASSERT_MSG(_format != vk::Format::eUndefined, "Unknown format");
                 format = TextureFormat::NoFormat;
         }
 
@@ -161,7 +153,7 @@ namespace KryneEngine::VkHelperFunctions
                 type = vk::ImageViewType::eCubeArray;
                 break;
             default:
-                Error("Unknown texture type");
+                KE_ERROR("Unknown texture type");
         }
         return type;
     }
@@ -183,7 +175,7 @@ namespace KryneEngine::VkHelperFunctions
                     flags |= vk::ImageAspectFlagBits::eStencil;
                     break;
                 default:
-                    Error("Unknown aspect type");
+                    KE_ERROR("Unknown aspect type");
             }
         }
         return flags;

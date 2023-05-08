@@ -34,7 +34,7 @@ namespace KryneEngine
         [[nodiscard]] static u16 GetFibersCount()
         {
             const auto* manager = GetInstance();
-            if (Verify(manager != nullptr))
+            if (KE_VERIFY(manager != nullptr))
             {
                 return manager->GetFiberThreadCount();
             }

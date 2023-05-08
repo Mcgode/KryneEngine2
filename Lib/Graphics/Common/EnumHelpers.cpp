@@ -46,11 +46,11 @@ KryneEngine::u8 KryneEngine::GraphicsEnumHelpers::GetTextureFormatComponentCount
 
         case TextureFormat::NoFormat:
         {
-            Error("No format set");
+            KE_ERROR("No format set");
             return 0;
         }
     }
 
-    Error("Format component count not set");
+    KE_ERROR("Format component count not set");
     return 0;
 }

@@ -98,6 +98,6 @@ namespace KryneEngine::GraphicsCommon
 
     inline void RpsAssert(RpsResult _result)
     {
-        Assert(RPS_SUCCEEDED(_result), rpsResultGetName(_result));
+        KE_ASSERT_MSG(RPS_SUCCEEDED(_result), rpsResultGetName(_result));
     }
 }

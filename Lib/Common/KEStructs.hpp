@@ -104,7 +104,7 @@ namespace KryneEngine
                 if (m_sharedObject != nullptr)
                 {
                     const s32 refCount = --m_sharedObject->m_referencesCount;
-                    Assert(refCount >= 0, "Ref and unref mismatch");
+                    KE_ASSERT_MSG(refCount >= 0, "Ref and unref mismatch");
                 }
             }
         };
@@ -140,7 +140,7 @@ namespace KryneEngine
                 return;
             }
 
-            Assert(m_referencesCount <= 0, "Deleting shared object while there are still dangling references");
+            KE_ASSERT_MSG(m_referencesCount <= 0, "Deleting shared object while there are still dangling references");
             m_destructor(m_object);
         }
 

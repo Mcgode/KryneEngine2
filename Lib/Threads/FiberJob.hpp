@@ -38,7 +38,7 @@ namespace KryneEngine
                 : m_priority(_priority)
                 , m_pendingStart(_pendingStart)
             {
-                Assert(_priority != Priority::Count);
+                KE_ASSERT(_priority != Priority::Count);
             }
 
             /// @details

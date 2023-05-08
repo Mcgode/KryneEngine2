@@ -18,7 +18,7 @@ namespace KryneEngine
     {
         m_thread = std::thread([=]()
         {
-            Assert(Threads::DisableThreadSignals());
+        	KE_ASSERT(Threads::DisableThreadSignals());
 
             FibersManager::s_manager = _fiberManager;
             sThreadIndex = _threadIndex;
@@ -35,12 +35,12 @@ namespace KryneEngine
             }
         });
 
-        Assert(Threads::SetThreadHardwareAffinity(m_thread, _threadIndex));
+        KE_ASSERT(Threads::SetThreadHardwareAffinity(m_thread, _threadIndex));
     }
 
     FiberThread::~FiberThread()
     {
-        Assert(!m_thread.joinable(), "Should have been stopped beforehand");
+        KE_ASSERT_MSG(!m_thread.joinable(), "Should have been stopped beforehand");
     }
 
     FiberThread::ThreadIndex FiberThread::GetCurrentFiberThreadIndex()
@@ -76,7 +76,7 @@ namespace KryneEngine
         auto* nextContext = _nextJob == nullptr
                 ? &_manager->m_baseContexts.Load(fiberIndex)
                 : _nextJob->m_context;
-        Assert(nextContext != nullptr);
+        KE_ASSERT(nextContext != nullptr);
         currentContext->SwapContext(nextContext);
         _manager->_OnContextSwitched();
     }

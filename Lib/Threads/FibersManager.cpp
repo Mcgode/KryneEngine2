@@ -14,7 +14,7 @@ namespace KryneEngine
 
     FibersManager::FibersManager(u16 _fiberThreadCount)
     {
-        Assert(_fiberThreadCount > 0, "You need at least one fiber thread");
+        KE_ASSERT_MSG(_fiberThreadCount > 0, "You need at least one fiber thread");
 
         // Resize array first!
         // This size is used to init the FiberTls objects,
@@ -55,7 +55,7 @@ namespace KryneEngine
     {
         VERIFY_OR_RETURN_VOID(_job != nullptr && _job->m_associatedCounterId != kInvalidSyncCounterId);
 
-        Assert(_job->CanRun());
+        KE_ASSERT(_job->CanRun());
 
         const u8 priorityId = (u8)_job->GetPriorityType();
         if (FiberThread::IsFiberThread())
@@ -79,7 +79,7 @@ namespace KryneEngine
             {
                 if (!job_->_HasContextAssigned())
                 {
-                    Assert(job_->GetStatus() == FiberJob::Status::PendingStart);
+                    KE_ASSERT(job_->GetStatus() == FiberJob::Status::PendingStart);
 
                     u16 id;
                     if (m_contextAllocator.Allocate(job_->m_bigStack, id))

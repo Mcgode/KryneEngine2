@@ -31,7 +31,7 @@ namespace KryneEngine
     template<class T>
     inline T& FiberTls<T>::Load()
     {
-        Assert(FiberThread::IsFiberThread());
+        KE_ASSERT(FiberThread::IsFiberThread());
 
         return Load(FiberThread::GetCurrentFiberThreadIndex());
     }

@@ -60,7 +60,7 @@ namespace KryneEngine
         void UnlockReader() noexcept
         {
             Status oldStatus = m_status.fetch_sub(Status().m_readers.One(), std::memory_order::release);
-            Assert(!oldStatus.m_readers.IsZero());
+            KE_ASSERT(!oldStatus.m_readers.IsZero());
             if (oldStatus.m_readers == 1 && !oldStatus.m_writers.IsZero())
             {
                 m_writerSemaphore.SignalOnce();
@@ -70,7 +70,7 @@ namespace KryneEngine
         void LockWriter() noexcept
         {
             Status oldStatus = m_status.fetch_add(Status().m_writers.One(), std::memory_order_release);
-            Assert(oldStatus.m_writers + 1 <= Status().m_writers.Maximum());
+            KE_ASSERT(oldStatus.m_writers + 1 <= Status().m_writers.Maximum());
             if (!oldStatus.m_readers.IsZero() || !oldStatus.m_writers.IsZero())
             {
                 m_writerSemaphore.Wait();
@@ -84,7 +84,7 @@ namespace KryneEngine
             u32 waitingToRead = 0;
             do
             {
-                Assert(oldStatus.m_readers.IsZero());
+                KE_ASSERT(oldStatus.m_readers.IsZero());
 
                 newStatus = oldStatus;
                 newStatus.m_writers--;

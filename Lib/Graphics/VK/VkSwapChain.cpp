@@ -20,7 +20,7 @@ namespace KryneEngine
         : m_deviceRef(eastl::move(_deviceRef))
     {
         const auto& capabilities = _surface->GetCapabilities();
-        Assert(!capabilities.m_formats.empty() && !capabilities.m_presentModes.empty());
+        KE_ASSERT(!capabilities.m_formats.empty() && !capabilities.m_presentModes.empty());
 
         const auto displayOptions = _appInfo.m_displayOptions;
 
@@ -37,7 +37,7 @@ namespace KryneEngine
                 }
             }
 
-            Assert(displayOptions.m_sRgbPresent == GraphicsCommon::SoftEnable::TryEnable
+            KE_ASSERT(displayOptions.m_sRgbPresent == GraphicsCommon::SoftEnable::TryEnable
                 || selectedFormat.format != vk::Format::eUndefined);
         }
         if (selectedFormat.format == vk::Format::eUndefined)
@@ -58,7 +58,7 @@ namespace KryneEngine
                 }
             }
 
-            Assert(displayOptions.m_tripleBuffering == GraphicsCommon::SoftEnable::TryEnable
+            KE_ASSERT(displayOptions.m_tripleBuffering == GraphicsCommon::SoftEnable::TryEnable
                    || selectedPresentMode != vk::PresentModeKHR::eFifo);
         }
 
@@ -96,7 +96,7 @@ namespace KryneEngine
         {
             imageCount = eastl::min(imageCount, capabilities.m_surfaceCapabilities.maxImageCount);
         }
-        Assert(imageCount >= 3 || displayOptions.m_tripleBuffering != GraphicsCommon::SoftEnable::ForceEnabled);
+        KE_ASSERT(imageCount >= 3 || displayOptions.m_tripleBuffering != GraphicsCommon::SoftEnable::ForceEnabled);
 
         eastl::vector<u32> queueFamilyIndices{};
         m_sharingMode = vk::SharingMode::eExclusive;
@@ -130,11 +130,11 @@ namespace KryneEngine
                 true,
                 _oldSwapChain == nullptr ? vk::SwapchainKHR{} : _oldSwapChain->m_swapChain);
 
-        VkHelperFunctions::VkAssert(m_deviceRef->createSwapchainKHR(&createInfo, nullptr, &m_swapChain));
+        VkAssert(m_deviceRef->createSwapchainKHR(&createInfo, nullptr, &m_swapChain));
 
         {
             const auto images = m_deviceRef->getSwapchainImagesKHR(m_swapChain);
-            Assert(!images.empty(), "Unable to retrieve swapchain images");
+            KE_ASSERT_MSG(!images.empty(), "Unable to retrieve swapchain images");
 
             Texture::Options textureOptions = {
                     VkHelperFunctions::FromVkFormat(selectedFormat.format),
@@ -175,6 +175,6 @@ namespace KryneEngine
             m_imageIndex
         };
 
-        VkHelperFunctions::VkAssert(_presentQueue.presentKHR(presentInfo));
+        VkAssert(_presentQueue.presentKHR(presentInfo));
     }
 }

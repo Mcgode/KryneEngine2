@@ -54,14 +54,14 @@ namespace KryneEngine::BitUtils
 
         inline BitFieldMember& operator+=(TrueType _v)
         {
-            Assert(TrueType(*this) + _v <= Maximum());
+            KE_ASSERT(TrueType(*this) + _v <= Maximum());
             m_value += _v << Offset;
             return *this;
         }
 
         inline BitFieldMember& operator-=(TrueType _v)
         {
-            Assert(TrueType(*this) >= _v);
+            KE_ASSERT(TrueType(*this) >= _v);
             m_value -= _v << Offset;
             return *this;
         }

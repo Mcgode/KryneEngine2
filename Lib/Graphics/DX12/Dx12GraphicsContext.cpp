@@ -15,7 +15,7 @@ namespace KryneEngine
     Dx12GraphicsContext::Dx12GraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo)
         : m_appInfo(_appInfo)
     {
-        Assert(m_appInfo.IsDirectX12Api());
+        KE_ASSERT(m_appInfo.IsDirectX12Api());
 
         ComPtr<IDXGIFactory4> factory4;
         UINT dxgiFactoryFlags = 0;
@@ -72,7 +72,7 @@ namespace KryneEngine
         Dx12SetName(m_frameFence.Get(), L"Frame fence");
 #endif
         m_frameFenceEvent = CreateEvent(nullptr, false, false, nullptr);
-        Assert(m_frameFenceEvent != nullptr);
+        KE_ASSERT(m_frameFenceEvent != nullptr);
 
         if (m_appInfo.m_features.m_renderPipelineShaders)
         {

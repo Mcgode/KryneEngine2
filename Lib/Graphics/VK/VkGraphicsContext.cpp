@@ -190,7 +190,7 @@ namespace KryneEngine
 	            {
                     // Reset fence
                     {
-                        Assert(m_sharedDevice->getFenceStatus(_commandPoolSet.m_fence) == vk::Result::eSuccess);
+                        KE_ASSERT(m_sharedDevice->getFenceStatus(_commandPoolSet.m_fence) == vk::Result::eSuccess);
                         m_sharedDevice->resetFences(_commandPoolSet.m_fence);
                     }
 
@@ -251,7 +251,7 @@ namespace KryneEngine
             }
         }
 
-        if (Verify(found))
+        if (KE_VERIFY(found))
         {
             _createInfo.ppEnabledLayerNames = kValidationLayerNames.data();
             _createInfo.enabledLayerCount = kValidationLayerNames.size();
@@ -294,7 +294,7 @@ namespace KryneEngine
         auto createInfo = _PopulateDebugCreateInfo(this);
         auto func = (PFN_vkCreateDebugUtilsMessengerEXT)m_sharedInstance->getProcAddr("vkCreateDebugUtilsMessengerEXT");
 
-        if (Verify(func != nullptr))
+        if (KE_VERIFY(func != nullptr))
         {
             VkAssert(func(*m_sharedInstance, reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&createInfo),
                           nullptr, reinterpret_cast<VkDebugUtilsMessengerEXT*>(&m_debugMessenger)));
@@ -328,7 +328,7 @@ namespace KryneEngine
             return suitable;
         });
 
-        if (Verify(!suitableDevices.empty(), "No suitable device found!"))
+        if (KE_VERIFY_MSG(!suitableDevices.empty(), "No suitable device found!"))
         {
             u32 maxScore = 0;
             vk::PhysicalDevice selectedDevice;
@@ -362,8 +362,8 @@ namespace KryneEngine
 
         const auto& features = _appInfo.m_features;
 
-        Assert(features.m_transfer && (features.m_graphics || features.m_transferQueue), "Not supported yet");
-        Assert(features.m_compute && (features.m_graphics || features.m_asyncCompute), "Not supported yet");
+        KE_ASSERT_MSG(features.m_transfer && (features.m_graphics || features.m_transferQueue), "Not supported yet");
+        KE_ASSERT_MSG(features.m_compute && (features.m_graphics || features.m_asyncCompute), "Not supported yet");
 
         const auto GetIndexOfFamily = [&indices](u32 _familyIndex) -> u32&
         {
@@ -480,7 +480,7 @@ namespace KryneEngine
         eastl::vector<vk::DeviceQueueCreateInfo> queueCreateInfo;
         eastl::vector<eastl::vector<float>> queuePriorities;
 
-        Assert(_SelectQueues(m_appInfo, m_physicalDevice, m_surface->GetSurface(), m_queueIndices));
+        KE_ASSERT(_SelectQueues(m_appInfo, m_physicalDevice, m_surface->GetSurface(), m_queueIndices));
         {
             const auto createQueueInfo = [&queueCreateInfo, &queuePriorities](QueueIndices::Pair _index, float _priority)
             {
@@ -517,7 +517,7 @@ namespace KryneEngine
 
             for (u32 i = 0; i < queueCreateInfo.size(); i++)
             {
-                Assert(queueCreateInfo[i].queueCount == queuePriorities[i].size());
+                KE_ASSERT(queueCreateInfo[i].queueCount == queuePriorities[i].size());
             }
         }
 

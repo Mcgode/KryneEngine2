@@ -2,7 +2,8 @@ set(RootDir ${CMAKE_SOURCE_DIR}/Lib)
 add_subdirectory(Graphics)
 
 set(CommonSrc
-        Common/additional_impl.cpp
+        Common/additional_impl.cpp 
+        Common/Assert.cpp
         )
 
 set(FilesSrc

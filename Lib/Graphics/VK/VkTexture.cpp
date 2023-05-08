@@ -36,7 +36,7 @@ namespace KryneEngine
 
     void VkTexture::_CreateImageView(const vk::Image &_image, const Texture::Options &_options)
     {
-        Assert(!m_imageView, "Previous image view was not deleted");
+        KE_ASSERT_MSG(!m_imageView, "Previous image view was not deleted");
 
         vk::ImageViewCreateInfo createInfo;
 
@@ -53,7 +53,7 @@ namespace KryneEngine
         };
 
         const auto result = m_device->createImageView(createInfo);
-        Assert(result);
+        KE_ASSERT(result);
         m_imageView = result;
     }
 } // KryneEngine

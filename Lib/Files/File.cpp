@@ -145,8 +145,8 @@ namespace KryneEngine
 
     void File::Write(const MemoryRangeMapping &_mappedData, bool _closeAfter)
     {
-        Assert(_mappedData.m_buffer != nullptr || _mappedData.m_size == 0, "No provided buffer");
-        Assert(_mappedData.m_offset == 0 || m_file != nullptr,
+        KE_ASSERT_MSG(_mappedData.m_buffer != nullptr || _mappedData.m_size == 0, "No provided buffer");
+        KE_ASSERT_MSG(_mappedData.m_offset == 0 || m_file != nullptr,
                "File not opened yet. Non-zero write offset will result in undefined behaviour.");
 
         const auto processQuery = [&](IoQueryManager::Query& _query)

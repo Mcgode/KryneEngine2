@@ -127,7 +127,7 @@ namespace KryneEngine
     void FiberContext::SwapContext(FiberContext *_new)
     {
 #if CONTEXT_SWITCH_WINDOWS_FIBERS
-        Assert(m_winFiber == GetCurrentFiber());
+        KE_ASSERT(m_winFiber == GetCurrentFiber());
 
         SwitchToFiber((LPVOID*)_new->m_winFiber);
 #else
@@ -144,7 +144,7 @@ namespace KryneEngine
         {
             auto* job = fibersManager->GetCurrentJob();
 
-            if (Verify(job->m_status == FiberJob::Status::PendingStart))
+            if (KE_VERIFY(job->m_status == FiberJob::Status::PendingStart))
             {
                 job->m_status = FiberJob::Status::Running;
                 job->m_functionPtr(job->m_userData);
