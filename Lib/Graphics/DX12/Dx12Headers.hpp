@@ -37,5 +37,5 @@ using Microsoft::WRL::ComPtr;
 // D3D12 extension library.
 #include <directx/d3dx12.h>
 
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>

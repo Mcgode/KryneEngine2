@@ -9,7 +9,7 @@
 #include <EASTL/vector.h>
 #include <EASTL/string.h>
 #include <string>
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 
 namespace KryneEngine
 {

@@ -9,7 +9,7 @@
 #include <condition_variable>
 #include <EASTL/unique_ptr.h>
 #include <moodycamel/concurrentqueue.h>
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 #include <Threads/SyncCounterPool.hpp>
 
 namespace KryneEngine

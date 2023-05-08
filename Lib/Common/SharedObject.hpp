@@ -7,7 +7,7 @@
 #pragma once
 
 #include <Common/Assert.hpp>
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 #include <atomic>
 
 namespace KryneEngine

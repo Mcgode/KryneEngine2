@@ -7,7 +7,7 @@
 #pragma once
 
 #include <thread>
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 
 namespace KryneEngine::Threads
 {

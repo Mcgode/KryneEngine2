@@ -7,7 +7,7 @@
 #pragma once
 
 #include <atomic>
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 #include <EASTL/fixed_vector.h>
 #include <EASTL/array.h>
 #include <moodycamel/concurrentqueue.h>

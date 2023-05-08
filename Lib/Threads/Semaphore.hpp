@@ -8,7 +8,7 @@
 
 #include <atomic>
 #include <Common/Assert.hpp>
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 #include <Threads/HelperFunctions.hpp>
 
 namespace KryneEngine

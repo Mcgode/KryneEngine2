@@ -9,7 +9,7 @@
 #include <EASTL/span.h>
 #include <Graphics/Common/Enums.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 
 namespace KryneEngine
 {

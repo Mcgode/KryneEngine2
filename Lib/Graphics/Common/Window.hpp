@@ -7,7 +7,7 @@
 #pragma once
 
 #include <GLFW/glfw3.h>
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
 
 namespace KryneEngine

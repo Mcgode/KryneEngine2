@@ -7,7 +7,7 @@
 #pragma once
 
 #include <Graphics/Common/Enums.hpp>
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 
 namespace KryneEngine::GraphicsEnumHelpers
 {

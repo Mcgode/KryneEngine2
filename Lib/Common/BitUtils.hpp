@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 #include <Common/Assert.hpp>
 
 namespace KryneEngine::BitUtils

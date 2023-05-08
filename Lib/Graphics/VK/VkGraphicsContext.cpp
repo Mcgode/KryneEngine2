@@ -9,7 +9,7 @@
 #include <iostream>
 #include <EASTL/algorithm.h>
 #include <EASTL/vector_map.h>
-#include <Common/KEStringHelpers.hpp>
+#include <Common/StringHelpers.hpp>
 #include <Graphics/Common/Window.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
 #include <Graphics/VK/VkSurface.hpp>

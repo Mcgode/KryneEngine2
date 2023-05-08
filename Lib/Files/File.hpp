@@ -7,7 +7,7 @@
 #pragma once
 
 #include <Memory/RangeMapping.hpp>
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 
 namespace KryneEngine
 {

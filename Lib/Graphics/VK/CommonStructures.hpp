@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <Common/KETypes.hpp>
-#include <Common/KEStructs.hpp>
+#include <Common/Types.hpp>
+#include <Common/Structs.hpp>
 
 namespace KryneEngine
 {

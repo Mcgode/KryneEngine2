@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <Common/KETypes.hpp>
+#include <Common/Types.hpp>
 #include <chrono>
 
 namespace KryneEngine::FileSystemHelper

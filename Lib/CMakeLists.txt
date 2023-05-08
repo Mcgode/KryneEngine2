@@ -29,5 +29,5 @@ set(ThreadsSrc
         )
 
 add_library(KryneEngine ${CommonSrc} ${FilesSrc} ${ThreadsSrc})
-target_precompile_headers(KryneEngine PUBLIC Common/KETypes.hpp)
+target_precompile_headers(KryneEngine PUBLIC Common/Types.hpp)
 target_link_libraries(KryneEngine KryneEngineGraphics moodycamel)

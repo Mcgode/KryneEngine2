@@ -7,7 +7,7 @@
 #pragma once
 
 #include <moodycamel/concurrentqueue.h>
-#include <Common/KEStringHelpers.hpp>
+#include <Common/StringHelpers.hpp>
 #include <filesystem>
 #include <EASTL/vector_map.h>
 

@@ -5,7 +5,7 @@
  */
 
 #include "VkSwapChain.hpp"
-#include "Common/KEEastlHelpers.hpp"
+#include "Common/EastlHelpers.hpp"
 
 #include <Common/Assert.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
