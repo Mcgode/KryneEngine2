@@ -35,7 +35,7 @@ elseif(GraphicsApi STREQUAL "DX12")
 endif()
 
 add_library(KryneEngineGraphics STATIC ${SrcFiles})
-target_link_libraries(KryneEngineGraphics EASTL glfw glm)
+target_link_libraries(KryneEngineGraphics EASTL glfw glm rps_core rps_frontend rps_runtime)
 target_include_directories(KryneEngineGraphics PUBLIC ${RootDir})
 
 if (GraphicsApi STREQUAL "VK")
