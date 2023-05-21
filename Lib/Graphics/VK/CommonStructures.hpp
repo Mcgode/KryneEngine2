@@ -7,7 +7,7 @@
 #pragma once
 
 #include <Common/Types.hpp>
-#include <Common/Structs.hpp>
+#include <Common/SharedObject.hpp>
 
 namespace KryneEngine
 {
