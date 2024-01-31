@@ -9,9 +9,10 @@
 #include <cstdint>
 #include <EASTL/string.h>
 #include <EASTL/vector.h>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
+#include <glm/detail/type_vec1.hpp>
+#include <glm/detail/type_vec2.hpp>
+#include <glm/detail/type_vec3.hpp>
+#include <glm/detail/type_vec4.hpp>
 
  // ReSharper disable CppInconsistentNaming
 namespace KryneEngine
@@ -25,4 +26,21 @@ namespace KryneEngine
     using s16 = int16_t;
     using s32 = int32_t;
     using s64 = int64_t;
+
+    // Vectors
+
+    using float1 = glm::vec<1, float, glm::highp>;
+    using float2 = glm::vec<2, float, glm::highp>;
+    using float3 = glm::vec<3, float, glm::highp>;
+    using float4 = glm::vec<4, float, glm::highp>;
+
+    using int1 = glm::vec<1, s32, glm::highp>;
+    using int2 = glm::vec<2, s32, glm::highp>;
+    using int3 = glm::vec<3, s32, glm::highp>;
+    using int4 = glm::vec<4, s32, glm::highp>;
+
+    using uint1 = glm::vec<1, u32, glm::highp>;
+    using uint2 = glm::vec<2, u32, glm::highp>;
+    using uint3 = glm::vec<3, u32, glm::highp>;
+    using uint4 = glm::vec<4, u32, glm::highp>;
 }
