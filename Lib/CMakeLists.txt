@@ -3,7 +3,12 @@ add_subdirectory(Graphics)
 
 set(CommonSrc
         Common/additional_impl.cpp 
-        Common/Assert.cpp
+        Common/Assert.hpp Common/Assert.cpp
+        Common/BitUtils.hpp
+        Common/EastlHelpers.hpp
+        Common/SharedObject.hpp
+        Common/StringHelpers.hpp
+        Common/Types.hpp
         )
 
 set(FilesSrc
