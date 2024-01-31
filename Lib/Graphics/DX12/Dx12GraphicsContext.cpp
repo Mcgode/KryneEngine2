@@ -80,6 +80,9 @@ namespace KryneEngine
             createInfo.pDeviceCreateInfo = nullptr;
             createInfo.pRuntimeCreateInfo = nullptr;
             createInfo.pD3D12Device = m_device.Get();
+            createInfo.flags = RPS_D3D12_RUNTIME_FLAG_NONE;
+
+            GraphicsCommon::RpsAssert(rpsD3D12RuntimeDeviceCreate(&createInfo, &m_rpsDevice));
         }
     }
 
