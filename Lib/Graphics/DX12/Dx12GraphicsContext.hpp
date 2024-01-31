@@ -36,6 +36,8 @@ namespace KryneEngine
 
         [[nodiscard]] RpsDevice GetRpsDevice() const { return m_rpsDevice; }
 
+        [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_appInfo; }
+
     private:
         GraphicsCommon::ApplicationInfo m_appInfo;
 

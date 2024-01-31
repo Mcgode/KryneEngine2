@@ -35,6 +35,8 @@ namespace KryneEngine
 
         [[nodiscard]] RpsDevice GetRpsDevice() const { return m_implementation.GetRpsDevice(); }
 
+        [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_implementation.GetApplicationInfo(); }
+
     private:
 #if defined(KE_GRAPHICS_API_VK)
         VkGraphicsContext m_implementation;
