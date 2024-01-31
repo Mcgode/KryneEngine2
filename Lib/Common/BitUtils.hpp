@@ -6,8 +6,50 @@
 
 #pragma once
 
+#include <type_traits>
 #include <Common/Types.hpp>
 #include <Common/Assert.hpp>
+
+#define KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(EnumType) inline                                                          \
+constexpr EnumType operator&(EnumType _a, EnumType _b)                                                                \
+{                                                                                                                     \
+    return static_cast<EnumType>(                                                                                     \
+        static_cast<std::underlying_type_t<EnumType>>(_a)                                                             \
+        & static_cast<std::underlying_type_t<EnumType>>(_b));                                                         \
+}                                                                                                                     \
+                                                                                                                      \
+inline EnumType& operator&=(EnumType _a, EnumType _b)                                                                 \
+{                                                                                                                     \
+    _a = _a & _b;                                                                                                     \
+    return _a;                                                                                                        \
+}                                                                                                                     \
+                                                                                                                      \
+inline constexpr EnumType operator|(EnumType _a, EnumType _b)                                                         \
+{                                                                                                                     \
+    return static_cast<EnumType>(                                                                                     \
+        static_cast<std::underlying_type_t<EnumType>>(_a)                                                             \
+        | static_cast<std::underlying_type_t<EnumType>>(_b));                                                         \
+}                                                                                                                     \
+                                                                                                                      \
+inline EnumType& operator|=(EnumType _a, EnumType _b)                                                                 \
+{                                                                                                                     \
+    _a = _a | _b;                                                                                                     \
+    return _a;                                                                                                        \
+}                                                                                                                     \
+                                                                                                                      \
+inline constexpr EnumType operator^(EnumType _a, EnumType _b)                                                         \
+{                                                                                                                     \
+    return static_cast<EnumType>(                                                                                     \
+        static_cast<std::underlying_type_t<EnumType>>(_a)                                                             \
+        ^ static_cast<std::underlying_type_t<EnumType>>(_b));                                                         \
+}                                                                                                                     \
+                                                                                                                      \
+inline EnumType& operator^=(EnumType _a, EnumType _b)                                                                 \
+{                                                                                                                     \
+    _a = _a ^ _b;                                                                                                     \
+    return _a;                                                                                                        \
+}
+
 
 namespace KryneEngine::BitUtils
 {
@@ -82,4 +124,18 @@ namespace KryneEngine::BitUtils
             return v;
         }
     };
+
+    template<class EnumType>
+    inline bool EnumHasAny(const EnumType _source, const EnumType _flags)
+    {
+        using UnderlyingType = std::underlying_type_t<EnumType>;
+        return static_cast<UnderlyingType>(_source & _flags) != 0;
+    }
+
+    template<class EnumType>
+    inline bool EnumHasAll(const EnumType _source, const EnumType _flags)
+    {
+        using UnderlyingType = std::underlying_type_t<EnumType>;
+        return static_cast<UnderlyingType>(_source & _flags) != static_cast<UnderlyingType>(_flags);
+    }
 }
