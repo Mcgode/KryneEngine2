@@ -55,6 +55,8 @@ namespace KryneEngine
         ComPtr<ID3D12Fence> m_frameFence;
         HANDLE m_frameFenceEvent;
 
+        DWORD m_validationLayerMessageCallbackHandle = 0;
+
         RpsDevice m_rpsDevice;
 
         void _CreateDevice(IDXGIFactory4 *_factory4);
@@ -62,7 +64,7 @@ namespace KryneEngine
 
         void _CreateCommandQueues();
 
-        Dx12FrameContext& _GetFrameContext() const
+        [[nodiscard]] Dx12FrameContext& _GetFrameContext() const
         {
             return m_frameContexts[m_frameContextIndex];
         }

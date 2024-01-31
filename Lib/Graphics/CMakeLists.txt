@@ -12,7 +12,7 @@ set(VkFiles
 set (DX12Files
         DX12/Dx12GraphicsContext.cpp DX12/Dx12GraphicsContext.hpp
         DX12/Dx12Headers.hpp
-        DX12/HelperFunctions.hpp
+        DX12/HelperFunction.cpp DX12/HelperFunctions.hpp
         DX12/Dx12SwapChain.cpp DX12/Dx12SwapChain.hpp
         DX12/Dx12FrameContext.cpp DX12/Dx12FrameContext.hpp
         )

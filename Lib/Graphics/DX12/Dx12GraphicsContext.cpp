@@ -87,6 +87,17 @@ namespace KryneEngine
     {
         rpsDeviceDestroy(m_rpsDevice);
 
+#if !defined(KE_FINAL)
+        if (m_validationLayerMessageCallbackHandle != 0)
+        {
+            ComPtr<ID3D12InfoQueue1> infoQueue;
+            if (SUCCEEDED(m_device->QueryInterface<ID3D12InfoQueue1>(&infoQueue)))
+            {
+                infoQueue->UnregisterMessageCallback(m_validationLayerMessageCallbackHandle);
+            }
+        }
+#endif
+
         CloseHandle(m_frameFenceEvent);
         SafeRelease(m_frameFence);
 
@@ -188,6 +199,21 @@ namespace KryneEngine
 #if !defined(KE_FINAL)
         Dx12SetName(m_device.Get(), L"Device");
 #endif
+
+#if !defined(KE_FINAL)
+        if (m_appInfo.m_features.m_validationLayers)
+        {
+            ComPtr<ID3D12InfoQueue1> infoQueue;
+            if (SUCCEEDED(m_device->QueryInterface<ID3D12InfoQueue1>(&infoQueue)))
+            {
+                infoQueue->RegisterMessageCallback(
+                        DebugLayerMessageCallback,
+                        D3D12_MESSAGE_CALLBACK_FLAG_NONE,
+                        this,
+                        &m_validationLayerMessageCallbackHandle);
+            }
+        }
+#endif
     }
 
     void Dx12GraphicsContext::_FindAdapter(IDXGIFactory4 *_factory, IDXGIAdapter1 **_adapter)
@@ -243,6 +269,7 @@ namespace KryneEngine
 #if !defined(KE_FINAL)
             Dx12SetName(m_directQueue.Get(), L"Direct queue");
 #endif
+
         }
 
         if ((!features.m_graphics || features.m_asyncCompute) && features.m_compute )

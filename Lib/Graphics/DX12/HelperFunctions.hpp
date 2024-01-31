@@ -66,4 +66,11 @@ namespace KryneEngine
             }
         }
     }
+
+    void DebugLayerMessageCallback(
+            D3D12_MESSAGE_CATEGORY _category,
+            D3D12_MESSAGE_SEVERITY _severity,
+            D3D12_MESSAGE_ID _id,
+            LPCSTR _description,
+            void* _context);
 }
