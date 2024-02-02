@@ -43,6 +43,6 @@ namespace KryneEngine
     protected:
         TextureFormat m_format = TextureFormat::NoFormat;
 
-        glm::uvec2 m_size;
+        uint2 m_size {};
     };
 }
