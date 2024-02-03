@@ -19,6 +19,11 @@ set(FilesSrc
         Files/File.cpp Files/File.hpp
         )
 
+set(MemorySrc
+        Memory/RangeMapping.hpp
+        Memory/GenerationalPool.inl Memory/GenerationalPool.hpp
+)
+
 set(ThreadsSrc
         Threads/FibersManager.cpp Threads/FibersManager.hpp
         Threads/FiberThread.cpp Threads/FiberThread.hpp
@@ -33,6 +38,6 @@ set(ThreadsSrc
         Threads/Semaphore.hpp
         )
 
-add_library(KryneEngine ${CommonSrc} ${FilesSrc} ${ThreadsSrc})
+add_library(KryneEngine ${CommonSrc} ${FilesSrc} ${MemorySrc} ${ThreadsSrc})
 target_precompile_headers(KryneEngine PUBLIC Common/Types.hpp)
 target_link_libraries(KryneEngine KryneEngineGraphics moodycamel)
