@@ -11,13 +11,22 @@
 
 namespace KryneEngine
 {
-    VkSurface::VkSurface(VkSharedInstanceRef &&_instanceRef, GLFWwindow *_window)
-        : m_sharedInstanceRef(eastl::move(_instanceRef))
+    VkSurface::VkSurface(vk::Instance _instance, GLFWwindow *_window)
     {
-        VkAssert(glfwCreateWindowSurface(*m_sharedInstanceRef,
+        VkAssert(glfwCreateWindowSurface(_instance,
                                          _window,
                                          nullptr,
                                          reinterpret_cast<VkSurfaceKHR*>(&m_surface)));
+    }
+
+    VkSurface::~VkSurface()
+    {
+        KE_ASSERT(!m_surface);
+    }
+
+    void VkSurface::Destroy(vk::Instance _instance)
+    {
+        SafeDestroy(_instance, m_surface);
     }
 
     void VkSurface::UpdateCapabilities(const vk::PhysicalDevice& _physicalDevice)
@@ -32,10 +41,5 @@ namespace KryneEngine
                 eastl::back_inserter(m_capabilities.m_presentModes));
 
         KE_ASSERT(!formats.empty() && !presentModes.empty());
-    }
-
-    VkSurface::~VkSurface()
-    {
-        m_sharedInstanceRef->destroy(m_surface);
     }
 }

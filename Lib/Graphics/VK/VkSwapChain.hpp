@@ -23,7 +23,7 @@ namespace KryneEngine
 
     public:
         VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
-                    VkSharedDeviceRef &&_deviceRef,
+                    vk::Device _device,
                     const VkSurface &_surface,
                     VkResources &_resources,
                     GLFWwindow *_window,
@@ -32,7 +32,7 @@ namespace KryneEngine
 
         virtual ~VkSwapChain();
 
-        vk::Semaphore AcquireNextImage(u8 _frameIndex);
+        vk::Semaphore AcquireNextImage(vk::Device _device, u8 _frameIndex);
 
         void Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore>& _semaphores);
 
@@ -40,7 +40,6 @@ namespace KryneEngine
 
     private:
         vk::SwapchainKHR m_swapChain;
-        VkSharedDeviceRef m_deviceRef;
         vk::SharingMode m_sharingMode;
         DynamicArray<GenPool::Handle> m_renderTargetTextures;
         DynamicArray<GenPool::Handle> m_renderTargetViews;

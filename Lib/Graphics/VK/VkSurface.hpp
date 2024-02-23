@@ -23,9 +23,11 @@ namespace KryneEngine
             eastl::vector<vk::PresentModeKHR> m_presentModes;
         };
 
-        VkSurface(VkSharedInstanceRef &&_instanceRef, GLFWwindow *_window);
+        VkSurface(vk::Instance _instance, GLFWwindow *_window);
 
         virtual ~VkSurface();
+
+        void Destroy(vk::Instance _instance);
 
         void UpdateCapabilities(const vk::PhysicalDevice& _physicalDevice);
 
@@ -34,7 +36,6 @@ namespace KryneEngine
 
     private:
         vk::SurfaceKHR m_surface;
-        VkSharedInstanceRef m_sharedInstanceRef;
         Capabilities m_capabilities;
     };
 }

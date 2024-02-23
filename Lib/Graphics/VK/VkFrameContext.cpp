@@ -9,10 +9,9 @@
 
 namespace KryneEngine
 {
-    VkFrameContext::VkFrameContext(VkSharedDevice *_device, const VkCommonStructures::QueueIndices &_queueIndices)
-        : m_deviceRef(eastl::move(_device->MakeRef()))
+    VkFrameContext::VkFrameContext(vk::Device _device, const VkCommonStructures::QueueIndices &_queueIndices)
     {
-        const auto CreateCommandPool = [this](
+        const auto CreateCommandPool = [this, _device](
                 const VkCommonStructures::QueueIndices::Pair& _pair,
                 CommandPoolSet& _commandPoolSet)
         {
@@ -25,7 +24,7 @@ namespace KryneEngine
                         static_cast<u32>(_pair.m_familyIndex)
 		            };
 
-                    _commandPoolSet.m_commandPool = m_deviceRef->createCommandPool(createInfo);
+                    _commandPoolSet.m_commandPool = _device.createCommandPool(createInfo);
 	            }
 
                 // Create fence
@@ -33,7 +32,7 @@ namespace KryneEngine
 		            constexpr vk::FenceCreateInfo createInfo {
 		            	vk::FenceCreateFlagBits::eSignaled // Create as signaled for first wait
 					};
-                    _commandPoolSet.m_fence = m_deviceRef->createFence(createInfo);
+                    _commandPoolSet.m_fence = _device.createFence(createInfo);
 
                     // Save fences into single array for mutualized waits and resets
                     m_fencesArray.push_back(_commandPoolSet.m_fence);
@@ -42,7 +41,7 @@ namespace KryneEngine
                 // Create semaphore
 	            {
                     constexpr vk::SemaphoreCreateInfo createInfo = {};
-                    _commandPoolSet.m_semaphore = m_deviceRef->createSemaphore(createInfo);
+                    _commandPoolSet.m_semaphore = _device.createSemaphore(createInfo);
 	            }
             }
         };
@@ -54,12 +53,19 @@ namespace KryneEngine
 
     VkFrameContext::~VkFrameContext()
     {
-        m_graphicsCommandPoolSet.Destroy(m_deviceRef);
-        m_computeCommandPoolSet.Destroy(m_deviceRef);
-        m_transferCommandPoolSet.Destroy(m_deviceRef);
+        KE_ASSERT(!m_graphicsCommandPoolSet.m_commandPool);
+        KE_ASSERT(!m_computeCommandPoolSet.m_commandPool);
+        KE_ASSERT(!m_transferCommandPoolSet.m_commandPool);
     }
 
-    void VkFrameContext::WaitForFences(u64 _frameId)
+    void VkFrameContext::Destroy(vk::Device _device)
+    {
+        m_graphicsCommandPoolSet.Destroy(_device);
+        m_computeCommandPoolSet.Destroy(_device);
+        m_transferCommandPoolSet.Destroy(_device);
+    }
+
+    void VkFrameContext::WaitForFences(vk::Device _device, u64 _frameId) const
     {
         // If fences have already been reset to a later frame, then previous fence was signaled, no need to wait.
         if (m_frameId > _frameId)
@@ -67,17 +73,17 @@ namespace KryneEngine
             return;
         }
 
-        VkAssert(m_deviceRef->waitForFences(m_fencesArray.size(), m_fencesArray.data(), true, UINT64_MAX));
+        VkAssert(_device.waitForFences(m_fencesArray.size(), m_fencesArray.data(), true, UINT64_MAX));
     }
 
-    vk::CommandBuffer VkFrameContext::CommandPoolSet::BeginCommandBuffer(VkSharedDeviceRef& _deviceRef)
+    vk::CommandBuffer VkFrameContext::CommandPoolSet::BeginCommandBuffer(vk::Device _device)
     {
         m_mutex.ManualLock();
 
         if (m_availableCommandBuffers.empty())
         {
 	        const vk::CommandBufferAllocateInfo allocateInfo { m_commandPool };
-            VkAssert(_deviceRef->allocateCommandBuffers(&allocateInfo, &m_availableCommandBuffers.push_back()));
+            VkAssert(_device.allocateCommandBuffers(&allocateInfo, &m_availableCommandBuffers.push_back()));
         }
         else
         {
@@ -99,26 +105,26 @@ namespace KryneEngine
         m_mutex.ManualUnlock();
     }
 
-    void VkFrameContext::CommandPoolSet::Destroy(VkSharedDeviceRef &_deviceRef)
+    void VkFrameContext::CommandPoolSet::Destroy(vk::Device _device)
     {
-        _deviceRef->destroy(m_semaphore);
+        SafeDestroy(_device, m_semaphore);
 
         // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkGetFenceStatus.html
-        KE_ASSERT_MSG(!m_fence || _deviceRef->getFenceStatus(m_fence) == vk::Result::eSuccess, "Fence should be signaled by the time the frame is destroyed");
-        _deviceRef->destroy(m_fence);
+        KE_ASSERT_MSG(!m_fence || _device.getFenceStatus(m_fence) == vk::Result::eSuccess, "Fence should be signaled by the time the frame is destroyed");
+        SafeDestroy(_device, m_fence);
 
         const auto lock = m_mutex.AutoLock();
         KE_ASSERT_MSG(m_usedCommandBuffers.empty(), "PoolSet should be reset before destroy");
 
         if (!m_usedCommandBuffers.empty())
         {
-            _deviceRef->free(m_commandPool, m_usedCommandBuffers);
+            _device.free(m_commandPool, m_usedCommandBuffers);
         }
         if (!m_availableCommandBuffers.empty())
         {
-            _deviceRef->free(m_commandPool, m_availableCommandBuffers);
+            _device.free(m_commandPool, m_availableCommandBuffers);
         }
 
-        _deviceRef->destroy(m_commandPool);
+        SafeDestroy(_device, m_commandPool);
     }
 } // KryneEngine

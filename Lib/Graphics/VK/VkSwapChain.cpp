@@ -17,13 +17,12 @@
 namespace KryneEngine
 {
     VkSwapChain::VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
-                             VkSharedDeviceRef &&_deviceRef,
+                             vk::Device _device,
                              const VkSurface &_surface,
                              VkResources &_resources,
                              GLFWwindow *_window,
                              const VkCommonStructures::QueueIndices &_queueIndices,
                              VkSwapChain *_oldSwapChain)
-        : m_deviceRef(eastl::move(_deviceRef))
     {
         const auto& capabilities = _surface.GetCapabilities();
         KE_ASSERT(!capabilities.m_formats.empty() && !capabilities.m_presentModes.empty());
@@ -136,10 +135,10 @@ namespace KryneEngine
                 true,
                 _oldSwapChain == nullptr ? vk::SwapchainKHR{} : _oldSwapChain->m_swapChain);
 
-        VkAssert(m_deviceRef->createSwapchainKHR(&createInfo, nullptr, &m_swapChain));
+        VkAssert(_device.createSwapchainKHR(&createInfo, nullptr, &m_swapChain));
 
         {
-            const auto images = m_deviceRef->getSwapchainImagesKHR(m_swapChain);
+            const auto images = _device.getSwapchainImagesKHR(m_swapChain);
             KE_ASSERT_MSG(!images.empty(), "Unable to retrieve swapchain images");
 
             m_renderTargetTextures.Resize(images.size());
@@ -154,20 +153,20 @@ namespace KryneEngine
                 };
 
                 m_renderTargetTextures.Init(i, textureHandle);
-                m_renderTargetViews.Init(i, _resources.CreateRenderTargetView(rtvDesc, *m_deviceRef));
-                m_imageAvailableSemaphores[i] = m_deviceRef->createSemaphore(vk::SemaphoreCreateInfo{});
+                m_renderTargetViews.Init(i, _resources.CreateRenderTargetView(rtvDesc, _device));
+                m_imageAvailableSemaphores[i] = _device.createSemaphore(vk::SemaphoreCreateInfo{});
             }
         }
     }
 
     VkSwapChain::~VkSwapChain()
     {
-        KE_ASSERT(m_swapChain);
+        KE_ASSERT(!m_swapChain);
     }
 
-    vk::Semaphore VkSwapChain::AcquireNextImage(u8 _frameIndex)
+    vk::Semaphore VkSwapChain::AcquireNextImage(vk::Device _device, u8 _frameIndex)
     {
-	    m_imageIndex = m_deviceRef->acquireNextImageKHR(m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[_frameIndex], nullptr).value;
+	    m_imageIndex = _device.acquireNextImageKHR(m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[_frameIndex], nullptr).value;
         return m_imageAvailableSemaphores[_frameIndex];
     }
 
@@ -200,6 +199,6 @@ namespace KryneEngine
         }
         m_renderTargetTextures.Clear();
 
-        _device.destroy(m_swapChain);
+        SafeDestroy(_device, m_swapChain);
     }
 }

@@ -19,13 +19,15 @@ namespace KryneEngine
         friend class VkGraphicsContext;
 
     public:
-        VkFrameContext(VkSharedDevice* _device, const VkCommonStructures::QueueIndices& _queueIndices);
+        VkFrameContext(vk::Device _device, const VkCommonStructures::QueueIndices& _queueIndices);
 
         virtual ~VkFrameContext();
 
-        vk::CommandBuffer BeginGraphicsCommandBuffer()
+        void Destroy(vk::Device _device);
+
+        vk::CommandBuffer BeginGraphicsCommandBuffer(vk::Device _device)
         {
-            return m_graphicsCommandPoolSet.BeginCommandBuffer(m_deviceRef);
+            return m_graphicsCommandPoolSet.BeginCommandBuffer(_device);
         }
 
         void EndGraphicsCommandBuffer()
@@ -33,9 +35,9 @@ namespace KryneEngine
             m_graphicsCommandPoolSet.EndCommandBuffer();
         }
 
-        vk::CommandBuffer BeginComputeCommandBuffer()
+        vk::CommandBuffer BeginComputeCommandBuffer(vk::Device _device)
         {
-            return m_computeCommandPoolSet.BeginCommandBuffer(m_deviceRef);
+            return m_computeCommandPoolSet.BeginCommandBuffer(_device);
         }
 
         void EndComputeCommandBuffer()
@@ -43,9 +45,9 @@ namespace KryneEngine
             m_computeCommandPoolSet.EndCommandBuffer();
         }
 
-        vk::CommandBuffer BeginTransferCommandBuffer()
+        vk::CommandBuffer BeginTransferCommandBuffer(vk::Device _device)
         {
-            return m_transferCommandPoolSet.BeginCommandBuffer(m_deviceRef);
+            return m_transferCommandPoolSet.BeginCommandBuffer(_device);
         }
 
         void EndTransferCommandBuffer()
@@ -53,11 +55,9 @@ namespace KryneEngine
             m_transferCommandPoolSet.EndCommandBuffer();
         }
 
-        void WaitForFences(u64 _frameId);
+        void WaitForFences(vk::Device _device, u64 _frameId) const;
 
     private:
-        VkSharedDeviceRef m_deviceRef;
-
         struct CommandPoolSet
         {
             vk::CommandPool m_commandPool;
@@ -70,10 +70,10 @@ namespace KryneEngine
             vk::Fence m_fence;
             vk::Semaphore m_semaphore;
 
-            vk::CommandBuffer BeginCommandBuffer(VkSharedDeviceRef& _deviceRef);
+            vk::CommandBuffer BeginCommandBuffer(vk::Device _device);
             void EndCommandBuffer();
 
-            void Destroy(VkSharedDeviceRef& _deviceRef);
+            void Destroy(vk::Device _device);
         };
 
         CommandPoolSet m_graphicsCommandPoolSet;

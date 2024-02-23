@@ -11,6 +11,16 @@
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <Graphics/Common/Enums.hpp>
 
+namespace KryneEngine
+{
+    template <class Owner, class Resource>
+    inline void SafeDestroy(Owner _owner, Resource& _resource)
+    {
+        _owner.destroy(_resource);
+        _resource = nullptr;
+    }
+}
+
 namespace KryneEngine::VkHelperFunctions
 {
     inline u32 MakeVersion(const GraphicsCommon::Version& _version)

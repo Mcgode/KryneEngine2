@@ -6,7 +6,6 @@ set(CommonSrc
         Common/Assert.hpp Common/Assert.cpp
         Common/BitUtils.hpp
         Common/EastlHelpers.hpp
-        Common/SharedObject.hpp
         Common/StringHelpers.hpp
         Common/Types.hpp
         )

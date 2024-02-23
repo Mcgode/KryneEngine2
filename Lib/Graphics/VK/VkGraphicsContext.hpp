@@ -47,10 +47,10 @@ namespace KryneEngine
 
         eastl::unique_ptr<Window> m_window;
 
-        VkSharedInstance m_sharedInstance;
+        vk::Instance m_instance;
         vk::DebugUtilsMessengerEXT m_debugMessenger;
         vk::PhysicalDevice m_physicalDevice;
-        VkSharedDevice m_sharedDevice;
+        vk::Device m_device;
 
         eastl::unique_ptr<VkSurface> m_surface;
         eastl::unique_ptr<VkSwapChain> m_swapChain;
@@ -88,7 +88,7 @@ namespace KryneEngine
     public:
         [[nodiscard]] inline GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
-            return m_resources.CreateRenderTargetView(_desc, *m_sharedDevice);
+            return m_resources.CreateRenderTargetView(_desc, m_device);
         }
 
     private:

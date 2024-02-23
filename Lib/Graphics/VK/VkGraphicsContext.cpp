@@ -62,8 +62,6 @@ namespace KryneEngine
 
     VkGraphicsContext::VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo)
         : m_appInfo(_appInfo)
-        , m_sharedInstance({})
-        , m_sharedDevice({})
     {
         if (m_appInfo.m_features.m_present)
         {
@@ -100,13 +98,13 @@ namespace KryneEngine
         instanceCreateInfo.enabledExtensionCount = extensions.size();
         instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
-        VkAssert(vk::createInstance(&instanceCreateInfo, nullptr, &m_sharedInstance.m_object));
+        VkAssert(vk::createInstance(&instanceCreateInfo, nullptr, &m_instance));
 
         _SetupValidationLayersCallback();
 
         if (m_appInfo.m_features.m_present)
         {
-            m_surface = eastl::make_unique<VkSurface>(eastl::move(m_sharedInstance.MakeRef()), m_window->GetGlfwWindow());
+            m_surface = eastl::make_unique<VkSurface>(m_instance, m_window->GetGlfwWindow());
         }
 
         _SelectPhysicalDevice();
@@ -122,7 +120,7 @@ namespace KryneEngine
         {
             m_swapChain = eastl::make_unique<VkSwapChain>(
                     m_appInfo,
-                    eastl::move(m_sharedDevice.MakeRef()),
+                    m_device,
                     *m_surface,
                     m_resources,
                     m_window->GetGlfwWindow(),
@@ -138,14 +136,14 @@ namespace KryneEngine
         }
 
         m_frameContexts.Resize(m_frameContextCount);
-        m_frameContexts.InitAll(&m_sharedDevice, m_queueIndices);
+        m_frameContexts.InitAll(m_device, m_queueIndices);
 
         if (m_appInfo.m_features.m_renderPipelineShaders)
         {
             RpsVKRuntimeDeviceCreateInfo createInfo {};
             createInfo.pDeviceCreateInfo = nullptr;
             createInfo.pRuntimeCreateInfo = nullptr;
-            createInfo.hVkDevice = m_sharedDevice.m_object;
+            createInfo.hVkDevice = m_device;
             createInfo.hVkPhysicalDevice = m_physicalDevice;
             createInfo.flags = RPS_VK_RUNTIME_FLAG_NONE;
 
@@ -157,21 +155,27 @@ namespace KryneEngine
     {
         rpsDeviceDestroy(m_rpsDevice);
 
+        for (auto& frameContext: m_frameContexts)
+        {
+            frameContext.Destroy(m_device);
+        }
         m_frameContexts.Clear();
 
-        m_swapChain->Destroy(*m_sharedDevice, m_resources);
+        m_swapChain->Destroy(m_device, m_resources);
         m_swapChain.reset();
 
+        m_surface->Destroy(m_instance);
         m_surface.reset();
-        m_sharedDevice.Destroy();
+
+        m_device.destroy();
         if (m_debugMessenger)
         {
-            auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) m_sharedInstance->getProcAddr("vkDestroyDebugUtilsMessengerEXT");
+            auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) m_instance.getProcAddr("vkDestroyDebugUtilsMessengerEXT");
             if (func != nullptr) {
-                func(*m_sharedInstance, m_debugMessenger, nullptr);
+                func(m_instance, m_debugMessenger, nullptr);
             }
         }
-        m_sharedInstance.Destroy();
+        m_instance.destroy();
     }
 
     void VkGraphicsContext::EndFrame(u64 _frameId)
@@ -183,7 +187,7 @@ namespace KryneEngine
         vk::Semaphore imageAvailableSemaphore;
         if (m_swapChain != nullptr)
         {
-            imageAvailableSemaphore  = m_swapChain->AcquireNextImage(frameIndex);
+            imageAvailableSemaphore  = m_swapChain->AcquireNextImage(m_device, frameIndex);
         }
 
         // Submit command buffers
@@ -194,8 +198,8 @@ namespace KryneEngine
 	            {
                     // Reset fence
                     {
-                        KE_ASSERT(m_sharedDevice->getFenceStatus(_commandPoolSet.m_fence) == vk::Result::eSuccess);
-                        m_sharedDevice->resetFences(_commandPoolSet.m_fence);
+                        KE_ASSERT(m_device.getFenceStatus(_commandPoolSet.m_fence) == vk::Result::eSuccess);
+                        m_device.resetFences(_commandPoolSet.m_fence);
                     }
 
                     vk::SubmitInfo submitInfo;
@@ -231,7 +235,7 @@ namespace KryneEngine
     void VkGraphicsContext::WaitForFrame(u64 _frameId) const
     {
         const u8 frameIndex = _frameId % m_frameContextCount;
-        m_frameContexts[frameIndex].WaitForFences(_frameId);
+        m_frameContexts[frameIndex].WaitForFences(m_device, _frameId);
     }
 
     void VkGraphicsContext::_PrepareValidationLayers(vk::InstanceCreateInfo& _createInfo)
@@ -296,18 +300,18 @@ namespace KryneEngine
     void VkGraphicsContext::_SetupValidationLayersCallback()
     {
         auto createInfo = _PopulateDebugCreateInfo(this);
-        auto func = (PFN_vkCreateDebugUtilsMessengerEXT)m_sharedInstance->getProcAddr("vkCreateDebugUtilsMessengerEXT");
+        auto func = (PFN_vkCreateDebugUtilsMessengerEXT)m_instance.getProcAddr("vkCreateDebugUtilsMessengerEXT");
 
         if (KE_VERIFY(func != nullptr))
         {
-            VkAssert(func(*m_sharedInstance, reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&createInfo),
+            VkAssert(func(m_instance, reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&createInfo),
                           nullptr, reinterpret_cast<VkDebugUtilsMessengerEXT*>(&m_debugMessenger)));
         }
     }
 
     void VkGraphicsContext::_SelectPhysicalDevice()
     {
-        const auto availableDevices = m_sharedInstance->enumeratePhysicalDevices();
+        const auto availableDevices = m_instance.enumeratePhysicalDevices();
         eastl::vector<vk::PhysicalDevice> suitableDevices;
         eastl::copy_if(availableDevices.begin(), availableDevices.end(),
                        eastl::back_inserter(suitableDevices),
@@ -541,7 +545,7 @@ namespace KryneEngine
                                         MakeArrayProxy(requiredExtensions),
                                         &features);
 
-        VkAssert(m_physicalDevice.createDevice(&createInfo, nullptr, &m_sharedDevice.m_object));
+        VkAssert(m_physicalDevice.createDevice(&createInfo, nullptr, &m_device));
 
         _RetrieveQueues(m_queueIndices);
     }
@@ -552,7 +556,7 @@ namespace KryneEngine
         {
             if (!_queueIndex.IsInvalid())
             {
-                destQueue_ = m_sharedDevice->getQueue(_queueIndex.m_familyIndex, _queueIndex.m_indexInFamily);
+                destQueue_ = m_device.getQueue(_queueIndex.m_familyIndex, _queueIndex.m_indexInFamily);
             }
         };
 
