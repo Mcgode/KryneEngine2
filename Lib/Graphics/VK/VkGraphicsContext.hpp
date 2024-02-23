@@ -7,6 +7,7 @@
 #pragma once
 
 #include "VkFrameContext.hpp"
+#include "VkResources.hpp"
 #include <vma/vk_mem_alloc.h>
 #include <EASTL/unique_ptr.h>
 #include <EASTL/vector_set.h>
@@ -20,6 +21,7 @@ namespace KryneEngine
     class Window;
     class VkSurface;
     class VkSwapChain;
+    struct RenderTargetViewDesc;
 
     class VkGraphicsContext
     {
@@ -82,6 +84,15 @@ namespace KryneEngine
 
         void _CreateDevice();
         void _RetrieveQueues(const VkCommonStructures::QueueIndices &_queueIndices);
+
+    public:
+        [[nodiscard]] inline GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
+        {
+            return m_resources.CreateRenderTargetView(_desc, *m_sharedDevice);
+        }
+
+    private:
+        VkResources m_resources {};
     };
 }
 

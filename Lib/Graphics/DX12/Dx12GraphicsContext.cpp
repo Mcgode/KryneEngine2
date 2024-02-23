@@ -46,9 +46,10 @@ namespace KryneEngine
                                                             m_window.get(),
                                                             factory4.Get(),
                                                             m_device.Get(),
-                                                            m_directQueue.Get());
+                                                            m_directQueue.Get(),
+                                                            m_resources);
 
-            m_frameContextCount = m_swapChain->m_renderTargets.Size();
+            m_frameContextCount = m_swapChain->m_renderTargetViews.Size();
 
             m_frameContextIndex = m_swapChain->GetBackBufferIndex();
         }
@@ -106,6 +107,7 @@ namespace KryneEngine
 
         m_frameContexts.Clear();
 
+        m_swapChain->Destroy(m_resources);
         m_swapChain.release();
 
         SafeRelease(m_copyQueue);

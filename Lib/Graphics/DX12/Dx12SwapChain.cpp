@@ -11,6 +11,7 @@
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
+#include <Graphics/Common/RenderTargetView.hpp>
 
 namespace KryneEngine
 {
@@ -18,27 +19,22 @@ namespace KryneEngine
                                  Window *_processWindow,
                                  IDXGIFactory4 *_factory,
                                  ID3D12Device *_device,
-                                 ID3D12CommandQueue *_directQueue)
+                                 ID3D12CommandQueue *_directQueue,
+                                 Dx12Resources &_resources)
     {
         const auto& displayInfo = _appInfo.m_displayOptions;
 
+        u32 imageCount = 2;
+        if (displayInfo.m_tripleBuffering != GraphicsCommon::SoftEnable::Disabled)
         {
-            u32 imageCount = 2;
-            if (displayInfo.m_tripleBuffering != GraphicsCommon::SoftEnable::Disabled)
-            {
-                imageCount++;
-            }
-            m_renderTargets = DynamicArray<ComPtr<ID3D12Resource>>(imageCount);
-            m_renderTargets.InitAll();
+            imageCount++;
         }
 
-        // sRGB format not supported as a swap-chain texture format, so if needed use 10bit-precision instead.
-        const auto format = displayInfo.m_sRgbPresent == GraphicsCommon::SoftEnable::Disabled
-                ? DXGI_FORMAT_B8G8R8A8_UNORM
-                : DXGI_FORMAT_R10G10B10A2_UNORM;
+        // sRGB format is set by the RTV
+        const auto format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc {};
-        swapChainDesc.BufferCount = m_renderTargets.Size();
+        swapChainDesc.BufferCount = imageCount;
         swapChainDesc.Width = displayInfo.m_width;
         swapChainDesc.Height = displayInfo.m_height;
         swapChainDesc.Format = format;
@@ -66,48 +62,58 @@ namespace KryneEngine
 
         m_currentFrame = m_swapChain->GetCurrentBackBufferIndex();
 
-        // Create RTV Descriptor Heap
-        {
-            D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
-            rtvHeapDesc.NumDescriptors = m_renderTargets.Size();
-            rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-            rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-            rtvHeapDesc.NodeMask = 0;
-
-            Dx12Assert(_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
-#if !defined(KE_FINAL)
-            Dx12SetName(m_rtvHeap.Get(), L"SwapChain RTV descriptor heap");
-#endif
-        }
-
-        // Retrieve RTV descriptor size
-        m_rtvDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
         // Create frame render targets
         {
-            CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
+            m_renderTargetTextures.Resize(imageCount);
+            m_renderTargetViews.Resize(imageCount);
 
-            for (u32 i = 0; i < m_renderTargets.Size(); i++)
+            ID3D12Resource* renderTargetTexture = nullptr;
+            for (u32 i = 0; i < imageCount; i++)
             {
-                Dx12Assert(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])));
-                _device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
-                rtvHandle.Offset(1, m_rtvDescriptorSize);
+                Dx12Assert(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&renderTargetTexture)));
 #if !defined(KE_FINAL)
-                Dx12SetName(m_renderTargets[i].Get(), L"SwapChain Render Target View %d", i);
+                Dx12SetName(renderTargetTexture, L"SwapChain Render Target Texture %d", i);
 #endif
+                const auto textureHandle = _resources.RegisterTexture(renderTargetTexture);
+                m_renderTargetTextures.Init(i, textureHandle);
+
+                const RenderTargetViewDesc rtvDesc {
+                    .m_textureHandle = textureHandle,
+                    .m_format = displayInfo.m_sRgbPresent == GraphicsCommon::SoftEnable::Disabled
+                            ? TextureFormat::BGRA8_UNorm
+                            : TextureFormat::BGRA8_sRGB
+                };
+                m_renderTargetViews.Init(i, _resources.CreateRenderTargetView(rtvDesc, _device));
             }
         }
     }
 
     Dx12SwapChain::~Dx12SwapChain()
     {
-        m_renderTargets.Clear();
-        SafeRelease(m_rtvHeap);
-        SafeRelease(m_swapChain);
+        KE_ASSERT(m_swapChain == nullptr);
     }
 
     void Dx12SwapChain::Present() const
     {
         Dx12Assert(m_swapChain->Present(0, 0));
+    }
+
+    void Dx12SwapChain::Destroy(Dx12Resources &_resources)
+    {
+        for (const auto handle: m_renderTargetViews)
+        {
+            KE_ASSERT_MSG(_resources.FreeRenderTargetView(handle), "Handle was invalid. It shouldn't. Something went wrong with the lifecycle.");
+        }
+        m_renderTargetViews.Clear();
+
+        for (const auto handle: m_renderTargetTextures)
+        {
+            // Free the texture from the gen pool, but don't do a release of the ID3D12Resource, as it's handled
+            // by the swapchain
+            KE_ASSERT_MSG(_resources.ReleaseTexture(handle, false), "Handle was invalid. It shouldn't. Something went wrong with the lifecycle.");
+        }
+        m_renderTargetTextures.Clear();
+
+        SafeRelease(m_swapChain);
     }
 } // KryneEngine

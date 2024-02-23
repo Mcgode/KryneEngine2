@@ -48,7 +48,7 @@ namespace KryneEngine::VkHelperFunctions
         return static_cast<typename VkType::CType>(_vkObject) == VK_NULL_HANDLE;
     }
 
-    constexpr inline vk::Format RetrieveFormat(TextureFormat _format)
+    constexpr inline vk::Format ToVkFormat(TextureFormat _format)
     {
         vk::Format format;
 
@@ -64,8 +64,8 @@ namespace KryneEngine::VkHelperFunctions
             MAP(RGB8_sRGB, eR8G8B8Srgb);
             MAP(RGBA8_sRGB, eR8G8B8A8Srgb);
 
-            MAP(BRGA8_UNorm, eB8G8R8A8Unorm);
-            MAP(BRGA8_sRGB, eB8G8R8A8Srgb);
+            MAP(BGRA8_UNorm, eB8G8R8A8Unorm);
+            MAP(BGRA8_sRGB, eB8G8R8A8Srgb);
 
             MAP(R8_SNorm, eR8Snorm);
             MAP(RG8_SNorm, eR8G8Snorm);
@@ -103,8 +103,8 @@ namespace KryneEngine::VkHelperFunctions
             MAP(RGB8_sRGB, eR8G8B8Srgb);
             MAP(RGBA8_sRGB, eR8G8B8A8Srgb);
 
-            MAP(BRGA8_UNorm, eB8G8R8A8Unorm);
-            MAP(BRGA8_sRGB, eB8G8R8A8Srgb);
+            MAP(BGRA8_UNorm, eB8G8R8A8Unorm);
+            MAP(BGRA8_sRGB, eB8G8R8A8Srgb);
 
             MAP(R8_SNorm, eR8Snorm);
             MAP(RG8_SNorm, eR8G8Snorm);
@@ -158,25 +158,20 @@ namespace KryneEngine::VkHelperFunctions
         return type;
     }
 
-    inline vk::ImageAspectFlags GetAspectMask(const eastl::span<const TextureAspectType>& _span)
+    inline vk::ImageAspectFlags RetrieveAspectMask(TexturePlane _plane)
     {
         vk::ImageAspectFlags flags;
-        for (auto aspect: _span)
+        if (BitUtils::EnumHasAny(_plane, TexturePlane::Color))
         {
-            switch (aspect)
-            {
-                case TextureAspectType::Color:
-                    flags |= vk::ImageAspectFlagBits::eColor;
-                    break;
-                case TextureAspectType::Depth:
-                    flags |= vk::ImageAspectFlagBits::eDepth;
-                    break;
-                case TextureAspectType::Stencil:
-                    flags |= vk::ImageAspectFlagBits::eStencil;
-                    break;
-                default:
-                    KE_ERROR("Unknown aspect type");
-            }
+            flags |= vk::ImageAspectFlagBits::eColor;
+        }
+        if (BitUtils::EnumHasAny(_plane, TexturePlane::Depth))
+        {
+            flags |= vk::ImageAspectFlagBits::eDepth;
+        }
+        if (BitUtils::EnumHasAny(_plane, TexturePlane::Stencil))
+        {
+            flags |= vk::ImageAspectFlagBits::eStencil;
         }
         return flags;
     }

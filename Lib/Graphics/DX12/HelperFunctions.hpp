@@ -9,6 +9,7 @@
 #include <Common/Assert.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <comdef.h>
+#include <Graphics/Common/Enums.hpp>
 #include "Dx12Headers.hpp"
 
 namespace KryneEngine
@@ -20,7 +21,7 @@ namespace KryneEngine
         if (!SUCCEEDED(_hr))
         {
             _com_error e(_hr);
-            KE_ERROR(e.ErrorMessage());
+            KE_FATAL(e.ErrorMessage());
         }
     }
 
@@ -64,6 +65,84 @@ namespace KryneEngine
                 default:
                     return D3D_FEATURE_LEVEL_12_0;
             }
+        }
+
+        constexpr inline DXGI_FORMAT ToDx12Format(TextureFormat _format)
+        {
+            DXGI_FORMAT format;
+
+#define MAP(commonFormat, dx12Format) case TextureFormat::commonFormat: format = dx12Format; break
+
+            switch (_format)
+            {
+                MAP(R8_UNorm, DXGI_FORMAT_R8_UNORM);
+                MAP(RG8_UNorm, DXGI_FORMAT_R8G8_UNORM);
+                MAP(RGB8_UNorm, DXGI_FORMAT_R8G8B8A8_UNORM);
+                MAP(RGBA8_UNorm, DXGI_FORMAT_R8G8B8A8_UNORM);
+
+                MAP(RGB8_sRGB, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
+                MAP(RGBA8_sRGB, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
+
+                MAP(BGRA8_UNorm, DXGI_FORMAT_B8G8R8A8_UNORM);
+                MAP(BGRA8_sRGB, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB);
+
+                MAP(R8_SNorm, DXGI_FORMAT_R8_SNORM);
+                MAP(RG8_SNorm, DXGI_FORMAT_R8G8_SNORM);
+                MAP(RGB8_SNorm, DXGI_FORMAT_R8G8B8A8_SNORM);
+                MAP(RGBA8_SNorm, DXGI_FORMAT_R8G8B8A8_SNORM);
+
+                MAP(D16, DXGI_FORMAT_D16_UNORM);
+                MAP(D24, DXGI_FORMAT_D24_UNORM_S8_UINT);
+                MAP(D32F, DXGI_FORMAT_D32_FLOAT);
+                MAP(D24S8, DXGI_FORMAT_D24_UNORM_S8_UINT);
+                MAP(D32FS8, DXGI_FORMAT_D32_FLOAT_S8X24_UINT);
+                default:
+                    KE_ASSERT_MSG(_format != TextureFormat::NoFormat, "Unknown format");
+                    format = DXGI_FORMAT_UNKNOWN;
+            }
+
+#undef MAP
+
+            return format;
+        }
+
+        constexpr inline TextureFormat FromDx12Format(DXGI_FORMAT _format)
+        {
+            TextureFormat format;
+
+#define MAP(commonFormat, dx12Format) case dx12Format: format = TextureFormat::commonFormat; break
+
+            switch (_format)
+            {
+                MAP(R8_UNorm, DXGI_FORMAT_R8_UNORM);
+                MAP(RG8_UNorm, DXGI_FORMAT_R8G8_UNORM);
+                // MAP(RGB8_UNorm, DXGI_FORMAT_R8G8B8A8_UNORM);
+                MAP(RGBA8_UNorm, DXGI_FORMAT_R8G8B8A8_UNORM);
+
+                // MAP(RGB8_sRGB, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
+                MAP(RGBA8_sRGB, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
+
+                MAP(BGRA8_UNorm, DXGI_FORMAT_B8G8R8A8_UNORM);
+                MAP(BGRA8_sRGB, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB);
+
+                MAP(R8_SNorm, DXGI_FORMAT_R8_SNORM);
+                MAP(RG8_SNorm, DXGI_FORMAT_R8G8_SNORM);
+                // MAP(RGB8_SNorm, DXGI_FORMAT_R8G8B8A8_SNORM);
+                MAP(RGBA8_SNorm, DXGI_FORMAT_R8G8B8A8_SNORM);
+
+                MAP(D16, DXGI_FORMAT_D16_UNORM);
+                // MAP(D24, DXGI_FORMAT_D24_UNORM_S8_UINT);
+                MAP(D32F, DXGI_FORMAT_D32_FLOAT);
+                MAP(D24S8, DXGI_FORMAT_D24_UNORM_S8_UINT);
+                MAP(D32FS8, DXGI_FORMAT_D32_FLOAT_S8X24_UINT);
+                default:
+                    KE_ASSERT_MSG(_format != DXGI_FORMAT_UNKNOWN, "Unknown format");
+                    format = TextureFormat::NoFormat;
+            }
+
+#undef MAP
+
+            return format;
         }
     }
 

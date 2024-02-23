@@ -4,10 +4,10 @@ set(VkFiles
         VK/VkSwapChain.cpp VK/VkSwapChain.hpp
         VK/VkSurface.cpp VK/VkSurface.hpp
         VK/CommonStructures.hpp
-        VK/VkTexture.cpp VK/VkTexture.hpp
         VK/VkHeaders.hpp
         VK/VkFrameContext.cpp VK/VkFrameContext.hpp
-        )
+        VK/VkResources.cpp VK/VkResources.hpp
+)
 
 set (DX12Files
         DX12/Dx12GraphicsContext.cpp DX12/Dx12GraphicsContext.hpp
@@ -15,16 +15,19 @@ set (DX12Files
         DX12/HelperFunction.cpp DX12/HelperFunctions.hpp
         DX12/Dx12SwapChain.cpp DX12/Dx12SwapChain.hpp
         DX12/Dx12FrameContext.cpp DX12/Dx12FrameContext.hpp
-        )
+        DX12/Dx12Resources.cpp
+        DX12/Dx12Resources.h
+)
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
         Common/Window.cpp Common/Window.hpp
         Common/GraphicsCommon.hpp
-        Common/Texture.cpp Common/Texture.hpp
+        Common/Texture.hpp
         Common/Enums.hpp
         Common/EnumHelpers.cpp Common/EnumHelpers.hpp
-        )
+        Common/RenderTargetView.hpp
+)
 
 if (GraphicsApi STREQUAL "VK")
     set(SrcFiles ${CommonFiles} ${VkFiles})

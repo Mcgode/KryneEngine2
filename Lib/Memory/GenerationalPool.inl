@@ -106,12 +106,27 @@ namespace KryneEngine
     }
 
     template<class HotDataStruct, class ColdDataStruct>
-    void GenerationalPool<HotDataStruct, ColdDataStruct>::Free(const GenPool::Handle &_handle)
+    bool GenerationalPool<HotDataStruct, ColdDataStruct>::Free(const GenPool::Handle &_handle,
+                                                               HotDataStruct *_hotCopy,
+                                                               ColdDataStruct *_coldCopy)
     {
         auto& hotData = m_hotDataArray[_handle.m_index];
         if (hotData.m_generation != _handle.m_generation)
         {
-            return;
+            return false;
+        }
+
+        if (_hotCopy != nullptr)
+        {
+            *_hotCopy = hotData.m_userHotData;
+        }
+
+        if constexpr (kHasColdData)
+        {
+            if (_coldCopy != nullptr)
+            {
+                *_coldCopy = m_coldDataArray[_handle.m_index];
+            }
         }
 
         // Invalidate slot by increasing generation
@@ -119,5 +134,7 @@ namespace KryneEngine
 
         // Place back to the top of the index stack
         m_availableIndices.push_back(_handle.m_index);
+
+        return true;
     }
 } // KryneEngine

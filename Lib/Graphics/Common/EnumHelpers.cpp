@@ -37,8 +37,8 @@ KryneEngine::u8 KryneEngine::GraphicsEnumHelpers::GetTextureFormatComponentCount
 
         case TextureFormat::RGBA8_UNorm:
         case TextureFormat::RGBA8_sRGB:
-        case TextureFormat::BRGA8_UNorm:
-        case TextureFormat::BRGA8_sRGB:
+        case TextureFormat::BGRA8_UNorm:
+        case TextureFormat::BGRA8_sRGB:
         case TextureFormat::RGBA8_SNorm:
         {
             return 4;

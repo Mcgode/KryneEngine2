@@ -7,6 +7,7 @@
 #pragma once
 
 #include <Common/Types.hpp>
+#include <Common/BitUtils.hpp>
 
 namespace KryneEngine
 {
@@ -23,8 +24,8 @@ namespace KryneEngine
         RGBA8_sRGB,
 
         // Present special formats
-        BRGA8_UNorm,
-        BRGA8_sRGB,
+        BGRA8_UNorm,
+        BGRA8_sRGB,
 
         R8_SNorm,
         RG8_SNorm,
@@ -49,10 +50,27 @@ namespace KryneEngine
         ArrayCube,
     };
 
-    enum class TextureAspectType: u8
+    enum class TextureUsage : u8
     {
-        Color,
-        Depth,
-        Stencil,
+        TransferSource          = 1 << 0,
+        TransferDestination     = 1 << 1,
+        ShaderSampling          = 1 << 2,
+        UnorderedAccess         = 1 << 3,
+        ColorAttachment         = 1 << 4,
+        DepthStencilAttachment  = 1 << 5,
     };
+    KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(TextureUsage)
+
+    enum class TextureLayout: u8
+    {
+        General = 0
+    };
+
+    enum class TexturePlane: u8
+    {
+        Color   = 1 << 0,
+        Depth   = 1 << 1,
+        Stencil = 1 << 2,
+    };
+    KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(TexturePlane)
 }

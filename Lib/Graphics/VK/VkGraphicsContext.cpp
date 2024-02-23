@@ -123,12 +123,13 @@ namespace KryneEngine
             m_swapChain = eastl::make_unique<VkSwapChain>(
                     m_appInfo,
                     eastl::move(m_sharedDevice.MakeRef()),
-                    m_surface.get(),
+                    *m_surface,
+                    m_resources,
                     m_window->GetGlfwWindow(),
                     m_queueIndices
                     );
 
-            m_frameContextCount = m_swapChain->m_swapChainTextures.Size();
+            m_frameContextCount = m_swapChain->m_renderTargetViews.Size();
         }
         else
         {
@@ -157,7 +158,10 @@ namespace KryneEngine
         rpsDeviceDestroy(m_rpsDevice);
 
         m_frameContexts.Clear();
+
+        m_swapChain->Destroy(*m_sharedDevice, m_resources);
         m_swapChain.reset();
+
         m_surface.reset();
         m_sharedDevice.Destroy();
         if (m_debugMessenger)

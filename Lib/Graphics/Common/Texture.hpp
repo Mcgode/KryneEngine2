@@ -13,36 +13,14 @@
 
 namespace KryneEngine
 {
-    class TextureMemory;
-
-    class Texture
+    struct TextureDesc
     {
-    public:
-        struct Options
-        {
-            TextureFormat m_format = TextureFormat::RGBA8_sRGB;
-            TextureTypes m_type = TextureTypes::Single2D;
+        uint3 m_dimensions {};
 
-            static constexpr eastl::array<TextureAspectType, 1> kDefaultAspectType = { TextureAspectType::Color };
-            eastl::span<const TextureAspectType> m_textureAspect { kDefaultAspectType };
-
-            u32 m_baseMipLevel = 0;
-            u32 m_mipLevelCount = 1;
-
-            u32 m_baseArrayLayer = 0;
-            u32 m_arrayLayerCount = 1;
-        };
-
-        virtual ~Texture() = default;
-
-        [[nodiscard]] TextureFormat GetFormat() const { return m_format; }
-
-        /// @brief Returns `false` if the class owns memory
-        [[nodiscard]] virtual bool IsRef() const = 0;
-
-    protected:
         TextureFormat m_format = TextureFormat::NoFormat;
+        u16 m_arraySize = 1;
 
-        uint2 m_size {};
+        TextureTypes m_type = TextureTypes::Single2D;
+        u8 m_mipCount = 1;
     };
 }

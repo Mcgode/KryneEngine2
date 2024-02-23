@@ -45,6 +45,9 @@ namespace KryneEngine
 #endif
 
         u64 m_frameId = 1;
+
+    public:
+        [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc);
     };
 }
 

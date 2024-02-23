@@ -8,6 +8,7 @@
 
 #include <Common/Arrays.hpp>
 #include "Dx12Headers.hpp"
+#include "Dx12Resources.h"
 
 namespace KryneEngine
 {
@@ -18,11 +19,9 @@ namespace KryneEngine
         friend class Dx12GraphicsContext;
 
     public:
-        Dx12SwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
-                      Window *_processWindow,
-                      IDXGIFactory4 *_factory,
-                      ID3D12Device *_device,
-                      ID3D12CommandQueue *_directQueue);
+        Dx12SwapChain(const GraphicsCommon::ApplicationInfo &_appInfo, Window *_processWindow,
+                      IDXGIFactory4 *_factory, ID3D12Device *_device, ID3D12CommandQueue *_directQueue,
+                      KryneEngine::Dx12Resources &_resources);
 
         ~Dx12SwapChain();
 
@@ -33,13 +32,14 @@ namespace KryneEngine
 
         void Present() const;
 
+        void Destroy(Dx12Resources& _resources);
+
     private:
         ComPtr<IDXGISwapChain3> m_swapChain;
-        ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
 
-        DynamicArray<ComPtr<ID3D12Resource>> m_renderTargets;
+        DynamicArray<GenPool::Handle> m_renderTargetTextures;
+        DynamicArray<GenPool::Handle> m_renderTargetViews;
 
-        u32 m_rtvDescriptorSize = 0;
         u8 m_currentFrame;
     };
 } // KryneEngine

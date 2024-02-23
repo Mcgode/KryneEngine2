@@ -8,6 +8,7 @@
 
 #include "Dx12Headers.hpp"
 #include "Dx12FrameContext.hpp"
+#include "Dx12Resources.h"
 #include <Common/Arrays.hpp>
 #include <EASTL/unique_ptr.h>
 
@@ -18,6 +19,8 @@ namespace KryneEngine
 {
     class Window;
     class Dx12SwapChain;
+
+    struct RenderTargetViewDesc;
 
     class Dx12GraphicsContext
     {
@@ -70,5 +73,14 @@ namespace KryneEngine
         {
             return m_frameContexts[m_frameContextIndex];
         }
+
+    public:
+        [[nodiscard]] inline GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
+        {
+            return m_resources.CreateRenderTargetView(_desc, m_device.Get());
+        }
+
+    private:
+        Dx12Resources m_resources;
     };
 } // KryneEngine

@@ -11,3 +11,4 @@
 #include <Common/Arrays.hpp>
 #include <Common/Assert.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
+#include <Memory/GenerationalPool.hpp>

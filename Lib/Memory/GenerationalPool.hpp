@@ -66,7 +66,9 @@ namespace KryneEngine
         }
 
         GenPool::Handle Allocate();
-        void Free(const GenPool::Handle& _handle);
+        bool Free(const GenPool::Handle &_handle,
+                  HotDataStruct *_hotCopy = nullptr,
+                  ColdDataStruct *_coldCopy = nullptr);
     };
 
 } // KryneEngine

@@ -6,14 +6,16 @@
 
 #pragma once
 
+#include <EASTL/span.h>
 #include "VkHeaders.hpp"
-#include "VkTexture.hpp"
+#include "CommonStructures.hpp"
 
 struct GLFWwindow;
 
 namespace KryneEngine
 {
     class VkSurface;
+    struct VkResources;
 
     class VkSwapChain
     {
@@ -22,7 +24,8 @@ namespace KryneEngine
     public:
         VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
                     VkSharedDeviceRef &&_deviceRef,
-                    const VkSurface *_surface,
+                    const VkSurface &_surface,
+                    VkResources &_resources,
                     GLFWwindow *_window,
                     const VkCommonStructures::QueueIndices &_queueIndices,
                     VkSwapChain *_oldSwapChain = nullptr);
@@ -33,12 +36,15 @@ namespace KryneEngine
 
         void Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore>& _semaphores);
 
+        void Destroy(vk::Device _device, VkResources& _resources);
+
     private:
         vk::SwapchainKHR m_swapChain;
         VkSharedDeviceRef m_deviceRef;
         vk::SharingMode m_sharingMode;
-        DynamicArray<VkTexture> m_swapChainTextures;
+        DynamicArray<GenPool::Handle> m_renderTargetTextures;
+        DynamicArray<GenPool::Handle> m_renderTargetViews;
         DynamicArray<vk::Semaphore> m_imageAvailableSemaphores;
-        u32 m_imageIndex;
+        u32 m_imageIndex = 0;
     };
 }

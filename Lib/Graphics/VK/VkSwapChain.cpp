@@ -6,43 +6,49 @@
 
 #include "VkSwapChain.hpp"
 #include "Common/EastlHelpers.hpp"
+#include "VkResources.hpp"
 
 #include <Common/Assert.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
 #include <Graphics/VK/VkSurface.hpp>
 #include <GLFW/glfw3.h>
+#include <Graphics/Common/RenderTargetView.hpp>
 
 namespace KryneEngine
 {
-    VkSwapChain::VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo, VkSharedDeviceRef &&_deviceRef,
-                             const VkSurface *_surface, GLFWwindow *_window,
-                             const VkCommonStructures::QueueIndices &_queueIndices, VkSwapChain *_oldSwapChain)
+    VkSwapChain::VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
+                             VkSharedDeviceRef &&_deviceRef,
+                             const VkSurface &_surface,
+                             VkResources &_resources,
+                             GLFWwindow *_window,
+                             const VkCommonStructures::QueueIndices &_queueIndices,
+                             VkSwapChain *_oldSwapChain)
         : m_deviceRef(eastl::move(_deviceRef))
     {
-        const auto& capabilities = _surface->GetCapabilities();
+        const auto& capabilities = _surface.GetCapabilities();
         KE_ASSERT(!capabilities.m_formats.empty() && !capabilities.m_presentModes.empty());
 
         const auto displayOptions = _appInfo.m_displayOptions;
 
         // Select appropriate format
-        vk::SurfaceFormatKHR selectedFormat;
+        vk::SurfaceFormatKHR selectedSurfaceFormat;
         if (displayOptions.m_sRgbPresent != GraphicsCommon::SoftEnable::Disabled)
         {
             for (const auto& format: capabilities.m_formats)
             {
                 if (format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
                 {
-                    selectedFormat = format;
+                    selectedSurfaceFormat = format;
                     break;
                 }
             }
 
             KE_ASSERT(displayOptions.m_sRgbPresent == GraphicsCommon::SoftEnable::TryEnable
-                || selectedFormat.format != vk::Format::eUndefined);
+                      || selectedSurfaceFormat.format != vk::Format::eUndefined);
         }
-        if (selectedFormat.format == vk::Format::eUndefined)
+        if (selectedSurfaceFormat.format == vk::Format::eUndefined)
         {
-            selectedFormat = capabilities.m_formats[0];
+            selectedSurfaceFormat = capabilities.m_formats[0];
         }
 
         // Select appropriate present mode
@@ -115,10 +121,10 @@ namespace KryneEngine
 
         vk::SwapchainCreateInfoKHR createInfo(
                 {},
-                _surface->GetSurface(),
+                _surface.GetSurface(),
                 imageCount,
-                selectedFormat.format,
-                selectedFormat.colorSpace,
+                selectedSurfaceFormat.format,
+                selectedSurfaceFormat.colorSpace,
                 extent,
                 1,
                 vk::ImageUsageFlagBits::eColorAttachment,
@@ -136,21 +142,19 @@ namespace KryneEngine
             const auto images = m_deviceRef->getSwapchainImagesKHR(m_swapChain);
             KE_ASSERT_MSG(!images.empty(), "Unable to retrieve swapchain images");
 
-            Texture::Options textureOptions = {
-                    VkHelperFunctions::FromVkFormat(selectedFormat.format),
-                    TextureTypes::Single2D,
-                    Texture::Options::kDefaultAspectType,
-                    0,
-                    1,
-                    0,
-                    1,
-            };
-
-            m_swapChainTextures.Resize(images.size());
+            m_renderTargetTextures.Resize(images.size());
+            m_renderTargetViews.Resize(images.size());
             m_imageAvailableSemaphores.Resize(images.size());
             for (u32 i = 0; i < images.size(); i++)
             {
-                m_swapChainTextures.Init(i, m_deviceRef, images[i], textureOptions, extent);
+                const auto textureHandle = _resources.RegisterTexture(images[i]);
+                const RenderTargetViewDesc rtvDesc {
+                    .m_textureHandle = textureHandle,
+                    .m_format = VkHelperFunctions::FromVkFormat(selectedSurfaceFormat.format),
+                };
+
+                m_renderTargetTextures.Init(i, textureHandle);
+                m_renderTargetViews.Init(i, _resources.CreateRenderTargetView(rtvDesc, *m_deviceRef));
                 m_imageAvailableSemaphores[i] = m_deviceRef->createSemaphore(vk::SemaphoreCreateInfo{});
             }
         }
@@ -158,7 +162,7 @@ namespace KryneEngine
 
     VkSwapChain::~VkSwapChain()
     {
-        m_deviceRef->destroy(m_swapChain);
+        KE_ASSERT(m_swapChain);
     }
 
     vk::Semaphore VkSwapChain::AcquireNextImage(u8 _frameIndex)
@@ -176,5 +180,26 @@ namespace KryneEngine
         };
 
         VkAssert(_presentQueue.presentKHR(presentInfo));
+    }
+
+    void VkSwapChain::Destroy(vk::Device _device, VkResources &_resources)
+    {
+        for (const auto handle: m_renderTargetViews)
+        {
+            KE_ASSERT_MSG(_resources.FreeRenderTargetView(handle, _device),
+                          "Handle was invalid. It shouldn't. Something went wrong with the lifecycle.");
+        }
+        m_renderTargetViews.Clear();
+
+        for (const auto handle: m_renderTargetTextures)
+        {
+            // Free the texture from the gen pool, but don't do a release of the VkImage, as it's handled
+            // by the swapchain
+            KE_ASSERT_MSG(_resources.ReleaseTexture(handle, _device, false),
+                          "Handle was invalid. It shouldn't. Something went wrong with the lifecycle.");
+        }
+        m_renderTargetTextures.Clear();
+
+        _device.destroy(m_swapChain);
     }
 }
