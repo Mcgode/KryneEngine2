@@ -45,13 +45,13 @@ namespace KryneEngine
 
         eastl::vector<GenPool::IndexType> m_availableIndices;
 
+        void _Grow(u64 _toSize);
+
+    public:
         GenerationalPool();
 
         ~GenerationalPool();
 
-        void _Grow(u64 _toSize);
-
-    public:
         HotDataStruct* Get(const GenPool::Handle& _handle);
         eastl::pair<HotDataStruct*, ColdDataStruct*> GetAll(const GenPool::Handle& _handle);
 
