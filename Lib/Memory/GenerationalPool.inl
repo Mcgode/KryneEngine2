@@ -19,8 +19,6 @@ namespace KryneEngine
     template<class HotDataStruct, class ColdDataStruct>
     GenerationalPool<HotDataStruct, ColdDataStruct>::~GenerationalPool()
     {
-        delete m_nextPool;
-
         delete m_hotDataArray;
 
         if constexpr (kHasColdData)
@@ -32,34 +30,40 @@ namespace KryneEngine
     template<class HotDataStruct, class ColdDataStruct>
     void GenerationalPool<HotDataStruct, ColdDataStruct>::_Grow(u64 _toSize)
     {
-        KE_ASSERT_MSG(_toSize <= m_size, "Generational pools were designed with a grow-only approach in mind.");
+        KE_ASSERT_MSG(_toSize > m_size, "Generational pools were designed with a grow-only approach in mind.");
 
         KE_ASSERT_MSG(_toSize <= kMaxSize,
                       "Generational pool maximum growable size is %ull. Consider changing GenPool::IndexType to a bigger type.",
                       kMaxSize);
 
-        u8* newHotArray = new HotData[_toSize];
+        auto* newHotArray = new HotData[_toSize];
         // Copy old array
         if (m_hotDataArray != nullptr)
         {
             memcpy(newHotArray, m_hotDataArray, m_size * sizeof(HotData));
             delete m_hotDataArray;
         }
-        memset(newHotArray + m_size * sizeof(HotData), 0, (_toSize - m_size) * sizeof(HotData));
+        memset(newHotArray + m_size, 0, (_toSize - m_size) * sizeof(HotData));
         m_hotDataArray = newHotArray;
 
         if constexpr (kHasColdData)
         {
-            u8* newColdArray = new ColdDataStruct[_toSize];
+            auto* newColdArray = new ColdDataStruct[_toSize];
             // Copy old array
             if (m_coldDataArray != nullptr)
             {
                 memcpy(newColdArray, m_coldDataArray, m_size * sizeof(ColdDataStruct));
                 delete m_coldDataArray;
             }
-            memset(newColdArray + m_size * sizeof(ColdDataStruct), 0, (_toSize - m_size) * sizeof(ColdDataStruct));
+            memset(newColdArray + m_size, 0, (_toSize - m_size) * sizeof(ColdDataStruct));
             m_coldDataArray = newColdArray;
         }
+
+        for (GenPool::IndexType i = m_size; i < _toSize; i++)
+        {
+            m_availableIndices.push_back(i);
+        }
+        m_size = _toSize;
     }
 
     template<class HotDataStruct, class ColdDataStruct>
