@@ -23,6 +23,11 @@ namespace KryneEngine
             IndexType m_index;
             GenerationType m_generation;
         };
+
+        static constexpr Handle kInvalidHandle = {
+                static_cast<IndexType>(0),
+                static_cast<GenerationType>(~0)
+        };
     }
 
     template <class HotDataStruct, class ColdDataStruct = void>
