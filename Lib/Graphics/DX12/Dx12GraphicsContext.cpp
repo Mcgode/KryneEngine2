@@ -211,11 +211,11 @@ namespace KryneEngine
             ComPtr<ID3D12InfoQueue1> infoQueue;
             if (SUCCEEDED(m_device->QueryInterface<ID3D12InfoQueue1>(&infoQueue)))
             {
-                infoQueue->RegisterMessageCallback(
+                Dx12Assert(infoQueue->RegisterMessageCallback(
                         DebugLayerMessageCallback,
                         D3D12_MESSAGE_CALLBACK_FLAG_NONE,
                         this,
-                        &m_validationLayerMessageCallbackHandle);
+                        &m_validationLayerMessageCallbackHandle));
             }
         }
 #endif
