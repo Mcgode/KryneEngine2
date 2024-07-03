@@ -7,6 +7,7 @@
 #include "VkGraphicsContext.hpp"
 
 #include <iostream>
+#include <regex>
 #include <EASTL/algorithm.h>
 #include <EASTL/vector_map.h>
 #include <Common/StringHelpers.hpp>
@@ -51,10 +52,22 @@ namespace KryneEngine
                 severity += "error|";
             }
 
+            // Ignored messages
+            {
+                eastl::string message = _pCallbackData->pMessage;
+                if (std::regex_match(message.begin(), message.end(), std::regex("Layer name .+ does not conform to naming standard .*"))
+                    || std::regex_match(message.begin(), message.end(), std::regex("Override layer has override paths set to .*")))
+                {
+                    return VK_FALSE;
+                }
+            }
+
             if (_messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
             {
                 std::cout << "Validation layer (" << severity.c_str() << "): " << _pCallbackData->pMessage << std::endl;
             }
+
+            KE_ERROR(_pCallbackData->pMessage);
 
             return VK_FALSE;
         }
