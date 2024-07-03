@@ -5,5 +5,5 @@ set(CMAKE_CXX_STANDARD 23)
 include(./CMake/BuildSystem.cmake)
 
 add_subdirectory(External)
-add_subdirectory(Lib)
+add_subdirectory(Core)
 add_subdirectory(Examples)

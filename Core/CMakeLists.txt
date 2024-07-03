@@ -1,4 +1,4 @@
-set(RootDir ${CMAKE_SOURCE_DIR}/Lib)
+set(RootDir ${CMAKE_SOURCE_DIR}/Core)
 add_subdirectory(Graphics)
 
 set(CommonSrc
