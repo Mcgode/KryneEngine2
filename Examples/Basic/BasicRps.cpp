@@ -48,30 +48,30 @@ BasicRps::BasicRps(const GraphicsContext* _context)
 		_context->GetApplicationInfo().m_displayOptions.m_height,
 	}
 {
-	const auto rpsDevice = _context->GetRpsDevice();
-
-	const eastl::array graphParameters = 
-	{
-		RpsParameterDesc {
-			.typeInfo = rpsTypeInfoInitFromType(RpsResourceDesc),
-			.name = "backBuffer",
-			.flags = RPS_PARAMETER_FLAG_RESOURCE_BIT,
-		},
-		RpsParameterDesc {
-			.typeInfo = rpsTypeInfoInitFromType(void*),
-			.name = "userContext",
-		}
-	};
-
-	const RpsRenderGraphSignatureDesc entryInfo = 
-	{
-		.numParams = graphParameters.size(),
-		.pParamDescs = graphParameters.data(),
-		.name = "BasicRps",
-	};
-
-	const RpsRenderGraphCreateInfo createInfo = { .mainEntryCreateInfo = { .pSignatureDesc = &entryInfo } };
-	KE_ASSERT(rpsRenderGraphCreate(rpsDevice, &createInfo, &m_renderGraph) == RPS_OK);
+//	const auto rpsDevice = _context->GetRpsDevice();
+//
+//	const eastl::array graphParameters =
+//	{
+//		RpsParameterDesc {
+//			.typeInfo = rpsTypeInfoInitFromType(RpsResourceDesc),
+//			.name = "backBuffer",
+//			.flags = RPS_PARAMETER_FLAG_RESOURCE_BIT,
+//		},
+//		RpsParameterDesc {
+//			.typeInfo = rpsTypeInfoInitFromType(void*),
+//			.name = "userContext",
+//		}
+//	};
+//
+//	const RpsRenderGraphSignatureDesc entryInfo =
+//	{
+//		.numParams = graphParameters.size(),
+//		.pParamDescs = graphParameters.data(),
+//		.name = "BasicRps",
+//	};
+//
+//	const RpsRenderGraphCreateInfo createInfo = { .mainEntryCreateInfo = { .pSignatureDesc = &entryInfo } };
+//	KE_ASSERT(rpsRenderGraphCreate(rpsDevice, &createInfo, &m_renderGraph) == RPS_OK);
 }
 
 void BasicRps::UpdateGraph(const GraphicsContext* _context, PFN_rpsRenderGraphBuild _buildFunction)

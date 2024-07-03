@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Graphics/Common/GraphicsContext.hpp>
+#include <RPS/rps.h>
 
 using namespace KryneEngine;
 

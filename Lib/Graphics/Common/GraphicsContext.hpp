@@ -33,8 +33,6 @@ namespace KryneEngine
 
         void WaitForLastFrame() const;
 
-        [[nodiscard]] RpsDevice GetRpsDevice() const { return m_implementation.GetRpsDevice(); }
-
         [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_implementation.GetApplicationInfo(); }
 
     private:

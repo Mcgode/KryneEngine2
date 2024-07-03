@@ -150,24 +150,10 @@ namespace KryneEngine
 
         m_frameContexts.Resize(m_frameContextCount);
         m_frameContexts.InitAll(m_device, m_queueIndices);
-
-        if (m_appInfo.m_features.m_renderPipelineShaders)
-        {
-            RpsVKRuntimeDeviceCreateInfo createInfo {};
-            createInfo.pDeviceCreateInfo = nullptr;
-            createInfo.pRuntimeCreateInfo = nullptr;
-            createInfo.hVkDevice = m_device;
-            createInfo.hVkPhysicalDevice = m_physicalDevice;
-            createInfo.flags = RPS_VK_RUNTIME_FLAG_NONE;
-
-            GraphicsCommon::RpsAssert(rpsVKRuntimeDeviceCreate(&createInfo, &m_rpsDevice));
-        }
     }
 
     VkGraphicsContext::~VkGraphicsContext()
     {
-        rpsDeviceDestroy(m_rpsDevice);
-
         for (auto& frameContext: m_frameContexts)
         {
             frameContext.Destroy(m_device);
@@ -200,7 +186,7 @@ namespace KryneEngine
         vk::Semaphore imageAvailableSemaphore;
         if (m_swapChain != nullptr)
         {
-            imageAvailableSemaphore  = m_swapChain->AcquireNextImage(m_device, frameIndex);
+            imageAvailableSemaphore = m_swapChain->AcquireNextImage(m_device, frameIndex);
         }
 
         // Submit command buffers
