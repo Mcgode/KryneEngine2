@@ -74,23 +74,10 @@ namespace KryneEngine
 #endif
         m_frameFenceEvent = CreateEvent(nullptr, false, false, nullptr);
         KE_ASSERT(m_frameFenceEvent != nullptr);
-
-        if (m_appInfo.m_features.m_renderPipelineShaders)
-        {
-            RpsD3D12RuntimeDeviceCreateInfo createInfo;
-            createInfo.pDeviceCreateInfo = nullptr;
-            createInfo.pRuntimeCreateInfo = nullptr;
-            createInfo.pD3D12Device = m_device.Get();
-            createInfo.flags = RPS_D3D12_RUNTIME_FLAG_NONE;
-
-            GraphicsCommon::RpsAssert(rpsD3D12RuntimeDeviceCreate(&createInfo, &m_rpsDevice));
-        }
     }
 
     Dx12GraphicsContext::~Dx12GraphicsContext()
     {
-        rpsDeviceDestroy(m_rpsDevice);
-
 #if !defined(KE_FINAL)
         if (m_validationLayerMessageCallbackHandle != 0)
         {

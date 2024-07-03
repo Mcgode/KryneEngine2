@@ -12,9 +12,6 @@
 #include <Common/Arrays.hpp>
 #include <EASTL/unique_ptr.h>
 
-#define RPS_D3D12_RUNTIME 1
-#include <rps/rps.h>
-
 namespace KryneEngine
 {
     class Window;
@@ -36,8 +33,6 @@ namespace KryneEngine
         void EndFrame(u64 _frameId);
 
         void WaitForFrame(u64 _frameId) const;
-
-        [[nodiscard]] RpsDevice GetRpsDevice() const { return m_rpsDevice; }
 
         [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_appInfo; }
 
@@ -61,8 +56,6 @@ namespace KryneEngine
         HANDLE m_frameFenceEvent;
 
         DWORD m_validationLayerMessageCallbackHandle = 0;
-
-        RpsDevice m_rpsDevice;
 
         void _CreateDevice(IDXGIFactory4 *_factory4);
         void _FindAdapter(IDXGIFactory4* _factory, IDXGIAdapter1** _adapter);
