@@ -6,4 +6,5 @@ include(./CMake/BuildSystem.cmake)
 
 add_subdirectory(External)
 add_subdirectory(Core)
+add_subdirectory(Modules)
 add_subdirectory(Examples)

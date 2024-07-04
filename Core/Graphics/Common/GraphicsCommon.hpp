@@ -9,8 +9,6 @@
 #include "Common/Types.hpp"
 #include "Common/Assert.hpp"
 
-#include <rps/core/rps_result.h>
-
 namespace KryneEngine::GraphicsCommon
 {
     struct Version
@@ -96,8 +94,8 @@ namespace KryneEngine::GraphicsCommon
         }
     };
 
-    inline void RpsAssert(RpsResult _result)
-    {
-        KE_ASSERT_MSG(RPS_SUCCEEDED(_result), rpsResultGetName(_result));
-    }
+//    inline void RpsAssert(RpsResult _result)
+//    {
+//        KE_ASSERT_MSG(RPS_SUCCEEDED(_result), rpsResultGetName(_result));
+//    }
 }

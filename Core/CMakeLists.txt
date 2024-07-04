@@ -37,6 +37,5 @@ set(ThreadsSrc
         Threads/Semaphore.hpp
         )
 
-add_library(KryneEngine ${CommonSrc} ${FilesSrc} ${MemorySrc} ${ThreadsSrc})
-target_precompile_headers(KryneEngine PUBLIC Common/Types.hpp)
-target_link_libraries(KryneEngine KryneEngineGraphics moodycamel)
+add_library(KryneEngineCore ${CommonSrc} ${FilesSrc} ${MemorySrc} ${ThreadsSrc})
+target_link_libraries(KryneEngineCore KryneEngineGraphics moodycamel)
