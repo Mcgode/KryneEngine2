@@ -1,7 +1,5 @@
-add_subdirectory(ShaderCompiler)
-
 add_library(KryneEngineModules INTERFACE)
-target_link_libraries(KryneEngineModules INTERFACE ShaderCompiler)
+#target_link_libraries(KryneEngineModules INTERFACE)
 
 add_library(KryneEngine INTERFACE)
 target_link_libraries(KryneEngine INTERFACE KryneEngineCore KryneEngineModules)
