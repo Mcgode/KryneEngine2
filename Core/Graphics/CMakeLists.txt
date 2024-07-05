@@ -17,6 +17,7 @@ set (DX12Files
         DX12/Dx12FrameContext.cpp DX12/Dx12FrameContext.hpp
         DX12/Dx12Resources.cpp
         DX12/Dx12Resources.h
+        DX12/Dx12Types.hpp
 )
 
 set(CommonFiles
@@ -27,6 +28,7 @@ set(CommonFiles
         Common/Enums.hpp
         Common/EnumHelpers.cpp Common/EnumHelpers.hpp
         Common/RenderTargetView.hpp
+        Common/RenderPass.hpp
 )
 
 if (GraphicsApi STREQUAL "VK")

@@ -25,27 +25,65 @@ namespace KryneEngine
 
         ~GraphicsContext();
 
-        [[nodiscard]] Window* GetWindow() const { return m_implementation.GetWindow(); }
+        [[nodiscard]] inline Window* GetWindow() const
+        {
+            return m_implementation.GetWindow();
+        }
 
-        [[nodiscard]] u8 GetFrameContextCount() const { return m_implementation.GetFrameContextCount(); }
+        [[nodiscard]] inline u8 GetFrameContextCount() const
+        {
+            return m_implementation.GetFrameContextCount();
+        }
 
         bool EndFrame();
 
         void WaitForLastFrame() const;
 
-        [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_implementation.GetApplicationInfo(); }
+        [[nodiscard]] inline const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const
+        {
+            return m_implementation.GetApplicationInfo();
+        }
 
     private:
 #if defined(KE_GRAPHICS_API_VK)
-        VkGraphicsContext m_implementation;
+        using UnderlyingGraphicsContext = VkGraphicsContext;
 #elif defined(KE_GRAPHICS_API_DX12)
-        Dx12GraphicsContext m_implementation;
+        using UnderlyingGraphicsContext = Dx12GraphicsContext;
 #endif
+        UnderlyingGraphicsContext m_implementation;
 
         u64 m_frameId = 1;
 
     public:
-        [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc);
+        [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
+        {
+            return m_implementation.CreateRenderTargetView(_desc);
+        }
+
+        bool DestroyRenderTargetView(GenPool::Handle _handle)
+        {
+            return m_implementation.DestroyRenderTargetView(_handle);
+        }
+
+        [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc)
+        {
+            return m_implementation.CreateRenderPass(_desc);
+        }
+
+        bool DestroyRenderPass(GenPool::Handle _handle)
+        {
+            return m_implementation.DestroyRenderPass(_handle);
+        }
+
+        void BeginRenderPass(CommandList _commandList, GenPool::Handle _handle)
+        {
+            m_implementation.BeginRenderPass(_commandList, _handle);
+        }
+
+        void EndRenderPass(CommandList _commandList)
+        {
+            m_implementation.EndRenderPass(_commandList);
+        }
     };
 }
 

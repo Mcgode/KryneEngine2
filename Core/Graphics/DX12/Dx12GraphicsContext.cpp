@@ -292,4 +292,102 @@ namespace KryneEngine
 #endif
         }
     }
+
+    void Dx12GraphicsContext::BeginRenderPass(CommandList _commandList, GenPool::Handle _handle)
+    {
+        const auto* desc = m_resources.m_renderPasses.Get(_handle);
+        VERIFY_OR_RETURN_VOID(desc != nullptr);
+
+        constexpr auto convertLoadOperation = [](RenderPassDesc::Attachment::LoadOperation _op)
+        {
+            switch (_op)
+            {
+                case RenderPassDesc::Attachment::LoadOperation::Load:
+                    return D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
+                case RenderPassDesc::Attachment::LoadOperation::Clear:
+                    return D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
+                case RenderPassDesc::Attachment::LoadOperation::DontCare:
+                    return D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
+            }
+        };
+
+        constexpr auto convertStoreOperation = [](RenderPassDesc::Attachment::StoreOperation _op)
+        {
+            switch (_op)
+            {
+                case RenderPassDesc::Attachment::StoreOperation::Store:
+                    return D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
+                case RenderPassDesc::Attachment::StoreOperation::DontCare:
+                    return D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
+                case RenderPassDesc::Attachment::StoreOperation::Resolve:
+                    return D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_RESOLVE;
+            }
+        };
+
+        eastl::fixed_vector<D3D12_RENDER_PASS_RENDER_TARGET_DESC, RenderPassDesc::kMaxSupportedColorAttachments, false> colorAttachments;
+        for (const auto& attachment: desc->m_colorAttachments)
+        {
+            CD3DX12_CLEAR_VALUE clearValue(DXGI_FORMAT_R32G32B32A32_FLOAT,  &attachment.m_clearColor[0]);
+
+            D3D12_RENDER_PASS_BEGINNING_ACCESS beginningAccess {
+                convertLoadOperation(attachment.m_loadOperation),
+                { clearValue }
+            };
+
+            D3D12_RENDER_PASS_ENDING_ACCESS endingAccess {
+                convertStoreOperation(attachment.m_storeOperation)
+            };
+
+            auto* rtv = m_resources.m_renderTargetViews.Get(attachment.m_rtv);
+            VERIFY_OR_RETURN_VOID(rtv != nullptr);
+
+            colorAttachments.push_back(D3D12_RENDER_PASS_RENDER_TARGET_DESC { *rtv, beginningAccess, endingAccess });
+        }
+
+        D3D12_RENDER_PASS_DEPTH_STENCIL_DESC depthStencilDesc;
+        if (desc->m_depthStencilAttachment.has_value())
+        {
+            const auto& attachment = desc->m_depthStencilAttachment.value();
+
+            CD3DX12_CLEAR_VALUE clearValue(DXGI_FORMAT_D32_FLOAT_S8X24_UINT, attachment.m_clearColor[0], attachment.m_stencilClearValue);
+
+            D3D12_RENDER_PASS_BEGINNING_ACCESS depthBeginningAccess {
+                    convertLoadOperation(attachment.m_loadOperation),
+                    { clearValue }
+            };
+            D3D12_RENDER_PASS_ENDING_ACCESS depthEndingAccess {
+                convertStoreOperation(attachment.m_storeOperation)
+            };
+
+            D3D12_RENDER_PASS_BEGINNING_ACCESS stencilBeginningAccess {
+                    convertLoadOperation(attachment.m_stencilLoadOperation),
+                    { clearValue }
+            };
+            D3D12_RENDER_PASS_ENDING_ACCESS stencilEndingAccess {
+                convertStoreOperation(attachment.m_stencilStoreOperation)
+            };
+
+            auto* rtv = m_resources.m_renderTargetViews.Get(attachment.m_rtv);
+            VERIFY_OR_RETURN_VOID(rtv != nullptr);
+
+            depthStencilDesc = {
+                    *rtv,
+                    depthBeginningAccess,
+                    stencilBeginningAccess,
+                    depthEndingAccess,
+                    stencilEndingAccess
+            };
+        }
+
+        _commandList->BeginRenderPass(
+                colorAttachments.size(),
+                colorAttachments.data(),
+                desc->m_depthStencilAttachment.has_value() ? &depthStencilDesc : nullptr,
+                D3D12_RENDER_PASS_FLAG_NONE);
+    }
+
+    void Dx12GraphicsContext::EndRenderPass(CommandList _commandList)
+    {
+        _commandList->EndRenderPass();
+    }
 } // KryneEngine

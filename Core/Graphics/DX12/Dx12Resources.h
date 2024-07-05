@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <Graphics/Common/RenderPass.hpp>
+
 namespace KryneEngine
 {
     struct RenderTargetViewDesc;
@@ -21,11 +23,14 @@ namespace KryneEngine
         bool ReleaseTexture(GenPool::Handle _handle, bool _free);
 
         [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc, ID3D12Device* _device);
-
         bool FreeRenderTargetView(GenPool::Handle _handle);
+
+        [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc);
+        bool FreeRenderPass(GenPool::Handle _handle);
 
         GenerationalPool<ID3D12Resource*> m_textures;
         GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_renderTargetViews;
+        GenerationalPool<RenderPassDesc> m_renderPasses;
 
     private:
         static constexpr u16 kRtvHeapSize = 2048;

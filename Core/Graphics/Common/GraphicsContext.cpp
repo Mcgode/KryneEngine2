@@ -32,9 +32,4 @@ namespace KryneEngine
     {
         m_implementation.WaitForFrame(m_frameId - 1);
     }
-
-    GenPool::Handle GraphicsContext::CreateRenderTargetView(const RenderTargetViewDesc &_desc)
-    {
-        return m_implementation.CreateRenderTargetView(_desc);
-    }
 }

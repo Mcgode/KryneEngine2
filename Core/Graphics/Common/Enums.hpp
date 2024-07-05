@@ -63,7 +63,22 @@ namespace KryneEngine
 
     enum class TextureLayout: u8
     {
-        General = 0
+        Unknown,
+        Common,
+        Present,
+        GenericRead,
+        ColorAttachment,
+        DepthStencilAttachment,
+        DepthStencilReadOnly,
+        UnorderedAccess,
+        ShaderResource,
+        TransferSrc,
+        TransferDst,
+    };
+
+    enum class ResourceAccess
+    {
+
     };
 
     enum class TexturePlane: u8

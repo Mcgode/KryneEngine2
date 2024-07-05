@@ -107,6 +107,21 @@ namespace KryneEngine
 
     bool Dx12Resources::FreeRenderTargetView(GenPool::Handle _handle)
     {
+        // Don't have to destroy anything, as the memory slot will be marked as free.
+        // Only the heap itself will need to be freed using API.
         return m_renderTargetViews.Free(_handle);
+    }
+
+    GenPool::Handle Dx12Resources::CreateRenderPass(const RenderPassDesc &_desc)
+    {
+        auto handle = m_renderPasses.Allocate();
+        *m_renderPasses.Get(handle) = _desc;
+        return handle;
+    }
+
+    bool Dx12Resources::FreeRenderPass(GenPool::Handle _handle)
+    {
+        // Simply mark slot as available.
+        return m_renderPasses.Free(_handle);
     }
 } // KryneEngine

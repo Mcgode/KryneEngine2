@@ -9,6 +9,7 @@
 #include "Dx12Headers.hpp"
 #include "Dx12FrameContext.hpp"
 #include "Dx12Resources.h"
+#include "Dx12Types.hpp"
 #include <Common/Arrays.hpp>
 #include <EASTL/unique_ptr.h>
 
@@ -68,12 +69,31 @@ namespace KryneEngine
         }
 
     public:
-        [[nodiscard]] inline GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
+        [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
             return m_resources.CreateRenderTargetView(_desc, m_device.Get());
         }
 
+        bool DestroyRenderTargetView(GenPool::Handle _handle)
+        {
+            return m_resources.FreeRenderTargetView(_handle);
+        }
+
+        GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc)
+        {
+            return m_resources.CreateRenderPass(_desc);
+        }
+
+        bool DestroyRenderPass(GenPool::Handle _handle)
+        {
+            return m_resources.FreeRenderPass(_handle);
+        }
+
+        void BeginRenderPass(CommandList _commandList, GenPool::Handle _handle);
+        void EndRenderPass(CommandList _commandList);
+
     private:
         Dx12Resources m_resources;
+        GenPool::Handle m_currentRenderPass;
     };
 } // KryneEngine
