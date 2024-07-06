@@ -8,6 +8,7 @@
 #include <dxgidebug.h>
 #include "HelperFunctions.hpp"
 #include <Graphics/Common/Window.hpp>
+#include <Memory/GenerationalPool.inl>
 #include "Dx12SwapChain.hpp"
 
 namespace KryneEngine
@@ -309,6 +310,8 @@ namespace KryneEngine
                 case RenderPassDesc::Attachment::LoadOperation::DontCare:
                     return D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
             }
+            KE_ERROR("Unreachable code");
+            return D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
         };
 
         constexpr auto convertStoreOperation = [](RenderPassDesc::Attachment::StoreOperation _op)
@@ -322,6 +325,8 @@ namespace KryneEngine
                 case RenderPassDesc::Attachment::StoreOperation::Resolve:
                     return D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_RESOLVE;
             }
+            KE_ERROR("Unreachable code");
+            return D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
         };
 
         eastl::fixed_vector<D3D12_RENDER_PASS_RENDER_TARGET_DESC, RenderPassDesc::kMaxSupportedColorAttachments, false> colorAttachments;
