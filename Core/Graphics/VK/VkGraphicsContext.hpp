@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "VkTypes.hpp"
 #include "VkFrameContext.hpp"
 #include "VkResources.hpp"
 #include <vma/vk_mem_alloc.h>
@@ -81,6 +82,24 @@ namespace KryneEngine
         {
             return m_resources.CreateRenderTargetView(_desc, m_device);
         }
+
+        bool DestroyRenderTargetView(GenPool::Handle _handle)
+        {
+            return m_resources.FreeRenderTargetView(_handle, m_device);
+        }
+
+        [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc)
+        {
+            return m_resources.CreateRenderPass(_desc, m_device);
+        }
+
+        bool DestroyRenderPass(GenPool::Handle _handle)
+        {
+            return m_resources.DestroyRenderPass(_handle, m_device);
+        }
+
+        void BeginRenderPass(CommandList _commandList, GenPool::Handle _handle);
+        void EndRenderPass(CommandList _commandList);
 
     private:
         VkResources m_resources {};

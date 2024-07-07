@@ -43,4 +43,10 @@ namespace KryneEngine
     using uint2 = glm::vec<2, u32, glm::highp>;
     using uint3 = glm::vec<3, u32, glm::highp>;
     using uint4 = glm::vec<4, u32, glm::highp>;
+
+    struct Size16x2
+    {
+        u16 m_width = 0;
+        u16 m_height = 0;
+    };
 }

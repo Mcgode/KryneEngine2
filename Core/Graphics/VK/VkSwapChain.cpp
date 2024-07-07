@@ -146,7 +146,9 @@ namespace KryneEngine
             m_imageAvailableSemaphores.Resize(images.size());
             for (u32 i = 0; i < images.size(); i++)
             {
-                const auto textureHandle = _resources.RegisterTexture(images[i]);
+                const auto textureHandle = _resources.RegisterTexture(
+                        images[i],
+                        { u16(extent.width), u16(extent.height) });
                 const RenderTargetViewDesc rtvDesc {
                     .m_textureHandle = textureHandle,
                     .m_format = VkHelperFunctions::FromVkFormat(selectedSurfaceFormat.format),

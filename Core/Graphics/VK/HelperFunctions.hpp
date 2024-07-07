@@ -185,4 +185,28 @@ namespace KryneEngine::VkHelperFunctions
         }
         return flags;
     }
+
+    constexpr inline vk::ImageLayout ToVkLayout(TextureLayout _layout)
+    {
+        vk::ImageLayout layout;
+
+        #define MAP(commonLayout, vkLayout) case TextureLayout::commonLayout: layout = vk::ImageLayout::vkLayout; break
+        switch (_layout)
+        {
+            MAP(Unknown, eUndefined);
+            MAP(Common, eGeneral);
+            MAP(Present, ePresentSrcKHR);
+            MAP(GenericRead, eReadOnlyOptimal);
+            MAP(ColorAttachment, eColorAttachmentOptimal);
+            MAP(DepthStencilAttachment, eDepthStencilAttachmentOptimal);
+            MAP(DepthStencilReadOnly, eDepthStencilReadOnlyOptimal);
+            MAP(UnorderedAccess, eGeneral); // No specific layout for unordered access resources in VK
+            MAP(ShaderResource, eShaderReadOnlyOptimal);
+            MAP(TransferSrc, eTransferSrcOptimal);
+            MAP(TransferDst, eTransferDstOptimal);
+        }
+        #undef MAP
+
+        return layout;
+    }
 }

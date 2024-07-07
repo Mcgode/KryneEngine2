@@ -576,4 +576,26 @@ namespace KryneEngine
 
         return result;
     }
+
+    void VkGraphicsContext::BeginRenderPass(CommandList _commandList, GenPool::Handle _handle)
+    {
+        auto* renderPassData = m_resources.m_renderPasses.Get(_handle);
+        VERIFY_OR_RETURN_VOID(renderPassData != nullptr);
+
+        vk::RenderPassBeginInfo beginInfo {
+            renderPassData->m_renderPass,
+            renderPassData->m_framebuffer,
+            { { 0, 0 },
+                { renderPassData->m_size.m_width, renderPassData->m_size.m_height } },
+            u32(renderPassData->m_clearValues.size()),
+            renderPassData->m_clearValues.data()
+        };
+
+        _commandList.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
+    }
+
+    void VkGraphicsContext::EndRenderPass(CommandList _commandList)
+    {
+        _commandList.endRenderPass();
+    }
 }
