@@ -598,4 +598,9 @@ namespace KryneEngine
     {
         _commandList.endRenderPass();
     }
+
+    GenPool::Handle VkGraphicsContext::GetFrameContextPresentRenderTarget(u8 _index)
+    {
+        return m_swapChain->m_renderTargetViews[_index];
+    }
 }

@@ -38,7 +38,7 @@ namespace KryneEngine
         m_copyCommandAllocationSet.Destroy();
     }
 
-    ID3D12GraphicsCommandList *Dx12FrameContext::CommandAllocationSet::BeginCommandList(ID3D12Device *_device,
+    ID3D12GraphicsCommandList4 *Dx12FrameContext::CommandAllocationSet::BeginCommandList(ID3D12Device *_device,
                                                                                         D3D12_COMMAND_LIST_TYPE _commandType)
     {
         VERIFY_OR_RETURN(m_commandAllocator != nullptr, nullptr);
@@ -77,7 +77,7 @@ namespace KryneEngine
         const auto lock = m_mutex.AutoLock();
         KE_ASSERT_MSG(m_usedCommandLists.empty(), "Allocation set should have been reset");
 
-        const auto freeCommandListVector = [](eastl::vector<ID3D12GraphicsCommandList*>& _vector)
+        const auto freeCommandListVector = [](auto& _vector)
         {
             for (auto commandList: _vector)
             {

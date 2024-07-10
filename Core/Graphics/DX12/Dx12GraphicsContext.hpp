@@ -79,6 +79,8 @@ namespace KryneEngine
             return m_resources.FreeRenderTargetView(_handle);
         }
 
+        [[nodiscard]] GenPool::Handle GetFrameContextPresentRenderTarget(u8 _index);
+
         GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc)
         {
             return m_resources.CreateRenderPass(_desc);
@@ -88,6 +90,9 @@ namespace KryneEngine
         {
             return m_resources.FreeRenderPass(_handle);
         }
+
+        CommandList BeginGraphicsCommandList(u64 _frameId);
+        void EndGraphicsCommandList(u64 _frameId);
 
         void BeginRenderPass(CommandList _commandList, GenPool::Handle _handle);
         void EndRenderPass(CommandList _commandList);

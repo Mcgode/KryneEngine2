@@ -294,6 +294,21 @@ namespace KryneEngine
         }
     }
 
+    GenPool::Handle Dx12GraphicsContext::GetFrameContextPresentRenderTarget(u8 _index)
+    {
+        return m_swapChain->m_renderTargetTextures[_index];
+    }
+
+    CommandList Dx12GraphicsContext::BeginGraphicsCommandList(u64 _frameId)
+    {
+        return m_frameContexts[_frameId % m_frameContextCount].BeginDirectCommandList();
+    }
+
+    void Dx12GraphicsContext::EndGraphicsCommandList(u64 _frameId)
+    {
+        m_frameContexts[_frameId % m_frameContextCount].EndDirectCommandList();
+    }
+
     void Dx12GraphicsContext::BeginRenderPass(CommandList _commandList, GenPool::Handle _handle)
     {
         const auto* desc = m_resources.m_renderPasses.Get(_handle);

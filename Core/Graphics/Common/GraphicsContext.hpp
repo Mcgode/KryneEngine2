@@ -35,6 +35,11 @@ namespace KryneEngine
             return m_implementation.GetFrameContextCount();
         }
 
+        inline u8 GetCurrentFrameContextIndex() const
+        {
+            return m_frameId % GetFrameContextCount();
+        }
+
         bool EndFrame();
 
         void WaitForLastFrame() const;
@@ -65,6 +70,11 @@ namespace KryneEngine
             return m_implementation.DestroyRenderTargetView(_handle);
         }
 
+        [[nodiscard]] GenPool::Handle GetFrameContextPresentRenderTarget(u8 _index)
+        {
+            return m_implementation.GetFrameContextPresentRenderTarget(_index);
+        }
+
         [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc)
         {
             return m_implementation.CreateRenderPass(_desc);
@@ -73,6 +83,16 @@ namespace KryneEngine
         bool DestroyRenderPass(GenPool::Handle _handle)
         {
             return m_implementation.DestroyRenderPass(_handle);
+        }
+
+        CommandList BeginGraphicsCommandList()
+        {
+            return m_implementation.BeginGraphicsCommandList(m_frameId);
+        }
+
+        void EndGraphicsCommandList()
+        {
+            m_implementation.EndGraphicsCommandList(m_frameId);
         }
 
         void BeginRenderPass(CommandList _commandList, GenPool::Handle _handle)

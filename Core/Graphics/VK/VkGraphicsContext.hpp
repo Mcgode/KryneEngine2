@@ -88,6 +88,8 @@ namespace KryneEngine
             return m_resources.FreeRenderTargetView(_handle, m_device);
         }
 
+        GenPool::Handle GetFrameContextPresentRenderTarget(u8 _index);
+
         [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc)
         {
             return m_resources.CreateRenderPass(_desc, m_device);
@@ -96,6 +98,16 @@ namespace KryneEngine
         bool DestroyRenderPass(GenPool::Handle _handle)
         {
             return m_resources.DestroyRenderPass(_handle, m_device);
+        }
+
+        CommandList BeginGraphicsCommandList(u64 _frameId)
+        {
+            return m_frameContexts[_frameId % m_frameContextCount].BeginGraphicsCommandBuffer(m_device);
+        }
+
+        void EndGraphicsCommandList(u64 _frameId)
+        {
+            m_frameContexts[_frameId % m_frameContextCount].EndGraphicsCommandBuffer();
         }
 
         void BeginRenderPass(CommandList _commandList, GenPool::Handle _handle);

@@ -2,6 +2,7 @@
 #include <Graphics/Common/GraphicsContext.hpp>
 #include <Threads/FibersManager.hpp>
 #include <Threads/Semaphore.hpp>
+#include <Graphics/Common/RenderPass.hpp>
 
 using namespace KryneEngine;
 
@@ -84,9 +85,31 @@ int main() {
 #endif
         GraphicsContext graphicsContext(appInfo);
 
-        while (graphicsContext.EndFrame())
+        eastl::vector<GenPool::Handle> renderPassHandles {};
+        for (u8 i = 0; i < graphicsContext.GetFrameContextCount(); i++)
         {
+            RenderPassDesc desc;
+            desc.m_colorAttachments.push_back(RenderPassDesc::Attachment {
+                    KryneEngine::RenderPassDesc::Attachment::LoadOperation::Clear,
+                    KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store,
+                    TextureLayout::Unknown,
+                    TextureLayout::ColorAttachment,
+                    graphicsContext.GetFrameContextPresentRenderTarget(graphicsContext.GetCurrentFrameContextIndex()),
+                    float4(0, 1, 1, 1)
+            });
+            renderPassHandles.push_back(graphicsContext.CreateRenderPass(desc));
         }
+
+        do
+        {
+            CommandList commandList = graphicsContext.BeginGraphicsCommandList();
+
+            graphicsContext.BeginRenderPass(commandList, renderPassHandles[graphicsContext.GetCurrentFrameContextIndex()]);
+            graphicsContext.EndRenderPass(commandList);
+
+            graphicsContext.EndGraphicsCommandList();
+        }
+        while (graphicsContext.EndFrame());
     }
 
     return 0;
