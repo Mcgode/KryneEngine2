@@ -115,7 +115,10 @@ namespace KryneEngine
     GenPool::Handle Dx12Resources::CreateRenderPass(const RenderPassDesc &_desc)
     {
         auto handle = m_renderPasses.Allocate();
-        *m_renderPasses.Get(handle) = _desc;
+        auto* desc = m_renderPasses.Get(handle);
+
+        // Manually init pointer location using a copy, as the allocator doesn't initialize its objects.
+        new (desc) RenderPassDesc(_desc);
         return handle;
     }
 
