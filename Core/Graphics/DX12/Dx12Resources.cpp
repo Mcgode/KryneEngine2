@@ -50,7 +50,7 @@ namespace KryneEngine
                 .NumDescriptors = kRtvHeapSize,
                 .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE // Not shader visible
             };
-            _device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_rtvDescriptorHeap));
+            Dx12Assert(_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_rtvDescriptorHeap)));
 #if !defined(KE_FINAL)
             Dx12SetName(m_rtvDescriptorHeap.Get(), L"RTV descriptor heap");
 #endif
@@ -101,6 +101,8 @@ namespace KryneEngine
                 handle.m_index,
                 m_rtvDescriptorSize);
         _device->CreateRenderTargetView(*texture, &rtvDesc, cpuDescriptorHandle);
+
+        *m_renderTargetViews.Get(handle) = cpuDescriptorHandle;
 
         return handle;
     }
