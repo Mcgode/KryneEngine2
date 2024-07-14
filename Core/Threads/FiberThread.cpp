@@ -16,7 +16,7 @@ namespace KryneEngine
 
     FiberThread::FiberThread(FibersManager *_fiberManager, u16 _threadIndex)
     {
-        m_thread = std::thread([=]()
+        m_thread = std::thread([this, _fiberManager, _threadIndex]()
         {
         	KE_ASSERT(Threads::DisableThreadSignals());
 
