@@ -80,7 +80,7 @@ int main() {
         appInfo.m_api = GraphicsCommon::Api::Vulkan_1_3;
         appInfo.m_applicationName += " - Vulkan";
 #elif defined(KE_GRAPHICS_API_DX12)
-        appInfo.m_api = KryneEngine::GraphicsCommon::Api::DirectX12_2;
+        appInfo.m_api = KryneEngine::GraphicsCommon::Api::DirectX12_1;
         appInfo.m_applicationName += " - DirectX 12";
 #endif
         GraphicsContext graphicsContext(appInfo);
