@@ -20,7 +20,7 @@ namespace KryneEngine
 
         virtual ~Dx12FrameContext();
 
-        ID3D12GraphicsCommandList4* BeginDirectCommandList()
+        ID3D12GraphicsCommandList7* BeginDirectCommandList()
         {
             return m_directCommandAllocationSet.BeginCommandList(m_device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
         }
@@ -30,7 +30,7 @@ namespace KryneEngine
             m_directCommandAllocationSet.EndCommandList();
         }
 
-        ID3D12GraphicsCommandList4* BeginComputeCommandList()
+        ID3D12GraphicsCommandList7* BeginComputeCommandList()
         {
             return m_computeCommandAllocationSet.BeginCommandList(m_device.Get(), D3D12_COMMAND_LIST_TYPE_COMPUTE);
         }
@@ -40,7 +40,7 @@ namespace KryneEngine
             m_computeCommandAllocationSet.EndCommandList();
         }
 
-        ID3D12GraphicsCommandList4* BeginTransferCommandList()
+        ID3D12GraphicsCommandList7* BeginTransferCommandList()
         {
             return m_copyCommandAllocationSet.BeginCommandList(m_device.Get(), D3D12_COMMAND_LIST_TYPE_COPY);
         }
@@ -57,12 +57,12 @@ namespace KryneEngine
         {
             ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;
 
-            eastl::vector<ID3D12GraphicsCommandList4*> m_availableCommandLists;
-            eastl::vector<ID3D12GraphicsCommandList4*> m_usedCommandLists;
+            eastl::vector<ID3D12GraphicsCommandList7*> m_availableCommandLists;
+            eastl::vector<ID3D12GraphicsCommandList7*> m_usedCommandLists;
 
             LightweightMutex m_mutex {};
 
-            ID3D12GraphicsCommandList4 *BeginCommandList(ID3D12Device *_device, D3D12_COMMAND_LIST_TYPE _commandType);
+            ID3D12GraphicsCommandList7 * BeginCommandList(ID3D12Device *_device, D3D12_COMMAND_LIST_TYPE _commandType);
             void EndCommandList();
 
             void Destroy();

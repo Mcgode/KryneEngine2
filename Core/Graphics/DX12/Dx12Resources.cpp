@@ -102,7 +102,10 @@ namespace KryneEngine
                 m_rtvDescriptorSize);
         _device->CreateRenderTargetView(*texture, &rtvDesc, cpuDescriptorHandle);
 
-        *m_renderTargetViews.Get(handle) = cpuDescriptorHandle;
+        *m_renderTargetViews.Get(handle) = RtvHotData {
+            .m_cpuHandle = cpuDescriptorHandle,
+            .m_resource = _desc.m_textureHandle,
+        };
 
         return handle;
     }

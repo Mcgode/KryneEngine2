@@ -28,8 +28,14 @@ namespace KryneEngine
         [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc);
         bool FreeRenderPass(GenPool::Handle _handle);
 
+        struct RtvHotData
+        {
+            CD3DX12_CPU_DESCRIPTOR_HANDLE m_cpuHandle;
+            GenPool::Handle m_resource;
+        };
+
         GenerationalPool<ID3D12Resource*> m_textures;
-        GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_renderTargetViews;
+        GenerationalPool<RtvHotData> m_renderTargetViews;
         GenerationalPool<RenderPassDesc> m_renderPasses;
 
     private:

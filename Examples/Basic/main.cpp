@@ -93,7 +93,7 @@ int main() {
                     KryneEngine::RenderPassDesc::Attachment::LoadOperation::Clear,
                     KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store,
                     TextureLayout::Unknown,
-                    TextureLayout::ColorAttachment,
+                    TextureLayout::Present,
                     graphicsContext.GetFrameContextPresentRenderTarget(graphicsContext.GetCurrentFrameContextIndex()),
                     float4(0, 1, 1, 1)
             });

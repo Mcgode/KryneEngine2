@@ -146,6 +146,29 @@ namespace KryneEngine
         }
     }
 
+    constexpr inline D3D12_RESOURCE_STATES ToDx12ResourceState(TextureLayout _layout)
+    {
+        D3D12_RESOURCE_STATES result;
+
+#define MAP(commonLayout, dx12State) case TextureLayout::commonLayout: result = dx12State; break
+        switch (_layout) {
+            MAP(Unknown, D3D12_RESOURCE_STATE_COMMON);
+            MAP(Common, D3D12_RESOURCE_STATE_COMMON);
+            MAP(Present, D3D12_RESOURCE_STATE_PRESENT);
+            MAP(GenericRead, D3D12_RESOURCE_STATE_GENERIC_READ);
+            MAP(ColorAttachment, D3D12_RESOURCE_STATE_RENDER_TARGET);
+            MAP(DepthStencilAttachment, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+            MAP(DepthStencilReadOnly, D3D12_RESOURCE_STATE_DEPTH_READ);
+            MAP(UnorderedAccess, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+            MAP(ShaderResource, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+            MAP(TransferSrc, D3D12_RESOURCE_STATE_COPY_SOURCE);
+            MAP(TransferDst, D3D12_RESOURCE_STATE_COPY_DEST);
+        }
+#undef MAP
+
+        return result;
+    }
+
     void DebugLayerMessageCallback(
             D3D12_MESSAGE_CATEGORY _category,
             D3D12_MESSAGE_SEVERITY _severity,

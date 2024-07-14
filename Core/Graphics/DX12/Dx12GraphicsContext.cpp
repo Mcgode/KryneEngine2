@@ -344,6 +344,26 @@ namespace KryneEngine
             return D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
         };
 
+        eastl::fixed_vector<D3D12_RESOURCE_BARRIER, RenderPassDesc::kMaxSupportedColorAttachments + 1, false> barriers;
+        const auto addBarrier = [&barriers](const RenderPassDesc::Attachment& _desc, ID3D12Resource* _resource, bool _isDepthTarget = false)
+        {
+            const auto oldState = ToDx12ResourceState(_desc.m_initialLayout);
+            const auto newState = _isDepthTarget ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+            if (newState != oldState)
+            {
+                barriers.push_back(D3D12_RESOURCE_BARRIER{
+                        .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+                        .Transition = D3D12_RESOURCE_TRANSITION_BARRIER{
+                                .pResource = _resource,
+                                .Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+                                .StateBefore = oldState,
+                                .StateAfter = newState,
+                        }
+                });
+            }
+        };
+
         eastl::fixed_vector<D3D12_RENDER_PASS_RENDER_TARGET_DESC, RenderPassDesc::kMaxSupportedColorAttachments, false> colorAttachments;
         for (const auto& attachment: desc->m_colorAttachments)
         {
@@ -358,10 +378,12 @@ namespace KryneEngine
                 convertStoreOperation(attachment.m_storeOperation)
             };
 
-            auto* rtv = m_resources.m_renderTargetViews.Get(attachment.m_rtv);
-            VERIFY_OR_RETURN_VOID(rtv != nullptr);
+            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv);
+            VERIFY_OR_RETURN_VOID(rtvData != nullptr);
 
-            colorAttachments.push_back(D3D12_RENDER_PASS_RENDER_TARGET_DESC { *rtv, beginningAccess, endingAccess });
+            colorAttachments.push_back(D3D12_RENDER_PASS_RENDER_TARGET_DESC { rtvData->m_cpuHandle, beginningAccess, endingAccess });
+
+            addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource));
         }
 
         D3D12_RENDER_PASS_DEPTH_STENCIL_DESC depthStencilDesc;
@@ -387,27 +409,77 @@ namespace KryneEngine
                 convertStoreOperation(attachment.m_stencilStoreOperation)
             };
 
-            auto* rtv = m_resources.m_renderTargetViews.Get(attachment.m_rtv);
-            VERIFY_OR_RETURN_VOID(rtv != nullptr);
+            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv);
+            VERIFY_OR_RETURN_VOID(rtvData != nullptr);
 
             depthStencilDesc = {
-                    *rtv,
+                    rtvData->m_cpuHandle,
                     depthBeginningAccess,
                     stencilBeginningAccess,
                     depthEndingAccess,
                     stencilEndingAccess
             };
+
+            addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource), true);
         }
+
+        _commandList->ResourceBarrier(barriers.size(), barriers.data());
 
         _commandList->BeginRenderPass(
                 colorAttachments.size(),
                 colorAttachments.data(),
                 desc->m_depthStencilAttachment.has_value() ? &depthStencilDesc : nullptr,
                 D3D12_RENDER_PASS_FLAG_NONE);
+
+        m_currentRenderPass = _handle;
     }
 
     void Dx12GraphicsContext::EndRenderPass(CommandList _commandList)
     {
+        const auto* desc = m_resources.m_renderPasses.Get(m_currentRenderPass);
+        VERIFY_OR_RETURN_VOID(desc != nullptr);
+
         _commandList->EndRenderPass();
+
+        eastl::fixed_vector<D3D12_RESOURCE_BARRIER, RenderPassDesc::kMaxSupportedColorAttachments + 1, false> barriers;
+        const auto addBarrier = [&barriers](const RenderPassDesc::Attachment& _desc, ID3D12Resource* _resource, bool _isDepthTarget = false)
+        {
+            const auto oldState = _isDepthTarget ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_RENDER_TARGET;
+            const auto newState = ToDx12ResourceState(_desc.m_finalLayout);
+
+            if (newState != oldState)
+            {
+                barriers.push_back(D3D12_RESOURCE_BARRIER{
+                        .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+                        .Transition = D3D12_RESOURCE_TRANSITION_BARRIER{
+                                .pResource = _resource,
+                                .Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+                                .StateBefore = oldState,
+                                .StateAfter = newState,
+                        }
+                });
+            }
+        };
+
+        for (const auto& attachment: desc->m_colorAttachments)
+        {
+            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv);
+            VERIFY_OR_RETURN_VOID(rtvData != nullptr);
+
+            addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource));
+        }
+
+        if (desc->m_depthStencilAttachment.has_value())
+        {
+            const auto& attachment = desc->m_depthStencilAttachment.value();
+            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv);
+            VERIFY_OR_RETURN_VOID(rtvData != nullptr);
+
+            addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource), true);
+        }
+
+        _commandList->ResourceBarrier(barriers.size(), barriers.data());
+
+        m_currentRenderPass = GenPool::kInvalidHandle;
     }
 } // KryneEngine

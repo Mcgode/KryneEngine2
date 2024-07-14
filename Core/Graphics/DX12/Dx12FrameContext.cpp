@@ -38,8 +38,8 @@ namespace KryneEngine
         m_copyCommandAllocationSet.Destroy();
     }
 
-    ID3D12GraphicsCommandList4 *Dx12FrameContext::CommandAllocationSet::BeginCommandList(ID3D12Device *_device,
-                                                                                        D3D12_COMMAND_LIST_TYPE _commandType)
+    ID3D12GraphicsCommandList7 * Dx12FrameContext::CommandAllocationSet::BeginCommandList(ID3D12Device *_device,
+                                                                                          D3D12_COMMAND_LIST_TYPE _commandType)
     {
         VERIFY_OR_RETURN(m_commandAllocator != nullptr, nullptr);
 

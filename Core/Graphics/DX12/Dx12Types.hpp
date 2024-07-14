@@ -10,5 +10,5 @@
 
 namespace KryneEngine
 {
-    using CommandList = ID3D12GraphicsCommandList4*;
+    using CommandList = ID3D12GraphicsCommandList7*;
 }
