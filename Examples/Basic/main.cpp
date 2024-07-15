@@ -85,8 +85,9 @@ int main() {
 #endif
         GraphicsContext graphicsContext(appInfo);
 
-        eastl::vector<GenPool::Handle> renderPassHandles {};
-        for (u8 i = 0; i < graphicsContext.GetFrameContextCount(); i++)
+        DynamicArray<GenPool::Handle> renderPassHandles;
+        renderPassHandles.Resize(graphicsContext.GetFrameContextCount());
+        for (auto i = 0u; i < renderPassHandles.Size(); i++)
         {
             RenderPassDesc desc;
             desc.m_colorAttachments.push_back(RenderPassDesc::Attachment {
@@ -94,17 +95,18 @@ int main() {
                     KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store,
                     TextureLayout::Unknown,
                     TextureLayout::Present,
-                    graphicsContext.GetFrameContextPresentRenderTarget(graphicsContext.GetCurrentFrameContextIndex()),
+                    graphicsContext.GetFrameContextPresentRenderTarget(i),
                     float4(0, 1, 1, 1)
             });
-            renderPassHandles.push_back(graphicsContext.CreateRenderPass(desc));
+            renderPassHandles[i] = graphicsContext.CreateRenderPass(desc);
         }
 
         do
         {
             CommandList commandList = graphicsContext.BeginGraphicsCommandList();
 
-            graphicsContext.BeginRenderPass(commandList, renderPassHandles[graphicsContext.GetCurrentFrameContextIndex()]);
+            const u8 index = graphicsContext.GetCurrentFrameContextIndex();
+            graphicsContext.BeginRenderPass(commandList, renderPassHandles[index]);
             graphicsContext.EndRenderPass(commandList);
 
             graphicsContext.EndGraphicsCommandList();
