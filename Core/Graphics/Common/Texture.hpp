@@ -22,5 +22,9 @@ namespace KryneEngine
 
         TextureTypes m_type = TextureTypes::Single2D;
         u8 m_mipCount = 1;
+
+#if !defined(KE_FINAL)
+        eastl::string m_debugName;
+#endif
     };
 }

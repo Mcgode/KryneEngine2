@@ -29,5 +29,9 @@ namespace KryneEngine
         };
 
         u8 m_mipLevel = 0;
+
+#if !defined(KE_FINAL)
+        eastl::string m_debugName;
+#endif
     };
 }

@@ -55,9 +55,8 @@ namespace KryneEngine::GraphicsCommon
 
         struct Features
         {
-            bool m_renderPipelineShaders = true;
-
             bool m_validationLayers = true;
+            SoftEnable m_debugTags = SoftEnable::TryEnable;
 
             bool m_graphics = true;
             bool m_present = true;

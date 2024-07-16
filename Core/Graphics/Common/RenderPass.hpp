@@ -49,5 +49,9 @@ namespace KryneEngine
         static constexpr u8 kMaxSupportedColorAttachments = 8;
         eastl::fixed_vector<Attachment, 8, false> m_colorAttachments {};
         eastl::optional<DepthStencilAttachment> m_depthStencilAttachment {};
+
+#if !defined(KE_FINAL)
+        eastl::string m_debugName;
+#endif
     };
 }
