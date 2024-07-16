@@ -32,47 +32,47 @@ void Job1(void*)
 int main() {
     std::cout << "Hello, World!" << std::endl;
 
-    {
-	    BusySpinSemaphore semaphore(2);
-	    SpinLock lock;
-
-        lock.Lock();
-
-        std::thread j0([&]() {
-            {
-                auto sLock = semaphore.AutoLock();
-            }
-            std::cout << "J 0 semaphore go" << std::endl;
-            lock.Lock();
-            semaphore.SignalOnce();
-            lock.Unlock();
-        });
-        std::thread j1([&]() {
-            semaphore.Wait();
-            std::cout << "J 1 semaphore go" << std::endl;
-            lock.Lock();
-            semaphore.SignalOnce();
-            lock.Unlock();
-        });
-        std::thread j2([&]() {
-            semaphore.Wait();
-            std::cout << "J 2 semaphore go" << std::endl;
-            lock.Unlock();
-            semaphore.SignalOnce();
-        });
-
-        j0.join();
-        j1.join();
-        j2.join();
-    }
+//    {
+//	    BusySpinSemaphore semaphore(2);
+//	    SpinLock lock;
+//
+//        lock.Lock();
+//
+//        std::thread j0([&]() {
+//            {
+//                auto sLock = semaphore.AutoLock();
+//            }
+//            std::cout << "J 0 semaphore go" << std::endl;
+//            lock.Lock();
+//            semaphore.SignalOnce();
+//            lock.Unlock();
+//        });
+//        std::thread j1([&]() {
+//            semaphore.Wait();
+//            std::cout << "J 1 semaphore go" << std::endl;
+//            lock.Lock();
+//            semaphore.SignalOnce();
+//            lock.Unlock();
+//        });
+//        std::thread j2([&]() {
+//            semaphore.Wait();
+//            std::cout << "J 2 semaphore go" << std::endl;
+//            lock.Unlock();
+//            semaphore.SignalOnce();
+//        });
+//
+//        j0.join();
+//        j1.join();
+//        j2.join();
+//    }
 
     {
         auto fibersManager = FibersManager(6);
 
-        FiberJob initJob;
-        const auto syncCounter = fibersManager.InitAndBatchJobs(&initJob, Job1, nullptr);
-
-        fibersManager.ResetCounter(syncCounter);
+//        FiberJob initJob;
+//        const auto syncCounter = fibersManager.InitAndBatchJobs(&initJob, Job1, nullptr);
+//
+//        fibersManager.ResetCounter(syncCounter);
 
         auto appInfo = GraphicsCommon::ApplicationInfo();
         appInfo.m_applicationName = "Basic Example - Kryne Engine 2";
