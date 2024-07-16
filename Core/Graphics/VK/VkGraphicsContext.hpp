@@ -9,7 +9,6 @@
 #include "VkTypes.hpp"
 #include "VkFrameContext.hpp"
 #include "VkResources.hpp"
-#include <vma/vk_mem_alloc.h>
 #include <EASTL/unique_ptr.h>
 #include <EASTL/vector_set.h>
 #include <Graphics/VK/CommonStructures.hpp>
