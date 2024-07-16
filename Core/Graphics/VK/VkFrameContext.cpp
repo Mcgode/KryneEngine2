@@ -82,8 +82,12 @@ namespace KryneEngine
 
         if (m_availableCommandBuffers.empty())
         {
-	        const vk::CommandBufferAllocateInfo allocateInfo { m_commandPool };
-            VkAssert(_device.allocateCommandBuffers(&allocateInfo, &m_availableCommandBuffers.push_back()));
+            const vk::CommandBufferAllocateInfo allocateInfo {
+                m_commandPool,
+                vk::CommandBufferLevel::ePrimary,
+                1,
+            };
+            VkAssert(_device.allocateCommandBuffers(&allocateInfo, &m_usedCommandBuffers.push_back()));
         }
         else
         {
@@ -93,7 +97,8 @@ namespace KryneEngine
 
         auto commandBuffer = m_usedCommandBuffers.back();
 
-        VkAssert(commandBuffer.begin({}));
+        const vk::CommandBufferBeginInfo beginInfo { vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
+        VkAssert(commandBuffer.begin(&beginInfo));
 
         return commandBuffer;
     }
