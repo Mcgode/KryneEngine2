@@ -65,6 +65,8 @@ namespace KryneEngine
             ID3D12GraphicsCommandList7 * BeginCommandList(ID3D12Device *_device, D3D12_COMMAND_LIST_TYPE _commandType);
             void EndCommandList();
 
+            void Reset();
+
             void Destroy();
         };
 

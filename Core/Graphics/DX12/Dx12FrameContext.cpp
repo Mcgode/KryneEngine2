@@ -74,6 +74,11 @@ namespace KryneEngine
 
     void Dx12FrameContext::CommandAllocationSet::Destroy()
     {
+        if (!m_usedCommandLists.empty())
+        {
+            Reset();
+        }
+
         const auto lock = m_mutex.AutoLock();
         KE_ASSERT_MSG(m_usedCommandLists.empty(), "Allocation set should have been reset");
 
@@ -89,5 +94,16 @@ namespace KryneEngine
         freeCommandListVector(m_availableCommandLists);
 
         SafeRelease(m_commandAllocator);
+    }
+
+    void Dx12FrameContext::CommandAllocationSet::Reset()
+    {
+        const auto lock = m_mutex.AutoLock();
+
+        m_availableCommandLists.insert(
+            m_availableCommandLists.end(),
+            m_usedCommandLists.begin(),
+            m_usedCommandLists.end());
+        m_usedCommandLists.clear();
     }
 } // KryneEngine

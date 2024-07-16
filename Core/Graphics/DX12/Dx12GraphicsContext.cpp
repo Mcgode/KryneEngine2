@@ -156,7 +156,10 @@ namespace KryneEngine
             WaitForFrame(_frameId - 1);
             Dx12Assert(m_frameFence->Signal(_frameId));
         }
-        _GetFrameContext().m_frameId = _frameId;
+        frameContext.m_frameId = _frameId;
+        frameContext.m_directCommandAllocationSet.Reset();
+        frameContext.m_computeCommandAllocationSet.Reset();
+        frameContext.m_copyCommandAllocationSet.Reset();
 
         // Retrieve next frame index
         if (m_swapChain != nullptr)
