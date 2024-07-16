@@ -19,11 +19,11 @@ namespace KryneEngine
     template<class HotDataStruct, class ColdDataStruct>
     GenerationalPool<HotDataStruct, ColdDataStruct>::~GenerationalPool()
     {
-        delete m_hotDataArray;
+        delete[] m_hotDataArray;
 
         if constexpr (kHasColdData)
         {
-            delete m_coldDataArray;
+            delete[] m_coldDataArray;
         }
     }
 
@@ -41,7 +41,7 @@ namespace KryneEngine
         if (m_hotDataArray != nullptr)
         {
             memcpy(newHotArray, m_hotDataArray, m_size * sizeof(HotData));
-            delete m_hotDataArray;
+            delete[] m_hotDataArray;
         }
         memset(newHotArray + m_size, 0, (_toSize - m_size) * sizeof(HotData));
         m_hotDataArray = newHotArray;
@@ -53,7 +53,7 @@ namespace KryneEngine
             if (m_coldDataArray != nullptr)
             {
                 memcpy(newColdArray, m_coldDataArray, m_size * sizeof(ColdDataStruct));
-                delete m_coldDataArray;
+                delete[] m_coldDataArray;
             }
             memset(newColdArray + m_size, 0, (_toSize - m_size) * sizeof(ColdDataStruct));
             m_coldDataArray = newColdArray;
