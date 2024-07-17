@@ -19,6 +19,7 @@ namespace KryneEngine
     class VkSurface;
     class VkSwapChain;
     struct RenderTargetViewDesc;
+    class VkDebugHandler;
 
     class VkGraphicsContext
     {
@@ -56,12 +57,22 @@ namespace KryneEngine
         vk::Queue m_computeQueue;
         vk::Queue m_presentQueue;
 
+        bool m_debugUtils = false;
+        bool m_debugMarkers = false;
+#if !defined(KE_FINAL)
+        eastl::shared_ptr<VkDebugHandler> m_debugHandler;
+#endif
+
         u8 m_frameContextCount;
         DynamicArray<VkFrameContext> m_frameContexts;
 
         static void _PrepareValidationLayers(vk::InstanceCreateInfo& _createInfo);
 
-        static eastl::vector<const char*> _RetrieveRequiredExtensionNames(const GraphicsCommon::ApplicationInfo& _appInfo);
+        eastl::vector<const char*> _RetrieveRequiredExtensionNames(const GraphicsCommon::ApplicationInfo& _appInfo);
+        void _RetrieveOptionalExtensionNames(
+                eastl::vector<const char *>& _currentList,
+                const std::vector<vk::ExtensionProperties> &_extensionsAvailable,
+                const GraphicsCommon::ApplicationInfo &_appInfo);
 
         static vk::DebugUtilsMessengerCreateInfoEXT _PopulateDebugCreateInfo(void *_userData);
 

@@ -7,11 +7,14 @@
 #pragma once
 
 #include "VkHeaders.hpp"
+#include <EASTL/shared_ptr.h>
 
 namespace KryneEngine
 {
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
+
+    class VkDebugHandler;
 
     struct VkResources
     {
@@ -36,6 +39,10 @@ namespace KryneEngine
             eastl::vector<vk::ClearValue> m_clearValues;
         };
         GenerationalPool<RenderPassData> m_renderPasses {};
+
+#if !defined(KE_FINAL)
+        eastl::shared_ptr<VkDebugHandler> m_debugHandler;
+#endif
 
         // Default constructor and destructor, but moved implementation to cpp for .inl linking
         VkResources();

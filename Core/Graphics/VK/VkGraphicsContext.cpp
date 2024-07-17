@@ -16,6 +16,7 @@
 #include <Graphics/VK/VkSurface.hpp>
 #include <Graphics/VK/VkSwapChain.hpp>
 #include <GLFW/glfw3.h>
+#include "VkDebugHandler.hpp"
 
 namespace KryneEngine
 {
@@ -108,6 +109,7 @@ namespace KryneEngine
         }
 
         auto extensions = _RetrieveRequiredExtensionNames(m_appInfo);
+        _RetrieveOptionalExtensionNames(extensions, availableExtensions, m_appInfo);
         instanceCreateInfo.enabledExtensionCount = extensions.size();
         instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
@@ -128,6 +130,12 @@ namespace KryneEngine
         }
 
         _CreateDevice();
+
+#if !defined(KE_FINAL)
+        m_debugHandler = eastl::make_shared<VkDebugHandler>();
+        *m_debugHandler = VkDebugHandler::Initialize(m_device, m_debugUtils, m_debugMarkers);
+        m_resources.m_debugHandler = m_debugHandler;
+#endif
 
         if (m_appInfo.m_features.m_present)
         {
@@ -275,9 +283,43 @@ namespace KryneEngine
         if (_appInfo.m_features.m_validationLayers)
         {
             result.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+            m_debugUtils = true;
+        }
+
+        if (_appInfo.m_features.m_debugTags == GraphicsCommon::SoftEnable::ForceEnabled)
+        {
+            result.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+            m_debugMarkers = true;
         }
 
         return result;
+    }
+
+    void VkGraphicsContext::_RetrieveOptionalExtensionNames(
+            eastl::vector<const char *> &_currentList,
+            const std::vector<vk::ExtensionProperties> &_extensionsAvailable,
+            const GraphicsCommon::ApplicationInfo &_appInfo)
+    {
+        const auto find = [&_extensionsAvailable](const char* _extensionName)
+        {
+            const auto it = eastl::find(
+                    _extensionsAvailable.begin(),
+                    _extensionsAvailable.end(),
+                    eastl::string(_extensionName),
+                    [](vk::ExtensionProperties _a, const eastl::string& _b) {
+                        return eastl::string(_a.extensionName.data()) == _b;
+                    });
+            return it != _extensionsAvailable.end();
+        };
+
+        if (_appInfo.m_features.m_debugTags == GraphicsCommon::SoftEnable::TryEnable)
+        {
+            if (find(VK_EXT_DEBUG_MARKER_EXTENSION_NAME))
+            {
+                _currentList.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+                m_debugMarkers = true;
+            }
+        }
     }
 
     vk::DebugUtilsMessengerCreateInfoEXT VkGraphicsContext::_PopulateDebugCreateInfo(void *_userData)

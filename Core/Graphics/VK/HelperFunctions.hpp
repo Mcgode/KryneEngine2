@@ -209,4 +209,13 @@ namespace KryneEngine::VkHelperFunctions
 
         return layout;
     }
+
+    constexpr inline VkDebugReportObjectTypeEXT ConvertObjectType(VkObjectType _objectType)
+    {
+        if (_objectType <= VK_OBJECT_TYPE_COMMAND_POOL)
+        {
+            return static_cast<VkDebugReportObjectTypeEXT>(_objectType);
+        }
+        return VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT;
+    }
 }

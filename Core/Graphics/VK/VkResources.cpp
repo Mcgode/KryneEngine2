@@ -4,6 +4,7 @@
  * @date 19/02/2024.
  */
 
+#include "VkDebugHandler.hpp"
 #include "VkResources.hpp"
 #include "HelperFunctions.hpp"
 #include <Graphics/Common/RenderTargetView.hpp>
@@ -64,7 +65,16 @@ namespace KryneEngine
                 }
         );
 
-        *m_renderTargetViews.Get(rtvHandle) = _device.createImageView(imageViewCreateInfo);
+        vk::ImageView imageView = _device.createImageView(imageViewCreateInfo);
+
+#if !defined(KE_FINAL)
+        {
+            const u64 handle = (u64)static_cast<VkImageView>(imageView);
+            m_debugHandler->SetName(_device, VK_OBJECT_TYPE_IMAGE_VIEW, handle, _desc.m_debugName.data());
+        }
+#endif
+
+        *m_renderTargetViews.Get(rtvHandle) = imageView;
         *m_renderTargetViews.GetCold(rtvHandle) = {
                 imageViewCreateInfo.format,
                 m_textures.GetCold(_desc.m_textureHandle)->m_size
@@ -233,6 +243,19 @@ namespace KryneEngine
                 1
         };
         renderPassData.m_framebuffer = _device.createFramebuffer(framebufferCreateInfo);
+
+#if !defined(KE_FINAL)
+        {
+            const u64 objectHandle = (u64)static_cast<VkRenderPass>(renderPassData.m_renderPass);
+            const eastl::string name = _desc.m_debugName + "/RenderPass";
+            m_debugHandler->SetName(_device, VK_OBJECT_TYPE_RENDER_PASS, objectHandle, name.c_str());
+        }
+        {
+            const u64 objectHandle = (u64)static_cast<VkFramebuffer>(renderPassData.m_framebuffer);
+            const eastl::string name = _desc.m_debugName + "/Framebuffer";
+            m_debugHandler->SetName(_device, VK_OBJECT_TYPE_FRAMEBUFFER, objectHandle, name.c_str());
+        }
+#endif
 
         return handle;
     }
