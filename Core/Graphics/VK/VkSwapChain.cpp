@@ -7,6 +7,7 @@
 #include "VkSwapChain.hpp"
 #include "Common/EastlHelpers.hpp"
 #include "VkResources.hpp"
+#include "VkDebugHandler.hpp"
 
 #include <Common/Assert.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
@@ -16,15 +17,19 @@
 
 namespace KryneEngine
 {
-    VkSwapChain::VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
-                             vk::Device _device,
-                             const VkSurface &_surface,
-                             VkResources &_resources,
-                             GLFWwindow *_window,
-                             const VkCommonStructures::QueueIndices &_queueIndices,
-                             u64 _currentFrameIndex,
-                             VkSwapChain *_oldSwapChain)
+    VkSwapChain::VkSwapChain(
+            const GraphicsCommon::ApplicationInfo &_appInfo,
+            vk::Device _device, const VkSurface &_surface,
+            VkResources &_resources, GLFWwindow *_window,
+            const VkCommonStructures::QueueIndices &_queueIndices,
+            u64 _currentFrameIndex,
+            const eastl::shared_ptr<VkDebugHandler> &_debugHandler,
+            VkSwapChain *_oldSwapChain)
     {
+#if !defined(KE_FINAL)
+        m_debugHandler = _debugHandler;
+#endif
+
         const auto& capabilities = _surface.GetCapabilities();
         KE_ASSERT(!capabilities.m_formats.empty() && !capabilities.m_presentModes.empty());
 
@@ -137,6 +142,12 @@ namespace KryneEngine
                 _oldSwapChain == nullptr ? vk::SwapchainKHR{} : _oldSwapChain->m_swapChain);
 
         VkAssert(_device.createSwapchainKHR(&createInfo, nullptr, &m_swapChain));
+#if !defined(KE_FINAL)
+        {
+            eastl::string name = _appInfo.m_applicationName + "/Swapchain";
+            m_debugHandler->SetName(_device, VK_OBJECT_TYPE_SWAPCHAIN_KHR, (u64)(VkSwapchainKHR)m_swapChain, name);
+        }
+#endif
 
         {
             const auto images = _device.getSwapchainImagesKHR(m_swapChain);
@@ -154,10 +165,21 @@ namespace KryneEngine
                 const auto textureHandle = _resources.RegisterTexture(
                         images[i],
                         { u16(extent.width), u16(extent.height) });
+#if !defined(KE_FINAL)
+                const eastl::string imageDebugName = _appInfo.m_applicationName + "/Swapchain/Texture[" + eastl::to_string(j) + "]_Internal[" + eastl::to_string(i) + "]";
+                {
+                    const u64 imageHandle = (u64)(VkImage)images[i];
+                    m_debugHandler->SetName(_device, VK_OBJECT_TYPE_IMAGE, imageHandle, imageDebugName);
+                }
 
+                const eastl::string rtvDebugName = _appInfo.m_applicationName + "/Swapchain/RTV[" + eastl::to_string(j) + "]";
+#endif
                 const RenderTargetViewDesc rtvDesc {
                     .m_textureHandle = textureHandle,
                     .m_format = VkHelperFunctions::FromVkFormat(selectedSurfaceFormat.format),
+#if !defined(KE_FINAL)
+                    .m_debugName = rtvDebugName,
+#endif
                 };
 
                 m_renderTargetTextures.Init(j, textureHandle);

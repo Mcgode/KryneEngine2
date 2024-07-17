@@ -146,8 +146,13 @@ namespace KryneEngine
                     m_resources,
                     m_window->GetGlfwWindow(),
                     m_queueIndices,
-                    _frameId
-                    );
+                    _frameId,
+#if !defined(KE_FINAL)
+                    m_debugHandler,
+#else
+                    nullptr,
+#endif
+                    nullptr);
 
             m_frameContextCount = m_swapChain->m_renderTargetViews.Size();
         }

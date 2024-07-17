@@ -6,9 +6,10 @@
 
 #pragma once
 
-#include <EASTL/span.h>
-#include "VkHeaders.hpp"
 #include "CommonStructures.hpp"
+#include "VkHeaders.hpp"
+#include <EASTL/shared_ptr.h>
+#include <EASTL/span.h>
 
 struct GLFWwindow;
 
@@ -16,6 +17,7 @@ namespace KryneEngine
 {
     class VkSurface;
     struct VkResources;
+    class VkDebugHandler;
 
     class VkSwapChain
     {
@@ -29,7 +31,8 @@ namespace KryneEngine
                     GLFWwindow *_window,
                     const VkCommonStructures::QueueIndices &_queueIndices,
                     u64 _currentFrameIndex,
-                    VkSwapChain *_oldSwapChain = nullptr);
+                    const eastl::shared_ptr<VkDebugHandler> &_debugHandler,
+                    VkSwapChain *_oldSwapChain);
 
         virtual ~VkSwapChain();
 
@@ -45,6 +48,10 @@ namespace KryneEngine
         DynamicArray<GenPool::Handle> m_renderTargetTextures;
         DynamicArray<GenPool::Handle> m_renderTargetViews;
         DynamicArray<vk::Semaphore> m_imageAvailableSemaphores;
-        s32 m_imageIndexOffset = 0;
+        u32 m_imageIndexOffset = 0;
+
+#if !defined(KE_FINAL)
+        eastl::shared_ptr<VkDebugHandler> m_debugHandler;
+#endif
     };
 }
