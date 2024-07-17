@@ -22,6 +22,7 @@ namespace KryneEngine
                              VkResources &_resources,
                              GLFWwindow *_window,
                              const VkCommonStructures::QueueIndices &_queueIndices,
+                             u64 _currentFrameIndex,
                              VkSwapChain *_oldSwapChain)
     {
         const auto& capabilities = _surface.GetCapabilities();
@@ -141,22 +142,27 @@ namespace KryneEngine
             const auto images = _device.getSwapchainImagesKHR(m_swapChain);
             KE_ASSERT_MSG(!images.empty(), "Unable to retrieve swapchain images");
 
+            m_imageIndexOffset = _currentFrameIndex % images.size();
+
             m_renderTargetTextures.Resize(images.size());
             m_renderTargetViews.Resize(images.size());
             m_imageAvailableSemaphores.Resize(images.size());
-            for (u32 i = 0; i < images.size(); i++)
+            for (auto i = 0u; i < images.size(); i++)
             {
+                const u32 j = (i + m_imageIndexOffset) % images.size();
+
                 const auto textureHandle = _resources.RegisterTexture(
                         images[i],
                         { u16(extent.width), u16(extent.height) });
+
                 const RenderTargetViewDesc rtvDesc {
                     .m_textureHandle = textureHandle,
                     .m_format = VkHelperFunctions::FromVkFormat(selectedSurfaceFormat.format),
                 };
 
-                m_renderTargetTextures.Init(i, textureHandle);
-                m_renderTargetViews.Init(i, _resources.CreateRenderTargetView(rtvDesc, _device));
-                m_imageAvailableSemaphores[i] = _device.createSemaphore(vk::SemaphoreCreateInfo{});
+                m_renderTargetTextures.Init(j, textureHandle);
+                m_renderTargetViews.Init(j, _resources.CreateRenderTargetView(rtvDesc, _device));
+                m_imageAvailableSemaphores[j] = _device.createSemaphore(vk::SemaphoreCreateInfo{});
             }
         }
     }
@@ -168,16 +174,18 @@ namespace KryneEngine
 
     vk::Semaphore VkSwapChain::AcquireNextImage(vk::Device _device, u8 _frameIndex)
     {
-	    m_imageIndex = _device.acquireNextImageKHR(m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[_frameIndex], nullptr).value;
+	    u32 imageIndex = _device.acquireNextImageKHR(m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[_frameIndex], nullptr).value;
+        KE_ASSERT(((imageIndex + m_imageIndexOffset) % m_imageAvailableSemaphores.Size()) == _frameIndex);
         return m_imageAvailableSemaphores[_frameIndex];
     }
 
-    void VkSwapChain::Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore>& _semaphores)
+    void VkSwapChain::Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore> &_semaphores, u8 _frameIndex)
     {
+        const u32 imageIndex = (_frameIndex - m_imageIndexOffset) % m_imageAvailableSemaphores.Size();
 	    const vk::PresentInfoKHR presentInfo = {
         	_semaphores,
         	m_swapChain,
-            m_imageIndex
+            imageIndex
         };
 
         VkAssert(_presentQueue.presentKHR(presentInfo));

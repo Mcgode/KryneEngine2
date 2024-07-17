@@ -74,7 +74,7 @@ namespace KryneEngine
         }
     }
 
-    VkGraphicsContext::VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo)
+    VkGraphicsContext::VkGraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo, u64 _frameId)
         : m_appInfo(_appInfo)
     {
         if (m_appInfo.m_features.m_present)
@@ -145,7 +145,8 @@ namespace KryneEngine
                     *m_surface,
                     m_resources,
                     m_window->GetGlfwWindow(),
-                    m_queueIndices
+                    m_queueIndices,
+                    _frameId
                     );
 
             m_frameContextCount = m_swapChain->m_renderTargetViews.Size();
@@ -235,7 +236,7 @@ namespace KryneEngine
         // Present image
         if (m_swapChain != nullptr)
     	{
-            m_swapChain->Present(m_presentQueue, queueSemaphores);
+            m_swapChain->Present(m_presentQueue, queueSemaphores, frameIndex);
         }
     }
 

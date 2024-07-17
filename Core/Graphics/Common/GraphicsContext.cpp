@@ -12,7 +12,8 @@
 namespace KryneEngine
 {
     GraphicsContext::GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo)
-        : m_implementation(_appInfo)
+        : m_frameId(kInitialFrameId)
+        , m_implementation(_appInfo, kInitialFrameId)
     {
     }
 

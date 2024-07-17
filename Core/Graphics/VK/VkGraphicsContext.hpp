@@ -24,7 +24,7 @@ namespace KryneEngine
     class VkGraphicsContext
     {
     public:
-        explicit VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo);
+        explicit VkGraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo, u64 _frameId);
 
         virtual ~VkGraphicsContext();
 

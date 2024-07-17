@@ -57,7 +57,8 @@ namespace KryneEngine
 #endif
         UnderlyingGraphicsContext m_implementation;
 
-        u64 m_frameId = 1;
+        static constexpr u64 kInitialFrameId = 1;
+        u64 m_frameId;
 
     public:
         [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)

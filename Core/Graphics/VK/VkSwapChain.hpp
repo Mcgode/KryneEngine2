@@ -28,13 +28,14 @@ namespace KryneEngine
                     VkResources &_resources,
                     GLFWwindow *_window,
                     const VkCommonStructures::QueueIndices &_queueIndices,
+                    u64 _currentFrameIndex,
                     VkSwapChain *_oldSwapChain = nullptr);
 
         virtual ~VkSwapChain();
 
         vk::Semaphore AcquireNextImage(vk::Device _device, u8 _frameIndex);
 
-        void Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore>& _semaphores);
+        void Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore> &_semaphores, u8 _frameIndex);
 
         void Destroy(vk::Device _device, VkResources& _resources);
 
@@ -44,6 +45,6 @@ namespace KryneEngine
         DynamicArray<GenPool::Handle> m_renderTargetTextures;
         DynamicArray<GenPool::Handle> m_renderTargetViews;
         DynamicArray<vk::Semaphore> m_imageAvailableSemaphores;
-        u32 m_imageIndex = 0;
+        s32 m_imageIndexOffset = 0;
     };
 }
