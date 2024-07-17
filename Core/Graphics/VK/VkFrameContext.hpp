@@ -76,10 +76,12 @@ namespace KryneEngine
             void Destroy(vk::Device _device);
         };
 
+        static constexpr u8 kMaxQueueCount = 3;
+
         CommandPoolSet m_graphicsCommandPoolSet;
         CommandPoolSet m_computeCommandPoolSet;
         CommandPoolSet m_transferCommandPoolSet;
-        eastl::fixed_vector<vk::Fence, 3> m_fencesArray;
+        eastl::fixed_vector<vk::Fence, kMaxQueueCount> m_fencesArray;
         u64 m_frameId = 0;
     };
 } // KryneEngine
