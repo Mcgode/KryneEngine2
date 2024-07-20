@@ -209,6 +209,11 @@ namespace KryneEngine
         }
         m_renderTargetTextures.Clear();
 
+        for (auto semaphore: m_imageAvailableSemaphores)
+        {
+            _device.destroy(semaphore);
+        }
+
         SafeDestroy(_device, m_swapChain);
     }
 
