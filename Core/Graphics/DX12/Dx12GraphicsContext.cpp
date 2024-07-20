@@ -13,7 +13,9 @@
 
 namespace KryneEngine
 {
-    Dx12GraphicsContext::Dx12GraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo)
+    Dx12GraphicsContext::Dx12GraphicsContext(
+            const GraphicsCommon::ApplicationInfo &_appInfo,
+            u64 _currentFrameId)
         : m_appInfo(_appInfo)
     {
         KE_ASSERT(m_appInfo.IsDirectX12Api());
@@ -51,15 +53,11 @@ namespace KryneEngine
                                                             m_resources);
 
             m_frameContextCount = m_swapChain->m_renderTargetViews.Size();
-
-            m_frameContextIndex = m_swapChain->GetBackBufferIndex();
         }
         else
         {
             // If no display, remain on double buffering.
             m_frameContextCount = 2;
-
-            m_frameContextIndex = 0;
         }
 
         m_frameContexts.Resize(m_frameContextCount);
@@ -119,7 +117,9 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::EndFrame(u64 _frameId)
     {
-        auto& frameContext = _GetFrameContext();
+        const u8 frameIndex = _frameId % m_frameContextCount;
+
+        auto& frameContext = m_frameContexts[frameIndex];
 
         // Execute the command lists
         ID3D12CommandQueue* queue = nullptr;
@@ -162,17 +162,10 @@ namespace KryneEngine
         frameContext.m_copyCommandAllocationSet.Reset();
 
         // Retrieve next frame index
-        if (m_swapChain != nullptr)
-        {
-            m_frameContextIndex = m_swapChain->GetBackBufferIndex();
-        }
-        else
-        {
-            m_frameContextIndex = (m_frameContextIndex + 1) % m_frameContextCount;
-        }
+        const u8 nextFrameIndex = (_frameId + 1) % m_frameContextCount;
 
         // Wait for the previous frame with this index.
-        WaitForFrame(_GetFrameContext().m_frameId);
+        WaitForFrame(m_frameContexts[nextFrameIndex].m_frameId);
     }
 
     void Dx12GraphicsContext::WaitForFrame(u64 _frameId) const
@@ -297,7 +290,7 @@ namespace KryneEngine
         }
     }
 
-    GenPool::Handle Dx12GraphicsContext::GetFrameContextPresentRenderTarget(u8 _index)
+    GenPool::Handle Dx12GraphicsContext::GetPresentRenderTarget(u8 _index)
     {
         return m_swapChain->m_renderTargetTextures[_index];
     }
@@ -484,5 +477,10 @@ namespace KryneEngine
         _commandList->ResourceBarrier(barriers.size(), barriers.data());
 
         m_currentRenderPass = GenPool::kInvalidHandle;
+    }
+
+    u32 Dx12GraphicsContext::GetCurrentPresentImageIndex() const
+    {
+        return m_swapChain->GetBackBufferIndex();
     }
 } // KryneEngine

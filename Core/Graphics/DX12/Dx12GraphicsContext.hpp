@@ -23,7 +23,7 @@ namespace KryneEngine
     class Dx12GraphicsContext
     {
     public:
-        explicit Dx12GraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo);
+        explicit Dx12GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo, u64 _currentFrameId);
 
         ~Dx12GraphicsContext();
 
@@ -51,7 +51,6 @@ namespace KryneEngine
         eastl::unique_ptr<Dx12SwapChain> m_swapChain;
 
         u8 m_frameContextCount;
-        u8 m_frameContextIndex;
         DynamicArray<Dx12FrameContext> m_frameContexts;
         ComPtr<ID3D12Fence> m_frameFence;
         HANDLE m_frameFenceEvent;
@@ -62,11 +61,6 @@ namespace KryneEngine
         void _FindAdapter(IDXGIFactory4* _factory, IDXGIAdapter1** _adapter);
 
         void _CreateCommandQueues();
-
-        [[nodiscard]] Dx12FrameContext& _GetFrameContext() const
-        {
-            return m_frameContexts[m_frameContextIndex];
-        }
 
     public:
         [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
@@ -79,7 +73,8 @@ namespace KryneEngine
             return m_resources.FreeRenderTargetView(_handle);
         }
 
-        [[nodiscard]] GenPool::Handle GetFrameContextPresentRenderTarget(u8 _index);
+        [[nodiscard]] GenPool::Handle GetPresentRenderTarget(u8 _index);
+        [[nodiscard]] u32 GetCurrentPresentImageIndex() const;
 
         GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc)
         {
