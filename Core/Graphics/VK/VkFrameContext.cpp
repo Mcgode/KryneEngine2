@@ -110,6 +110,22 @@ namespace KryneEngine
         m_mutex.ManualUnlock();
     }
 
+    void VkFrameContext::CommandPoolSet::Reset()
+    {
+        const auto lock = m_mutex.AutoLock();
+
+        for (auto& commandBuffer: m_usedCommandBuffers)
+        {
+            commandBuffer.reset();
+        }
+
+        m_availableCommandBuffers.insert(
+                m_availableCommandBuffers.end(),
+                m_usedCommandBuffers.begin(),
+                m_usedCommandBuffers.end());
+        m_usedCommandBuffers.clear();
+    }
+
     void VkFrameContext::CommandPoolSet::Destroy(vk::Device _device)
     {
         SafeDestroy(_device, m_semaphore);

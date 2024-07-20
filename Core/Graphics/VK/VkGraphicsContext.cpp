@@ -230,7 +230,7 @@ namespace KryneEngine
                     queueSemaphores.push_back(_commandPoolSet.m_semaphore);
 
                     _queue.submit(submitInfo, _commandPoolSet.m_fence);
-	            }
+                }
             };
 
             submitQueue(m_transferQueue, frameContext.m_transferCommandPoolSet);
@@ -247,7 +247,11 @@ namespace KryneEngine
         const u8 nextFrameContextIndex = nextFrameId % m_frameContextCount;
         if (nextFrameId >= m_frameContextCount)
         {
-            m_frameContexts[nextFrameContextIndex].WaitForFences(m_device, nextFrameId - m_frameContextCount);
+            auto&nextFrameContext = m_frameContexts[nextFrameContextIndex];
+            nextFrameContext.WaitForFences(m_device, nextFrameId - m_frameContextCount);
+            nextFrameContext.m_graphicsCommandPoolSet.Reset();
+            nextFrameContext.m_computeCommandPoolSet.Reset();
+            nextFrameContext.m_transferCommandPoolSet.Reset();
         }
 
         // Acquire next image

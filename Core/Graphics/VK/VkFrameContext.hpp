@@ -73,6 +73,8 @@ namespace KryneEngine
             vk::CommandBuffer BeginCommandBuffer(vk::Device _device);
             void EndCommandBuffer();
 
+            void Reset();
+
             void Destroy(vk::Device _device);
         };
 
