@@ -95,7 +95,7 @@ int main() {
                     KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store,
                     TextureLayout::Unknown,
                     TextureLayout::Present,
-                    graphicsContext.GetFrameContextPresentRenderTarget(i),
+                    graphicsContext.GetPresentRenderTarget(i),
                     float4(0, 1, 1, 1)
             });
             renderPassHandles[i] = graphicsContext.CreateRenderPass(desc);
@@ -105,7 +105,7 @@ int main() {
         {
             CommandList commandList = graphicsContext.BeginGraphicsCommandList();
 
-            const u8 index = graphicsContext.GetCurrentFrameContextIndex();
+            const u8 index = graphicsContext.GetCurrentPresentImageIndex();
             graphicsContext.BeginRenderPass(commandList, renderPassHandles[index]);
             graphicsContext.EndRenderPass(commandList);
 

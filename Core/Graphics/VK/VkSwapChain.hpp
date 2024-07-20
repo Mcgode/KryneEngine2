@@ -36,9 +36,9 @@ namespace KryneEngine
 
         virtual ~VkSwapChain();
 
-        vk::Semaphore AcquireNextImage(vk::Device _device, u8 _frameIndex);
+        void AcquireNextImage(vk::Device _device, u8 _frameIndex);
 
-        void Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore> &_semaphores, u8 _frameIndex);
+        void Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore> &_semaphores);
 
         void Destroy(vk::Device _device, VkResources& _resources);
 
@@ -48,7 +48,7 @@ namespace KryneEngine
         DynamicArray<GenPool::Handle> m_renderTargetTextures;
         DynamicArray<GenPool::Handle> m_renderTargetViews;
         DynamicArray<vk::Semaphore> m_imageAvailableSemaphores;
-        u32 m_imageIndexOffset = 0;
+        u32 m_imageIndex = 0;
 
 #if !defined(KE_FINAL)
         eastl::shared_ptr<VkDebugHandler> m_debugHandler;

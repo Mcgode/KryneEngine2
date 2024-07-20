@@ -200,7 +200,7 @@ namespace KryneEngine
         vk::Semaphore imageAvailableSemaphore;
         if (m_swapChain != nullptr)
         {
-            imageAvailableSemaphore = m_swapChain->AcquireNextImage(m_device, frameIndex);
+            imageAvailableSemaphore = m_swapChain->m_imageAvailableSemaphores[frameIndex];
         }
 
         // Submit command buffers
@@ -239,9 +239,21 @@ namespace KryneEngine
 	    }
 
         // Present image
+        if (m_swapChain != nullptr) {
+            m_swapChain->Present(m_presentQueue, queueSemaphores);
+        }
+
+        const u64 nextFrameId = _frameId + 1;
+        const u8 nextFrameContextIndex = nextFrameId % m_frameContextCount;
+        if (nextFrameId >= m_frameContextCount)
+        {
+            m_frameContexts[nextFrameContextIndex].WaitForFences(m_device, nextFrameId - m_frameContextCount);
+        }
+
+        // Acquire next image
         if (m_swapChain != nullptr)
-    	{
-            m_swapChain->Present(m_presentQueue, queueSemaphores, frameIndex);
+        {
+            m_swapChain->AcquireNextImage(m_device, nextFrameContextIndex);
         }
     }
 
@@ -647,8 +659,17 @@ namespace KryneEngine
         _commandList.endRenderPass();
     }
 
-    GenPool::Handle VkGraphicsContext::GetFrameContextPresentRenderTarget(u8 _index)
+    GenPool::Handle VkGraphicsContext::GetPresentRenderTarget(u8 _index)
     {
-        return m_swapChain->m_renderTargetViews[_index];
+        return (m_swapChain != nullptr)
+                ? m_swapChain->m_renderTargetViews[_index]
+                : GenPool::kInvalidHandle;
+    }
+
+    u32 VkGraphicsContext::GetCurrentPresentImageIndex() const
+    {
+        return (m_swapChain != nullptr)
+                ? m_swapChain->m_imageIndex
+                : 0;
     }
 }

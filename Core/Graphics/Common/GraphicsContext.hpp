@@ -35,7 +35,7 @@ namespace KryneEngine
             return m_implementation.GetFrameContextCount();
         }
 
-        inline u8 GetCurrentFrameContextIndex() const
+        [[nodiscard]] inline u8 GetCurrentFrameContextIndex() const
         {
             return m_frameId % GetFrameContextCount();
         }
@@ -71,9 +71,14 @@ namespace KryneEngine
             return m_implementation.DestroyRenderTargetView(_handle);
         }
 
-        [[nodiscard]] GenPool::Handle GetFrameContextPresentRenderTarget(u8 _index)
+        [[nodiscard]] GenPool::Handle GetPresentRenderTarget(u8 _swapChainIndex)
         {
-            return m_implementation.GetFrameContextPresentRenderTarget(_index);
+            return m_implementation.GetPresentRenderTarget(_swapChainIndex);
+        }
+
+        [[nodiscard]] inline u32 GetCurrentPresentImageIndex() const
+        {
+            return m_implementation.GetCurrentPresentImageIndex();
         }
 
         [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc)

@@ -98,7 +98,8 @@ namespace KryneEngine
             return m_resources.FreeRenderTargetView(_handle, m_device);
         }
 
-        GenPool::Handle GetFrameContextPresentRenderTarget(u8 _index);
+        GenPool::Handle GetPresentRenderTarget(u8 _index);
+        [[nodiscard]] u32 GetCurrentPresentImageIndex() const;
 
         [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc)
         {

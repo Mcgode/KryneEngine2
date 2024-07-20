@@ -153,26 +153,22 @@ namespace KryneEngine
             const auto images = _device.getSwapchainImagesKHR(m_swapChain);
             KE_ASSERT_MSG(!images.empty(), "Unable to retrieve swapchain images");
 
-            m_imageIndexOffset = _currentFrameIndex % images.size();
-
             m_renderTargetTextures.Resize(images.size());
             m_renderTargetViews.Resize(images.size());
             m_imageAvailableSemaphores.Resize(images.size());
             for (auto i = 0u; i < images.size(); i++)
             {
-                const u32 j = (i + m_imageIndexOffset) % images.size();
-
                 const auto textureHandle = _resources.RegisterTexture(
                         images[i],
                         { u16(extent.width), u16(extent.height) });
 #if !defined(KE_FINAL)
-                const eastl::string imageDebugName = _appInfo.m_applicationName + "/Swapchain/Texture[" + eastl::to_string(j) + "]_Internal[" + eastl::to_string(i) + "]";
+                const eastl::string imageDebugName = _appInfo.m_applicationName + "/Swapchain/Texture[" + eastl::to_string(i) + "]";
                 {
                     const u64 imageHandle = (u64)(VkImage)images[i];
                     m_debugHandler->SetName(_device, VK_OBJECT_TYPE_IMAGE, imageHandle, imageDebugName);
                 }
 
-                const eastl::string rtvDebugName = _appInfo.m_applicationName + "/Swapchain/RTV[" + eastl::to_string(j) + "]";
+                const eastl::string rtvDebugName = _appInfo.m_applicationName + "/Swapchain/RTV[" + eastl::to_string(i) + "]";
 #endif
                 const RenderTargetViewDesc rtvDesc {
                     .m_textureHandle = textureHandle,
@@ -182,11 +178,13 @@ namespace KryneEngine
 #endif
                 };
 
-                m_renderTargetTextures.Init(j, textureHandle);
-                m_renderTargetViews.Init(j, _resources.CreateRenderTargetView(rtvDesc, _device));
-                m_imageAvailableSemaphores[j] = _device.createSemaphore(vk::SemaphoreCreateInfo{});
+                m_renderTargetTextures.Init(i, textureHandle);
+                m_renderTargetViews.Init(i, _resources.CreateRenderTargetView(rtvDesc, _device));
+                m_imageAvailableSemaphores[i] = _device.createSemaphore(vk::SemaphoreCreateInfo{});
             }
         }
+
+        AcquireNextImage(_device, _currentFrameIndex % m_imageAvailableSemaphores.Size());
     }
 
     VkSwapChain::~VkSwapChain()
@@ -194,20 +192,17 @@ namespace KryneEngine
         KE_ASSERT(!m_swapChain);
     }
 
-    vk::Semaphore VkSwapChain::AcquireNextImage(vk::Device _device, u8 _frameIndex)
+    void VkSwapChain::AcquireNextImage(vk::Device _device, u8 _frameIndex)
     {
-	    u32 imageIndex = _device.acquireNextImageKHR(m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[_frameIndex], nullptr).value;
-        KE_ASSERT(((imageIndex + m_imageIndexOffset) % m_imageAvailableSemaphores.Size()) == _frameIndex);
-        return m_imageAvailableSemaphores[_frameIndex];
+        m_imageIndex = _device.acquireNextImageKHR(m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[_frameIndex], nullptr).value;
     }
 
-    void VkSwapChain::Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore> &_semaphores, u8 _frameIndex)
+    void VkSwapChain::Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore> &_semaphores)
     {
-        const u32 imageIndex = (_frameIndex - m_imageIndexOffset) % m_imageAvailableSemaphores.Size();
 	    const vk::PresentInfoKHR presentInfo = {
         	_semaphores,
         	m_swapChain,
-            imageIndex
+            m_imageIndex
         };
 
         VkAssert(_presentQueue.presentKHR(presentInfo));
