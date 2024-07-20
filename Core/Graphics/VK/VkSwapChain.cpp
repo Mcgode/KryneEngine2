@@ -23,13 +23,8 @@ namespace KryneEngine
             VkResources &_resources, GLFWwindow *_window,
             const VkCommonStructures::QueueIndices &_queueIndices,
             u64 _currentFrameIndex,
-            const eastl::shared_ptr<VkDebugHandler> &_debugHandler,
             VkSwapChain *_oldSwapChain)
     {
-#if !defined(KE_FINAL)
-        m_debugHandler = _debugHandler;
-#endif
-
         const auto& capabilities = _surface.GetCapabilities();
         KE_ASSERT(!capabilities.m_formats.empty() && !capabilities.m_presentModes.empty());
 
@@ -142,12 +137,6 @@ namespace KryneEngine
                 _oldSwapChain == nullptr ? vk::SwapchainKHR{} : _oldSwapChain->m_swapChain);
 
         VkAssert(_device.createSwapchainKHR(&createInfo, nullptr, &m_swapChain));
-#if !defined(KE_FINAL)
-        {
-            eastl::string name = _appInfo.m_applicationName + "/Swapchain";
-            m_debugHandler->SetName(_device, VK_OBJECT_TYPE_SWAPCHAIN_KHR, (u64)(VkSwapchainKHR)m_swapChain, name);
-        }
-#endif
 
         {
             const auto images = _device.getSwapchainImagesKHR(m_swapChain);
@@ -162,12 +151,6 @@ namespace KryneEngine
                         images[i],
                         { u16(extent.width), u16(extent.height) });
 #if !defined(KE_FINAL)
-                const eastl::string imageDebugName = _appInfo.m_applicationName + "/Swapchain/Texture[" + eastl::to_string(i) + "]";
-                {
-                    const u64 imageHandle = (u64)(VkImage)images[i];
-                    m_debugHandler->SetName(_device, VK_OBJECT_TYPE_IMAGE, imageHandle, imageDebugName);
-                }
-
                 const eastl::string rtvDebugName = _appInfo.m_applicationName + "/Swapchain/RTV[" + eastl::to_string(i) + "]";
 #endif
                 const RenderTargetViewDesc rtvDesc {
@@ -228,4 +211,31 @@ namespace KryneEngine
 
         SafeDestroy(_device, m_swapChain);
     }
+
+#if !defined(KE_FINAL)
+    void VkSwapChain::SetDebugHandler(const eastl::shared_ptr<VkDebugHandler> &_handler, VkDevice _device)
+    {
+        {
+            eastl::string name = "Swapchain";
+            _handler->SetName(_device, VK_OBJECT_TYPE_SWAPCHAIN_KHR, (u64)(VkSwapchainKHR)m_swapChain, name);
+        }
+
+        DynamicArray<VkImage> imageArray;
+        u32 imageCount = m_imageAvailableSemaphores.Size();
+        imageArray.Resize(imageCount);
+        vkGetSwapchainImagesKHR(_device, m_swapChain, &imageCount, imageArray.Data());
+        for (auto i = 0u; i < imageCount; i++)
+        {
+            {
+                const eastl::string name = "Swapchain/Texture[" + eastl::to_string(i) + "]";
+                _handler->SetName(_device, VK_OBJECT_TYPE_IMAGE, (u64) imageArray[i], name);
+            }
+
+            {
+                const eastl::string name = "Swapchain/ImageAvailableSemaphore[" + eastl::to_string(i) + "]";
+                _handler->SetName(_device, VK_OBJECT_TYPE_SEMAPHORE, (u64)(VkSemaphore) m_imageAvailableSemaphores[i], name);
+            }
+        }
+    }
+#endif
 }

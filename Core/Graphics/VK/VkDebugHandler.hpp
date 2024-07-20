@@ -15,7 +15,7 @@ namespace KryneEngine
     class VkDebugHandler
     {
     public:
-        static VkDebugHandler Initialize(VkDevice _device, bool _debugUtilsEnabled, bool _debugMarkersEnabled)
+        static VkDebugHandler Initialize(VkDevice _device, const GraphicsCommon::ApplicationInfo &_appInfo, bool _debugUtilsEnabled, bool _debugMarkersEnabled)
         {
             VkDebugHandler handler;
 
@@ -29,12 +29,16 @@ namespace KryneEngine
                 handler.m_setObjectMarkerNameFunc = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(vkGetDeviceProcAddr(_device, "vkDebugMarkerSetObjectNameEXT"));
             }
 
+            handler.m_applicationName = _appInfo.m_applicationName;
+
             return handler;
         }
 
         VkResult SetName(VkDevice _device, VkObjectType _objectType, u64 _objectHandle, const eastl::string_view& _name)
         {
             VkResult result = VK_INCOMPLETE;
+
+            const eastl::string name = m_applicationName + "/" + _name.data();
 
             if (_objectHandle == (u64)VK_NULL_HANDLE)
             {
@@ -47,7 +51,7 @@ namespace KryneEngine
                     .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
                     .objectType = _objectType,
                     .objectHandle = _objectHandle,
-                    .pObjectName = _name.data()
+                    .pObjectName = name.c_str()
                 };
 
                 result = m_setObjectDebugNameFunc(_device, &nameInfo);
@@ -59,7 +63,7 @@ namespace KryneEngine
                     .sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT,
                     .objectType = VkHelperFunctions::ConvertObjectType(_objectType),
                     .object = _objectHandle,
-                    .pObjectName = _name.data()
+                    .pObjectName = name.c_str()
                 };
 
                 result = m_setObjectMarkerNameFunc(_device, &nameInfo);
@@ -71,5 +75,6 @@ namespace KryneEngine
     private:
         PFN_vkSetDebugUtilsObjectNameEXT  m_setObjectDebugNameFunc = nullptr;
         PFN_vkDebugMarkerSetObjectNameEXT m_setObjectMarkerNameFunc = nullptr;
+        eastl::string m_applicationName;
     };
 }

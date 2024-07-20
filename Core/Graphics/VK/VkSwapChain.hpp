@@ -31,7 +31,6 @@ namespace KryneEngine
                     GLFWwindow *_window,
                     const VkCommonStructures::QueueIndices &_queueIndices,
                     u64 _currentFrameIndex,
-                    const eastl::shared_ptr<VkDebugHandler> &_debugHandler,
                     VkSwapChain *_oldSwapChain);
 
         virtual ~VkSwapChain();
@@ -42,6 +41,10 @@ namespace KryneEngine
 
         void Destroy(vk::Device _device, VkResources& _resources);
 
+#if !defined(KE_FINAL)
+        void SetDebugHandler(const eastl::shared_ptr<VkDebugHandler> &_handler, VkDevice _device);
+#endif
+
     private:
         vk::SwapchainKHR m_swapChain;
         vk::SharingMode m_sharingMode;
@@ -49,9 +52,5 @@ namespace KryneEngine
         DynamicArray<GenPool::Handle> m_renderTargetViews;
         DynamicArray<vk::Semaphore> m_imageAvailableSemaphores;
         u32 m_imageIndex = 0;
-
-#if !defined(KE_FINAL)
-        eastl::shared_ptr<VkDebugHandler> m_debugHandler;
-#endif
     };
 }
