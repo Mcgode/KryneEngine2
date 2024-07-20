@@ -5,6 +5,7 @@
  */
 
 #include "VkFrameContext.hpp"
+#include "VkDebugHandler.hpp"
 #include "HelperFunctions.hpp"
 
 namespace KryneEngine
@@ -58,6 +59,18 @@ namespace KryneEngine
         KE_ASSERT(!m_transferCommandPoolSet.m_commandPool);
     }
 
+#if !defined(KE_FINAL)
+    void VkFrameContext::SetDebugHandler(const eastl::shared_ptr<VkDebugHandler> &_debugHandler, vk::Device _device, u8 _frameIndex)
+    {
+        eastl::string baseName;
+        baseName.sprintf("VkFrameContext[%d]/", _frameIndex);
+
+        m_graphicsCommandPoolSet.SetDebugHandler(_debugHandler, _device, baseName + "/GraphicsPoolSet");
+        m_computeCommandPoolSet.SetDebugHandler(_debugHandler, _device, baseName + "/ComputePoolSet");
+        m_transferCommandPoolSet.SetDebugHandler(_debugHandler, _device, baseName + "/TransferPoolSet");
+    }
+#endif
+
     void VkFrameContext::Destroy(vk::Device _device)
     {
         m_graphicsCommandPoolSet.Destroy(_device);
@@ -88,6 +101,15 @@ namespace KryneEngine
                 1,
             };
             VkAssert(_device.allocateCommandBuffers(&allocateInfo, &m_usedCommandBuffers.push_back()));
+
+#if !defined(KE_FINAL)
+            if (m_debugHandler != nullptr)
+            {
+                eastl::string name;
+                name.sprintf("%s/CommandBuffer[%d]", m_baseDebugString.c_str(), m_usedCommandBuffers.size() - 1);
+                m_debugHandler->SetName(_device, VK_OBJECT_TYPE_COMMAND_BUFFER, (u64)(VkCommandBuffer)m_usedCommandBuffers.back(), name);
+            }
+#endif
         }
         else
         {
@@ -153,4 +175,20 @@ namespace KryneEngine
 
         SafeDestroy(_device, m_commandPool);
     }
+
+#if !defined(KE_FINAL)
+    void VkFrameContext::CommandPoolSet::SetDebugHandler(
+            const eastl::shared_ptr<VkDebugHandler> &_handler,
+            vk::Device _device,
+            const eastl::string_view &_baseString)
+    {
+        m_debugHandler = _handler;
+        m_baseDebugString = _baseString;
+
+        m_debugHandler->SetName(_device, VK_OBJECT_TYPE_SEMAPHORE, (u64)(VkSemaphore)m_semaphore, m_baseDebugString + "Semaphore");
+        m_debugHandler->SetName(_device, VK_OBJECT_TYPE_FENCE, (u64)(VkFence)m_fence, m_baseDebugString + "Fence");
+
+        m_debugHandler->SetName(_device, VK_OBJECT_TYPE_COMMAND_POOL, (u64)(VkCommandPool)m_commandPool, m_baseDebugString + "CommandPool");
+    }
+#endif
 } // KryneEngine

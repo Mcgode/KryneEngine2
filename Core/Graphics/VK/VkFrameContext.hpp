@@ -9,11 +9,14 @@
 #include "VkHeaders.hpp"
 #include "CommonStructures.hpp"
 #include <Threads/LightweightMutex.hpp>
+#include <EASTL/shared_ptr.h>
 
 #include "EASTL/fixed_vector.h"
 
 namespace KryneEngine
 {
+    class VkDebugHandler;
+
     class VkFrameContext
     {
         friend class VkGraphicsContext;
@@ -22,6 +25,10 @@ namespace KryneEngine
         VkFrameContext(vk::Device _device, const VkCommonStructures::QueueIndices& _queueIndices);
 
         virtual ~VkFrameContext();
+
+#if !defined(KE_FINAL)
+        void SetDebugHandler (const eastl::shared_ptr<VkDebugHandler> &_debugHandler, vk::Device _device, u8 _frameIndex);
+#endif
 
         void Destroy(vk::Device _device);
 
@@ -69,6 +76,13 @@ namespace KryneEngine
 
             vk::Fence m_fence;
             vk::Semaphore m_semaphore;
+
+#if !defined(KE_FINAL)
+            eastl::shared_ptr<VkDebugHandler> m_debugHandler;
+            eastl::string m_baseDebugString;
+
+            void SetDebugHandler(const eastl::shared_ptr<VkDebugHandler>& _handler, vk::Device _device, const eastl::string_view &_baseString);
+#endif
 
             vk::CommandBuffer BeginCommandBuffer(vk::Device _device);
             void EndCommandBuffer();

@@ -164,6 +164,13 @@ namespace KryneEngine
 
         m_frameContexts.Resize(m_frameContextCount);
         m_frameContexts.InitAll(m_device, m_queueIndices);
+
+#if !defined(KE_FINAL)
+        for (auto i = 0u; i < m_frameContextCount; i++)
+        {
+            m_frameContexts[i].SetDebugHandler(m_debugHandler, m_device, i);
+        }
+#endif
     }
 
     VkGraphicsContext::~VkGraphicsContext()

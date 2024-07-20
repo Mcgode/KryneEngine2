@@ -36,6 +36,11 @@ namespace KryneEngine
         {
             VkResult result = VK_INCOMPLETE;
 
+            if (_objectHandle == (u64)VK_NULL_HANDLE)
+            {
+                return result;
+            }
+
             if (m_setObjectDebugNameFunc != nullptr)
             {
                 VkDebugUtilsObjectNameInfoEXT nameInfo {
