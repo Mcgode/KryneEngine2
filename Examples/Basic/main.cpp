@@ -98,6 +98,7 @@ int main() {
                     graphicsContext.GetPresentRenderTarget(i),
                     float4(0, 1, 1, 1)
             });
+            desc.m_debugName.sprintf("PresentRenderPass[%d]", i);
             renderPassHandles[i] = graphicsContext.CreateRenderPass(desc);
         }
 
@@ -112,6 +113,12 @@ int main() {
             graphicsContext.EndGraphicsCommandList();
         }
         while (graphicsContext.EndFrame());
+
+        graphicsContext.WaitForLastFrame();
+        for (auto handle: renderPassHandles)
+        {
+            graphicsContext.DestroyRenderPass(handle);
+        }
     }
 
     return 0;
