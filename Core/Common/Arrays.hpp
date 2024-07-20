@@ -159,6 +159,11 @@ namespace KryneEngine
             m_count = 0;
         }
 
+        Ptr Data()
+        {
+            return m_array;
+        }
+
     private:
         union
         {
