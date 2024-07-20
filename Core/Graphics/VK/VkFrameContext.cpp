@@ -134,6 +134,11 @@ namespace KryneEngine
         KE_ASSERT_MSG(!m_fence || _device.getFenceStatus(m_fence) == vk::Result::eSuccess, "Fence should be signaled by the time the frame is destroyed");
         SafeDestroy(_device, m_fence);
 
+        if (!m_usedCommandBuffers.empty())
+        {
+            Reset();
+        }
+
         const auto lock = m_mutex.AutoLock();
         KE_ASSERT_MSG(m_usedCommandBuffers.empty(), "PoolSet should be reset before destroy");
 

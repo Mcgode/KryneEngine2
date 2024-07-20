@@ -195,7 +195,7 @@ namespace KryneEngine
     {
         const u8 frameIndex = _frameId % m_frameContextCount;
         auto& frameContext = m_frameContexts[frameIndex];
-        eastl::fixed_vector<vk::Semaphore, 3> queueSemaphores;
+        eastl::fixed_vector<vk::Semaphore, VkFrameContext::kMaxQueueCount> queueSemaphores;
 
         vk::Semaphore imageAvailableSemaphore;
         if (m_swapChain != nullptr)
