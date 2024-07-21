@@ -86,6 +86,11 @@ namespace KryneEngine
             return m_count;
         }
 
+        [[nodiscard]] bool Empty() const
+        {
+            return m_count == 0;
+        }
+
         void Resize(u64 _count)
         {
             if (m_array != nullptr)
