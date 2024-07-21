@@ -16,7 +16,7 @@ namespace KryneEngine
     VkResources::VkResources()  = default;
     VkResources::~VkResources() = default;
 
-    GenPool::Handle VkResources::RegisterTexture(vk::Image _image, Size16x2 _size)
+    GenPool::Handle VkResources::RegisterTexture(VkImage _image, Size16x2 _size)
     {
         const auto handle = m_textures.Allocate();
         *m_textures.Get(handle) = _image;
@@ -24,14 +24,14 @@ namespace KryneEngine
         return handle;
     }
 
-    bool VkResources::ReleaseTexture(GenPool::Handle _handle, vk::Device _device, bool _free)
+    bool VkResources::ReleaseTexture(GenPool::Handle _handle, VkDevice _device, bool _free)
     {
-        vk::Image image;
+        VkImage image;
         if (m_textures.Free(_handle, &image))
         {
             if (_free)
             {
-                _device.destroy(image);
+                vkDestroyImage(_device, image, nullptr);
             }
             return true;
         }
@@ -40,7 +40,7 @@ namespace KryneEngine
 
     GenPool::Handle VkResources::CreateRenderTargetView(
             const RenderTargetViewDesc &_desc,
-            vk::Device &_device)
+            VkDevice &_device)
     {
         auto* image = m_textures.Get(_desc.m_textureHandle);
         if (image == nullptr)
@@ -50,22 +50,24 @@ namespace KryneEngine
 
         const auto rtvHandle = m_renderTargetViews.Allocate();
 
-        vk::ImageViewCreateInfo imageViewCreateInfo(
-                {},
-                *image,
-                VkHelperFunctions::RetrieveViewType(_desc.m_type),
-                VkHelperFunctions::ToVkFormat(_desc.m_format),
-                {},
-                {
-                        VkHelperFunctions::RetrieveAspectMask(_desc.m_plane),
-                        _desc.m_mipLevel,
-                        1,
-                        _desc.m_arrayRangeStart,
-                        _desc.m_arrayRangeSize,
-                }
-        );
+        VkImageViewCreateInfo imageViewCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .flags = 0,
+            .image = *image,
+            .viewType = VkHelperFunctions::RetrieveViewType(_desc.m_type),
+            .format = VkHelperFunctions::ToVkFormat(_desc.m_format),
+            .components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,  VK_COMPONENT_SWIZZLE_IDENTITY },
+            .subresourceRange = {
+                .aspectMask = VkHelperFunctions::RetrieveAspectMask(_desc.m_plane),
+                .baseMipLevel = _desc.m_mipLevel,
+                .levelCount = 1,
+                .baseArrayLayer = _desc.m_arrayRangeStart,
+                .layerCount = _desc.m_arrayRangeSize
+            }
+        };
 
-        vk::ImageView imageView = _device.createImageView(imageViewCreateInfo);
+        VkImageView imageView;
+        VkAssert(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &imageView));
 
 #if !defined(KE_FINAL)
         {
@@ -83,32 +85,32 @@ namespace KryneEngine
         return rtvHandle;
     }
 
-    bool VkResources::FreeRenderTargetView(GenPool::Handle _handle, vk::Device _device)
+    bool VkResources::FreeRenderTargetView(GenPool::Handle _handle, VkDevice _device)
     {
-        vk::ImageView imageView;
+        VkImageView imageView;
         if (m_renderTargetViews.Free(_handle, &imageView))
         {
-            _device.destroy(imageView);
+            vkDestroyImageView(_device, imageView, nullptr);
             return true;
         }
         return false;
     }
 
-    GenPool::Handle VkResources::CreateRenderPass(const RenderPassDesc &_desc, vk::Device _device)
+    GenPool::Handle VkResources::CreateRenderPass(const RenderPassDesc &_desc, VkDevice _device)
     {
         constexpr auto convertLoadOp = [](RenderPassDesc::Attachment::LoadOperation _op)
         {
             switch (_op)
             {
                 case RenderPassDesc::Attachment::LoadOperation::Load:
-                    return vk::AttachmentLoadOp::eLoad;
+                    return VK_ATTACHMENT_LOAD_OP_LOAD;
                 case RenderPassDesc::Attachment::LoadOperation::Clear:
-                    return vk::AttachmentLoadOp::eClear;
+                    return VK_ATTACHMENT_LOAD_OP_CLEAR;
                 case RenderPassDesc::Attachment::LoadOperation::DontCare:
-                    return vk::AttachmentLoadOp::eDontCare;
+                    return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             }
             KE_ERROR("Unreachable code");
-            return vk::AttachmentLoadOp::eDontCare;
+            return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         };
         constexpr auto convertStoreOp = [](RenderPassDesc::Attachment::StoreOperation _op)
         {
@@ -116,27 +118,27 @@ namespace KryneEngine
             {
                 case RenderPassDesc::Attachment::StoreOperation::Store:
                 case RenderPassDesc::Attachment::StoreOperation::Resolve:
-                    return vk::AttachmentStoreOp::eStore;
+                    return VK_ATTACHMENT_STORE_OP_STORE;
                 case RenderPassDesc::Attachment::StoreOperation::DontCare:
-                    return vk::AttachmentStoreOp::eDontCare;
+                    return VK_ATTACHMENT_STORE_OP_DONT_CARE;
             }
             KE_ERROR("Unreachable code");
-            return vk::AttachmentStoreOp::eDontCare;
+            return VK_ATTACHMENT_STORE_OP_DONT_CARE;
         };
 
         eastl::fixed_vector<
-                vk::AttachmentDescription,
+                VkAttachmentDescription,
                 RenderPassDesc::kMaxSupportedColorAttachments + 1, // Include optional depth attachment
                 false> attachments {};
         eastl::fixed_vector<
-                vk::ImageView,
+                VkImageView,
                 RenderPassDesc::kMaxSupportedColorAttachments + 1, // Include optional depth attachment
                 false> rtvs {};
         eastl::fixed_vector<
-                vk::AttachmentReference,
+                VkAttachmentReference,
                 RenderPassDesc::kMaxSupportedColorAttachments,
                 false> attachmentReferences {};
-        eastl::vector<vk::ClearValue> clearValues;
+        eastl::vector<VkClearValue> clearValues;
 
         Size16x2 size {};
 
@@ -154,28 +156,31 @@ namespace KryneEngine
                 KE_ASSERT(size.m_width == rtvColdData->m_size.m_width && size.m_height == rtvColdData->m_size.m_height);
             }
 
-            vk::AttachmentDescription desc;
-            desc.format = rtvColdData->m_format;
-            desc.loadOp = convertLoadOp(attachment.m_loadOperation);
-            desc.storeOp = convertStoreOp(attachment.m_storeOperation);
-            desc.initialLayout = VkHelperFunctions::ToVkLayout(attachment.m_initialLayout);
-            desc.finalLayout = VkHelperFunctions::ToVkLayout(attachment.m_finalLayout);
+            VkAttachmentDescription desc {
+                .flags = 0,
+                .format = rtvColdData->m_format,
+                .samples = VK_SAMPLE_COUNT_1_BIT,
+                .loadOp = convertLoadOp(attachment.m_loadOperation),
+                .storeOp = convertStoreOp(attachment.m_storeOperation),
+                .initialLayout = VkHelperFunctions::ToVkLayout(attachment.m_initialLayout),
+                .finalLayout = VkHelperFunctions::ToVkLayout(attachment.m_finalLayout),
+            };
 
-            vk::AttachmentReference ref {
+            VkAttachmentReference ref {
                 u32(attachments.size()),
-                vk::ImageLayout::eColorAttachmentOptimal
+                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
             };
 
             attachments.push_back(desc);
             rtvs.push_back(*m_renderTargetViews.Get(attachment.m_rtv));
             attachmentReferences.push_back(ref);
 
-            vk::ClearColorValue clearColorValue;
+            VkClearColorValue clearColorValue;
             memcpy(&clearColorValue.float32, &attachment.m_clearColor[0], sizeof(clearColorValue.float32));
-            clearValues.push_back(clearColorValue);
+            clearValues.push_back({ .color = clearColorValue });
         }
 
-        vk::AttachmentReference depthRef;
+        VkAttachmentReference depthRef;
         if (_desc.m_depthStencilAttachment.has_value())
         {
             const auto& attachment = _desc.m_depthStencilAttachment.value();
@@ -192,57 +197,66 @@ namespace KryneEngine
                 KE_ASSERT(size.m_width == rtvColdData->m_size.m_width && size.m_height == rtvColdData->m_size.m_height);
             }
 
-            vk::AttachmentDescription desc;
-            desc.format = rtvColdData->m_format;
-            desc.loadOp = convertLoadOp(attachment.m_loadOperation);
-            desc.storeOp = convertStoreOp(attachment.m_storeOperation);
-            desc.stencilLoadOp = convertLoadOp(attachment.m_loadOperation);
-            desc.initialLayout = VkHelperFunctions::ToVkLayout(attachment.m_initialLayout);
-            desc.finalLayout = VkHelperFunctions::ToVkLayout(attachment.m_finalLayout);
+            VkAttachmentDescription desc {
+                .flags = 0,
+                .format = rtvColdData->m_format,
+                .samples = VK_SAMPLE_COUNT_1_BIT,
+                .loadOp = convertLoadOp(attachment.m_loadOperation),
+                .storeOp = convertStoreOp(attachment.m_storeOperation),
+                .stencilLoadOp = convertLoadOp(attachment.m_loadOperation),
+                .initialLayout = VkHelperFunctions::ToVkLayout(attachment.m_initialLayout),
+                .finalLayout = VkHelperFunctions::ToVkLayout(attachment.m_finalLayout)
+            };
 
             depthRef = {
                     u32(attachments.size()),
-                    vk::ImageLayout::eDepthStencilAttachmentOptimal
+                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
             };
 
             attachments.push_back(desc);
             rtvs.push_back(*m_renderTargetViews.Get(attachment.m_rtv));
-            clearValues.push_back(vk::ClearDepthStencilValue{
-                attachment.m_clearColor.r,
-                attachment.m_stencilClearValue
+            clearValues.push_back(VkClearValue {
+                .depthStencil = {
+                    .depth = attachment.m_clearColor.r,
+                    .stencil = attachment.m_stencilClearValue
+                }
             });
         }
 
-        vk::SubpassDescription subpassDescription;
-        subpassDescription.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-        subpassDescription.colorAttachmentCount = attachmentReferences.size();
-        subpassDescription.pColorAttachments = attachmentReferences.data();
-        subpassDescription.pDepthStencilAttachment = _desc.m_depthStencilAttachment.has_value() ? &depthRef : nullptr;
+        VkSubpassDescription subpassDescription {
+                .flags = 0,
+                .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+                .colorAttachmentCount = static_cast<u32>(attachmentReferences.size()),
+                .pColorAttachments = attachmentReferences.data(),
+                .pDepthStencilAttachment = _desc.m_depthStencilAttachment.has_value() ? &depthRef : nullptr
+        };
 
-        vk::RenderPassCreateInfo createInfo {
-                {},
-                u32(attachments.size()),
-                attachments.data(),
-                1,
-                &subpassDescription
+        VkRenderPassCreateInfo createInfo {
+                .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+                .flags = 0,
+                .attachmentCount = static_cast<u32>(attachments.size()),
+                .pAttachments = attachments.data(),
+                .subpassCount = 1,
+                .pSubpasses = &subpassDescription
         };
 
         const auto handle = m_renderPasses.Allocate();
         auto& renderPassData = *m_renderPasses.Get(handle);
-        renderPassData.m_renderPass = _device.createRenderPass(createInfo);
+        VkAssert(vkCreateRenderPass(_device, &createInfo, nullptr, &renderPassData.m_renderPass));
         renderPassData.m_size = size;
         renderPassData.m_clearValues = eastl::move(clearValues);
 
-        vk::FramebufferCreateInfo framebufferCreateInfo {
-                {},
-                renderPassData.m_renderPass,
-                u32(rtvs.size()),
-                rtvs.data(),
-                size.m_width,
-                size.m_height,
-                1
+        VkFramebufferCreateInfo framebufferCreateInfo {
+                .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+                .flags = 0,
+                .renderPass = renderPassData.m_renderPass,
+                .attachmentCount = static_cast<u32>(rtvs.size()),
+                .pAttachments = rtvs.data(),
+                .width = size.m_width,
+                .height = size.m_height,
+                .layers = 1
         };
-        renderPassData.m_framebuffer = _device.createFramebuffer(framebufferCreateInfo);
+        VkAssert(vkCreateFramebuffer(_device, &framebufferCreateInfo, nullptr, &renderPassData.m_framebuffer));
 
 #if !defined(KE_FINAL)
         {
@@ -260,7 +274,7 @@ namespace KryneEngine
         return handle;
     }
 
-    bool VkResources::DestroyRenderPass(GenPool::Handle _handle, vk::Device _device)
+    bool VkResources::DestroyRenderPass(GenPool::Handle _handle, VkDevice _device)
     {
         RenderPassData data;
         if (!m_renderPasses.Free(_handle, &data))
@@ -269,8 +283,8 @@ namespace KryneEngine
         }
 
         data.m_clearValues.clear();
-        _device.destroy(data.m_framebuffer);
-        _device.destroy(data.m_renderPass);
+        vkDestroyFramebuffer(_device, data.m_framebuffer, nullptr);
+        vkDestroyRenderPass(_device, data.m_renderPass, nullptr);
 
         return true;
     }

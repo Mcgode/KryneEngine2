@@ -25,7 +25,7 @@ namespace KryneEngine
 
     public:
         VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
-                    vk::Device _device,
+                    VkDevice _device,
                     const VkSurface &_surface,
                     VkResources &_resources,
                     GLFWwindow *_window,
@@ -35,22 +35,22 @@ namespace KryneEngine
 
         virtual ~VkSwapChain();
 
-        void AcquireNextImage(vk::Device _device, u8 _frameIndex);
+        void AcquireNextImage(VkDevice _device, u8 _frameIndex);
 
-        void Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore> &_semaphores);
+        void Present(VkQueue _presentQueue, const eastl::span<VkSemaphore> &_semaphores);
 
-        void Destroy(vk::Device _device, VkResources& _resources);
+        void Destroy(VkDevice _device, VkResources& _resources);
 
 #if !defined(KE_FINAL)
         void SetDebugHandler(const eastl::shared_ptr<VkDebugHandler> &_handler, VkDevice _device);
 #endif
 
     private:
-        vk::SwapchainKHR m_swapChain;
-        vk::SharingMode m_sharingMode;
+        VkSwapchainKHR m_swapChain;
+        VkSharingMode m_sharingMode;
         DynamicArray<GenPool::Handle> m_renderTargetTextures;
         DynamicArray<GenPool::Handle> m_renderTargetViews;
-        DynamicArray<vk::Semaphore> m_imageAvailableSemaphores;
+        DynamicArray<VkSemaphore> m_imageAvailableSemaphores;
         u32 m_imageIndex = 0;
     };
 }

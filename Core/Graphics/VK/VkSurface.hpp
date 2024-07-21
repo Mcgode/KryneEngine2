@@ -18,24 +18,24 @@ namespace KryneEngine
     public:
         struct Capabilities
         {
-            vk::SurfaceCapabilitiesKHR m_surfaceCapabilities;
-            eastl::vector<vk::SurfaceFormatKHR> m_formats;
-            eastl::vector<vk::PresentModeKHR> m_presentModes;
+            VkSurfaceCapabilitiesKHR m_surfaceCapabilities;
+            DynamicArray<VkSurfaceFormatKHR> m_formats;
+            DynamicArray<VkPresentModeKHR> m_presentModes;
         };
 
-        VkSurface(vk::Instance _instance, GLFWwindow *_window);
+        VkSurface(VkInstance _instance, GLFWwindow *_window);
 
         virtual ~VkSurface();
 
-        void Destroy(vk::Instance _instance);
+        void Destroy(VkInstance _instance);
 
-        void UpdateCapabilities(const vk::PhysicalDevice& _physicalDevice);
+        void UpdateCapabilities(const VkPhysicalDevice& _physicalDevice);
 
-        [[nodiscard]] const vk::SurfaceKHR& GetSurface() const { return m_surface; }
+        [[nodiscard]] const VkSurfaceKHR& GetSurface() const { return m_surface; }
         [[nodiscard]] const Capabilities& GetCapabilities() const { return m_capabilities; }
 
     private:
-        vk::SurfaceKHR m_surface;
+        VkSurfaceKHR m_surface = VK_NULL_HANDLE;
         Capabilities m_capabilities;
     };
 }

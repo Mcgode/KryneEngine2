@@ -11,7 +11,7 @@
 
 namespace KryneEngine
 {
-    VkSurface::VkSurface(vk::Instance _instance, GLFWwindow *_window)
+    VkSurface::VkSurface(VkInstance _instance, GLFWwindow *_window)
     {
         VkAssert(glfwCreateWindowSurface(_instance,
                                          _window,
@@ -24,22 +24,18 @@ namespace KryneEngine
         KE_ASSERT(!m_surface);
     }
 
-    void VkSurface::Destroy(vk::Instance _instance)
+    void VkSurface::Destroy(VkInstance _instance)
     {
-        SafeDestroy(_instance, m_surface);
+        vkDestroySurfaceKHR(_instance, SafeReset(m_surface), nullptr);
     }
 
-    void VkSurface::UpdateCapabilities(const vk::PhysicalDevice& _physicalDevice)
+    void VkSurface::UpdateCapabilities(const VkPhysicalDevice& _physicalDevice)
     {
-        VkAssert(_physicalDevice.getSurfaceCapabilitiesKHR(m_surface,&m_capabilities.m_surfaceCapabilities));
+        VkAssert(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physicalDevice, m_surface, &m_capabilities.m_surfaceCapabilities));
 
-        auto formats = _physicalDevice.getSurfaceFormatsKHR(m_surface);
-        eastl::copy(formats.begin(), formats.end(), eastl::back_inserter(m_capabilities.m_formats));
+        VkHelperFunctions::VkArrayFetch(m_capabilities.m_formats, vkGetPhysicalDeviceSurfaceFormatsKHR, _physicalDevice, m_surface);
+        VkHelperFunctions::VkArrayFetch(m_capabilities.m_presentModes, vkGetPhysicalDeviceSurfacePresentModesKHR, _physicalDevice, m_surface);
 
-        auto presentModes = _physicalDevice.getSurfacePresentModesKHR(m_surface);
-        eastl::copy(presentModes.begin(), presentModes.end(),
-                eastl::back_inserter(m_capabilities.m_presentModes));
-
-        KE_ASSERT(!formats.empty() && !presentModes.empty());
+        KE_ASSERT(!m_capabilities.m_formats.Empty() && !m_capabilities.m_presentModes.Empty());
     }
 }

@@ -43,19 +43,19 @@ namespace KryneEngine
 
         eastl::unique_ptr<Window> m_window;
 
-        vk::Instance m_instance;
-        vk::DebugUtilsMessengerEXT m_debugMessenger;
-        vk::PhysicalDevice m_physicalDevice;
-        vk::Device m_device;
+        VkInstance m_instance;
+        VkDebugUtilsMessengerEXT m_debugMessenger;
+        VkPhysicalDevice m_physicalDevice;
+        VkDevice m_device;
 
         eastl::unique_ptr<VkSurface> m_surface;
         eastl::unique_ptr<VkSwapChain> m_swapChain;
 
         VkCommonStructures::QueueIndices m_queueIndices {};
-        vk::Queue m_graphicsQueue;
-        vk::Queue m_transferQueue;
-        vk::Queue m_computeQueue;
-        vk::Queue m_presentQueue;
+        VkQueue m_graphicsQueue;
+        VkQueue m_transferQueue;
+        VkQueue m_computeQueue;
+        VkQueue m_presentQueue;
 
         bool m_debugUtils = false;
         bool m_debugMarkers = false;
@@ -66,23 +66,23 @@ namespace KryneEngine
         u8 m_frameContextCount;
         DynamicArray<VkFrameContext> m_frameContexts;
 
-        static void _PrepareValidationLayers(vk::InstanceCreateInfo& _createInfo);
+        static void _PrepareValidationLayers(VkInstanceCreateInfo& _createInfo);
 
         eastl::vector<const char*> _RetrieveRequiredExtensionNames(const GraphicsCommon::ApplicationInfo& _appInfo);
         void _RetrieveOptionalExtensionNames(
                 eastl::vector<const char *>& _currentList,
-                const std::vector<vk::ExtensionProperties> &_extensionsAvailable,
+                const DynamicArray<VkExtensionProperties> &_availableExtensions,
                 const GraphicsCommon::ApplicationInfo &_appInfo);
 
-        static vk::DebugUtilsMessengerCreateInfoEXT _PopulateDebugCreateInfo(void *_userData);
+        static VkDebugUtilsMessengerCreateInfoEXT _PopulateDebugCreateInfo(void *_userData);
 
         void _SetupValidationLayersCallback();
 
         [[nodiscard]] eastl::vector_set<eastl::string> _GetRequiredDeviceExtensions() const;
         void _SelectPhysicalDevice();
 
-        static bool _SelectQueues(const GraphicsCommon::ApplicationInfo &_appInfo, const vk::PhysicalDevice &_device,
-                                  const vk::SurfaceKHR &_surface, VkCommonStructures::QueueIndices &_indices);
+        static bool _SelectQueues(const GraphicsCommon::ApplicationInfo &_appInfo, const VkPhysicalDevice &_physicalDevice,
+                                  const VkSurfaceKHR &_surface, VkCommonStructures::QueueIndices &_indices);
 
         void _CreateDevice();
         void _RetrieveQueues(const VkCommonStructures::QueueIndices &_queueIndices);

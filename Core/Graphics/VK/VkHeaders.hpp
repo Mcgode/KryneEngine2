@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan.h>
 #include <Common/Types.hpp>
 #include <Common/Arrays.hpp>
 #include <Common/Assert.hpp>

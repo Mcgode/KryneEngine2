@@ -10,5 +10,5 @@
 
 namespace KryneEngine
 {
-    using CommandList = vk::CommandBuffer;
+    using CommandList = VkCommandBuffer;
 }

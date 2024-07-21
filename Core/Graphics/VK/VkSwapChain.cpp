@@ -19,24 +19,24 @@ namespace KryneEngine
 {
     VkSwapChain::VkSwapChain(
             const GraphicsCommon::ApplicationInfo &_appInfo,
-            vk::Device _device, const VkSurface &_surface,
+            VkDevice _device, const VkSurface &_surface,
             VkResources &_resources, GLFWwindow *_window,
             const VkCommonStructures::QueueIndices &_queueIndices,
             u64 _currentFrameIndex,
             VkSwapChain *_oldSwapChain)
     {
         const auto& capabilities = _surface.GetCapabilities();
-        KE_ASSERT(!capabilities.m_formats.empty() && !capabilities.m_presentModes.empty());
+        KE_ASSERT(!capabilities.m_formats.Empty() && !capabilities.m_presentModes.Empty());
 
         const auto displayOptions = _appInfo.m_displayOptions;
 
         // Select appropriate format
-        vk::SurfaceFormatKHR selectedSurfaceFormat;
+        VkSurfaceFormatKHR selectedSurfaceFormat;
         if (displayOptions.m_sRgbPresent != GraphicsCommon::SoftEnable::Disabled)
         {
             for (const auto& format: capabilities.m_formats)
             {
-                if (format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+                if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
                 {
                     selectedSurfaceFormat = format;
                     break;
@@ -44,20 +44,20 @@ namespace KryneEngine
             }
 
             KE_ASSERT(displayOptions.m_sRgbPresent == GraphicsCommon::SoftEnable::TryEnable
-                      || selectedSurfaceFormat.format != vk::Format::eUndefined);
+                      || selectedSurfaceFormat.format != VK_FORMAT_UNDEFINED);
         }
-        if (selectedSurfaceFormat.format == vk::Format::eUndefined)
+        if (selectedSurfaceFormat.format == VK_FORMAT_UNDEFINED)
         {
             selectedSurfaceFormat = capabilities.m_formats[0];
         }
 
         // Select appropriate present mode
-        vk::PresentModeKHR selectedPresentMode = vk::PresentModeKHR::eFifo;
+        VkPresentModeKHR selectedPresentMode = VK_PRESENT_MODE_FIFO_KHR;
         if (displayOptions.m_tripleBuffering != GraphicsCommon::SoftEnable::Disabled)
         {
             for (const auto& presentMode: capabilities.m_presentModes)
             {
-                if (presentMode == vk::PresentModeKHR::eMailbox)
+                if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
                 {
                     selectedPresentMode = presentMode;
                     break;
@@ -65,12 +65,13 @@ namespace KryneEngine
             }
 
             KE_ASSERT(displayOptions.m_tripleBuffering == GraphicsCommon::SoftEnable::TryEnable
-                   || selectedPresentMode != vk::PresentModeKHR::eFifo);
+                   || selectedPresentMode != VK_PRESENT_MODE_FIFO_KHR);
         }
 
         // Retrieve extent
-        vk::Extent2D extent;
-        if (capabilities.m_surfaceCapabilities.currentExtent != std::numeric_limits<u32>::max())
+        VkExtent2D extent;
+        if (capabilities.m_surfaceCapabilities.currentExtent.width != std::numeric_limits<u32>::max()
+            && capabilities.m_surfaceCapabilities.currentExtent.height != std::numeric_limits<u32>::max())
         {
             extent = capabilities.m_surfaceCapabilities.currentExtent;
         }
@@ -79,7 +80,7 @@ namespace KryneEngine
             s32 width, height;
             glfwGetFramebufferSize(_window, &width, &height);
 
-            extent = vk::Extent2D {
+            extent = VkExtent2D {
                 static_cast<u32>(width),
                 static_cast<u32>(height)
             };
@@ -92,20 +93,20 @@ namespace KryneEngine
                                          capabilities.m_surfaceCapabilities.maxImageExtent.height);
         }
 
-        u32 imageCount = 2;
+        u32 desiredImageCount = 2;
         if (displayOptions.m_tripleBuffering != GraphicsCommon::SoftEnable::Disabled)
         {
-            imageCount++;
+            desiredImageCount++;
         }
-        imageCount = eastl::max(imageCount, capabilities.m_surfaceCapabilities.minImageCount);
+        desiredImageCount = eastl::max(desiredImageCount, capabilities.m_surfaceCapabilities.minImageCount);
         if (capabilities.m_surfaceCapabilities.minImageCount != 0)
         {
-            imageCount = eastl::min(imageCount, capabilities.m_surfaceCapabilities.maxImageCount);
+            desiredImageCount = eastl::min(desiredImageCount, capabilities.m_surfaceCapabilities.maxImageCount);
         }
-        KE_ASSERT(imageCount >= 3 || displayOptions.m_tripleBuffering != GraphicsCommon::SoftEnable::ForceEnabled);
+        KE_ASSERT(desiredImageCount >= 3 || displayOptions.m_tripleBuffering != GraphicsCommon::SoftEnable::ForceEnabled);
 
         eastl::vector<u32> queueFamilyIndices{};
-        m_sharingMode = vk::SharingMode::eExclusive;
+        m_sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         if (_appInfo.m_features.m_concurrentQueues)
         {
             queueFamilyIndices = _queueIndices.RetrieveDifferentFamilies();
@@ -115,37 +116,44 @@ namespace KryneEngine
             }
             else
             {
-                m_sharingMode = vk::SharingMode::eConcurrent;
+                m_sharingMode = VK_SHARING_MODE_CONCURRENT;
             }
         }
 
-        vk::SwapchainCreateInfoKHR createInfo(
-                {},
-                _surface.GetSurface(),
-                imageCount,
-                selectedSurfaceFormat.format,
-                selectedSurfaceFormat.colorSpace,
-                extent,
-                1,
-                vk::ImageUsageFlagBits::eColorAttachment,
-                m_sharingMode,
-                VkHelperFunctions::MakeArrayProxy(queueFamilyIndices),
-                capabilities.m_surfaceCapabilities.currentTransform,
-                vk::CompositeAlphaFlagBitsKHR::eOpaque,
-                selectedPresentMode,
-                true,
-                _oldSwapChain == nullptr ? vk::SwapchainKHR{} : _oldSwapChain->m_swapChain);
+        {
+            VkSwapchainCreateInfoKHR createInfo{
+                    .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+                    .flags = 0,
+                    .surface = _surface.GetSurface(),
+                    .minImageCount = desiredImageCount,
+                    .imageFormat = selectedSurfaceFormat.format,
+                    .imageColorSpace = selectedSurfaceFormat.colorSpace,
+                    .imageExtent = extent,
+                    .imageArrayLayers = 1,
+                    .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                    .imageSharingMode = m_sharingMode,
+                    .queueFamilyIndexCount = static_cast<u32>(queueFamilyIndices.size()),
+                    .pQueueFamilyIndices = queueFamilyIndices.data(),
+                    .preTransform = capabilities.m_surfaceCapabilities.currentTransform,
+                    .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+                    .presentMode = selectedPresentMode,
+                    .oldSwapchain = _oldSwapChain == nullptr ? VK_NULL_HANDLE : _oldSwapChain->m_swapChain};
 
-        VkAssert(_device.createSwapchainKHR(&createInfo, nullptr, &m_swapChain));
+            VkAssert(vkCreateSwapchainKHR(_device, &createInfo, nullptr, &m_swapChain));
+        }
 
         {
-            const auto images = _device.getSwapchainImagesKHR(m_swapChain);
-            KE_ASSERT_MSG(!images.empty(), "Unable to retrieve swapchain images");
+            u32 imageCount;
+            VkAssert(vkGetSwapchainImagesKHR(_device, m_swapChain,  &imageCount, nullptr));
+            DynamicArray<VkImage> images;
+            images.Resize(imageCount);
+            VkAssert(vkGetSwapchainImagesKHR(_device, m_swapChain, &imageCount, images.Data()));
+            KE_ASSERT_MSG(imageCount > 0, "Unable to retrieve swapchain images");
 
-            m_renderTargetTextures.Resize(images.size());
-            m_renderTargetViews.Resize(images.size());
-            m_imageAvailableSemaphores.Resize(images.size());
-            for (auto i = 0u; i < images.size(); i++)
+            m_renderTargetTextures.Resize(imageCount);
+            m_renderTargetViews.Resize(imageCount);
+            m_imageAvailableSemaphores.Resize(imageCount);
+            for (auto i = 0u; i < imageCount; i++)
             {
                 const auto textureHandle = _resources.RegisterTexture(
                         images[i],
@@ -163,7 +171,10 @@ namespace KryneEngine
 
                 m_renderTargetTextures.Init(i, textureHandle);
                 m_renderTargetViews.Init(i, _resources.CreateRenderTargetView(rtvDesc, _device));
-                m_imageAvailableSemaphores[i] = _device.createSemaphore(vk::SemaphoreCreateInfo{});
+                {
+                    VkSemaphoreCreateInfo createInfo = { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+                    VkAssert(vkCreateSemaphore(_device, &createInfo, nullptr, &m_imageAvailableSemaphores[i]));
+                }
             }
         }
 
@@ -175,23 +186,32 @@ namespace KryneEngine
         KE_ASSERT(!m_swapChain);
     }
 
-    void VkSwapChain::AcquireNextImage(vk::Device _device, u8 _frameIndex)
+    void VkSwapChain::AcquireNextImage(VkDevice _device, u8 _frameIndex)
     {
-        m_imageIndex = _device.acquireNextImageKHR(m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[_frameIndex], nullptr).value;
+        VkAssert(vkAcquireNextImageKHR(
+                _device,
+                m_swapChain,
+                UINT64_MAX,
+                m_imageAvailableSemaphores[_frameIndex],
+                VK_NULL_HANDLE,
+                &m_imageIndex));
     }
 
-    void VkSwapChain::Present(vk::Queue _presentQueue, const eastl::span<vk::Semaphore> &_semaphores)
+    void VkSwapChain::Present(VkQueue _presentQueue, const eastl::span<VkSemaphore> &_semaphores)
     {
-	    const vk::PresentInfoKHR presentInfo = {
-        	_semaphores,
-        	m_swapChain,
-            m_imageIndex
+	    const VkPresentInfoKHR presentInfo = {
+                .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                .waitSemaphoreCount = static_cast<uint32_t>(_semaphores.size()),
+                .pWaitSemaphores = _semaphores.data(),
+                .swapchainCount = 1,
+                .pSwapchains = &m_swapChain,
+                .pImageIndices = &m_imageIndex,
         };
 
-        VkAssert(_presentQueue.presentKHR(presentInfo));
+        VkAssert(vkQueuePresentKHR(_presentQueue, &presentInfo));
     }
 
-    void VkSwapChain::Destroy(vk::Device _device, VkResources &_resources)
+    void VkSwapChain::Destroy(VkDevice _device, VkResources &_resources)
     {
         for (const auto handle: m_renderTargetViews)
         {
@@ -211,10 +231,10 @@ namespace KryneEngine
 
         for (auto semaphore: m_imageAvailableSemaphores)
         {
-            _device.destroy(semaphore);
+            vkDestroySemaphore(_device, semaphore, nullptr);
         }
 
-        SafeDestroy(_device, m_swapChain);
+        vkDestroySwapchainKHR(_device, SafeReset(m_swapChain), nullptr);
     }
 
 #if !defined(KE_FINAL)

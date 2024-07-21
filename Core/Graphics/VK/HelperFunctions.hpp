@@ -7,17 +7,17 @@
 #pragma once
 
 #include <EASTL/span.h>
-#include <vulkan/vulkan.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <Graphics/Common/Enums.hpp>
 
 namespace KryneEngine
 {
-    template <class Owner, class Resource>
-    inline void SafeDestroy(Owner _owner, Resource& _resource)
+    template <class Resource>
+    inline Resource SafeReset(Resource& _resource)
     {
-        _owner.destroy(_resource);
-        _resource = nullptr;
+        const Resource value = _resource;
+        _resource = VK_NULL_HANDLE;
+        return value;
     }
 }
 
@@ -44,13 +44,7 @@ namespace KryneEngine::VkHelperFunctions
         }
     }
 
-    template<class Container>
-    inline vk::ArrayProxyNoTemporaries<const typename Container::value_type> MakeArrayProxy(const Container& _container)
-    {
-        return vk::ArrayProxyNoTemporaries<const typename Container::value_type>(_container.size(), _container.data());
-    }
-
-#define VkAssert(condition) KE_ASSERT_MSG(vk::Result(condition) == vk::Result::eSuccess, #condition)
+#define VkAssert(condition) KE_ASSERT_MSG(VkResult(condition) == VK_SUCCESS, #condition)
 
     template<class VkType>
     inline bool IsNull(const VkType& _vkObject)
@@ -58,38 +52,64 @@ namespace KryneEngine::VkHelperFunctions
         return static_cast<typename VkType::CType>(_vkObject) == VK_NULL_HANDLE;
     }
 
-    constexpr inline vk::Format ToVkFormat(TextureFormat _format)
+    template <class T, class FunctionReturnT, class... FunctionArgsT, class... Args>
+    inline void VkArrayFetch(DynamicArray<T>& _array, FunctionReturnT (*_fetchFunction)(FunctionArgsT...), Args&&... _args)
     {
-        vk::Format format;
+        constexpr bool returnsVoid = eastl::is_same<FunctionReturnT, void>::value;
 
-        #define MAP(commonFormat, vkFormat) case TextureFormat::commonFormat: format = vk::Format::vkFormat; break
+        u32 count;
+        if constexpr (returnsVoid)
+        {
+            _fetchFunction(eastl::forward<Args>(_args)..., &count, nullptr);
+        }
+        else
+        {
+            VkAssert(_fetchFunction(eastl::forward<Args>(_args)..., &count, nullptr));
+        }
+
+        _array.Resize(count);
+        if constexpr (returnsVoid)
+        {
+            _fetchFunction(eastl::forward<Args>(_args)..., &count, _array.Data());
+        }
+        else
+        {
+            VkAssert(_fetchFunction(eastl::forward<Args>(_args)..., &count, _array.Data()));
+        }
+    }
+
+    constexpr inline VkFormat ToVkFormat(TextureFormat _format)
+    {
+        VkFormat format;
+
+        #define MAP(commonFormat, vkFormat) case TextureFormat::commonFormat: format = vkFormat; break
 
         switch (_format)
         {
-            MAP(R8_UNorm, eR8Unorm);
-            MAP(RG8_UNorm, eR8G8Unorm);
-            MAP(RGB8_UNorm, eR8G8B8Unorm);
-            MAP(RGBA8_UNorm, eR8G8B8A8Unorm);
+            MAP(R8_UNorm, VK_FORMAT_R8_UNORM);
+            MAP(RG8_UNorm, VK_FORMAT_R8G8_UNORM);
+            MAP(RGB8_UNorm, VK_FORMAT_R8G8B8_UNORM);
+            MAP(RGBA8_UNorm, VK_FORMAT_R8G8B8A8_UNORM);
 
-            MAP(RGB8_sRGB, eR8G8B8Srgb);
-            MAP(RGBA8_sRGB, eR8G8B8A8Srgb);
+            MAP(RGB8_sRGB, VK_FORMAT_R8G8B8_SRGB);
+            MAP(RGBA8_sRGB, VK_FORMAT_R8G8B8A8_SRGB);
 
-            MAP(BGRA8_UNorm, eB8G8R8A8Unorm);
-            MAP(BGRA8_sRGB, eB8G8R8A8Srgb);
+            MAP(BGRA8_UNorm, VK_FORMAT_B8G8R8A8_UNORM);
+            MAP(BGRA8_sRGB, VK_FORMAT_B8G8R8A8_SRGB);
 
-            MAP(R8_SNorm, eR8Snorm);
-            MAP(RG8_SNorm, eR8G8Snorm);
-            MAP(RGB8_SNorm, eR8G8B8Snorm);
-            MAP(RGBA8_SNorm, eR8G8B8A8Snorm);
+            MAP(R8_SNorm, VK_FORMAT_R8_SNORM);
+            MAP(RG8_SNorm, VK_FORMAT_R8G8_SNORM);
+            MAP(RGB8_SNorm, VK_FORMAT_R8G8B8_SNORM);
+            MAP(RGBA8_SNorm, VK_FORMAT_R8G8B8A8_SNORM);
 
-            MAP(D16, eD16Unorm);
-            MAP(D24, eX8D24UnormPack32);
-            MAP(D32F, eD32Sfloat);
-            MAP(D24S8, eD24UnormS8Uint);
-            MAP(D32FS8, eD32SfloatS8Uint);
+            MAP(D16, VK_FORMAT_D16_UNORM);
+            MAP(D24, VK_FORMAT_X8_D24_UNORM_PACK32);
+            MAP(D32F, VK_FORMAT_D32_SFLOAT);
+            MAP(D24S8, VK_FORMAT_D24_UNORM_S8_UINT);
+            MAP(D32FS8, VK_FORMAT_D32_SFLOAT_S8_UINT);
             default:
                 KE_ASSERT_MSG(_format != TextureFormat::NoFormat, "Unknown format");
-                format = vk::Format::eUndefined;
+                format = VK_FORMAT_UNDEFINED;
         }
 
         #undef MAP
@@ -97,37 +117,37 @@ namespace KryneEngine::VkHelperFunctions
         return format;
     }
 
-    constexpr inline TextureFormat FromVkFormat(vk::Format _format)
+    constexpr inline TextureFormat FromVkFormat(VkFormat _format)
     {
         TextureFormat format;
 
-        #define MAP(commonFormat, vkFormat) case vk::Format::vkFormat: format = TextureFormat::commonFormat; break
+        #define MAP(commonFormat, vkFormat) case vkFormat: format = TextureFormat::commonFormat; break
 
         switch (_format)
         {
-            MAP(R8_UNorm, eR8Unorm);
-            MAP(RG8_UNorm, eR8G8Unorm);
-            MAP(RGB8_UNorm, eR8G8B8Unorm);
-            MAP(RGBA8_UNorm, eR8G8B8A8Unorm);
+            MAP(R8_UNorm, VK_FORMAT_R8_UNORM);
+            MAP(RG8_UNorm, VK_FORMAT_R8G8_UNORM);
+            MAP(RGB8_UNorm, VK_FORMAT_R8G8B8_UNORM);
+            MAP(RGBA8_UNorm, VK_FORMAT_R8G8B8A8_UNORM);
 
-            MAP(RGB8_sRGB, eR8G8B8Srgb);
-            MAP(RGBA8_sRGB, eR8G8B8A8Srgb);
+            MAP(RGB8_sRGB, VK_FORMAT_R8G8B8_SRGB);
+            MAP(RGBA8_sRGB, VK_FORMAT_R8G8B8A8_SRGB);
 
-            MAP(BGRA8_UNorm, eB8G8R8A8Unorm);
-            MAP(BGRA8_sRGB, eB8G8R8A8Srgb);
+            MAP(BGRA8_UNorm, VK_FORMAT_B8G8R8A8_UNORM);
+            MAP(BGRA8_sRGB, VK_FORMAT_B8G8R8A8_SRGB);
 
-            MAP(R8_SNorm, eR8Snorm);
-            MAP(RG8_SNorm, eR8G8Snorm);
-            MAP(RGB8_SNorm, eR8G8B8Snorm);
-            MAP(RGBA8_SNorm, eR8G8B8A8Snorm);
+            MAP(R8_SNorm, VK_FORMAT_R8_SNORM);
+            MAP(RG8_SNorm, VK_FORMAT_R8G8_SNORM);
+            MAP(RGB8_SNorm, VK_FORMAT_R8G8B8_SNORM);
+            MAP(RGBA8_SNorm, VK_FORMAT_R8G8B8A8_SNORM);
 
-            MAP(D16, eD16Unorm);
-            MAP(D24, eX8D24UnormPack32);
-            MAP(D32F, eD32Sfloat);
-            MAP(D24S8, eD24UnormS8Uint);
-            MAP(D32FS8, eD32SfloatS8Uint);
+            MAP(D16, VK_FORMAT_D16_UNORM);
+            MAP(D24, VK_FORMAT_X8_D24_UNORM_PACK32);
+            MAP(D32F, VK_FORMAT_D32_SFLOAT);
+            MAP(D24S8, VK_FORMAT_D24_UNORM_S8_UINT);
+            MAP(D32FS8, VK_FORMAT_D32_SFLOAT_S8_UINT);
             default:
-                KE_ASSERT_MSG(_format != vk::Format::eUndefined, "Unknown format");
+                KE_ASSERT_MSG(_format != VK_FORMAT_UNDEFINED, "Unknown format");
                 format = TextureFormat::NoFormat;
         }
 
@@ -136,31 +156,31 @@ namespace KryneEngine::VkHelperFunctions
         return format;
     }
 
-    constexpr inline vk::ImageViewType RetrieveViewType(TextureTypes _type)
+    constexpr inline VkImageViewType RetrieveViewType(TextureTypes _type)
     {
-        vk::ImageViewType type;
+        VkImageViewType type;
         switch (_type)
         {
             case TextureTypes::Single1D:
-                type = vk::ImageViewType::e1D;
+                type = VK_IMAGE_VIEW_TYPE_1D;
                 break;
             case TextureTypes::Single2D:
-                type = vk::ImageViewType::e2D;
+                type = VK_IMAGE_VIEW_TYPE_2D;
                 break;
             case TextureTypes::Single3D:
-                type = vk::ImageViewType::e3D;
+                type = VK_IMAGE_VIEW_TYPE_3D;
                 break;
             case TextureTypes::Array1D:
-                type = vk::ImageViewType::e1DArray;
+                type = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
                 break;
             case TextureTypes::Array2D:
-                type = vk::ImageViewType::e2DArray;
+                type = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
                 break;
             case TextureTypes::SingleCube:
-                type = vk::ImageViewType::eCube;
+                type = VK_IMAGE_VIEW_TYPE_CUBE;
                 break;
             case TextureTypes::ArrayCube:
-                type = vk::ImageViewType::eCubeArray;
+                type = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
                 break;
             default:
                 KE_ERROR("Unknown texture type");
@@ -168,42 +188,42 @@ namespace KryneEngine::VkHelperFunctions
         return type;
     }
 
-    inline vk::ImageAspectFlags RetrieveAspectMask(TexturePlane _plane)
+    inline u32 RetrieveAspectMask(TexturePlane _plane)
     {
-        vk::ImageAspectFlags flags;
+        u32 flags = 0;
         if (BitUtils::EnumHasAny(_plane, TexturePlane::Color))
         {
-            flags |= vk::ImageAspectFlagBits::eColor;
+            flags |= VK_IMAGE_ASPECT_COLOR_BIT;
         }
         if (BitUtils::EnumHasAny(_plane, TexturePlane::Depth))
         {
-            flags |= vk::ImageAspectFlagBits::eDepth;
+            flags |= VK_IMAGE_ASPECT_DEPTH_BIT;
         }
         if (BitUtils::EnumHasAny(_plane, TexturePlane::Stencil))
         {
-            flags |= vk::ImageAspectFlagBits::eStencil;
+            flags |= VK_IMAGE_ASPECT_STENCIL_BIT;
         }
         return flags;
     }
 
-    constexpr inline vk::ImageLayout ToVkLayout(TextureLayout _layout)
+    constexpr inline VkImageLayout ToVkLayout(TextureLayout _layout)
     {
-        vk::ImageLayout layout;
+        VkImageLayout layout;
 
-        #define MAP(commonLayout, vkLayout) case TextureLayout::commonLayout: layout = vk::ImageLayout::vkLayout; break
+        #define MAP(commonLayout, vkLayout) case TextureLayout::commonLayout: layout = vkLayout; break
         switch (_layout)
         {
-            MAP(Unknown, eUndefined);
-            MAP(Common, eGeneral);
-            MAP(Present, ePresentSrcKHR);
-            MAP(GenericRead, eReadOnlyOptimal);
-            MAP(ColorAttachment, eColorAttachmentOptimal);
-            MAP(DepthStencilAttachment, eDepthStencilAttachmentOptimal);
-            MAP(DepthStencilReadOnly, eDepthStencilReadOnlyOptimal);
-            MAP(UnorderedAccess, eGeneral); // No specific layout for unordered access resources in VK
-            MAP(ShaderResource, eShaderReadOnlyOptimal);
-            MAP(TransferSrc, eTransferSrcOptimal);
-            MAP(TransferDst, eTransferDstOptimal);
+            MAP(Unknown, VK_IMAGE_LAYOUT_UNDEFINED);
+            MAP(Common, VK_IMAGE_LAYOUT_GENERAL);
+            MAP(Present, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+            MAP(GenericRead, VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL);
+            MAP(ColorAttachment, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+            MAP(DepthStencilAttachment, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+            MAP(DepthStencilReadOnly, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL);
+            MAP(UnorderedAccess, VK_IMAGE_LAYOUT_GENERAL); // No specific layout for unordered access resources in VK
+            MAP(ShaderResource, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            MAP(TransferSrc, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+            MAP(TransferDst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         }
         #undef MAP
 
