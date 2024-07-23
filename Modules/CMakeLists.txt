@@ -1,5 +1,8 @@
+add_subdirectory(ImGuiModule)
+
 add_library(KryneEngineModules INTERFACE)
-#target_link_libraries(KryneEngineModules INTERFACE)
+target_link_libraries(KryneEngineModules INTERFACE ImGuiModule)
+target_include_directories(KryneEngineModules INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(KryneEngine INTERFACE)
 target_link_libraries(KryneEngine INTERFACE KryneEngineCore KryneEngineModules)

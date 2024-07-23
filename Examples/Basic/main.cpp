@@ -3,6 +3,7 @@
 #include <Threads/FibersManager.hpp>
 #include <Threads/Semaphore.hpp>
 #include <Graphics/Common/RenderPass.hpp>
+#include <ImGuiModule/ImGuiModule.hpp>
 
 using namespace KryneEngine;
 
@@ -102,17 +103,26 @@ int main() {
             renderPassHandles[i] = graphicsContext.CreateRenderPass(desc);
         }
 
+        KryneEngine::ImGuiModule imGuiModule { graphicsContext };
+
         do
         {
+            imGuiModule.NewFrame(graphicsContext);
+
             CommandList commandList = graphicsContext.BeginGraphicsCommandList();
 
             const u8 index = graphicsContext.GetCurrentPresentImageIndex();
             graphicsContext.BeginRenderPass(commandList, renderPassHandles[index]);
+
+            imGuiModule.RenderFrame(graphicsContext);
+
             graphicsContext.EndRenderPass(commandList);
 
             graphicsContext.EndGraphicsCommandList();
         }
         while (graphicsContext.EndFrame());
+
+        imGuiModule.Shutdown(graphicsContext);
 
         graphicsContext.WaitForLastFrame();
         for (auto handle: renderPassHandles)
