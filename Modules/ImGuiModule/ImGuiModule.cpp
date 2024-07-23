@@ -27,13 +27,13 @@ namespace KryneEngine
 
     void ImGuiModule::NewFrame(GraphicsContext &_graphicsContext)
     {
-
+        ImGui::SetCurrentContext(m_context);
     }
 
     void ImGuiModule::RenderFrame(GraphicsContext &_graphicsContext)
     {
         ImGuiContext& context = *m_context;
-        for (auto i = 0; context.Viewports.Size; i++)
+        for (auto i = 0; i < context.Viewports.Size; i++)
         {
             ImGuiViewportP* viewport = context.Viewports[i];
             if (viewport == nullptr || !viewport->DrawDataP.Valid)
