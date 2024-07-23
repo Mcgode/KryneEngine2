@@ -374,7 +374,7 @@ namespace KryneEngine
                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
 
         return {
-                .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT,
+                .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
                 .flags = 0,
                 .messageSeverity = severityFlags,
                 .messageType = messageTypeFlags,
