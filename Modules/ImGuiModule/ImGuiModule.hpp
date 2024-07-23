@@ -6,7 +6,7 @@
 
 #pragma once
 
-struct ImGuiContext;
+#include <imgui.h>
 
 namespace KryneEngine
 {

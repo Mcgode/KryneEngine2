@@ -109,6 +109,11 @@ int main() {
         {
             imGuiModule.NewFrame(graphicsContext);
 
+            {
+                static bool open;
+                ImGui::ShowDemoWindow(&open);
+            }
+
             CommandList commandList = graphicsContext.BeginGraphicsCommandList();
 
             const u8 index = graphicsContext.GetCurrentPresentImageIndex();
