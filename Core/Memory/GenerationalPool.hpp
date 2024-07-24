@@ -22,6 +22,17 @@ namespace KryneEngine
         {
             IndexType m_index;
             GenerationType m_generation;
+
+            inline bool operator==(const Handle &rhs) const
+            {
+                return static_cast<u32>(*this) == static_cast<u32>(rhs);
+            }
+
+            inline explicit operator u32() const
+            {
+                static_assert(sizeof(Handle) == sizeof(u32));
+                return *reinterpret_cast<const u32*>(this);
+            }
         };
 
         static constexpr Handle kInvalidHandle = {
