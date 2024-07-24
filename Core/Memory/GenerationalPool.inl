@@ -59,9 +59,9 @@ namespace KryneEngine
             m_coldDataArray = newColdArray;
         }
 
-        for (GenPool::IndexType i = m_size; i < _toSize; i++)
+        for (GenPool::IndexType i = _toSize; i > m_size; i--)
         {
-            m_availableIndices.push_back(i);
+            m_availableIndices.push_back(i - 1);
         }
         m_size = _toSize;
     }
