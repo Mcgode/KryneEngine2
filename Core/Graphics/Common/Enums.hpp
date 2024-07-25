@@ -88,4 +88,12 @@ namespace KryneEngine
         Stencil = 1 << 2,
     };
     KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(TexturePlane)
+
+    enum class MemoryAccessType: u8
+    {
+        StageOnce = 0,
+        StageEveryFrame,
+        GpuOnly,
+        Readback,
+    };
 }

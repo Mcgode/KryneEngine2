@@ -26,5 +26,6 @@ namespace KryneEngine
 
     private:
         ImGuiContext* m_context;
+        GenPool::Handle m_fontsTextureHandle = GenPool::kInvalidHandle;
     };
 }// namespace KryneEngine
