@@ -63,6 +63,11 @@ namespace KryneEngine
         void _CreateCommandQueues();
 
     public:
+        [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc)
+        {
+            return m_resources.CreateTexture(_createDesc, m_device.Get());
+        }
+
         [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
             return m_resources.CreateRenderTargetView(_desc, m_device.Get());

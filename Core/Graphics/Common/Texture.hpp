@@ -27,4 +27,10 @@ namespace KryneEngine
         eastl::string m_debugName;
 #endif
     };
+
+    struct TextureCreateDesc
+    {
+        TextureDesc m_desc;
+        MemoryUsage m_memoryUsage = MemoryUsage::Invalid;
+    };
 }

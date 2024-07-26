@@ -55,7 +55,7 @@ if (GraphicsApi STREQUAL "VK")
     message(STATUS "Vulkan lib: " ${Vulkan_LIBRARIES})
     target_link_libraries(KryneEngineGraphics ${Vulkan_LIBRARIES} VulkanMemoryAllocator)
 elseif(GraphicsApi STREQUAL "DX12")
-    message(STATUS "Linking DirectX12 lib")
+    message(STATUS "Linking DirectX12 libs")
     target_link_libraries(KryneEngineGraphics d3d12 dxgi d3dcompiler dxguid DirectX-Headers D3D12MemoryAllocator)
 endif()
 

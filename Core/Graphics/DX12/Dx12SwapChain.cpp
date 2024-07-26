@@ -74,7 +74,7 @@ namespace KryneEngine
 #if !defined(KE_FINAL)
                 Dx12SetName(renderTargetTexture, L"SwapChain Render Target Texture %d", i);
 #endif
-                const auto textureHandle = _resources.RegisterTexture(renderTargetTexture);
+                const auto textureHandle = _resources.RegisterTexture(renderTargetTexture, nullptr);
                 m_renderTargetTextures.Init(i, textureHandle);
 
                 const RenderTargetViewDesc rtvDesc {

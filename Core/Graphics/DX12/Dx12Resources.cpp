@@ -6,6 +6,8 @@
 
 #include "Dx12Resources.h"
 #include "HelperFunctions.hpp"
+#include <D3D12MemAlloc.h>
+#include <Graphics/Common/Texture.hpp>
 #include <Graphics/Common/RenderTargetView.hpp>
 #include <Memory/GenerationalPool.inl>
 
@@ -14,19 +16,67 @@ namespace KryneEngine
     Dx12Resources::Dx12Resources() = default;
     Dx12Resources::~Dx12Resources() = default;
 
-    GenPool::Handle Dx12Resources::RegisterTexture(ID3D12Resource *_texture)
+    void Dx12Resources::Init(ID3D12Device* _device, IDXGIAdapter* _adapter)
+    {
+        D3D12MA::ALLOCATOR_DESC allocatorDesc {
+            .pDevice = _device,
+            .pAdapter = _adapter,
+        };
+
+        Dx12Assert(D3D12MA::CreateAllocator(&allocatorDesc, &m_memoryAllocator));
+    }
+
+    GenPool::Handle Dx12Resources::CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device)
+    {
+        const D3D12_RESOURCE_DESC resourceDesc {
+            .Dimension = Dx12Converters::GetTextureResourceDimension(_createDesc.m_desc.m_type),
+            .Alignment = 0,
+            .Width = _createDesc.m_desc.m_dimensions.x,
+            .Height = _createDesc.m_desc.m_dimensions.y,
+            .DepthOrArraySize = static_cast<u16>(_createDesc.m_desc.m_type == TextureTypes::Single3D
+                                    ? _createDesc.m_desc.m_dimensions.z
+                                    : _createDesc.m_desc.m_arraySize),
+            .MipLevels = _createDesc.m_desc.m_mipCount,
+            .Format = Dx12Converters::ToDx12Format(_createDesc.m_desc.m_format)
+        };
+
+        const D3D12MA::ALLOCATION_DESC allocationDesc {
+            .HeapType = Dx12Converters::GetHeapType(_createDesc.m_memoryUsage),
+        };
+
+        D3D12MA::Allocation* allocation;
+        ID3D12Resource* texture;
+        Dx12Assert(m_memoryAllocator->CreateResource(
+            &allocationDesc,
+            &resourceDesc, D3D12_RESOURCE_STATE_COMMON,
+            nullptr,
+            &allocation,
+            IID_PPV_ARGS(&texture)));
+
+        return RegisterTexture(texture, allocation);
+    }
+
+    GenPool::Handle Dx12Resources::RegisterTexture(ID3D12Resource* _texture, D3D12MA::Allocation* _allocation)
     {
         const auto handle = m_textures.Allocate();
         *m_textures.Get(handle) = _texture;
+        *m_textures.GetCold(handle) = _allocation;
         return handle;
     }
 
     bool Dx12Resources::ReleaseTexture(GenPool::Handle _handle, bool _free)
     {
         ID3D12Resource* texture = nullptr;
-        if (m_textures.Free(_handle, _free ? &texture : nullptr))
+        D3D12MA::Allocation* allocation = nullptr;
+        if (m_textures.Free(_handle, _free ? &texture : nullptr, &allocation))
         {
             SafeRelease(texture);
+
+            if (allocation != nullptr)
+            {
+                allocation->Release();
+            }
+
             return true;
         }
         return false;

@@ -144,29 +144,89 @@ namespace KryneEngine
 
             return format;
         }
-    }
 
-    constexpr inline D3D12_RESOURCE_STATES ToDx12ResourceState(TextureLayout _layout)
-    {
-        D3D12_RESOURCE_STATES result;
+        constexpr inline D3D12_RESOURCE_STATES ToDx12ResourceState(TextureLayout _layout)
+        {
+            D3D12_RESOURCE_STATES result;
 
 #define MAP(commonLayout, dx12State) case TextureLayout::commonLayout: result = dx12State; break
-        switch (_layout) {
-            MAP(Unknown, D3D12_RESOURCE_STATE_COMMON);
-            MAP(Common, D3D12_RESOURCE_STATE_COMMON);
-            MAP(Present, D3D12_RESOURCE_STATE_PRESENT);
-            MAP(GenericRead, D3D12_RESOURCE_STATE_GENERIC_READ);
-            MAP(ColorAttachment, D3D12_RESOURCE_STATE_RENDER_TARGET);
-            MAP(DepthStencilAttachment, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-            MAP(DepthStencilReadOnly, D3D12_RESOURCE_STATE_DEPTH_READ);
-            MAP(UnorderedAccess, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-            MAP(ShaderResource, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
-            MAP(TransferSrc, D3D12_RESOURCE_STATE_COPY_SOURCE);
-            MAP(TransferDst, D3D12_RESOURCE_STATE_COPY_DEST);
-        }
+            switch (_layout) {
+                MAP(Unknown, D3D12_RESOURCE_STATE_COMMON);
+                MAP(Common, D3D12_RESOURCE_STATE_COMMON);
+                MAP(Present, D3D12_RESOURCE_STATE_PRESENT);
+                MAP(GenericRead, D3D12_RESOURCE_STATE_GENERIC_READ);
+                MAP(ColorAttachment, D3D12_RESOURCE_STATE_RENDER_TARGET);
+                MAP(DepthStencilAttachment, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+                MAP(DepthStencilReadOnly, D3D12_RESOURCE_STATE_DEPTH_READ);
+                MAP(UnorderedAccess, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+                MAP(ShaderResource, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+                MAP(TransferSrc, D3D12_RESOURCE_STATE_COPY_SOURCE);
+                MAP(TransferDst, D3D12_RESOURCE_STATE_COPY_DEST);
+            }
 #undef MAP
 
-        return result;
+            return result;
+        }
+
+        [[nodiscard]] inline constexpr D3D12_RESOURCE_DIMENSION GetTextureResourceDimension(TextureTypes _type)
+        {
+            D3D12_RESOURCE_DIMENSION result = D3D12_RESOURCE_DIMENSION_UNKNOWN;
+
+#define MAP(commonType, dx12Dimension) case TextureTypes::commonType: result = dx12Dimension; break
+            switch (_type)
+            {
+                MAP(Single1D, D3D12_RESOURCE_DIMENSION_TEXTURE1D);
+                MAP(Single2D, D3D12_RESOURCE_DIMENSION_TEXTURE2D);
+                MAP(Single3D, D3D12_RESOURCE_DIMENSION_TEXTURE3D);
+                MAP(SingleCube, D3D12_RESOURCE_DIMENSION_TEXTURE2D);
+                MAP(Array1D, D3D12_RESOURCE_DIMENSION_TEXTURE1D);
+                MAP(Array2D, D3D12_RESOURCE_DIMENSION_TEXTURE2D);
+                MAP(ArrayCube, D3D12_RESOURCE_DIMENSION_TEXTURE2D);
+            default:
+                KE_ERROR("Unreachable code");
+            }
+#undef MAP
+            return result;
+        }
+
+        [[nodiscard]] inline constexpr D3D12_RESOURCE_FLAGS GetTextureResourceFlags(MemoryUsage _usage)
+        {
+            D3D12_RESOURCE_FLAGS result = D3D12_RESOURCE_FLAG_NONE;
+            if (BitUtils::EnumHasAll(_usage, MemoryUsage::ColorTargetImage))
+            {
+                result |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+            }
+            if (BitUtils::EnumHasAll(_usage, MemoryUsage::DepthStencilTargetImage))
+            {
+                result |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+            }
+            if (BitUtils::EnumHasAll(_usage, MemoryUsage::WriteImage))
+            {
+                result |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+            }
+            if (!BitUtils::EnumHasAny(_usage, MemoryUsage::ReadImage | MemoryUsage::SampledImage))
+            {
+                result |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+            }
+            return result;
+        }
+
+        [[nodiscard]] inline constexpr D3D12_HEAP_TYPE GetHeapType(MemoryUsage _usage)
+        {
+            switch (_usage & MemoryUsage::USAGE_TYPE_MASK)
+            {
+            case MemoryUsage::GpuOnly_UsageType:
+                return D3D12_HEAP_TYPE_DEFAULT;
+            case MemoryUsage::StageOnce_UsageType:
+            case MemoryUsage::StageEveryFrame_UsageType:
+                return D3D12_HEAP_TYPE_UPLOAD;
+            case MemoryUsage::Readback_UsageType:
+                return D3D12_HEAP_TYPE_READBACK;
+            default:
+                KE_ERROR("Unsupported memory usage type");
+                return D3D12_HEAP_TYPE_DEFAULT;
+            }
+        }
     }
 
     void DebugLayerMessageCallback(

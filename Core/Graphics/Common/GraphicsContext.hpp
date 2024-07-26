@@ -30,6 +30,11 @@ namespace KryneEngine
             return m_implementation.GetWindow();
         }
 
+        [[nodiscard]] inline u64 GetFrameId() const
+        {
+            return m_frameId;
+        }
+
         [[nodiscard]] inline u8 GetFrameContextCount() const
         {
             return m_implementation.GetFrameContextCount();
@@ -61,6 +66,11 @@ namespace KryneEngine
         u64 m_frameId;
 
     public:
+        [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc)
+        {
+            return m_implementation.CreateTexture(_createDesc);
+        }
+
         [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
             return m_implementation.CreateRenderTargetView(_desc);

@@ -89,11 +89,39 @@ namespace KryneEngine
     };
     KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(TexturePlane)
 
-    enum class MemoryAccessType: u8
+    enum class MemoryUsage : u16
     {
-        StageOnce = 0,
-        StageEveryFrame,
-        GpuOnly,
-        Readback,
+        // Memory usage type saved in first 3 bits
+        Undefined_UsageType         = 0 << 0,
+        GpuOnly_UsageType           = 1 << 0,
+        StageOnce_UsageType         = 2 << 0,
+        StageEveryFrame_UsageType   = 3 << 0,
+        Readback_UsageType          = 4 << 0,
+        USAGE_TYPE_MASK             = BitUtils::BitMask<u16>(3, 0),
+
+        // Buffer specific flags
+        TransferSrcBuffer   = 1 << 3,
+        TransferDstBuffer   = 1 << 4,
+        ConstantBuffer      = 1 << 5,
+        ReadBuffer          = 1 << 6,
+        WriteBuffer         = 1 << 7,
+        ReadWriteBuffer     = ReadBuffer | WriteBuffer,
+        IndexBuffer         = 1 << 8,
+        VertexBuffer        = 1 << 9,
+        IndirectBuffer      = 1 << 10,
+
+        // Image specific flags
+        TransferSrcImage        = 1 << 3,
+        TransferDstImage        = 1 << 4,
+        SampledImage            = 1 << 5,
+        ReadImage               = 1 << 6,
+        WriteImage              = 1 << 7,
+        ReadWriteImage          = ReadImage | WriteImage,
+        ColorTargetImage        = 1 << 8,
+        DepthStencilTargetImage = 1 << 9,
+
+        // Invalid setup
+        Invalid = 0xffff,
     };
+    KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(MemoryUsage)
 }

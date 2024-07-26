@@ -189,6 +189,8 @@ namespace KryneEngine
         Dx12SetName(m_device.Get(), L"Device");
 #endif
 
+        m_resources.Init(m_device.Get(), hardwareAdapter.Get());
+
 #if !defined(KE_FINAL)
         if (m_appInfo.m_features.m_validationLayers)
         {
@@ -343,7 +345,7 @@ namespace KryneEngine
         eastl::fixed_vector<D3D12_RESOURCE_BARRIER, RenderPassDesc::kMaxSupportedColorAttachments + 1, false> barriers;
         const auto addBarrier = [&barriers](const RenderPassDesc::Attachment& _desc, ID3D12Resource* _resource, bool _isDepthTarget = false)
         {
-            const auto oldState = ToDx12ResourceState(_desc.m_initialLayout);
+            const auto oldState = Dx12Converters::ToDx12ResourceState(_desc.m_initialLayout);
             const auto newState = _isDepthTarget ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_RENDER_TARGET;
 
             if (newState != oldState)
@@ -441,7 +443,7 @@ namespace KryneEngine
         const auto addBarrier = [&barriers](const RenderPassDesc::Attachment& _desc, ID3D12Resource* _resource, bool _isDepthTarget = false)
         {
             const auto oldState = _isDepthTarget ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_RENDER_TARGET;
-            const auto newState = ToDx12ResourceState(_desc.m_finalLayout);
+            const auto newState = Dx12Converters::ToDx12ResourceState(_desc.m_finalLayout);
 
             if (newState != oldState)
             {
