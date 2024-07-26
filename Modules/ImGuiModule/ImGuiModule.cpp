@@ -6,6 +6,7 @@
 
 #include "ImGuiModule.hpp"
 #include <Graphics/Common/Texture.hpp>
+#include <Graphics/Common/GraphicsContext.hpp>
 #include <Graphics/Common/Window.hpp>
 #include <imgui_internal.h>
 
