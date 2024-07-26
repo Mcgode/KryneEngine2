@@ -58,18 +58,32 @@ namespace KryneEngine
             s32 w, h;
             io.Fonts->GetTexDataAsAlpha8(&data, &w, &h);
 
-            TextureDesc imageDesc {
-                .m_dimensions = { w, h, 1 },
-                .m_format = TextureFormat::R8_UNorm,
-                .m_arraySize = 1,
-                .m_type = TextureTypes::Single2D,
-                .m_mipCount = 1,
+            const TextureCreateDesc stagingTextureDesc {
+                .m_desc = {
+                    .m_dimensions = {w, h, 1},
+                    .m_format = TextureFormat::R8_UNorm,
+                    .m_arraySize = 1,
+                    .m_type = TextureTypes::Single2D,
+                    .m_mipCount = 1,
 #if !defined(KE_FINAL)
-                .m_debugName = "ImGui/FontImage"
+                    .m_debugName = "ImGui/FontImage"
 #endif
+                },
+                .m_memoryUsage = MemoryUsage::StageOnce_UsageType | MemoryUsage::TransferSrcImage,
+            };
+            const TextureCreateDesc textureDesc{
+                .m_desc = stagingTextureDesc.m_desc,
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::TransferDstImage | MemoryUsage::SampledImage,
             };
 
-            m_fontsTextureHandle = GenPool::kInvalidHandle;
+            m_stagingFrame = _graphicsContext.GetFrameId();
+            m_fontsStagingHandle = _graphicsContext.CreateTexture(stagingTextureDesc);
+            m_fontsTextureHandle = _graphicsContext.CreateTexture(textureDesc);
+
+            // TODO: Map image data to staging buffer memory
+
+            // TODO: Create Shader resource view for gpu texture
+
             io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontsTextureHandle)));
         }
 
@@ -79,6 +93,19 @@ namespace KryneEngine
     void ImGuiModule::RenderFrame(GraphicsContext& _graphicsContext)
     {
         ImGui::Render();
+
+        if (m_fontsStagingHandle != GenPool::kInvalidHandle)
+        {
+            if (m_stagingFrame == _graphicsContext.GetFrameId())
+            {
+                // TODO: Run upload command
+            }
+            else // if (_graphicsContext.IsFrameDone(m_stagingFrame))
+            {
+                // TODO: Free staging texture
+            }
+        }
+
         ImGuiContext& context = *m_context;
         for (auto i = 0; i < context.Viewports.Size; i++)
         {

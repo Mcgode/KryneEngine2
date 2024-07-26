@@ -26,6 +26,8 @@ namespace KryneEngine
 
     private:
         ImGuiContext* m_context;
+        u64 m_stagingFrame = 0;
+        GenPool::Handle m_fontsStagingHandle = GenPool::kInvalidHandle;
         GenPool::Handle m_fontsTextureHandle = GenPool::kInvalidHandle;
     };
 }// namespace KryneEngine
