@@ -59,7 +59,10 @@ namespace KryneEngine
                 nullptr,
                 &bufferWidth);
 
-            resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferWidth);
+            resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(
+                bufferWidth,
+                resourceDesc.Flags,
+                resourceDesc.Alignment);
         }
 
         D3D12MA::Allocation* allocation;
