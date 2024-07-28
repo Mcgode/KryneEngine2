@@ -31,6 +31,7 @@ set(CommonFiles
         Common/EnumHelpers.cpp Common/EnumHelpers.hpp
         Common/ResourceViews/RenderTargetView.hpp
         Common/RenderPass.hpp
+        Common/ResourceViews/ShaderResourceView.hpp
 )
 
 if (GraphicsApi STREQUAL "VK")

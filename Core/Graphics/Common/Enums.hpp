@@ -124,4 +124,16 @@ namespace KryneEngine
         Invalid = 0xffff,
     };
     KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(MemoryUsage)
+
+    enum class TextureComponentMapping: u8
+    {
+        Red,
+        Green,
+        Blue,
+        Alpha,
+        Zero,
+        One,
+    };
+    using Texture4ComponentsMapping = TextureComponentMapping[4];
+#define KE_DEFAULT_TEXTURE_COMPONENTS_MAPPING { TextureComponentMapping::Red, TextureComponentMapping::Green, TextureComponentMapping::Blue, TextureComponentMapping::Alpha }
 }

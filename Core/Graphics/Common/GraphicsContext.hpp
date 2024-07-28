@@ -71,6 +71,16 @@ namespace KryneEngine
             return m_implementation.CreateTexture(_createDesc);
         }
 
+        inline bool DestroyTexture(GenPool::Handle _handle)
+        {
+            return m_implementation.DestroyTexture(_handle);
+        }
+
+        [[nodiscard]] GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc)
+        {
+            return m_implementation.CreateTextureSrv(_srvDesc, 0);
+        }
+
         [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
             return m_implementation.CreateRenderTargetView(_desc);
