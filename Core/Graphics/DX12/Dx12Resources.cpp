@@ -28,7 +28,7 @@ namespace KryneEngine
 
     GenPool::Handle Dx12Resources::CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device)
     {
-        const D3D12_RESOURCE_DESC resourceDesc {
+        D3D12_RESOURCE_DESC resourceDesc {
             .Dimension = Dx12Converters::GetTextureResourceDimension(_createDesc.m_desc.m_type),
             .Alignment = 0,
             .Width = _createDesc.m_desc.m_dimensions.x,
@@ -44,6 +44,22 @@ namespace KryneEngine
         const D3D12MA::ALLOCATION_DESC allocationDesc {
             .HeapType = Dx12Converters::GetHeapType(_createDesc.m_memoryUsage),
         };
+
+        if (allocationDesc.HeapType == D3D12_HEAP_TYPE_UPLOAD)
+        {
+            u64 bufferWidth = 0;
+            _device->GetCopyableFootprints(
+                &resourceDesc,
+                0,
+                _createDesc.m_desc.m_mipCount * _createDesc.m_desc.m_arraySize,
+                0,
+                nullptr,
+                nullptr,
+                nullptr,
+                &bufferWidth);
+
+            resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferWidth);
+        }
 
         D3D12MA::Allocation* allocation;
         ID3D12Resource* texture;
