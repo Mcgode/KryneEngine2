@@ -39,7 +39,7 @@ namespace KryneEngine
             }
         }
 
-        inline const eastl::span<UserData>& GetData()
+        inline const eastl::vector<UserData>& GetData()
         {
             return GetData(0);
         }
