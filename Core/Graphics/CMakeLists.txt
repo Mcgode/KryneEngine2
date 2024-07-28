@@ -29,7 +29,7 @@ set(CommonFiles
         Common/Texture.hpp
         Common/Enums.hpp
         Common/EnumHelpers.cpp Common/EnumHelpers.hpp
-        Common/RenderTargetView.hpp
+        Common/ResourceViews/RenderTargetView.hpp
         Common/RenderPass.hpp
 )
 

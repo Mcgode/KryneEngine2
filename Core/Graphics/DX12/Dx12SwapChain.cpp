@@ -11,7 +11,7 @@
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
-#include <Graphics/Common/RenderTargetView.hpp>
+#include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
 
 namespace KryneEngine
 {

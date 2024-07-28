@@ -18,8 +18,6 @@ namespace KryneEngine
     class Window;
     class Dx12SwapChain;
 
-    struct RenderTargetViewDesc;
-
     class Dx12GraphicsContext
     {
     public:

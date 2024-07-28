@@ -7,7 +7,7 @@
 #pragma once
 
 #include <Memory/GenerationalPool.hpp>
-#include "Enums.hpp"
+#include "Graphics/Common/Enums.hpp"
 
 namespace KryneEngine
 {

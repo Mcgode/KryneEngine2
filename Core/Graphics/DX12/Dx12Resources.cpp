@@ -8,7 +8,7 @@
 #include "HelperFunctions.hpp"
 #include <D3D12MemAlloc.h>
 #include <Graphics/Common/Texture.hpp>
-#include <Graphics/Common/RenderTargetView.hpp>
+#include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
 #include <Memory/GenerationalPool.inl>
 
 namespace KryneEngine
