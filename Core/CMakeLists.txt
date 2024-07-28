@@ -8,7 +8,8 @@ set(CommonSrc
         Common/EastlHelpers.hpp
         Common/StringHelpers.hpp
         Common/Types.hpp
-        )
+        Common/Utils/MultiFrameTracking.hpp
+)
 
 set(FilesSrc
         Files/FileWatcher.cpp Files/FileWatcher.hpp
