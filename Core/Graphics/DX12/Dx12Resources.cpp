@@ -37,7 +37,8 @@ namespace KryneEngine
                                     ? _createDesc.m_desc.m_dimensions.z
                                     : _createDesc.m_desc.m_arraySize),
             .MipLevels = _createDesc.m_desc.m_mipCount,
-            .Format = Dx12Converters::ToDx12Format(_createDesc.m_desc.m_format)
+            .Format = Dx12Converters::ToDx12Format(_createDesc.m_desc.m_format),
+            .SampleDesc = { .Count = 1, .Quality = 0 },
         };
 
         const D3D12MA::ALLOCATION_DESC allocationDesc {
