@@ -166,6 +166,9 @@ namespace KryneEngine
 
         // Wait for the previous frame with this index.
         WaitForFrame(m_frameContexts[nextFrameIndex].m_frameId);
+
+        // Duplicate descriptor in multi-frame heaps
+        m_resources.NextFrame(m_device.Get(), nextFrameIndex);
     }
 
     void Dx12GraphicsContext::WaitForFrame(u64 _frameId) const

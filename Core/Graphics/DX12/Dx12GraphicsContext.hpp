@@ -66,7 +66,21 @@ namespace KryneEngine
             return m_resources.CreateTexture(_createDesc, m_device.Get());
         }
 
-        [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
+        inline bool DestroyTexture(GenPool::Handle _handle)
+        {
+            return m_resources.ReleaseTexture(_handle, true);
+        }
+
+        [[nodiscard]] inline GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 _frameId)
+        {
+            return m_resources.CreateTextureSrv(
+                _srvDesc,
+                m_device.Get(),
+                GetFrameContextCount(),
+                _frameId % GetFrameContextCount());
+        }
+
+        [[nodiscard]] inline GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
             return m_resources.CreateRenderTargetView(_desc, m_device.Get());
         }
