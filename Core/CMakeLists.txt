@@ -9,6 +9,7 @@ set(CommonSrc
         Common/StringHelpers.hpp
         Common/Types.hpp
         Common/Utils/MultiFrameTracking.hpp
+        Common/Utils/Alignment.hpp
 )
 
 set(FilesSrc
