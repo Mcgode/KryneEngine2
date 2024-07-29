@@ -7,10 +7,13 @@
 #include <Common/Assert.hpp>
 #include "EnumHelpers.hpp"
 
-KryneEngine::u8 KryneEngine::GraphicsEnumHelpers::GetTextureFormatComponentCount(KryneEngine::TextureFormat _format)
+namespace KryneEngine
 {
-    switch (_format)
+
+    u8 GraphicsEnumHelpers::GetTextureFormatComponentCount(TextureFormat _format)
     {
+        switch (_format)
+        {
         case TextureFormat::R8_UNorm:
         case TextureFormat::R8_SNorm:
         case TextureFormat::D16:
@@ -49,8 +52,9 @@ KryneEngine::u8 KryneEngine::GraphicsEnumHelpers::GetTextureFormatComponentCount
             KE_ERROR("No format set");
             return 0;
         }
-    }
+        }
 
-    KE_ERROR("Format component count not set");
-    return 0;
+        KE_ERROR("Format component count not set");
+        return 0;
+    }
 }
