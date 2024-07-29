@@ -5,11 +5,13 @@
  */
 
 #include "Dx12GraphicsContext.hpp"
-#include <dxgidebug.h>
+#include "Dx12SwapChain.hpp"
 #include "HelperFunctions.hpp"
+#include <Common/Utils/Alignment.hpp>
+#include <Graphics/Common/Texture.hpp>
 #include <Graphics/Common/Window.hpp>
 #include <Memory/GenerationalPool.inl>
-#include "Dx12SwapChain.hpp"
+#include <dxgidebug.h>
 
 namespace KryneEngine
 {
@@ -487,5 +489,24 @@ namespace KryneEngine
     u32 Dx12GraphicsContext::GetCurrentPresentImageIndex() const
     {
         return m_swapChain->GetBackBufferIndex();
+    }
+
+    void Dx12GraphicsContext::SetTextureData(
+        CommandList _commandList,
+        GenPool::Handle _stagingTexture,
+        GenPool::Handle _dstTexture,
+        const TextureDesc& _textureDesc,
+        u8 _mipIndex,
+        u16 _sliceIndex,
+        void* _data)
+    {
+        D3D12_SUBRESOURCE_FOOTPRINT footprint {
+            .Format = Dx12Converters::ToDx12Format(_textureDesc.m_format),
+            .Width = _textureDesc.m_dimensions.x,
+            .Height = _textureDesc.m_dimensions.y,
+            .Depth = _textureDesc.m_dimensions.z,
+        };
+
+        footprint.RowPitch = Alignment::AlignUp<u32>(footprint.Width * 0, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
     }
 } // KryneEngine

@@ -130,6 +130,25 @@ namespace KryneEngine
         {
             m_implementation.EndRenderPass(_commandList);
         }
+
+        inline void SetTextureData(
+            CommandList _commandList,
+            GenPool::Handle _stagingTexture,
+            GenPool::Handle _dstTexture,
+            const TextureDesc& _textureDesc,
+            u8 _mipIndex,
+            u16 _sliceIndex,
+            void* _data)
+        {
+            m_implementation.SetTextureData(
+                _commandList,
+                _stagingTexture,
+                _dstTexture,
+                _textureDesc,
+                _mipIndex,
+                _sliceIndex,
+                _data);
+        }
     };
 }
 

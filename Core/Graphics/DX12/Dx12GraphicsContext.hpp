@@ -18,6 +18,8 @@ namespace KryneEngine
     class Window;
     class Dx12SwapChain;
 
+    struct TextureDesc;
+
     class Dx12GraphicsContext
     {
     public:
@@ -108,6 +110,15 @@ namespace KryneEngine
 
         void BeginRenderPass(CommandList _commandList, GenPool::Handle _handle);
         void EndRenderPass(CommandList _commandList);
+
+        void SetTextureData(
+            CommandList _commandList,
+            GenPool::Handle _stagingTexture,
+            GenPool::Handle _dstTexture,
+            const TextureDesc& _textureDesc,
+            u8 _mipIndex,
+            u16 _sliceIndex,
+            void* _data);
 
     private:
         Dx12Resources m_resources;
