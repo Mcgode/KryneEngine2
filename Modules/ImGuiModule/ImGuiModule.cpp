@@ -118,12 +118,10 @@ namespace KryneEngine
                 data);
         }
 
-        if (m_fontsStagingHandle != GenPool::kInvalidHandle)
+        if (m_fontsStagingHandle != GenPool::kInvalidHandle && _graphicsContext.IsFrameExecuted(m_stagingFrame))
         {
-            // if (_graphicsContext.IsFrameDone(m_stagingFrame))
-            {
-                // TODO: Free staging texture
-            }
+            _graphicsContext.DestroyTexture(m_fontsStagingHandle);
+            m_fontsStagingHandle = GenPool::kInvalidHandle;
         }
 
         ImGui::NewFrame();
