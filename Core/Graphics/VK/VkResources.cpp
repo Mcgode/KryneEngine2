@@ -4,10 +4,10 @@
  * @date 19/02/2024.
  */
 
-#include "VkDebugHandler.hpp"
 #include "VkResources.hpp"
+#include "VkDebugHandler.hpp"
 #include "HelperFunctions.hpp"
-#include <Graphics/Common/RenderTargetView.hpp>
+#include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
 #include <Graphics/Common/RenderPass.hpp>
 #include <Memory/GenerationalPool.inl>
 

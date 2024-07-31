@@ -13,7 +13,7 @@
 #include <Graphics/VK/HelperFunctions.hpp>
 #include <Graphics/VK/VkSurface.hpp>
 #include <GLFW/glfw3.h>
-#include <Graphics/Common/RenderTargetView.hpp>
+#include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
 
 namespace KryneEngine
 {
