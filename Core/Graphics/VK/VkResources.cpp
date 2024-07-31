@@ -8,6 +8,7 @@
 #include "VkDebugHandler.hpp"
 #include "HelperFunctions.hpp"
 #include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
+#include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/RenderPass.hpp>
 #include <Memory/GenerationalPool.inl>
 
@@ -38,6 +39,40 @@ namespace KryneEngine
         return false;
     }
 
+    GenPool::Handle VkResources::CreateTextureSrv(const TextureSrvDesc& _srvDesc, VkDevice _device)
+    {
+        auto* image = m_textures.Get(_srvDesc.m_textureHandle);
+        if (image == nullptr)
+        {
+            return GenPool::kInvalidHandle;
+        }
+
+        const GenPool::Handle srvHandle = m_imageViews.Allocate();
+
+        VkImageView imageView = CreateImageView(
+            _device,
+            *image,
+            VkHelperFunctions::RetrieveViewType(_srvDesc.m_viewType),
+            VkHelperFunctions::ToVkFormat(_srvDesc.m_format),
+            VkHelperFunctions::ToVkComponentMapping(_srvDesc.m_componentsMapping),
+            VK_IMAGE_ASPECT_COLOR_BIT,
+            _srvDesc.m_minMip,
+            _srvDesc.m_maxMip - _srvDesc.m_minMip + 1,
+            _srvDesc.m_arrayStart,
+            _srvDesc.m_arrayRange);
+
+#if !defined(KE_FINAL)
+        {
+            const u64 handle = reinterpret_cast<u64>(imageView);
+            m_debugHandler->SetName(_device, VK_OBJECT_TYPE_IMAGE_VIEW, handle, _srvDesc.m_debugName.c_str());
+        }
+#endif
+
+        *m_imageViews.Get(srvHandle) = imageView;
+
+        return srvHandle;
+    }
+
     GenPool::Handle VkResources::CreateRenderTargetView(
             const RenderTargetViewDesc &_desc,
             VkDevice &_device)
@@ -50,24 +85,19 @@ namespace KryneEngine
 
         const auto rtvHandle = m_renderTargetViews.Allocate();
 
-        VkImageViewCreateInfo imageViewCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .flags = 0,
-            .image = *image,
-            .viewType = VkHelperFunctions::RetrieveViewType(_desc.m_type),
-            .format = VkHelperFunctions::ToVkFormat(_desc.m_format),
-            .components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,  VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = {
-                .aspectMask = VkHelperFunctions::RetrieveAspectMask(_desc.m_plane),
-                .baseMipLevel = _desc.m_mipLevel,
-                .levelCount = 1,
-                .baseArrayLayer = _desc.m_arrayRangeStart,
-                .layerCount = _desc.m_arrayRangeSize
-            }
-        };
+        const VkFormat format = VkHelperFunctions::ToVkFormat(_desc.m_format);
 
-        VkImageView imageView;
-        VkAssert(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &imageView));
+        VkImageView imageView = CreateImageView(
+            _device,
+            *image,
+            VkHelperFunctions::RetrieveViewType(_desc.m_type),
+            format,
+            { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,  VK_COMPONENT_SWIZZLE_IDENTITY },
+            VkHelperFunctions::RetrieveAspectMask(_desc.m_plane),
+            _desc.m_mipLevel,
+            1,
+            _desc.m_arrayRangeStart,
+            _desc.m_arrayRangeSize);
 
 #if !defined(KE_FINAL)
         {
@@ -78,7 +108,7 @@ namespace KryneEngine
 
         *m_renderTargetViews.Get(rtvHandle) = imageView;
         *m_renderTargetViews.GetCold(rtvHandle) = {
-                imageViewCreateInfo.format,
+                format,
                 m_textures.GetCold(_desc.m_textureHandle)->m_size
         };
 
@@ -287,6 +317,40 @@ namespace KryneEngine
         vkDestroyRenderPass(_device, data.m_renderPass, nullptr);
 
         return true;
+    }
+
+    VkImageView VkResources::CreateImageView(
+        VkDevice _device,
+        VkImage _image,
+        VkImageViewType _viewType,
+        VkFormat _format,
+        VkComponentMapping _componentMapping,
+        VkImageAspectFlags _aspectFlags,
+        u32 _mipStart,
+        u32 _mipCount,
+        u32 _arrayStart,
+        u32 _arraySize)
+    {
+        VkImageViewCreateInfo imageViewCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .flags = 0,
+            .image = _image,
+            .viewType = _viewType,
+            .format = _format,
+            .components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,  VK_COMPONENT_SWIZZLE_IDENTITY },
+            .subresourceRange = {
+                .aspectMask = _aspectFlags,
+                .baseMipLevel = _mipStart,
+                .levelCount = _mipCount,
+                .baseArrayLayer = _arrayStart,
+                .layerCount = _arraySize,
+            }
+        };
+
+        VkImageView imageView = nullptr;
+        VkAssert(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &imageView));
+
+        return imageView;
     }
 
 

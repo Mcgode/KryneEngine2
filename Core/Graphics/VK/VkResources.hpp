@@ -13,6 +13,7 @@ namespace KryneEngine
 {
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
+    struct TextureSrvDesc;
 
     class VkDebugHandler;
 
@@ -23,6 +24,8 @@ namespace KryneEngine
             Size16x2 m_size;
         };
         GenerationalPool<VkImage, TextureColdData> m_textures {};
+
+        GenerationalPool<VkImageView> m_imageViews {};
 
         struct RTVColdData
         {
@@ -52,6 +55,8 @@ namespace KryneEngine
 
         bool ReleaseTexture(GenPool::Handle _handle, VkDevice _device, bool _free = true);
 
+        [[nodiscard]] GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc, VkDevice _device);
+
         [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc, VkDevice& _device);
 
         bool FreeRenderTargetView(GenPool::Handle _handle, VkDevice _device);
@@ -59,5 +64,18 @@ namespace KryneEngine
         [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc, VkDevice _device);
 
         bool DestroyRenderPass(GenPool::Handle _handle, VkDevice _device);
+
+    private:
+        [[nodiscard]] VkImageView CreateImageView(
+            VkDevice _device,
+            VkImage _image,
+            VkImageViewType _viewType,
+            VkFormat _format,
+            VkComponentMapping _componentMapping,
+            VkImageAspectFlags _aspectFlags,
+            u32 _mipStart,
+            u32 _mipCount,
+            u32 _arrayStart,
+            u32 _arraySize);
     };
 } // KryneEngine

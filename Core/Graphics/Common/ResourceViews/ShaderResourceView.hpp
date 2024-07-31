@@ -25,5 +25,9 @@ namespace KryneEngine
         TextureTypes m_viewType = TextureTypes::Single2D;
         u8 m_minMip = 0;
         u8 m_maxMip = 0;
+
+#if !defined(KE_FINAL)
+        eastl::string m_debugName = "";
+#endif
     };
 }

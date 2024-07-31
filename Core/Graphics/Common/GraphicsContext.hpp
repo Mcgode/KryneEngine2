@@ -88,7 +88,7 @@ namespace KryneEngine
 
         [[nodiscard]] GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc)
         {
-            return m_implementation.CreateTextureSrv(_srvDesc, 0);
+            return m_implementation.CreateTextureSrv(_srvDesc, m_frameId);
         }
 
         [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)

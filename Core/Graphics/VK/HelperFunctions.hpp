@@ -230,6 +230,34 @@ namespace KryneEngine::VkHelperFunctions
         return layout;
     }
 
+    [[nodiscard]] constexpr inline VkComponentMapping ToVkComponentMapping(const Texture4ComponentsMapping& _mapping)
+    {
+        constexpr auto convertIndividual = [](u8 _index, TextureComponentMapping _mapping)
+        {
+            if (_index == (u8)_mapping)
+            {
+                return VK_COMPONENT_SWIZZLE_IDENTITY;
+            }
+
+            switch (_mapping)
+            {
+            case TextureComponentMapping::Red: return VK_COMPONENT_SWIZZLE_R;
+            case TextureComponentMapping::Green: return VK_COMPONENT_SWIZZLE_G;
+            case TextureComponentMapping::Blue: return VK_COMPONENT_SWIZZLE_B;
+            case TextureComponentMapping::Alpha: return VK_COMPONENT_SWIZZLE_A;
+            case TextureComponentMapping::Zero: return VK_COMPONENT_SWIZZLE_ZERO;
+            case TextureComponentMapping::One: return VK_COMPONENT_SWIZZLE_ONE;
+            }
+        };
+
+        return {
+            convertIndividual(0, _mapping[0]),
+            convertIndividual(1, _mapping[1]),
+            convertIndividual(2, _mapping[2]),
+            convertIndividual(3, _mapping[3]),
+        };
+    }
+
     constexpr inline VkDebugReportObjectTypeEXT ConvertObjectType(VkObjectType _objectType)
     {
         if (_objectType <= VK_OBJECT_TYPE_COMMAND_POOL)

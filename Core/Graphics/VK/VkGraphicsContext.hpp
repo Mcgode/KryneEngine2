@@ -90,6 +90,11 @@ namespace KryneEngine
         void _RetrieveQueues(const VkCommonStructures::QueueIndices &_queueIndices);
 
     public:
+        [[nodiscard]] GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 /*_frameId*/)
+        {
+            return m_resources.CreateTextureSrv(_srvDesc, m_device);
+        }
+
         [[nodiscard]] inline GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
             return m_resources.CreateRenderTargetView(_desc, m_device);
