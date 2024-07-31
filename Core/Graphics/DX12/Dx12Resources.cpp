@@ -48,16 +48,10 @@ namespace KryneEngine
 
         if (allocationDesc.HeapType == D3D12_HEAP_TYPE_UPLOAD)
         {
-            u64 bufferWidth = 0;
-            _device->GetCopyableFootprints(
-                &resourceDesc,
-                0,
-                _createDesc.m_desc.m_mipCount * _createDesc.m_desc.m_arraySize,
-                0,
-                nullptr,
-                nullptr,
-                nullptr,
-                &bufferWidth);
+            const TextureMemoryFootprint lastSubResourceFootPrint = _createDesc.m_footprintPerSubResource.back();
+            const u64 bufferWidth = lastSubResourceFootPrint.m_offset + lastSubResourceFootPrint.m_lineByteAlignedSize
+                                          * lastSubResourceFootPrint.m_height
+                                          * lastSubResourceFootPrint.m_depth;
 
             resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(
                 bufferWidth,
