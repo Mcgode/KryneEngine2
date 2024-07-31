@@ -5,8 +5,8 @@
  */
 
 #include "ImGuiModule.hpp"
+#include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/Texture.hpp>
-#include <Graphics/Common/GraphicsContext.hpp>
 #include <Graphics/Common/Window.hpp>
 #include <imgui_internal.h>
 
@@ -26,11 +26,26 @@ namespace KryneEngine
 
     void ImGuiModule::Shutdown(GraphicsContext& _graphicsContext)
     {
+        if (m_fontsTextureSrvHandle != GenPool::kInvalidHandle)
+        {
+            // TODO: Destroy Srv
+        }
+
+        if (m_fontsTextureHandle != GenPool::kInvalidHandle)
+        {
+            _graphicsContext.DestroyTexture(m_fontsTextureHandle);
+        }
+
+        if (m_fontsStagingHandle != GenPool::kInvalidHandle)
+        {
+            _graphicsContext.DestroyTexture(m_fontsStagingHandle);
+        }
+
         ImGui::DestroyContext(m_context);
         m_context = nullptr;
     }
 
-    void ImGuiModule::NewFrame(GraphicsContext& _graphicsContext)
+    void ImGuiModule::NewFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
     {
         ImGui::SetCurrentContext(m_context);
 
@@ -84,31 +99,39 @@ namespace KryneEngine
             m_fontsStagingHandle = _graphicsContext.CreateTexture(stagingTextureCreateDesc);
             m_fontsTextureHandle = _graphicsContext.CreateTexture(textureCreateDesc);
 
-            // TODO: Map image data to staging buffer memory
+            {
+                TextureSrvDesc srvDesc {
+                    .m_textureHandle = m_fontsTextureHandle,
+                    .m_format = textureCreateDesc.m_desc.m_format,
+                };
+                m_fontsTextureSrvHandle = _graphicsContext.CreateTextureSrv(srvDesc);
+            }
 
-            // TODO: Create Shader resource view for gpu texture
+            io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontsTextureSrvHandle)));
 
-            io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontsTextureHandle)));
+            _graphicsContext.SetTextureData(
+                _commandList,
+                m_fontsStagingHandle,
+                m_fontsTextureHandle,
+                stagingTextureCreateDesc.m_footprintPerSubResource[0],
+                0,
+                data);
+        }
+
+        if (m_fontsStagingHandle != GenPool::kInvalidHandle)
+        {
+            // if (_graphicsContext.IsFrameDone(m_stagingFrame))
+            {
+                // TODO: Free staging texture
+            }
         }
 
         ImGui::NewFrame();
     }
 
-    void ImGuiModule::RenderFrame(GraphicsContext& _graphicsContext)
+    void ImGuiModule::RenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
     {
         ImGui::Render();
-
-        if (m_fontsStagingHandle != GenPool::kInvalidHandle)
-        {
-            if (m_stagingFrame == _graphicsContext.GetFrameId())
-            {
-                // TODO: Run upload command
-            }
-            else // if (_graphicsContext.IsFrameDone(m_stagingFrame))
-            {
-                // TODO: Free staging texture
-            }
-        }
 
         ImGuiContext& context = *m_context;
         for (auto i = 0; i < context.Viewports.Size; i++)

@@ -107,19 +107,19 @@ int main() {
 
         do
         {
-            imGuiModule.NewFrame(graphicsContext);
+            CommandList commandList = graphicsContext.BeginGraphicsCommandList();
+
+            imGuiModule.NewFrame(graphicsContext, commandList);
 
             {
                 static bool open;
                 ImGui::ShowDemoWindow(&open);
             }
 
-            CommandList commandList = graphicsContext.BeginGraphicsCommandList();
-
             const u8 index = graphicsContext.GetCurrentPresentImageIndex();
             graphicsContext.BeginRenderPass(commandList, renderPassHandles[index]);
 
-            imGuiModule.RenderFrame(graphicsContext);
+            imGuiModule.RenderFrame(graphicsContext, commandList);
 
             graphicsContext.EndRenderPass(commandList);
 
