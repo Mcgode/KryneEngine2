@@ -64,7 +64,7 @@ namespace KryneEngine
         void _CreateCommandQueues();
 
     public:
-        [[nodiscard]] eastl::vector<TextureMemoryFootprint>&& FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc);
+        [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc);
 
         [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc)
         {

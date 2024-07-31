@@ -514,7 +514,7 @@ namespace KryneEngine
 
     }
 
-    eastl::vector<TextureMemoryFootprint>&& Dx12GraphicsContext::FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc)
+    eastl::vector<TextureMemoryFootprint> Dx12GraphicsContext::FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc)
     {
         D3D12_RESOURCE_DESC resourceDesc {
             .Dimension = Dx12Converters::GetTextureResourceDimension(_desc.m_type),
@@ -549,6 +549,6 @@ namespace KryneEngine
             });
         }
 
-        return eastl::move(finalFootprints);
+        return finalFootprints;
     }
 } // KryneEngine
