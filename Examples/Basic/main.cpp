@@ -99,7 +99,9 @@ int main() {
                     graphicsContext.GetPresentRenderTarget(i),
                     float4(0, 1, 1, 1)
             });
+#if !defined(KE_FINAL)
             desc.m_debugName.sprintf("PresentRenderPass[%d]", i);
+#endif
             renderPassHandles[i] = graphicsContext.CreateRenderPass(desc);
         }
 
