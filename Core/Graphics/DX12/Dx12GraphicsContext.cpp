@@ -507,6 +507,48 @@ namespace KryneEngine
             .Depth = _textureDesc.m_dimensions.z,
         };
 
-        footprint.RowPitch = Alignment::AlignUp<u32>(footprint.Width * 0, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+        footprint.RowPitch = Alignment::AlignUp<u32>(
+            footprint.Width * GetTextureBytesPerPixel(footprint.Format),
+            D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+
+
+    }
+
+    eastl::vector<TextureMemoryFootprint>&& Dx12GraphicsContext::FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc)
+    {
+        D3D12_RESOURCE_DESC resourceDesc {
+            .Dimension = Dx12Converters::GetTextureResourceDimension(_desc.m_type),
+            .Alignment = 0,
+            .Width = _desc.m_dimensions.x,
+            .Height = _desc.m_dimensions.y,
+            .DepthOrArraySize = static_cast<u16>(_desc.m_type == TextureTypes::Single3D
+                                                     ? _desc.m_dimensions.z
+                                                     : _desc.m_arraySize),
+            .MipLevels = _desc.m_mipCount,
+            .Format = Dx12Converters::ToDx12Format(_desc.m_format),
+            .SampleDesc = { .Count = 1, .Quality = 0 },
+        };
+
+        const u32 numSubResources = _desc.m_arraySize * _desc.m_mipCount;
+
+        DynamicArray<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> footprints;
+        footprints.Resize(numSubResources);
+
+        m_device->GetCopyableFootprints(&resourceDesc, 0, numSubResources, 0, footprints.Data(), nullptr, nullptr, nullptr);
+
+        eastl::vector<TextureMemoryFootprint> finalFootprints;
+        for (const auto& footprint: footprints)
+        {
+            finalFootprints.push_back(TextureMemoryFootprint {
+                .m_offset = footprint.Offset,
+                .m_width = footprint.Footprint.Width,
+                .m_height = footprint.Footprint.Height,
+                .m_lineByteAlignedSize = footprint.Footprint.RowPitch,
+                .m_depth = static_cast<u16>(footprint.Footprint.Depth),
+                .m_format = Dx12Converters::FromDx12Format(footprint.Footprint.Format),
+            });
+        }
+
+        return eastl::move(finalFootprints);
     }
 } // KryneEngine

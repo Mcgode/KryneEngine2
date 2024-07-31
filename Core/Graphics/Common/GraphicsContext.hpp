@@ -66,6 +66,11 @@ namespace KryneEngine
         u64 m_frameId;
 
     public:
+        [[nodiscard]] eastl::vector<TextureMemoryFootprint>&& FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc)
+        {
+            return eastl::move(m_implementation.FetchTextureSubResourcesMemoryFootprints(_desc));
+        }
+
         [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc)
         {
             return m_implementation.CreateTexture(_createDesc);

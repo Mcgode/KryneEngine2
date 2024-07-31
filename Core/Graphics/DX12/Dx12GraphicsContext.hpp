@@ -11,6 +11,7 @@
 #include "Dx12Resources.h"
 #include "Dx12Types.hpp"
 #include <Common/Arrays.hpp>
+#include <Graphics/Common/Texture.hpp>
 #include <EASTL/unique_ptr.h>
 
 namespace KryneEngine
@@ -63,6 +64,8 @@ namespace KryneEngine
         void _CreateCommandQueues();
 
     public:
+        [[nodiscard]] eastl::vector<TextureMemoryFootprint>&& FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc);
+
         [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc)
         {
             return m_resources.CreateTexture(_createDesc, m_device.Get());

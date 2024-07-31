@@ -58,7 +58,7 @@ namespace KryneEngine
             s32 w, h;
             io.Fonts->GetTexDataAsAlpha8(&data, &w, &h);
 
-            const TextureCreateDesc stagingTextureDesc {
+            TextureCreateDesc stagingTextureCreateDesc{
                 .m_desc = {
                     .m_dimensions = {w, h, 1},
                     .m_format = TextureFormat::R8_UNorm,
@@ -66,19 +66,23 @@ namespace KryneEngine
                     .m_type = TextureTypes::Single2D,
                     .m_mipCount = 1,
 #if !defined(KE_FINAL)
-                    .m_debugName = "ImGui/FontImage"
+                    .m_debugName = "ImGui/FontTexture"
 #endif
                 },
                 .m_memoryUsage = MemoryUsage::StageOnce_UsageType | MemoryUsage::TransferSrcImage,
             };
-            const TextureCreateDesc textureDesc{
-                .m_desc = stagingTextureDesc.m_desc,
+            stagingTextureCreateDesc.m_footprintPerSubResource =
+                _graphicsContext.FetchTextureSubResourcesMemoryFootprints(stagingTextureCreateDesc.m_desc);
+
+            TextureCreateDesc textureCreateDesc{
+                .m_desc = stagingTextureCreateDesc.m_desc,
+                .m_footprintPerSubResource = stagingTextureCreateDesc.m_footprintPerSubResource,
                 .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::TransferDstImage | MemoryUsage::SampledImage,
             };
 
             m_stagingFrame = _graphicsContext.GetFrameId();
-            m_fontsStagingHandle = _graphicsContext.CreateTexture(stagingTextureDesc);
-            m_fontsTextureHandle = _graphicsContext.CreateTexture(textureDesc);
+            m_fontsStagingHandle = _graphicsContext.CreateTexture(stagingTextureCreateDesc);
+            m_fontsTextureHandle = _graphicsContext.CreateTexture(textureCreateDesc);
 
             // TODO: Map image data to staging buffer memory
 

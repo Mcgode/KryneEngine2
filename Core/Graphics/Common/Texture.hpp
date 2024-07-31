@@ -28,9 +28,22 @@ namespace KryneEngine
 #endif
     };
 
+    struct TextureMemoryFootprint
+    {
+        u64 m_offset;
+
+        u32 m_width;
+        u32 m_height;
+
+        u32 m_lineByteAlignedSize;
+        u16 m_depth;
+        TextureFormat m_format;
+    };
+
     struct TextureCreateDesc
     {
         TextureDesc m_desc;
+        eastl::vector<TextureMemoryFootprint> m_footprintPerSubResource {};
         MemoryUsage m_memoryUsage = MemoryUsage::Invalid;
     };
 }
