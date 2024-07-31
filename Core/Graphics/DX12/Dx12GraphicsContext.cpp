@@ -62,6 +62,8 @@ namespace KryneEngine
             m_frameContextCount = 2;
         }
 
+        m_resources.InitHeaps(m_device.Get(), m_frameContextCount, _currentFrameId % m_frameContextCount);
+
         m_frameContexts.Resize(m_frameContextCount);
         m_frameContexts.InitAll(m_device.Get(),
                                 m_directQueue != nullptr,
@@ -182,7 +184,7 @@ namespace KryneEngine
         }
     }
 
-    void Dx12GraphicsContext::_CreateDevice(IDXGIFactory4 *_factory4)
+    void Dx12GraphicsContext::_CreateDevice(IDXGIFactory4* _factory4)
     {
         ComPtr<IDXGIAdapter1> hardwareAdapter;
         _FindAdapter(_factory4, &hardwareAdapter);
@@ -194,7 +196,7 @@ namespace KryneEngine
         Dx12SetName(m_device.Get(), L"Device");
 #endif
 
-        m_resources.Init(m_device.Get(), hardwareAdapter.Get());
+        m_resources.InitAllocator(m_device.Get(), hardwareAdapter.Get());
 
 #if !defined(KE_FINAL)
         if (m_appInfo.m_features.m_validationLayers)

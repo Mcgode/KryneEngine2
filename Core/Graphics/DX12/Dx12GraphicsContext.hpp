@@ -58,7 +58,7 @@ namespace KryneEngine
 
         DWORD m_validationLayerMessageCallbackHandle = 0;
 
-        void _CreateDevice(IDXGIFactory4 *_factory4);
+        void _CreateDevice(IDXGIFactory4* _factory4);
         void _FindAdapter(IDXGIFactory4* _factory, IDXGIAdapter1** _adapter);
 
         void _CreateCommandQueues();
@@ -78,11 +78,7 @@ namespace KryneEngine
 
         [[nodiscard]] inline GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 _frameId)
         {
-            return m_resources.CreateTextureSrv(
-                _srvDesc,
-                m_device.Get(),
-                GetFrameContextCount(),
-                _frameId % GetFrameContextCount());
+            return m_resources.CreateTextureSrv(_srvDesc, m_device.Get(), _frameId % GetFrameContextCount());
         }
 
         [[nodiscard]] inline GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)

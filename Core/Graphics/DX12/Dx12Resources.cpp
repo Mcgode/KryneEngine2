@@ -17,7 +17,7 @@ namespace KryneEngine
     Dx12Resources::Dx12Resources() = default;
     Dx12Resources::~Dx12Resources() = default;
 
-    void Dx12Resources::Init(ID3D12Device* _device, IDXGIAdapter* _adapter)
+    void Dx12Resources::InitAllocator(ID3D12Device* _device, IDXGIAdapter* _adapter)
     {
         D3D12MA::ALLOCATOR_DESC allocatorDesc {
             .pDevice = _device,
@@ -25,6 +25,44 @@ namespace KryneEngine
         };
 
         Dx12Assert(D3D12MA::CreateAllocator(&allocatorDesc, &m_memoryAllocator));
+    }
+
+    void Dx12Resources::InitHeaps(ID3D12Device* _device, u32 _frameContextCount, u32 _frameIndex)
+    {
+        // CBV/SRV/UAV descriptor heaps initialization
+        {
+            m_cbvSrvUavDescriptorHeaps.Resize(_frameContextCount);
+            m_cbvSrvUavDescriptorHeaps.InitAll(nullptr);
+
+            m_cbvSrvUavDescriptorCopyTracker.Init(_frameContextCount, _frameIndex);
+
+            {
+                const D3D12_DESCRIPTOR_HEAP_DESC heapDesc{
+                    .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+                    .NumDescriptors = kCbvSrvUavHeapSize,
+                    .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+                };
+                Dx12Assert(_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_cbvSrvUavDescriptorStorageHeap)));
+#if !defined(KE_FINAL)
+                Dx12SetName(m_cbvSrvUavDescriptorStorageHeap.Get(), L"CBV/SRV/UAV Descriptor Storage Heap");
+#endif
+            }
+
+            for (u32 i = 0; i < _frameContextCount; i++)
+            {
+                const D3D12_DESCRIPTOR_HEAP_DESC heapDesc{
+                    .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+                    .NumDescriptors = kCbvSrvUavHeapSize,
+                    .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+                };
+                Dx12Assert(_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_cbvSrvUavDescriptorHeaps[i])));
+#if !defined(KE_FINAL)
+                Dx12SetName(m_cbvSrvUavDescriptorHeaps[i].Get(), L"CBV/SRV/UAV Descriptor Heap [%d]", i);
+#endif
+            }
+
+            m_cbvSrvUavDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        }
     }
 
     GenPool::Handle Dx12Resources::CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device)
@@ -198,38 +236,14 @@ namespace KryneEngine
         return m_renderPasses.Free(_handle);
     }
 
-    GenPool::Handle Dx12Resources::CreateTextureSrv(
-        const TextureSrvDesc& _srvDesc,
-        ID3D12Device* _device, u32 _frameContextCount,
-        u32 _frameIndex)
+    GenPool::Handle
+    Dx12Resources::CreateTextureSrv(const TextureSrvDesc& _srvDesc, ID3D12Device* _device, u32 _frameIndex)
     {
         auto* texturePtr = m_textures.Get(_srvDesc.m_textureHandle);
         VERIFY_OR_RETURN(texturePtr != nullptr, GenPool::kInvalidHandle);
         ID3D12Resource* texture = *texturePtr;
 
         const GenPool::Handle handle = m_cbvSrvUav.Allocate();
-
-        if (m_cbvSrvUavDescriptorHeaps.Empty())
-        {
-            m_cbvSrvUavDescriptorHeaps.Resize(_frameContextCount);
-            m_cbvSrvUavDescriptorHeaps.InitAll(nullptr);
-
-            m_cbvSrvUavDescriptorCopyTracker.Init(_frameContextCount, _frameIndex);
-
-            for (u32 i = 0; i < _frameContextCount; i++)
-            {{
-                    const D3D12_DESCRIPTOR_HEAP_DESC heapDesc {
-                        .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-                        .NumDescriptors = kCbvSrvUavHeapSize,
-                        .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-                    };
-                    Dx12Assert(_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_cbvSrvUavDescriptorHeaps[i])));
-#if !defined(KE_FINAL)
-                    Dx12SetName(m_cbvSrvUavDescriptorHeaps[i].Get(), L"CBV/SRV/UAV Descriptor Heap");
-#endif
-                    m_cbvSrvUavDescriptorSize = _device->GetDescriptorHandleIncrementSize(heapDesc.Type);
-                }}
-        }
 
         static_assert(static_cast<u8>(TextureComponentMapping::Red)   == D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_0);
         static_assert(static_cast<u8>(TextureComponentMapping::Green) == D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_1);
@@ -315,13 +329,34 @@ namespace KryneEngine
             break;
         }
 
-        const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
-            m_cbvSrvUavDescriptorHeaps[_frameIndex]->GetCPUDescriptorHandleForHeapStart(),
-            handle.m_index,
-            m_cbvSrvUavDescriptorSize);
-        _device->CreateShaderResourceView(texture, &srvDesc, cpuDescriptorHandle);
+        // Create SRV and copy to current shader visible heap
+        {
+            const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
+                m_cbvSrvUavDescriptorStorageHeap->GetCPUDescriptorHandleForHeapStart(),
+                handle.m_index,
+                m_cbvSrvUavDescriptorSize);
+            _device->CreateShaderResourceView(texture, &srvDesc, cpuDescriptorHandle);
 
-        *m_cbvSrvUav.Get(handle) = cpuDescriptorHandle;
+            *m_cbvSrvUav.Get(handle) = cpuDescriptorHandle;
+
+            // Copy to shader visible heap
+            {
+                const CD3DX12_CPU_DESCRIPTOR_HANDLE dstHandle(
+                    m_cbvSrvUavDescriptorHeaps[_frameIndex]->GetCPUDescriptorHandleForHeapStart(),
+                    handle.m_index,
+                    m_cbvSrvUavDescriptorSize);
+                const u32 count = 1;
+
+                _device->CopyDescriptors(
+                    1,
+                    &dstHandle,
+                    &count,
+                    1,
+                    &cpuDescriptorHandle,
+                    &count,
+                    D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            }
+        }
 
         // Plan copy operations to spread descriptor to all frames
         m_cbvSrvUavDescriptorCopyTracker.TrackForOtherFrames(handle);
@@ -344,7 +379,7 @@ namespace KryneEngine
 
                 const auto& data = m_cbvSrvUavDescriptorCopyTracker.GetData();
 
-                const auto srcHeapStart = m_cbvSrvUavDescriptorHeaps[_frameIndex]->GetCPUDescriptorHandleForHeapStart();
+                const auto srcHeapStart = m_cbvSrvUavDescriptorStorageHeap->GetCPUDescriptorHandleForHeapStart();
                 const auto dstHeapStart = m_cbvSrvUavDescriptorHeaps[nextFrame]->GetCPUDescriptorHandleForHeapStart();
 
                 srcHandles.reserve(data.size());

@@ -30,7 +30,8 @@ namespace KryneEngine
         Dx12Resources();
         ~Dx12Resources();
 
-        void Init(ID3D12Device* _device, IDXGIAdapter* _adapter);
+        void InitAllocator(ID3D12Device* _device, IDXGIAdapter* _adapter);
+        void InitHeaps(ID3D12Device* _device, u32 _frameContextCount, u32 _frameIndex);
 
         [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device);
 
@@ -41,7 +42,6 @@ namespace KryneEngine
         [[nodiscard]] GenPool::Handle CreateTextureSrv(
             const TextureSrvDesc& _srvDesc,
             ID3D12Device* _device,
-            u32 _frameContextCount,
             u32 _frameIndex);
 
         [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc, ID3D12Device* _device);
@@ -70,10 +70,12 @@ namespace KryneEngine
 
         static_assert(sizeof(GenPool::IndexType) == 2, "GenPool index type changed, please update size appropriately.");
         static constexpr u64 kCbvSrvUavHeapSize = 1u << 16;
+        ComPtr<ID3D12DescriptorHeap> m_cbvSrvUavDescriptorStorageHeap;
         DynamicArray<ComPtr<ID3D12DescriptorHeap>> m_cbvSrvUavDescriptorHeaps;
         MultiFrameDataTracker<GenPool::Handle> m_cbvSrvUavDescriptorCopyTracker;
         u32 m_cbvSrvUavDescriptorSize = 0;
 
         D3D12MA::Allocator* m_memoryAllocator;
+
     };
 } // KryneEngine
