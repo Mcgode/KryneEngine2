@@ -229,6 +229,8 @@ namespace KryneEngine
         }
     }
 
+    u8 GetTextureBytesPerPixel(DXGI_FORMAT _format);
+
     void DebugLayerMessageCallback(
             D3D12_MESSAGE_CATEGORY _category,
             D3D12_MESSAGE_SEVERITY _severity,
