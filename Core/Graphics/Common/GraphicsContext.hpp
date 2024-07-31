@@ -49,6 +49,11 @@ namespace KryneEngine
 
         void WaitForLastFrame() const;
 
+        [[nodiscard]] inline bool IsFrameExecuted(u64 _frameId) const
+        {
+            return m_implementation.IsFrameExecuted(_frameId);
+        }
+
         [[nodiscard]] inline const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const
         {
             return m_implementation.GetApplicationInfo();

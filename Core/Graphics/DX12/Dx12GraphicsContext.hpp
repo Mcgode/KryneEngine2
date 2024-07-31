@@ -34,6 +34,8 @@ namespace KryneEngine
 
         void EndFrame(u64 _frameId);
 
+        [[nodiscard]] bool IsFrameExecuted(u64 _frameId) const;
+
         void WaitForFrame(u64 _frameId) const;
 
         [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_appInfo; }

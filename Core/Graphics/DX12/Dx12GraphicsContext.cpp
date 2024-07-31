@@ -175,6 +175,11 @@ namespace KryneEngine
         m_resources.NextFrame(m_device.Get(), nextFrameIndex);
     }
 
+    bool Dx12GraphicsContext::IsFrameExecuted(KryneEngine::u64 _frameId) const
+    {
+        return m_frameFence->GetCompletedValue() >= _frameId;
+    }
+
     void Dx12GraphicsContext::WaitForFrame(u64 _frameId) const
     {
         if (m_frameFence->GetCompletedValue() < _frameId)
