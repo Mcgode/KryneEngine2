@@ -276,6 +276,12 @@ namespace KryneEngine
         }
     }
 
+    bool VkGraphicsContext::IsFrameExecuted(KryneEngine::u64 _frameId) const
+    {
+        const u8 frameIndex = _frameId % m_frameContextCount;
+        return m_frameContexts[frameIndex].m_frameId > _frameId;
+    }
+
     void VkGraphicsContext::WaitForFrame(u64 _frameId) const
     {
         const u8 frameIndex = _frameId % m_frameContextCount;
