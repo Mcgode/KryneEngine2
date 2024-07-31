@@ -140,18 +140,16 @@ namespace KryneEngine
             CommandList _commandList,
             GenPool::Handle _stagingTexture,
             GenPool::Handle _dstTexture,
-            const TextureDesc& _textureDesc,
-            u8 _mipIndex,
-            u16 _sliceIndex,
+            const TextureMemoryFootprint& _footprint,
+            u32 _subResourceIndex,
             void* _data)
         {
             m_implementation.SetTextureData(
                 _commandList,
                 _stagingTexture,
                 _dstTexture,
-                _textureDesc,
-                _mipIndex,
-                _sliceIndex,
+                _footprint,
+                _subResourceIndex,
                 _data);
         }
     };

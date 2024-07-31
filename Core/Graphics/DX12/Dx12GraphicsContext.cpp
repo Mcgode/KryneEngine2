@@ -495,23 +495,56 @@ namespace KryneEngine
         CommandList _commandList,
         GenPool::Handle _stagingTexture,
         GenPool::Handle _dstTexture,
-        const TextureDesc& _textureDesc,
-        u8 _mipIndex,
-        u16 _sliceIndex,
+        const TextureMemoryFootprint& _footprint,
+        u32 _subResourceIndex,
         void* _data)
     {
-        D3D12_SUBRESOURCE_FOOTPRINT footprint {
-            .Format = Dx12Converters::ToDx12Format(_textureDesc.m_format),
-            .Width = _textureDesc.m_dimensions.x,
-            .Height = _textureDesc.m_dimensions.y,
-            .Depth = _textureDesc.m_dimensions.z,
+        ID3D12Resource** stagingTexture = m_resources.m_textures.Get(_stagingTexture);
+        ID3D12Resource** dstTexture = m_resources.m_textures.Get(_dstTexture);
+
+        VERIFY_OR_RETURN_VOID(stagingTexture != nullptr);
+        VERIFY_OR_RETURN_VOID(dstTexture != nullptr);
+
+        const D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint {
+            .Offset = _footprint.m_offset,
+            .Footprint = {
+                .Format = Dx12Converters::ToDx12Format(_footprint.m_format),
+                .Width = _footprint.m_width,
+                .Height = _footprint.m_height,
+                .Depth = _footprint.m_depth,
+                .RowPitch = _footprint.m_lineByteAlignedSize,
+            },
         };
 
-        footprint.RowPitch = Alignment::AlignUp<u32>(
-            footprint.Width * GetTextureBytesPerPixel(footprint.Format),
-            D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+        const s64 inputRowPitch = footprint.Footprint.Width * GetTextureBytesPerPixel(footprint.Footprint.Format);
+        const D3D12_SUBRESOURCE_DATA data {
+            .pData = _data,
+            .RowPitch = inputRowPitch,
+            .SlicePitch = inputRowPitch * static_cast<s64>(footprint.Footprint.Height),
+        };
 
+        {
+            void* bufferData;
+            (*stagingTexture)->Map(0, nullptr, &bufferData);
 
+            const D3D12_MEMCPY_DEST copyInfo {
+                .pData = (u8*)bufferData + footprint.Offset,
+                .RowPitch = footprint.Footprint.RowPitch,
+                .SlicePitch = footprint.Footprint.RowPitch * footprint.Footprint.Height,
+            };
+            MemcpySubresource(
+                &copyInfo,
+                &data,
+                footprint.Footprint.RowPitch,
+                footprint.Footprint.Height,
+                footprint.Footprint.Depth);
+
+            (*stagingTexture)->Unmap(0, nullptr);
+        }
+
+        const CD3DX12_TEXTURE_COPY_LOCATION Dst(*dstTexture, _subResourceIndex);
+        const CD3DX12_TEXTURE_COPY_LOCATION Src(*stagingTexture, footprint);
+        _commandList->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
     }
 
     eastl::vector<TextureMemoryFootprint> Dx12GraphicsContext::FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc)
