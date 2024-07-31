@@ -221,7 +221,7 @@ namespace KryneEngine
                     const D3D12_DESCRIPTOR_HEAP_DESC heapDesc {
                         .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
                         .NumDescriptors = kCbvSrvUavHeapSize,
-                        .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
+                        .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
                     };
                     Dx12Assert(_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_cbvSrvUavDescriptorHeaps[i])));
 #if !defined(KE_FINAL)
@@ -246,6 +246,74 @@ namespace KryneEngine
                 static_cast<u8>(_srvDesc.m_componentsMapping[2]),
                 static_cast<u8>(_srvDesc.m_componentsMapping[3]))
         };
+
+        switch (_srvDesc.m_viewType)
+        {
+        case TextureTypes::Single1D:
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
+            srvDesc.Texture1D = {
+                .MostDetailedMip = _srvDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
+                .ResourceMinLODClamp = 0.f
+            };
+            break;
+        case TextureTypes::Single2D:
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture2D = {
+                .MostDetailedMip = _srvDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
+                .PlaneSlice = _srvDesc.m_arrayStart,
+                .ResourceMinLODClamp = 0.f
+            };
+            break;
+        case TextureTypes::Single3D:
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+            srvDesc.Texture3D = {
+                .MostDetailedMip = _srvDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
+                .ResourceMinLODClamp = 0.f
+            };
+            break;
+        case TextureTypes::Array1D:
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
+            srvDesc.Texture1DArray = {
+                .MostDetailedMip = _srvDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
+                .FirstArraySlice = _srvDesc.m_arrayStart,
+                .ArraySize = _srvDesc.m_arrayRange,
+                .ResourceMinLODClamp = 0.f
+            };
+            break;
+        case TextureTypes::Array2D:
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+            srvDesc.Texture2DArray = {
+                .MostDetailedMip = _srvDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
+                .FirstArraySlice = _srvDesc.m_arrayStart,
+                .ArraySize = _srvDesc.m_arrayRange,
+                .PlaneSlice = 0,
+                .ResourceMinLODClamp = 0.f
+            };
+            break;
+        case TextureTypes::SingleCube:
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+            srvDesc.TextureCube = {
+                .MostDetailedMip = _srvDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
+                .ResourceMinLODClamp = 0.f
+            };
+            break;
+        case TextureTypes::ArrayCube:
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
+            srvDesc.TextureCubeArray = {
+                .MostDetailedMip = _srvDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
+                .First2DArrayFace = _srvDesc.m_arrayStart,
+                .NumCubes = _srvDesc.m_arrayRange,
+                .ResourceMinLODClamp = 0.f
+            };
+            break;
+        }
 
         const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
             m_cbvSrvUavDescriptorHeaps[_frameIndex]->GetCPUDescriptorHandleForHeapStart(),
