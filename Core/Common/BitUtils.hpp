@@ -136,6 +136,6 @@ namespace KryneEngine::BitUtils
     inline bool EnumHasAll(const EnumType _source, const EnumType _flags)
     {
         using UnderlyingType = std::underlying_type_t<EnumType>;
-        return static_cast<UnderlyingType>(_source & _flags) != static_cast<UnderlyingType>(_flags);
+        return static_cast<UnderlyingType>(_source & _flags) == static_cast<UnderlyingType>(_flags);
     }
 }
