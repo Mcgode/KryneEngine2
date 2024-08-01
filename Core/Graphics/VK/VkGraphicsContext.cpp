@@ -137,6 +137,8 @@ namespace KryneEngine
 
         _CreateDevice();
 
+        m_resources.InitAllocator(m_appInfo, m_device, m_physicalDevice, m_instance);
+
 #if !defined(KE_FINAL)
         m_debugHandler = eastl::make_shared<VkDebugHandler>();
         *m_debugHandler = VkDebugHandler::Initialize(m_device, m_appInfo, m_debugUtils, m_debugMarkers);

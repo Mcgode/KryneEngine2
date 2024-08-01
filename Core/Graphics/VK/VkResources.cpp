@@ -7,6 +7,7 @@
 #include "VkResources.hpp"
 #include "VkDebugHandler.hpp"
 #include "HelperFunctions.hpp"
+#include <Graphics/Common/GraphicsCommon.hpp>
 #include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/RenderPass.hpp>
@@ -16,6 +17,23 @@ namespace KryneEngine
 {
     VkResources::VkResources()  = default;
     VkResources::~VkResources() = default;
+
+    void VkResources::InitAllocator(
+        const GraphicsCommon::ApplicationInfo& _appInfo,
+        VkDevice _device,
+        VkPhysicalDevice _physicalDevice,
+        VkInstance _instance)
+    {
+        const VmaAllocatorCreateInfo createInfo {
+            .flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT,
+            .physicalDevice = _physicalDevice,
+            .device = _device,
+            .instance = _instance,
+            .vulkanApiVersion = VkHelperFunctions::GetApiVersion(_appInfo.m_api),
+        };
+
+        vmaCreateAllocator(&createInfo, &m_allocator);
+    }
 
     GenPool::Handle VkResources::RegisterTexture(VkImage _image, Size16x2 _size)
     {

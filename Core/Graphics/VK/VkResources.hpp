@@ -7,10 +7,15 @@
 #pragma once
 
 #include "VkHeaders.hpp"
+#include <vk_mem_alloc.h>
 #include <EASTL/shared_ptr.h>
 
 namespace KryneEngine
 {
+    namespace GraphicsCommon
+    {
+        struct ApplicationInfo;
+    }
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
     struct TextureSrvDesc;
@@ -51,6 +56,12 @@ namespace KryneEngine
         VkResources();
         ~VkResources();
 
+        void InitAllocator(
+            const GraphicsCommon::ApplicationInfo& _appInfo,
+            VkDevice _device,
+            VkPhysicalDevice _physicalDevice,
+            VkInstance _instance);
+
         [[nodiscard]] GenPool::Handle RegisterTexture(VkImage _image, Size16x2 _size);
 
         bool ReleaseTexture(GenPool::Handle _handle, VkDevice _device, bool _free = true);
@@ -66,6 +77,8 @@ namespace KryneEngine
         bool DestroyRenderPass(GenPool::Handle _handle, VkDevice _device);
 
     private:
+        VmaAllocator m_allocator;
+
         [[nodiscard]] VkImageView CreateImageView(
             VkDevice _device,
             VkImage _image,
