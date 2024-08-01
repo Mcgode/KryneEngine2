@@ -772,7 +772,7 @@ namespace KryneEngine
             .imageSubresource = {
                 .aspectMask = VkHelperFunctions::RetrieveAspectMask(_subResourceIndex.m_planeSlice),
                 .mipLevel = _subResourceIndex.m_mipIndex,
-                .baseArrayLayer = _subResourceIndex.m_arraySize,
+                .baseArrayLayer = _subResourceIndex.m_arraySlice,
                 .layerCount = 1,
             },
             .imageOffset = { 0, 0, 0 },
