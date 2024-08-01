@@ -18,6 +18,7 @@ namespace KryneEngine
     }
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
+    struct TextureCreateDesc;
     struct TextureSrvDesc;
 
     class VkDebugHandler;
@@ -26,7 +27,8 @@ namespace KryneEngine
     {
         struct TextureColdData
         {
-            Size16x2 m_size;
+            VmaAllocation m_allocation;
+            uint3 m_dimensions;
         };
         GenerationalPool<VkImage, TextureColdData> m_textures {};
 
@@ -62,7 +64,9 @@ namespace KryneEngine
             VkPhysicalDevice _physicalDevice,
             VkInstance _instance);
 
-        [[nodiscard]] GenPool::Handle RegisterTexture(VkImage _image, Size16x2 _size);
+        [[nodiscard]] GenPool::Handle RegisterTexture(VkImage _image, const uint3& _dimensions);
+
+        [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _desc, VkDevice _device);
 
         bool ReleaseTexture(GenPool::Handle _handle, VkDevice _device, bool _free = true);
 

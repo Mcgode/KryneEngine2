@@ -94,6 +94,11 @@ namespace KryneEngine
         [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(
             const TextureDesc& _desc);
 
+        [[nodiscard]] inline GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc)
+        {
+            return m_resources.CreateTexture(_createDesc, m_device);
+        }
+
         [[nodiscard]] GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 /*_frameId*/)
         {
             return m_resources.CreateTextureSrv(_srvDesc, m_device);

@@ -156,7 +156,31 @@ namespace KryneEngine::VkHelperFunctions
         return format;
     }
 
-    constexpr inline VkImageViewType RetrieveViewType(TextureTypes _type)
+    constexpr inline VkImageType RetrieveImageType(TextureTypes _type)
+    {
+        VkImageType type = VK_IMAGE_TYPE_MAX_ENUM;
+        switch (_type)
+        {
+        case TextureTypes::Single1D:
+        case TextureTypes::Array1D:
+            type = VK_IMAGE_TYPE_1D;
+            break;
+        case TextureTypes::Single2D:
+        case TextureTypes::Array2D:
+        case TextureTypes::SingleCube:
+        case TextureTypes::ArrayCube:
+            type = VK_IMAGE_TYPE_2D;
+            break;
+        case TextureTypes::Single3D:
+            type = VK_IMAGE_TYPE_3D;
+            break;
+        default:
+            KE_ERROR("Unknown texture type");
+        }
+        return type;
+    }
+
+    constexpr inline VkImageViewType RetrieveImageViewType(TextureTypes _type)
     {
         VkImageViewType type;
         switch (_type)
@@ -188,7 +212,7 @@ namespace KryneEngine::VkHelperFunctions
         return type;
     }
 
-    inline u32 RetrieveAspectMask(TexturePlane _plane)
+    constexpr inline u32 RetrieveAspectMask(TexturePlane _plane)
     {
         u32 flags = 0;
         if (BitUtils::EnumHasAny(_plane, TexturePlane::Color))
@@ -202,6 +226,36 @@ namespace KryneEngine::VkHelperFunctions
         if (BitUtils::EnumHasAny(_plane, TexturePlane::Stencil))
         {
             flags |= VK_IMAGE_ASPECT_STENCIL_BIT;
+        }
+        return flags;
+    }
+
+    constexpr inline u32 RetrieveImageUsage(MemoryUsage _usage)
+    {
+        u32 flags = 0;
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::TransferSrcImage))
+        {
+            flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        }
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::TransferDstImage))
+        {
+            flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        }
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::SampledImage))
+        {
+            flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+        }
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::ReadWriteImage))
+        {
+            flags |= VK_IMAGE_USAGE_STORAGE_BIT;
+        }
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::ColorTargetImage))
+        {
+            flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        }
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::DepthStencilTargetImage))
+        {
+            flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
         }
         return flags;
     }

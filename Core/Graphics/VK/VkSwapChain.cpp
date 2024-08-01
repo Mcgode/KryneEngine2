@@ -155,9 +155,7 @@ namespace KryneEngine
             m_imageAvailableSemaphores.Resize(imageCount);
             for (auto i = 0u; i < imageCount; i++)
             {
-                const auto textureHandle = _resources.RegisterTexture(
-                        images[i],
-                        { u16(extent.width), u16(extent.height) });
+                const auto textureHandle = _resources.RegisterTexture(images[i], {extent.width, extent.height, 1});
 #if !defined(KE_FINAL)
                 const eastl::string rtvDebugName = _appInfo.m_applicationName + "/Swapchain/RTV[" + eastl::to_string(i) + "]";
 #endif

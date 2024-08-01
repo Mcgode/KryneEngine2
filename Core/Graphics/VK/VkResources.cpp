@@ -8,6 +8,7 @@
 #include "VkDebugHandler.hpp"
 #include "HelperFunctions.hpp"
 #include <Graphics/Common/GraphicsCommon.hpp>
+#include <Graphics/Common/Texture.hpp>
 #include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/RenderPass.hpp>
@@ -35,11 +36,54 @@ namespace KryneEngine
         vmaCreateAllocator(&createInfo, &m_allocator);
     }
 
-    GenPool::Handle VkResources::RegisterTexture(VkImage _image, Size16x2 _size)
+    GenPool::Handle VkResources::RegisterTexture(VkImage _image, const uint3& _dimensions)
     {
         const auto handle = m_textures.Allocate();
         *m_textures.Get(handle) = _image;
-        *m_textures.GetCold(handle) = { _size };
+        *m_textures.GetCold(handle) = { nullptr, _dimensions };
+        return handle;
+    }
+
+    GenPool::Handle VkResources::CreateTexture(const TextureCreateDesc& _desc, VkDevice _device)
+    {
+        using namespace VkHelperFunctions;
+
+        const VkImageCreateInfo imageCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .flags = 0,
+            .imageType = RetrieveImageType(_desc.m_desc.m_type),
+            .format = ToVkFormat(_desc.m_desc.m_format),
+            .extent = {
+                _desc.m_desc.m_dimensions.x,
+                _desc.m_desc.m_dimensions.y,
+                _desc.m_desc.m_dimensions.z,
+            },
+            .mipLevels = _desc.m_desc.m_mipCount,
+            .arrayLayers = _desc.m_desc.m_arraySize,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .usage = RetrieveImageUsage(_desc.m_memoryUsage),
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        };
+
+        const VmaAllocationCreateInfo allocationCreateInfo {
+            .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+        };
+
+        VkImage image;
+        VmaAllocation allocation;
+        VkAssert(vmaCreateImage(
+            m_allocator,
+            &imageCreateInfo,
+            &allocationCreateInfo,
+            &image,
+            &allocation,
+            nullptr));
+
+        const GenPool::Handle handle = m_textures.Allocate();
+        *m_textures.Get(handle) = image;
+        *m_textures.GetCold(handle) = { allocation, _desc.m_desc.m_dimensions };
+
         return handle;
     }
 
@@ -70,7 +114,7 @@ namespace KryneEngine
         VkImageView imageView = CreateImageView(
             _device,
             *image,
-            VkHelperFunctions::RetrieveViewType(_srvDesc.m_viewType),
+            VkHelperFunctions::RetrieveImageViewType(_srvDesc.m_viewType),
             VkHelperFunctions::ToVkFormat(_srvDesc.m_format),
             VkHelperFunctions::ToVkComponentMapping(_srvDesc.m_componentsMapping),
             VK_IMAGE_ASPECT_COLOR_BIT,
@@ -108,7 +152,7 @@ namespace KryneEngine
         VkImageView imageView = CreateImageView(
             _device,
             *image,
-            VkHelperFunctions::RetrieveViewType(_desc.m_type),
+            VkHelperFunctions::RetrieveImageViewType(_desc.m_type),
             format,
             { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,  VK_COMPONENT_SWIZZLE_IDENTITY },
             VkHelperFunctions::RetrieveAspectMask(_desc.m_plane),
@@ -126,8 +170,11 @@ namespace KryneEngine
 
         *m_renderTargetViews.Get(rtvHandle) = imageView;
         *m_renderTargetViews.GetCold(rtvHandle) = {
-                format,
-                m_textures.GetCold(_desc.m_textureHandle)->m_size
+            format,
+            {
+                .m_width = (u16) m_textures.GetCold(_desc.m_textureHandle)->m_dimensions.x,
+                .m_height = (u16) m_textures.GetCold(_desc.m_textureHandle)->m_dimensions.y,
+            }
         };
 
         return rtvHandle;
