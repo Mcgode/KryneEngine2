@@ -727,6 +727,8 @@ namespace KryneEngine
                 const u32 sizePerBlock = VkHelperFunctions::GetByteSizePerBlock(VkHelperFunctions::ToVkFormat(_desc.m_format));
                 footprint.m_lineByteAlignedSize = sizePerBlock * footprint.m_width;
 
+                footprints.push_back(footprint);
+
                 const u64 size = footprint.m_lineByteAlignedSize * footprint.m_height * footprint.m_depth;
                 cumulatedOffset += size;
             }
