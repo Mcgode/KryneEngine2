@@ -145,6 +145,14 @@ namespace KryneEngine
         void BeginRenderPass(CommandList _commandList, GenPool::Handle _handle);
         void EndRenderPass(CommandList _commandList);
 
+        void SetTextureData(
+            CommandList _commandList,
+            GenPool::Handle _stagingBuffer,
+            GenPool::Handle _dstTexture,
+            const TextureMemoryFootprint& _footprint,
+            const SubResourceIndexing& _subResourceIndex,
+            void* _data);
+
     private:
         VkResources m_resources {};
     };

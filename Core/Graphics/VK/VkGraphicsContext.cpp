@@ -748,4 +748,41 @@ namespace KryneEngine
                 ? m_swapChain->m_imageIndex
                 : 0;
     }
+
+    void VkGraphicsContext::SetTextureData(
+        CommandList _commandList,
+        GenPool::Handle _stagingBuffer,
+        GenPool::Handle _dstTexture,
+        const TextureMemoryFootprint& _footprint,
+        const SubResourceIndexing& _subResourceIndex,
+        void* _data)
+    {
+        VkBuffer* stagingBuffer = nullptr; // TODO: Set up buffer registry in resources
+        VkImage* dstTexture = m_resources.m_textures.Get(_dstTexture);
+
+        VERIFY_OR_RETURN_VOID(stagingBuffer != nullptr);
+        VERIFY_OR_RETURN_VOID(dstTexture != nullptr);
+
+        const VkBufferImageCopy region {
+            .bufferOffset = _footprint.m_offset,
+            .bufferRowLength = 0,   // Set both entries to 0 to mark data as tightly packed.
+            .bufferImageHeight = 0, //
+            .imageSubresource = {
+                .aspectMask = VkHelperFunctions::RetrieveAspectMask(_subResourceIndex.m_plane),
+                .mipLevel = _subResourceIndex.m_mipIndex,
+                .baseArrayLayer = _subResourceIndex.m_arraySize,
+                .layerCount = 1,
+            },
+            .imageOffset = { 0, 0, 0 },
+            .imageExtent = { _footprint.m_width, _footprint.m_height, _footprint.m_depth },
+        };
+
+        vkCmdCopyBufferToImage(
+            _commandList,
+            *stagingBuffer,
+            *dstTexture,
+            VK_IMAGE_LAYOUT_GENERAL,
+            1,
+            &region);
+    }
 }

@@ -150,7 +150,7 @@ namespace KryneEngine
 
         inline void SetTextureData(
             CommandList _commandList,
-            GenPool::Handle _stagingTexture,
+            GenPool::Handle _stagingBuffer,
             GenPool::Handle _dstTexture,
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
@@ -158,7 +158,7 @@ namespace KryneEngine
         {
             m_implementation.SetTextureData(
                 _commandList,
-                _stagingTexture,
+                _stagingBuffer,
                 _dstTexture,
                 _footprint,
                 _subResourceIndex,
