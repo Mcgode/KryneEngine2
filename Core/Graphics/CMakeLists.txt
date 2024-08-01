@@ -9,6 +9,8 @@ set(VkFiles
         VK/VkResources.cpp VK/VkResources.hpp
         VK/VkTypes.hpp
         VK/VkDebugHandler.hpp
+        VK/VmaUsage.cpp
+        VK/VmaUsage.hpp
 )
 
 set (DX12Files
