@@ -1,6 +1,6 @@
 set(VkFiles
         VK/VkGraphicsContext.hpp VK/VkGraphicsContext.cpp
-        VK/HelperFunctions.hpp
+        VK/HelperFunctions.cpp VK/HelperFunctions.hpp
         VK/VkSwapChain.cpp VK/VkSwapChain.hpp
         VK/VkSurface.cpp VK/VkSurface.hpp
         VK/CommonStructures.hpp

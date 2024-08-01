@@ -266,4 +266,6 @@ namespace KryneEngine::VkHelperFunctions
         }
         return VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT;
     }
+
+    u16 GetByteSizePerBlock(VkFormat _format);
 }

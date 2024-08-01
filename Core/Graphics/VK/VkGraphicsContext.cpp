@@ -705,6 +705,34 @@ namespace KryneEngine
         vkCmdEndRenderPass(_commandList);
     }
 
+    eastl::vector<TextureMemoryFootprint> VkGraphicsContext::FetchTextureSubResourcesMemoryFootprints(
+        const TextureDesc& _desc)
+    {
+        eastl::vector<TextureMemoryFootprint> footprints;
+
+        u64 cumulatedOffset = 0;
+        for (u32 sliceIndex = 0; sliceIndex < _desc.m_arraySize; sliceIndex++)
+        {
+            for (u32 mipIndex = 0; mipIndex < _desc.m_mipCount; mipIndex++)
+            {
+                TextureMemoryFootprint footprint {
+                    .m_offset = cumulatedOffset,
+                    .m_width = eastl::max(_desc.m_dimensions.x >> mipIndex, 1u),
+                    .m_height = eastl::max(_desc.m_dimensions.y >> mipIndex, 1u),
+                    .m_depth = static_cast<u16>(eastl::max(_desc.m_dimensions.z >> mipIndex, 1u)),
+                    .m_format = _desc.m_format,
+                };
+                const u32 sizePerBlock = VkHelperFunctions::GetByteSizePerBlock(VkHelperFunctions::ToVkFormat(_desc.m_format));
+                footprint.m_lineByteAlignedSize = sizePerBlock * footprint.m_width;
+
+                const u64 size = footprint.m_lineByteAlignedSize * footprint.m_height * footprint.m_depth;
+                cumulatedOffset += size;
+            }
+        }
+
+        return footprints;
+    }
+
     GenPool::Handle VkGraphicsContext::GetPresentRenderTarget(u8 _index)
     {
         return (m_swapChain != nullptr)

@@ -11,6 +11,7 @@
 #include "VkResources.hpp"
 #include <EASTL/unique_ptr.h>
 #include <EASTL/vector_set.h>
+#include <Graphics/Common/Texture.hpp>
 #include <Graphics/VK/CommonStructures.hpp>
 
 namespace KryneEngine
@@ -90,6 +91,9 @@ namespace KryneEngine
         void _RetrieveQueues(const VkCommonStructures::QueueIndices &_queueIndices);
 
     public:
+        [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(
+            const TextureDesc& _desc);
+
         [[nodiscard]] GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 /*_frameId*/)
         {
             return m_resources.CreateTextureSrv(_srvDesc, m_device);
