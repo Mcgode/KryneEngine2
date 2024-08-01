@@ -114,7 +114,7 @@ namespace KryneEngine
                 m_fontsStagingHandle,
                 m_fontsTextureHandle,
                 stagingTextureCreateDesc.m_footprintPerSubResource[0],
-                0,
+                { textureCreateDesc.m_desc, 0 },
                 data);
         }
 

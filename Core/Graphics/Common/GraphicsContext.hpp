@@ -153,7 +153,7 @@ namespace KryneEngine
             GenPool::Handle _stagingTexture,
             GenPool::Handle _dstTexture,
             const TextureMemoryFootprint& _footprint,
-            u32 _subResourceIndex,
+            const SubResourceIndexing& _subResourceIndex,
             void* _data)
         {
             m_implementation.SetTextureData(

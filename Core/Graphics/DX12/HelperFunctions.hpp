@@ -227,6 +227,15 @@ namespace KryneEngine
                 return D3D12_HEAP_TYPE_DEFAULT;
             }
         }
+
+        inline u32 RetrievePlaneSlice(TexturePlane _planes, TexturePlane _selectedPlane)
+        {
+            if (BitUtils::EnumHasAll(_planes, TexturePlane::Depth | TexturePlane::Stencil))
+            {
+                return _selectedPlane == TexturePlane::Depth ? 0 : 1;
+            }
+            return 0;
+        }
     }
 
     u8 GetTextureBytesPerPixel(DXGI_FORMAT _format);

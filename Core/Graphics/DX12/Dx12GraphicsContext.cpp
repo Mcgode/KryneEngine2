@@ -503,7 +503,7 @@ namespace KryneEngine
         GenPool::Handle _stagingTexture,
         GenPool::Handle _dstTexture,
         const TextureMemoryFootprint& _footprint,
-        u32 _subResourceIndex,
+        const SubResourceIndexing& _subResourceIndex,
         void* _data)
     {
         ID3D12Resource** stagingTexture = m_resources.m_textures.Get(_stagingTexture);
@@ -549,7 +549,14 @@ namespace KryneEngine
             (*stagingTexture)->Unmap(0, nullptr);
         }
 
-        const CD3DX12_TEXTURE_COPY_LOCATION Dst(*dstTexture, _subResourceIndex);
+        const u32 subResourceIndex = D3D12CalcSubresource(
+            _subResourceIndex.m_mipIndex,
+            _subResourceIndex.m_arraySlice,
+            Dx12Converters::RetrievePlaneSlice(_subResourceIndex.m_planes, _subResourceIndex.m_planeSlice),
+            _subResourceIndex.m_mipCount,
+            _subResourceIndex.m_arraySize);
+
+        const CD3DX12_TEXTURE_COPY_LOCATION Dst(*dstTexture, subResourceIndex);
         const CD3DX12_TEXTURE_COPY_LOCATION Src(*stagingTexture, footprint);
         _commandList->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
     }

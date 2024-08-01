@@ -92,9 +92,4 @@ namespace KryneEngine::GraphicsCommon
             return m_api >= Api::DirectX12_Start && m_api <= Api::DirectX12_End;
         }
     };
-
-//    inline void RpsAssert(RpsResult _result)
-//    {
-//        KE_ASSERT_MSG(RPS_SUCCEEDED(_result), rpsResultGetName(_result));
-//    }
 }
