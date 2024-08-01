@@ -90,11 +90,12 @@ namespace KryneEngine
     bool VkResources::ReleaseTexture(GenPool::Handle _handle, VkDevice _device, bool _free)
     {
         VkImage image;
-        if (m_textures.Free(_handle, &image))
+        TextureColdData coldData;
+        if (m_textures.Free(_handle, &image, &coldData))
         {
             if (_free)
             {
-                vkDestroyImage(_device, image, nullptr);
+                vmaDestroyImage(m_allocator, image, coldData.m_allocation);
             }
             return true;
         }

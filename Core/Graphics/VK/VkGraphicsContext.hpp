@@ -99,6 +99,11 @@ namespace KryneEngine
             return m_resources.CreateTexture(_createDesc, m_device);
         }
 
+        inline bool DestroyTexture(GenPool::Handle _handle)
+        {
+            return m_resources.ReleaseTexture(_handle, m_device);
+        }
+
         [[nodiscard]] GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 /*_frameId*/)
         {
             return m_resources.CreateTextureSrv(_srvDesc, m_device);
