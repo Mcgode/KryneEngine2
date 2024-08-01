@@ -768,7 +768,7 @@ namespace KryneEngine
             .bufferRowLength = 0,   // Set both entries to 0 to mark data as tightly packed.
             .bufferImageHeight = 0, //
             .imageSubresource = {
-                .aspectMask = VkHelperFunctions::RetrieveAspectMask(_subResourceIndex.m_plane),
+                .aspectMask = VkHelperFunctions::RetrieveAspectMask(_subResourceIndex.m_planeSlice),
                 .mipLevel = _subResourceIndex.m_mipIndex,
                 .baseArrayLayer = _subResourceIndex.m_arraySize,
                 .layerCount = 1,
