@@ -104,6 +104,34 @@ namespace KryneEngine
 
             io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontsTextureSrvHandle)));
 
+            {
+                BufferMemoryBarrier stagingBufferBarrier {
+                    .m_stagesSrc = BarrierSyncStageFlags::None,
+                    .m_stagesDst = BarrierSyncStageFlags::Transfer,
+                    .m_accessSrc = BarrierAccessFlags::None,
+                    .m_accessDst = BarrierAccessFlags::TransferSrc,
+                    .m_offset = 0,
+                    .m_size = eastl::numeric_limits<u64>::max(),
+                    .m_bufferHandle = m_fontsStagingHandle,
+                };
+
+                TextureMemoryBarrier textureMemoryBarrier {
+                    .m_stagesSrc = BarrierSyncStageFlags::None,
+                    .m_stagesDst = BarrierSyncStageFlags::Transfer,
+                    .m_accessSrc = BarrierAccessFlags::None,
+                    .m_accessDst = BarrierAccessFlags::TransferDst,
+                    .m_texture = m_fontsTextureHandle,
+                    .m_layoutSrc = TextureLayout::Unknown,
+                    .m_layoutDst = TextureLayout::TransferDst,
+                };
+
+                _graphicsContext.PlaceMemoryBarriers(
+                    _commandList,
+                    {},
+                    { &stagingBufferBarrier, 1 },
+                    { &textureMemoryBarrier, 1 });
+            }
+
             _graphicsContext.SetTextureData(
                 _commandList,
                 m_fontsStagingHandle,
@@ -111,6 +139,26 @@ namespace KryneEngine
                 textureCreateDesc.m_footprintPerSubResource[0],
                 { textureCreateDesc.m_desc, 0 },
                 data);
+
+            {
+                // Don't care about staging buffer state any more, they've outlived their usefulness
+
+                TextureMemoryBarrier textureMemoryBarrier {
+                    .m_stagesSrc = BarrierSyncStageFlags::Transfer,
+                    .m_stagesDst = BarrierSyncStageFlags::All,
+                    .m_accessSrc = BarrierAccessFlags::TransferDst,
+                    .m_accessDst = BarrierAccessFlags::ShaderResource,
+                    .m_texture = m_fontsTextureHandle,
+                    .m_layoutSrc = TextureLayout::TransferDst,
+                    .m_layoutDst = TextureLayout::ShaderResource,
+                };
+
+                _graphicsContext.PlaceMemoryBarriers(
+                    _commandList,
+                    {},
+                    {},
+                    { &textureMemoryBarrier, 1 });
+            }
         }
 
         if (m_fontsStagingHandle != GenPool::kInvalidHandle && _graphicsContext.IsFrameExecuted(m_stagingFrame))
