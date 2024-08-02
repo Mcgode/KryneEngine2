@@ -12,17 +12,13 @@ namespace KryneEngine
     D3D12_BARRIER_SYNC Dx12Converters::ToDx12BarrierSync(BarrierSyncStageFlags _flags)
     {
         D3D12_BARRIER_SYNC flags = D3D12_BARRIER_SYNC_NONE;
-        if (_flags == BarrierSyncStageFlags::None)
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::None))
         {
             return D3D12_BARRIER_SYNC_NONE;
         }
         if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::All))
         {
             flags |= D3D12_BARRIER_SYNC_ALL;
-        }
-        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::Draw))
-        {
-            flags |= D3D12_BARRIER_SYNC_DRAW;
         }
         if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::ExecuteIndirect))
         {

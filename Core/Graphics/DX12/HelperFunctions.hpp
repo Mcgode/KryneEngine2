@@ -163,6 +163,9 @@ namespace KryneEngine
                 MAP(ShaderResource, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
                 MAP(TransferSrc, D3D12_RESOURCE_STATE_COPY_SOURCE);
                 MAP(TransferDst, D3D12_RESOURCE_STATE_COPY_DEST);
+                MAP(ResolveSrc, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+                MAP(ResolveDst, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+                MAP(ShadingRate, D3D12_RESOURCE_STATE_SHADING_RATE_SOURCE);
             }
 #undef MAP
 

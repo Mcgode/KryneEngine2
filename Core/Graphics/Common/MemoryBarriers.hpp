@@ -14,9 +14,8 @@ namespace KryneEngine
 {
     enum class BarrierSyncStageFlags : u32
     {
-        None                        = 0,
-        All                         = 1 << 0,
-        Draw                        = 1 << 1,
+        None                        = 1 << 0,
+        All                         = 1 << 1,
         ExecuteIndirect             = 1 << 2,
         InputAssembly               = 1 << 3,
         VertexShading               = 1 << 4,
