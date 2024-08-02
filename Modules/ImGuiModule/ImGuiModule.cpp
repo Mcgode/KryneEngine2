@@ -38,7 +38,7 @@ namespace KryneEngine
 
         if (m_fontsStagingHandle != GenPool::kInvalidHandle)
         {
-            _graphicsContext.DestroyTexture(m_fontsStagingHandle);
+            //_graphicsContext.DestroyTexture(m_fontsStagingHandle);
         }
 
         ImGui::DestroyContext(m_context);
@@ -73,30 +73,25 @@ namespace KryneEngine
             s32 w, h;
             io.Fonts->GetTexDataAsAlpha8(&data, &w, &h);
 
-            TextureCreateDesc stagingTextureCreateDesc{
-                .m_desc = {
-                    .m_dimensions = {w, h, 1},
-                    .m_format = TextureFormat::R8_UNorm,
-                    .m_arraySize = 1,
-                    .m_type = TextureTypes::Single2D,
-                    .m_mipCount = 1,
+            TextureDesc fontsTextureDesc {
+                .m_dimensions = {w, h, 1},
+                .m_format = TextureFormat::R8_UNorm,
+                .m_arraySize = 1,
+                .m_type = TextureTypes::Single2D,
+                .m_mipCount = 1,
 #if !defined(KE_FINAL)
-                    .m_debugName = "ImGui/FontTexture"
+                .m_debugName = "ImGui/FontTexture"
 #endif
-                },
-                .m_memoryUsage = MemoryUsage::StageOnce_UsageType | MemoryUsage::TransferSrcImage,
             };
-            stagingTextureCreateDesc.m_footprintPerSubResource =
-                _graphicsContext.FetchTextureSubResourcesMemoryFootprints(stagingTextureCreateDesc.m_desc);
 
-            TextureCreateDesc textureCreateDesc{
-                .m_desc = stagingTextureCreateDesc.m_desc,
-                .m_footprintPerSubResource = stagingTextureCreateDesc.m_footprintPerSubResource,
+            const TextureCreateDesc textureCreateDesc {
+                .m_desc = fontsTextureDesc,
+                .m_footprintPerSubResource = _graphicsContext.FetchTextureSubResourcesMemoryFootprints(fontsTextureDesc),
                 .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::TransferDstImage | MemoryUsage::SampledImage,
             };
 
             m_stagingFrame = _graphicsContext.GetFrameId();
-            m_fontsStagingHandle = _graphicsContext.CreateTexture(stagingTextureCreateDesc);
+            m_fontsStagingHandle = _graphicsContext.CreateStagingBuffer(fontsTextureDesc, textureCreateDesc.m_footprintPerSubResource);
             m_fontsTextureHandle = _graphicsContext.CreateTexture(textureCreateDesc);
 
             {
@@ -113,14 +108,14 @@ namespace KryneEngine
                 _commandList,
                 m_fontsStagingHandle,
                 m_fontsTextureHandle,
-                stagingTextureCreateDesc.m_footprintPerSubResource[0],
+                textureCreateDesc.m_footprintPerSubResource[0],
                 { textureCreateDesc.m_desc, 0 },
                 data);
         }
 
         if (m_fontsStagingHandle != GenPool::kInvalidHandle && _graphicsContext.IsFrameExecuted(m_stagingFrame))
         {
-            _graphicsContext.DestroyTexture(m_fontsStagingHandle);
+            //_graphicsContext.DestroyTexture(m_fontsStagingHandle);
             m_fontsStagingHandle = GenPool::kInvalidHandle;
         }
 

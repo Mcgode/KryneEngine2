@@ -759,7 +759,7 @@ namespace KryneEngine
         const SubResourceIndexing& _subResourceIndex,
         void* _data)
     {
-        VkBuffer* stagingBuffer = nullptr; // TODO: Set up buffer registry in resources
+        VkBuffer* stagingBuffer = m_resources.m_buffers.Get(_stagingBuffer);
         VkImage* dstTexture = m_resources.m_textures.Get(_dstTexture);
 
         VERIFY_OR_RETURN_VOID(stagingBuffer != nullptr);

@@ -500,13 +500,13 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::SetTextureData(
         CommandList _commandList,
-        GenPool::Handle _stagingTexture,
+        GenPool::Handle _stagingBuffer,
         GenPool::Handle _dstTexture,
         const TextureMemoryFootprint& _footprint,
         const SubResourceIndexing& _subResourceIndex,
         void* _data)
     {
-        ID3D12Resource** stagingTexture = m_resources.m_textures.Get(_stagingTexture);
+        ID3D12Resource** stagingTexture = m_resources.m_buffers.Get(_stagingBuffer);
         ID3D12Resource** dstTexture = m_resources.m_textures.Get(_dstTexture);
 
         VERIFY_OR_RETURN_VOID(stagingTexture != nullptr);

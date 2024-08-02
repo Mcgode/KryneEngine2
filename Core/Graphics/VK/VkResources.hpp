@@ -7,8 +7,9 @@
 #pragma once
 
 #include "VkHeaders.hpp"
-#include <vk_mem_alloc.h>
 #include <EASTL/shared_ptr.h>
+#include <Graphics/Common/Texture.hpp>
+#include <vk_mem_alloc.h>
 
 namespace KryneEngine
 {
@@ -18,13 +19,18 @@ namespace KryneEngine
     }
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
-    struct TextureCreateDesc;
     struct TextureSrvDesc;
 
     class VkDebugHandler;
 
     struct VkResources
     {
+        struct BufferColdData
+        {
+            VmaAllocation m_allocation;
+        };
+        GenerationalPool<VkBuffer, BufferColdData> m_buffers {};
+
         struct TextureColdData
         {
             VmaAllocation m_allocation;
@@ -63,6 +69,11 @@ namespace KryneEngine
             VkDevice _device,
             VkPhysicalDevice _physicalDevice,
             VkInstance _instance);
+
+        [[nodiscard]] GenPool::Handle CreateStagingBuffer(
+            const TextureDesc& _createDesc,
+            const eastl::vector<TextureMemoryFootprint>& _footprints,
+            VkDevice _device);
 
         [[nodiscard]] GenPool::Handle RegisterTexture(VkImage _image, const uint3& _dimensions);
 

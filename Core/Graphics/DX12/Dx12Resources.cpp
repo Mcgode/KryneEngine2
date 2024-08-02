@@ -65,6 +65,37 @@ namespace KryneEngine
         }
     }
 
+    GenPool::Handle Dx12Resources::CreateStagingBuffer(
+        const TextureDesc& _desc,
+        const eastl::vector<TextureMemoryFootprint>& _footprints)
+    {
+        const TextureMemoryFootprint lastSubResourceFootPrint = _footprints.back();
+        const u64 bufferWidth = lastSubResourceFootPrint.m_offset + lastSubResourceFootPrint.m_lineByteAlignedSize
+                                                                        * lastSubResourceFootPrint.m_height
+                                                                        * lastSubResourceFootPrint.m_depth;
+
+        D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(
+            bufferWidth,
+            D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE,
+            0);
+
+        const D3D12MA::ALLOCATION_DESC allocationDesc {
+            .HeapType = D3D12_HEAP_TYPE_UPLOAD,
+        };
+
+        const GenPool::Handle handle = m_buffers.Allocate();
+
+        Dx12Assert(m_memoryAllocator->CreateResource(
+            &allocationDesc,
+            &resourceDesc,
+            D3D12_RESOURCE_STATE_COMMON,
+            nullptr,
+            m_buffers.GetCold(handle),
+            IID_PPV_ARGS(m_buffers.Get(handle))));
+
+        return handle;
+    }
+
     GenPool::Handle Dx12Resources::CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device)
     {
         D3D12_RESOURCE_DESC resourceDesc {
@@ -78,24 +109,13 @@ namespace KryneEngine
             .MipLevels = _createDesc.m_desc.m_mipCount,
             .Format = Dx12Converters::ToDx12Format(_createDesc.m_desc.m_format),
             .SampleDesc = { .Count = 1, .Quality = 0 },
+            .Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN, // Uses most efficient layout for hardware.
+            .Flags = Dx12Converters::GetTextureResourceFlags(_createDesc.m_memoryUsage),
         };
 
         const D3D12MA::ALLOCATION_DESC allocationDesc {
             .HeapType = Dx12Converters::GetHeapType(_createDesc.m_memoryUsage),
         };
-
-        if (allocationDesc.HeapType == D3D12_HEAP_TYPE_UPLOAD)
-        {
-            const TextureMemoryFootprint lastSubResourceFootPrint = _createDesc.m_footprintPerSubResource.back();
-            const u64 bufferWidth = lastSubResourceFootPrint.m_offset + lastSubResourceFootPrint.m_lineByteAlignedSize
-                                          * lastSubResourceFootPrint.m_height
-                                          * lastSubResourceFootPrint.m_depth;
-
-            resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(
-                bufferWidth,
-                resourceDesc.Flags,
-                resourceDesc.Alignment);
-        }
 
         D3D12MA::Allocation* allocation;
         ID3D12Resource* texture;

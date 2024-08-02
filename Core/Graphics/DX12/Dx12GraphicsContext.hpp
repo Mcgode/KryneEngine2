@@ -68,6 +68,13 @@ namespace KryneEngine
     public:
         [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc);
 
+        [[nodiscard]] inline GenPool::Handle CreateStagingBuffer(
+            const TextureDesc& _createDesc,
+            const eastl::vector<TextureMemoryFootprint>& _footprints)
+        {
+            return m_resources.CreateStagingBuffer(_createDesc, _footprints);
+        }
+
         [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc)
         {
             return m_resources.CreateTexture(_createDesc, m_device.Get());
@@ -114,7 +121,7 @@ namespace KryneEngine
 
         void SetTextureData(
             CommandList _commandList,
-            GenPool::Handle _stagingTexture,
+            GenPool::Handle _stagingBuffer,
             GenPool::Handle _dstTexture,
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,

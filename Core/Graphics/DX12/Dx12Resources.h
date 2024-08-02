@@ -9,6 +9,7 @@
 #include <Common/Arrays.hpp>
 #include <Common/Utils/MultiFrameTracking.hpp>
 #include <Graphics/Common/RenderPass.hpp>
+#include <Graphics/Common/Texture.hpp>
 
 namespace D3D12MA
 {
@@ -18,7 +19,6 @@ namespace D3D12MA
 
 namespace KryneEngine
 {
-    struct TextureCreateDesc;
     struct TextureSrvDesc;
     struct RenderTargetViewDesc;
 
@@ -32,6 +32,9 @@ namespace KryneEngine
 
         void InitAllocator(ID3D12Device* _device, IDXGIAdapter* _adapter);
         void InitHeaps(ID3D12Device* _device, u32 _frameContextCount, u32 _frameIndex);
+
+        [[nodiscard]] GenPool::Handle
+        CreateStagingBuffer(const TextureDesc& _desc, const eastl::vector<TextureMemoryFootprint>& _footprints);
 
         [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device);
 
@@ -58,6 +61,7 @@ namespace KryneEngine
             GenPool::Handle m_resource;
         };
 
+        GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_buffers;
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_textures;
         GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_cbvSrvUav;
         GenerationalPool<RtvHotData> m_renderTargetViews;

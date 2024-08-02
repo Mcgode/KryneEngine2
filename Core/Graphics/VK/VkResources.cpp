@@ -36,6 +36,54 @@ namespace KryneEngine
         vmaCreateAllocator(&createInfo, &m_allocator);
     }
 
+    GenPool::Handle VkResources::CreateStagingBuffer(
+        const TextureDesc& _createDesc,
+        const eastl::vector<TextureMemoryFootprint>& _footprints,
+        VkDevice _device)
+    {
+        const u64 bufferWidth = _footprints.back().m_offset + _footprints.back().m_lineByteAlignedSize
+            * _footprints.back().m_height
+            * _footprints.back().m_depth;
+
+        const VkBufferCreateInfo bufferCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .flags = 0,
+            .size = bufferWidth,
+            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        };
+
+        const VmaAllocationCreateInfo allocationCreateInfo {
+            .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+            .usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+        };
+
+        const GenPool::Handle handle = m_buffers.Allocate();
+
+        VkBuffer buffer;
+        VmaAllocation allocation;
+        VkAssert(vmaCreateBuffer(
+            m_allocator,
+            &bufferCreateInfo,
+            &allocationCreateInfo,
+            &buffer,
+            &allocation,
+            nullptr));
+
+#if !defined(KE_FINAL)
+        m_debugHandler->SetName(
+            _device,
+            VK_OBJECT_TYPE_BUFFER,
+            reinterpret_cast<u64>(buffer),
+            (_createDesc.m_debugName + "_Staging").c_str());
+#endif
+
+        *m_buffers.Get(handle) = buffer;
+        *m_buffers.GetCold(handle) = { allocation };
+
+        return handle;
+    }
+
     GenPool::Handle VkResources::RegisterTexture(VkImage _image, const uint3& _dimensions)
     {
         const auto handle = m_textures.Allocate();
@@ -83,6 +131,14 @@ namespace KryneEngine
         const GenPool::Handle handle = m_textures.Allocate();
         *m_textures.Get(handle) = image;
         *m_textures.GetCold(handle) = { allocation, _desc.m_desc.m_dimensions };
+
+#if !defined(KE_FINAL)
+        m_debugHandler->SetName(
+            _device,
+            VK_OBJECT_TYPE_IMAGE,
+            reinterpret_cast<u64>(image),
+            _desc.m_desc.m_debugName.c_str());
+#endif
 
         return handle;
     }
