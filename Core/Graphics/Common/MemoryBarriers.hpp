@@ -71,8 +71,8 @@ namespace KryneEngine
         BarrierAccessFlags m_accessSrc;
         BarrierAccessFlags m_accessDst;
 
-        u64 m_offset;
-        u64 m_size;
+        u64 m_offset = 0;
+        u64 m_size = eastl::numeric_limits<u64>::max();
         GenPool::Handle m_bufferHandle;
     };
 
@@ -84,13 +84,13 @@ namespace KryneEngine
         BarrierAccessFlags m_accessDst;
 
         GenPool::Handle m_texture;
-        u16 m_arrayStart;
-        u16 m_arrayCount;
+        u16 m_arrayStart = 0;
+        u16 m_arrayCount = 1;
         TextureLayout m_layoutSrc;
         TextureLayout m_layoutDst;
-        u8 m_mipStart;
-        u8 m_mipCount;
+        u8 m_mipStart = 0;
+        u8 m_mipCount = 1;
 
-        TexturePlane m_planes;
+        TexturePlane m_planes = TexturePlane::Color;
     };
 }
