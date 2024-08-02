@@ -11,6 +11,7 @@
 #include "VkResources.hpp"
 #include <EASTL/unique_ptr.h>
 #include <EASTL/vector_set.h>
+#include <Graphics/Common/MemoryBarriers.hpp>
 #include <Graphics/Common/Texture.hpp>
 #include <Graphics/VK/CommonStructures.hpp>
 
@@ -159,6 +160,12 @@ namespace KryneEngine
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
             void* _data);
+
+        void PlaceMemoryBarriers(
+            CommandList _commandList,
+            const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,
+            const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
+            const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers);
 
     private:
         VkResources m_resources {};

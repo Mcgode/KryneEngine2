@@ -787,4 +787,12 @@ namespace KryneEngine
             1,
             &region);
     }
+
+    void VkGraphicsContext::PlaceMemoryBarriers(
+        CommandList _commandList,
+        const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,
+        const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
+        const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers)
+    {
+    }
 }

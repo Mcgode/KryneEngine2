@@ -11,6 +11,7 @@
 #include "Dx12Resources.h"
 #include "Dx12Types.hpp"
 #include <Common/Arrays.hpp>
+#include <Graphics/Common/MemoryBarriers.hpp>
 #include <Graphics/Common/Texture.hpp>
 #include <EASTL/unique_ptr.h>
 
@@ -126,6 +127,12 @@ namespace KryneEngine
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
             void* _data);
+
+        void PlaceMemoryBarriers(
+            CommandList _commandList,
+            const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,
+            const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
+            const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers);
 
     private:
         Dx12Resources m_resources;

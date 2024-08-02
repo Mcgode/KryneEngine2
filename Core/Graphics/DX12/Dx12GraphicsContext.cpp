@@ -598,4 +598,12 @@ namespace KryneEngine
 
         return finalFootprints;
     }
+
+    void Dx12GraphicsContext::PlaceMemoryBarriers(
+        CommandList _commandList,
+        const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,
+        const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
+        const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers)
+    {
+    }
 } // KryneEngine
