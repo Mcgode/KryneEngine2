@@ -8,8 +8,9 @@
 
 #include <Common/Assert.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
-#include <comdef.h>
 #include <Graphics/Common/Enums.hpp>
+#include <Graphics/Common/MemoryBarriers.hpp>
+#include <comdef.h>
 #include "Dx12Headers.hpp"
 
 namespace KryneEngine
@@ -236,6 +237,10 @@ namespace KryneEngine
             }
             return 0;
         }
+
+        D3D12_BARRIER_SYNC ToDx12BarrierSync(BarrierSyncStageFlags _flags);
+        D3D12_BARRIER_ACCESS ToDx12BarrierAccess(BarrierAccessFlags _flags);
+        D3D12_BARRIER_LAYOUT ToDx12BarrierLayout(TextureLayout _layout);
     }
 
     u8 GetTextureBytesPerPixel(DXGI_FORMAT _format);

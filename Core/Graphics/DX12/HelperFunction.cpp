@@ -9,6 +9,188 @@
 
 namespace KryneEngine
 {
+    D3D12_BARRIER_SYNC Dx12Converters::ToDx12BarrierSync(BarrierSyncStageFlags _flags)
+    {
+        D3D12_BARRIER_SYNC flags = D3D12_BARRIER_SYNC_NONE;
+        if (_flags == BarrierSyncStageFlags::None)
+        {
+            return D3D12_BARRIER_SYNC_NONE;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::All))
+        {
+            flags |= D3D12_BARRIER_SYNC_ALL;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::Draw))
+        {
+            flags |= D3D12_BARRIER_SYNC_DRAW;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::ExecuteIndirect))
+        {
+            flags |= D3D12_BARRIER_SYNC_EXECUTE_INDIRECT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::InputAssembly))
+        {
+            flags |= D3D12_BARRIER_SYNC_INDEX_INPUT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::VertexShading))
+        {
+            flags |= D3D12_BARRIER_SYNC_VERTEX_SHADING;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::FragmentShading))
+        {
+            flags |= D3D12_BARRIER_SYNC_PIXEL_SHADING;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::ColorBlending))
+        {
+            flags |= D3D12_BARRIER_SYNC_RENDER_TARGET;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::DepthStencilTesting))
+        {
+            flags |= D3D12_BARRIER_SYNC_DEPTH_STENCIL;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::Transfer))
+        {
+            flags |= D3D12_BARRIER_SYNC_COPY;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::MultiSampleResolve))
+        {
+            flags |= D3D12_BARRIER_SYNC_RESOLVE;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::ComputeShading))
+        {
+            flags |= D3D12_BARRIER_SYNC_COMPUTE_SHADING;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::AllShading))
+        {
+            flags |= D3D12_BARRIER_SYNC_ALL_SHADING;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::Raytracing))
+        {
+            flags |= D3D12_BARRIER_SYNC_RAYTRACING;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::AccelerationStructureBuild))
+        {
+            flags |= D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::AccelerationStructureCopy))
+        {
+            flags |= D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE;
+        }
+
+        return flags;
+    }
+
+    D3D12_BARRIER_ACCESS Dx12Converters::ToDx12BarrierAccess(BarrierAccessFlags _flags)
+    {
+        D3D12_BARRIER_ACCESS flags = D3D12_BARRIER_ACCESS_NO_ACCESS;
+
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::None))
+        {
+            return D3D12_BARRIER_ACCESS_NO_ACCESS;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::VertexBuffer))
+        {
+            flags |= D3D12_BARRIER_ACCESS_VERTEX_BUFFER;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::IndexBuffer))
+        {
+            flags |= D3D12_BARRIER_ACCESS_INDEX_BUFFER;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::ConstantBuffer))
+        {
+            flags |= D3D12_BARRIER_ACCESS_CONSTANT_BUFFER;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::IndirectBuffer))
+        {
+            flags |= D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::ColorAttachment))
+        {
+            flags |= D3D12_BARRIER_ACCESS_RENDER_TARGET;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::DepthStencilRead))
+        {
+            flags |= D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::DepthStencilWrite))
+        {
+            flags |= D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::ShaderResource))
+        {
+            flags |= D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::UnorderedAccess))
+        {
+            flags |= D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::ResolveSrc))
+        {
+            flags |= D3D12_BARRIER_ACCESS_RESOLVE_SOURCE;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::ResolveDst))
+        {
+            flags |= D3D12_BARRIER_ACCESS_RESOLVE_DEST;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::TransferSrc))
+        {
+            flags |= D3D12_BARRIER_ACCESS_COPY_SOURCE;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::TransferDst))
+        {
+            flags |= D3D12_BARRIER_ACCESS_COPY_DEST;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::AccelerationStructureRead))
+        {
+            flags |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::AccelerationStructureWrite))
+        {
+            flags |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::ShadingRate))
+        {
+            flags |= D3D12_BARRIER_ACCESS_SHADING_RATE_SOURCE;
+        }
+
+        return flags;
+    }
+
+    D3D12_BARRIER_LAYOUT Dx12Converters::ToDx12BarrierLayout(TextureLayout _layout)
+    {
+        switch (_layout)
+        {
+        case TextureLayout::Unknown:
+            return D3D12_BARRIER_LAYOUT_UNDEFINED;
+        case TextureLayout::Common:
+            return D3D12_BARRIER_LAYOUT_COMMON;
+        case TextureLayout::Present:
+            return D3D12_BARRIER_LAYOUT_PRESENT;
+        case TextureLayout::GenericRead:
+            return D3D12_BARRIER_LAYOUT_GENERIC_READ;
+        case TextureLayout::ColorAttachment:
+            return D3D12_BARRIER_LAYOUT_RENDER_TARGET;
+        case TextureLayout::DepthStencilAttachment:
+            return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE;
+        case TextureLayout::DepthStencilReadOnly:
+            return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ;
+        case TextureLayout::UnorderedAccess:
+            return D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS;
+        case TextureLayout::ShaderResource:
+            return D3D12_BARRIER_LAYOUT_SHADER_RESOURCE;
+        case TextureLayout::TransferSrc:
+            return D3D12_BARRIER_LAYOUT_COPY_SOURCE;
+        case TextureLayout::TransferDst:
+            return D3D12_BARRIER_LAYOUT_COPY_DEST;
+        case TextureLayout::ResolveSrc:
+            return D3D12_BARRIER_LAYOUT_RESOLVE_SOURCE;
+        case TextureLayout::ResolveDst:
+            return D3D12_BARRIER_LAYOUT_RESOLVE_DEST;
+        case TextureLayout::ShadingRate:
+            return D3D12_BARRIER_LAYOUT_SHADING_RATE_SOURCE;
+        }
+    }
+
     u8 GetTextureBytesPerPixel(DXGI_FORMAT _format)
     {
         switch(_format)
