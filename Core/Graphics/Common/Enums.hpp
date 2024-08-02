@@ -76,11 +76,6 @@ namespace KryneEngine
         TransferDst,
     };
 
-    enum class ResourceAccess
-    {
-
-    };
-
     enum class TexturePlane: u8
     {
         Color   = 1 << 0,
