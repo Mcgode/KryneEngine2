@@ -74,6 +74,9 @@ namespace KryneEngine
         ShaderResource,
         TransferSrc,
         TransferDst,
+        ResolveSrc,
+        ResolveDst,
+        ShadingRate,
     };
 
     enum class TexturePlane: u8
