@@ -145,7 +145,7 @@ namespace KryneEngine
 
                 TextureMemoryBarrier textureMemoryBarrier {
                     .m_stagesSrc = BarrierSyncStageFlags::Transfer,
-                    .m_stagesDst = BarrierSyncStageFlags::All,
+                    .m_stagesDst = BarrierSyncStageFlags::FragmentShading,
                     .m_accessSrc = BarrierAccessFlags::TransferDst,
                     .m_accessDst = BarrierAccessFlags::ShaderResource,
                     .m_texture = m_fontsTextureHandle,
