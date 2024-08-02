@@ -7,8 +7,10 @@
 #pragma once
 
 #include <EASTL/span.h>
-#include <Graphics/Common/GraphicsCommon.hpp>
 #include <Graphics/Common/Enums.hpp>
+#include <Graphics/Common/GraphicsCommon.hpp>
+#include <Graphics/Common/MemoryBarriers.hpp>
+#include <vulkan/vulkan_core.h>
 
 namespace KryneEngine
 {
@@ -278,6 +280,9 @@ namespace KryneEngine::VkHelperFunctions
             MAP(ShaderResource, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             MAP(TransferSrc, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
             MAP(TransferDst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+            MAP(ResolveSrc, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+            MAP(ResolveDst, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+            MAP(ShadingRate, VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR);
         }
         #undef MAP
 
@@ -320,6 +325,9 @@ namespace KryneEngine::VkHelperFunctions
         }
         return VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT;
     }
+
+    VkPipelineStageFlagBits ToVkPipelineStageFlagBits(BarrierSyncStageFlags _flags, bool _isSrc);
+    VkAccessFlags ToVkAccessFlags(BarrierAccessFlags _flags);
 
     u16 GetByteSizePerBlock(VkFormat _format);
 }
