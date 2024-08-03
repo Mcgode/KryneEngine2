@@ -17,6 +17,8 @@ namespace KryneEngine
     {
         struct ApplicationInfo;
     }
+
+    struct BufferCreateDesc;
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
     struct TextureSrvDesc;
@@ -71,6 +73,8 @@ namespace KryneEngine
             VkInstance _instance);
 
         void DestroyAllocator();
+
+        [[nodiscard]] GenPool::Handle CreateBuffer(const BufferCreateDesc& _desc);
 
         [[nodiscard]] GenPool::Handle CreateStagingBuffer(
             const TextureDesc& _createDesc,

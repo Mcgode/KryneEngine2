@@ -262,6 +262,8 @@ namespace KryneEngine::VkHelperFunctions
         return flags;
     }
 
+    [[nodiscard]] u32 RetrieveBufferUsage(MemoryUsage _usage);
+
     constexpr inline VkImageLayout ToVkLayout(TextureLayout _layout)
     {
         VkImageLayout layout;

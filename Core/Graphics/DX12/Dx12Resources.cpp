@@ -7,7 +7,7 @@
 #include "Dx12Resources.h"
 #include "HelperFunctions.hpp"
 #include <D3D12MemAlloc.h>
-#include <Graphics/Common/Texture.hpp>
+#include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Memory/GenerationalPool.inl>
@@ -63,6 +63,44 @@ namespace KryneEngine
 
             m_cbvSrvUavDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         }
+    }
+
+    GenPool::Handle Dx12Resources::CreateBuffer(const BufferCreateDesc& _desc)
+    {
+        D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_desc.m_desc.m_size);
+
+        if (BitUtils::EnumHasAny(_desc.m_usage, MemoryUsage::WriteBuffer))
+        {
+            resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+        }
+        if (!BitUtils::EnumHasAny(_desc.m_usage, MemoryUsage::ReadBuffer | MemoryUsage::ConstantBuffer))
+        {
+            resourceDesc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+        }
+        if (BitUtils::EnumHasAny(_desc.m_usage, MemoryUsage::AccelerationStruct))
+        {
+            resourceDesc.Flags |= D3D12_RESOURCE_FLAG_RAYTRACING_ACCELERATION_STRUCTURE;
+        }
+
+        D3D12MA::ALLOCATION_DESC allocationDesc {
+            .HeapType = Dx12Converters::GetHeapType(_desc.m_usage),
+        };
+
+        D3D12MA::Allocation* allocation;
+        ID3D12Resource* buffer;
+        Dx12Assert(m_memoryAllocator->CreateResource(
+            &allocationDesc,
+            &resourceDesc,
+            D3D12_RESOURCE_STATE_COMMON,
+            nullptr,
+            &allocation,
+            IID_PPV_ARGS(&buffer)));
+
+        const GenPool::Handle handle = m_buffers.Allocate();
+        *m_buffers.Get(handle) = buffer;
+        *m_buffers.GetCold(handle) = allocation;
+
+        return handle;
     }
 
     GenPool::Handle Dx12Resources::CreateStagingBuffer(

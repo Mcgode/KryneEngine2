@@ -8,6 +8,45 @@
 
 namespace KryneEngine::VkHelperFunctions
 {
+    u32 RetrieveBufferUsage(MemoryUsage _usage)
+    {
+        u32 flags = 0;
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::TransferSrcBuffer))
+        {
+            flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        }
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::TransferDstBuffer))
+        {
+            flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        }
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::ConstantBuffer))
+        {
+            flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        }
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::ReadWriteBuffer))
+        {
+            flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        }
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::IndexBuffer))
+        {
+            flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+        }
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::VertexBuffer))
+        {
+            flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        }
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::IndirectBuffer))
+        {
+            flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+        }
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::AccelerationStruct))
+        {
+            flags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
+                     | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+        }
+        return flags;
+    }
+
     VkPipelineStageFlagBits2 ToVkPipelineStageFlagBits2(BarrierSyncStageFlags _flags, bool _isSrc)
     {
         VkPipelineStageFlagBits2 flags = VK_PIPELINE_STAGE_2_NONE;

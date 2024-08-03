@@ -8,7 +8,7 @@
 #include "VkDebugHandler.hpp"
 #include "HelperFunctions.hpp"
 #include <Graphics/Common/GraphicsCommon.hpp>
-#include <Graphics/Common/Texture.hpp>
+#include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/RenderPass.hpp>
@@ -39,6 +39,59 @@ namespace KryneEngine
     void VkResources::DestroyAllocator()
     {
         vmaDestroyAllocator(m_allocator);
+    }
+
+    GenPool::Handle VkResources::CreateBuffer(const BufferCreateDesc& _desc)
+    {
+        using namespace VkHelperFunctions;
+
+        const VkBufferCreateInfo createInfo {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .flags = 0,
+            .size = _desc.m_desc.m_size,
+            .usage = RetrieveBufferUsage(_desc.m_usage),
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        };
+
+        VmaAllocationCreateInfo allocationInfo {};
+        if (_desc.m_usage == MemoryUsage::GpuOnly_UsageType)
+        {
+            allocationInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+        }
+        else if (_desc.m_usage == MemoryUsage::StageOnce_UsageType)
+        {
+            allocationInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+            allocationInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+        }
+        else if (_desc.m_usage == MemoryUsage::StageEveryFrame_UsageType)
+        {
+            allocationInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+            allocationInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
+                                   | VMA_ALLOCATION_CREATE_MAPPED_BIT
+                                   | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
+        }
+        else if (_desc.m_usage == MemoryUsage::Readback_UsageType)
+        {
+            allocationInfo.usage = VMA_MEMORY_USAGE_AUTO;
+            allocationInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
+                                   | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+        }
+
+        VkBuffer buffer;
+        BufferColdData coldData {};
+        VkAssert(vmaCreateBuffer(
+            m_allocator,
+            &createInfo,
+            &allocationInfo,
+            &buffer,
+            &coldData.m_allocation,
+            nullptr));
+
+        const GenPool::Handle handle = m_buffers.Allocate();
+        *m_buffers.Get(handle) = buffer;
+        *m_buffers.GetCold(handle) = coldData;
+
+        return handle;
     }
 
     GenPool::Handle VkResources::CreateStagingBuffer(

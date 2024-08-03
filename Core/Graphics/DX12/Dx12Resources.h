@@ -19,6 +19,7 @@ namespace D3D12MA
 
 namespace KryneEngine
 {
+    struct BufferCreateDesc;
     struct TextureSrvDesc;
     struct RenderTargetViewDesc;
 
@@ -32,6 +33,8 @@ namespace KryneEngine
 
         void InitAllocator(ID3D12Device* _device, IDXGIAdapter* _adapter);
         void InitHeaps(ID3D12Device* _device, u32 _frameContextCount, u32 _frameIndex);
+
+        [[nodiscard]] GenPool::Handle CreateBuffer(const BufferCreateDesc& _desc);
 
         [[nodiscard]] GenPool::Handle
         CreateStagingBuffer(const TextureDesc& _desc, const eastl::vector<TextureMemoryFootprint>& _footprints);
@@ -83,7 +86,7 @@ namespace KryneEngine
         MultiFrameDataTracker<GenPool::Handle> m_cbvSrvUavDescriptorCopyTracker;
         u32 m_cbvSrvUavDescriptorSize = 0;
 
-        D3D12MA::Allocator* m_memoryAllocator;
+        D3D12MA::Allocator* m_memoryAllocator = nullptr;
 
     };
 } // KryneEngine

@@ -107,6 +107,7 @@ namespace KryneEngine
         IndexBuffer         = 1 << 8,
         VertexBuffer        = 1 << 9,
         IndirectBuffer      = 1 << 10,
+        AccelerationStruct  = 1 << 11,
 
         // Image specific flags
         TransferSrcImage        = 1 << 3,
