@@ -217,6 +217,12 @@ namespace KryneEngine
             }
         }
 #endif
+
+        {
+            D3D12_FEATURE_DATA_D3D12_OPTIONS12 options12 = {};
+            Dx12Assert(m_device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options12, sizeof(options12)));
+            m_enhancedBarriersEnabled = options12.EnhancedBarriersSupported;
+        }
     }
 
     void Dx12GraphicsContext::_FindAdapter(IDXGIFactory4 *_factory, IDXGIAdapter1 **_adapter)
@@ -605,5 +611,102 @@ namespace KryneEngine
         const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
         const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers)
     {
+        using namespace Dx12Converters;
+
+        if (m_enhancedBarriersEnabled)
+        {
+            eastl::fixed_vector<D3D12_BARRIER_GROUP, 3> barrierGroups;
+
+            if (!_globalMemoryBarriers.empty())
+            {
+                DynamicArray<D3D12_GLOBAL_BARRIER> globalMemoryBarriers(_globalMemoryBarriers.size());
+
+                for (auto i = 0u; i < globalMemoryBarriers.Size(); i++)
+                {
+                    const GlobalMemoryBarrier& barrier = _globalMemoryBarriers[i];
+
+                    globalMemoryBarriers[i] = D3D12_GLOBAL_BARRIER{
+                        .SyncBefore = ToDx12BarrierSync(barrier.m_stagesSrc),
+                        .SyncAfter = ToDx12BarrierSync(barrier.m_stagesDst),
+                        .AccessBefore = ToDx12BarrierAccess(barrier.m_accessSrc),
+                        .AccessAfter = ToDx12BarrierAccess(barrier.m_accessDst),
+                    };
+                }
+
+                barrierGroups.push_back(D3D12_BARRIER_GROUP{
+                    .Type = D3D12_BARRIER_TYPE_GLOBAL,
+                    .NumBarriers = (u32)globalMemoryBarriers.Size(),
+                    .pGlobalBarriers = globalMemoryBarriers.Data(),
+                });
+            }
+
+            if (!_bufferMemoryBarriers.empty())
+            {
+                DynamicArray<D3D12_BUFFER_BARRIER> bufferMemoryBarriers(_bufferMemoryBarriers.size());
+
+                for (auto i = 0u; i < bufferMemoryBarriers.Size(); i++)
+                {
+                    const BufferMemoryBarrier& barrier = _bufferMemoryBarriers[i];
+                    ID3D12Resource** buffer = m_resources.m_buffers.Get(barrier.m_bufferHandle);
+
+                    bufferMemoryBarriers[i] = D3D12_BUFFER_BARRIER{
+                        .SyncBefore = ToDx12BarrierSync(barrier.m_stagesSrc),
+                        .SyncAfter = ToDx12BarrierSync(barrier.m_stagesDst),
+                        .AccessBefore = ToDx12BarrierAccess(barrier.m_accessSrc),
+                        .AccessAfter = ToDx12BarrierAccess(barrier.m_accessDst),
+                        .pResource = buffer != nullptr ? *buffer : nullptr,
+                        .Offset = barrier.m_offset,
+                        .Size = barrier.m_size,
+                    };
+                }
+
+                barrierGroups.push_back(D3D12_BARRIER_GROUP{
+                    .Type = D3D12_BARRIER_TYPE_BUFFER,
+                    .NumBarriers = (u32)bufferMemoryBarriers.Size(),
+                    .pBufferBarriers = bufferMemoryBarriers.Data(),
+                });
+            }
+
+            if (!_textureMemoryBarriers.empty())
+            {
+                DynamicArray<D3D12_TEXTURE_BARRIER> textureMemoryBarriers(_textureMemoryBarriers.size());
+
+                for (auto i = 0u; i < textureMemoryBarriers.Size(); i++)
+                {
+                    const TextureMemoryBarrier& barrier = _textureMemoryBarriers[i];
+                    ID3D12Resource** texture = m_resources.m_textures.Get(barrier.m_texture);
+
+                    textureMemoryBarriers[i] = D3D12_TEXTURE_BARRIER{
+                        .SyncBefore = ToDx12BarrierSync(barrier.m_stagesSrc),
+                        .SyncAfter = ToDx12BarrierSync(barrier.m_stagesDst),
+                        .AccessBefore = ToDx12BarrierAccess(barrier.m_accessSrc),
+                        .AccessAfter = ToDx12BarrierAccess(barrier.m_accessDst),
+                        .LayoutBefore = ToDx12BarrierLayout(barrier.m_layoutSrc),
+                        .LayoutAfter = ToDx12BarrierLayout(barrier.m_layoutDst),
+                        .pResource = texture == nullptr ? nullptr : *texture,
+                        .Subresources =
+                            {.IndexOrFirstMipLevel = barrier.m_mipStart,
+                             .NumMipLevels = barrier.m_mipCount,
+                             .FirstArraySlice = barrier.m_arrayStart,
+                             .NumArraySlices = barrier.m_arrayCount,
+                             .FirstPlane = 0,
+                             .NumPlanes = (u32)std::popcount((u8)barrier.m_planes)},
+                        .Flags = D3D12_TEXTURE_BARRIER_FLAG_NONE,
+                    };
+                }
+
+                barrierGroups.push_back(D3D12_BARRIER_GROUP{
+                    .Type = D3D12_BARRIER_TYPE_TEXTURE,
+                    .NumBarriers = (u32)textureMemoryBarriers.Size(),
+                    .pTextureBarriers = textureMemoryBarriers.Data(),
+                });
+            }
+
+            _commandList->Barrier(barrierGroups.size(), barrierGroups.data());
+        }
+        else
+        {
+
+        }
     }
 } // KryneEngine

@@ -61,6 +61,8 @@ namespace KryneEngine
 
         DWORD m_validationLayerMessageCallbackHandle = 0;
 
+        bool m_enhancedBarriersEnabled = false;
+
         void _CreateDevice(IDXGIFactory4* _factory4);
         void _FindAdapter(IDXGIFactory4* _factory, IDXGIAdapter1** _adapter);
 
