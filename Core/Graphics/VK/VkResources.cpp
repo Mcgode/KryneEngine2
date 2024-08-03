@@ -36,6 +36,11 @@ namespace KryneEngine
         vmaCreateAllocator(&createInfo, &m_allocator);
     }
 
+    void VkResources::DestroyAllocator()
+    {
+        vmaDestroyAllocator(m_allocator);
+    }
+
     GenPool::Handle VkResources::CreateStagingBuffer(
         const TextureDesc& _createDesc,
         const eastl::vector<TextureMemoryFootprint>& _footprints,
@@ -488,6 +493,4 @@ namespace KryneEngine
 
         return imageView;
     }
-
-
 }

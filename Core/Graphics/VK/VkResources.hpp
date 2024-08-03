@@ -70,6 +70,8 @@ namespace KryneEngine
             VkPhysicalDevice _physicalDevice,
             VkInstance _instance);
 
+        void DestroyAllocator();
+
         [[nodiscard]] GenPool::Handle CreateStagingBuffer(
             const TextureDesc& _createDesc,
             const eastl::vector<TextureMemoryFootprint>& _footprints,

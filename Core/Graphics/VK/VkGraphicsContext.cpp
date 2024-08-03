@@ -194,6 +194,8 @@ namespace KryneEngine
         m_surface->Destroy(m_instance);
         m_surface.reset();
 
+        m_resources.DestroyAllocator();
+
         vkDestroyDevice(m_device, nullptr);
         if (m_debugMessenger)
         {
