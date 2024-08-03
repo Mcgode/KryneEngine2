@@ -100,6 +100,9 @@ namespace KryneEngine
             const TextureDesc& _desc);
 
         [[nodiscard]] inline GenPool::Handle CreateBuffer(const BufferCreateDesc& _desc)
+        {
+            return m_resources.CreateBuffer(_desc);
+        }
 
         [[nodiscard]] inline GenPool::Handle CreateStagingBuffer(
             const TextureDesc& _createDesc,

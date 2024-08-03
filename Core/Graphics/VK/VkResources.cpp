@@ -65,7 +65,7 @@ namespace KryneEngine
         }
         else if (_desc.m_usage == MemoryUsage::StageEveryFrame_UsageType)
         {
-            allocationInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+            allocationInfo.usage = VMA_MEMORY_USAGE_AUTO;
             allocationInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
                                    | VMA_ALLOCATION_CREATE_MAPPED_BIT
                                    | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
