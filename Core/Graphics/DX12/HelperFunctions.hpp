@@ -244,6 +244,7 @@ namespace KryneEngine
         D3D12_BARRIER_SYNC ToDx12BarrierSync(BarrierSyncStageFlags _flags);
         D3D12_BARRIER_ACCESS ToDx12BarrierAccess(BarrierAccessFlags _flags);
         D3D12_BARRIER_LAYOUT ToDx12BarrierLayout(TextureLayout _layout);
+        D3D12_RESOURCE_STATES RetrieveState(BarrierAccessFlags _access, TextureLayout _layout);
     }
 
     u8 GetTextureBytesPerPixel(DXGI_FORMAT _format);

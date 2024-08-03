@@ -148,6 +148,14 @@ namespace KryneEngine
         {
             flags |= D3D12_BARRIER_ACCESS_SHADING_RATE_SOURCE;
         }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::AllRead))
+        {
+            return D3D12_BARRIER_ACCESS_COMMON;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::AllWrite))
+        {
+            return D3D12_BARRIER_ACCESS_COMMON;
+        }
 
         return flags;
     }
@@ -185,6 +193,77 @@ namespace KryneEngine
         case TextureLayout::ShadingRate:
             return D3D12_BARRIER_LAYOUT_SHADING_RATE_SOURCE;
         }
+    }
+
+    D3D12_RESOURCE_STATES Dx12Converters::RetrieveState(BarrierAccessFlags _access, TextureLayout _layout)
+    {
+        D3D12_RESOURCE_STATES states = D3D12_RESOURCE_STATE_COMMON;
+        using namespace BitUtils;
+
+        D3D12_BARRIER_ACCESS access = Dx12Converters::ToDx12BarrierAccess(_access);
+
+        if (access == D3D12_BARRIER_ACCESS_COMMON)
+        {
+            return D3D12_RESOURCE_STATE_COMMON;
+        }
+        if (EnumHasAny(access, D3D12_BARRIER_ACCESS_VERTEX_BUFFER | D3D12_BARRIER_ACCESS_CONSTANT_BUFFER))
+        {
+            states |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+        }
+        if (EnumHasAny(access, D3D12_BARRIER_ACCESS_INDEX_BUFFER))
+        {
+            states |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
+        }
+        if (_layout == TextureLayout::ColorAttachment)
+        {
+            states |= D3D12_RESOURCE_STATE_RENDER_TARGET;
+        }
+        if (EnumHasAny(access, D3D12_BARRIER_ACCESS_UNORDERED_ACCESS) || _layout == TextureLayout::UnorderedAccess)
+        {
+            states |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        }
+        if (_layout == TextureLayout::DepthStencilAttachment)
+        {
+            states |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
+        }
+        if (_layout == TextureLayout::DepthStencilReadOnly)
+        {
+            states |= D3D12_RESOURCE_STATE_DEPTH_READ;
+        }
+        if (EnumHasAny(access, D3D12_BARRIER_ACCESS_SHADER_RESOURCE) || _layout == TextureLayout::ShaderResource)
+        {
+            states |= D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+        }
+        if (EnumHasAny(access, D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT))
+        {
+            states |= D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+        }
+        if (EnumHasAny(access, D3D12_BARRIER_ACCESS_COPY_SOURCE) || _layout == TextureLayout::TransferSrc)
+        {
+            states |= D3D12_RESOURCE_STATE_COPY_SOURCE;
+        }
+        if (EnumHasAny(access, D3D12_BARRIER_ACCESS_COPY_DEST) || _layout == TextureLayout::TransferDst)
+        {
+            states |= D3D12_RESOURCE_STATE_COPY_DEST;
+        }
+        if (EnumHasAny(access, D3D12_BARRIER_ACCESS_RESOLVE_SOURCE) || _layout == TextureLayout::ResolveSrc)
+        {
+            states |= D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
+        }
+        if (EnumHasAny(access, D3D12_BARRIER_ACCESS_RESOLVE_DEST) || _layout == TextureLayout::ResolveDst)
+        {
+            states |= D3D12_RESOURCE_STATE_RESOLVE_DEST;
+        }
+        if (EnumHasAny(access, D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ | D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE))
+        {
+            states |= D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
+        }
+        if (EnumHasAny(access, D3D12_BARRIER_ACCESS_SHADING_RATE_SOURCE))
+        {
+            states |= D3D12_RESOURCE_STATE_SHADING_RATE_SOURCE;
+        }
+
+        return states;
     }
 
     u8 GetTextureBytesPerPixel(DXGI_FORMAT _format)

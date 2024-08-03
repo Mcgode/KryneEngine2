@@ -706,7 +706,92 @@ namespace KryneEngine
         }
         else
         {
+            eastl::vector<D3D12_RESOURCE_BARRIER> resourceBarriers {};
 
+            for (const auto& barrier: _textureMemoryBarriers)
+            {
+                ID3D12Resource** texture = m_resources.m_textures.Get(barrier.m_texture);
+                if (texture == nullptr)
+                {
+                    continue;
+                }
+
+                D3D12_RESOURCE_STATES before = RetrieveState(barrier.m_accessSrc, barrier.m_layoutSrc);
+                D3D12_RESOURCE_STATES after = RetrieveState(barrier.m_accessDst, barrier.m_layoutDst);
+
+                for (u8 mip = barrier.m_mipStart; mip < barrier.m_mipCount; mip++)
+                {
+                    for (u16 slice = barrier.m_arrayStart; slice < barrier.m_arrayCount; slice++)
+                    {
+                        u32 subResourceIndex = D3D12CalcSubresource(mip, slice, 0, barrier.m_mipCount, barrier.m_arrayCount);
+
+                        resourceBarriers.push_back(D3D12_RESOURCE_BARRIER {
+                            .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+                            .Transition = {
+                                .pResource = *texture,
+                                .Subresource = subResourceIndex,
+                                .StateBefore = before,
+                                .StateAfter = after,
+                            }
+                        });
+                    }
+                }
+
+                if (BitUtils::EnumHasAny(barrier.m_accessSrc, BarrierAccessFlags::UnorderedAccess)
+                    && BitUtils::EnumHasAny(barrier.m_accessDst, BarrierAccessFlags::UnorderedAccess))
+                {
+                    resourceBarriers.push_back({
+                        .Type = D3D12_RESOURCE_BARRIER_TYPE_UAV,
+                        .UAV = { .pResource = *texture },
+                    });
+                }
+            }
+
+            for (const auto& barrier: _bufferMemoryBarriers)
+            {
+                ID3D12Resource** buffer = m_resources.m_buffers.Get(barrier.m_bufferHandle);
+                if (buffer == nullptr)
+                {
+                    continue;
+                }
+
+                D3D12_RESOURCE_STATES before = RetrieveState(barrier.m_accessSrc, TextureLayout::Common);
+                D3D12_RESOURCE_STATES after = RetrieveState(barrier.m_accessDst, TextureLayout::Common);
+
+                resourceBarriers.push_back(D3D12_RESOURCE_BARRIER {
+                    .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+                    .Transition = {
+                        .pResource = *buffer,
+                        .Subresource = 0,
+                        .StateBefore = before,
+                        .StateAfter = after,
+                    }
+                });
+
+                if (BitUtils::EnumHasAny(barrier.m_accessSrc, BarrierAccessFlags::UnorderedAccess)
+                    && BitUtils::EnumHasAny(barrier.m_accessDst, BarrierAccessFlags::UnorderedAccess))
+                {
+                    resourceBarriers.push_back({
+                        .Type = D3D12_RESOURCE_BARRIER_TYPE_UAV,
+                        .UAV = { .pResource = *buffer},
+                    });
+                }
+            }
+
+            for (const auto& barrier: _globalMemoryBarriers)
+            {
+                if (KE_VERIFY_MSG(BitUtils::EnumHasAny(barrier.m_accessSrc, BarrierAccessFlags::UnorderedAccess)
+                                  && BitUtils::EnumHasAny(barrier.m_accessDst, BarrierAccessFlags::UnorderedAccess),
+                                  "Global memory barriers for anything other than UAV barriers are not supported without enhanced barriers."))
+                {
+                    resourceBarriers.push_back({
+                        .Type = D3D12_RESOURCE_BARRIER_TYPE_UAV,
+                        .UAV = { .pResource = nullptr },
+                    });
+                }
+            }
+
+            _commandList->ResourceBarrier(resourceBarriers.size(), resourceBarriers.data());
         }
     }
 } // KryneEngine
