@@ -49,6 +49,8 @@ namespace KryneEngine
             ID3D12Device* _device,
             u32 _frameIndex);
 
+        bool DestroyTextureSrv(GenPool::Handle _handle);
+
         [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc, ID3D12Device* _device);
         bool FreeRenderTargetView(GenPool::Handle _handle);
 

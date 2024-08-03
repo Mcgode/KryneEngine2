@@ -28,7 +28,7 @@ namespace KryneEngine
     {
         if (m_fontsTextureSrvHandle != GenPool::kInvalidHandle)
         {
-            // TODO: Destroy Srv
+            _graphicsContext.DestroyTextureSrv(m_fontsTextureSrvHandle);
         }
 
         if (m_fontsTextureHandle != GenPool::kInvalidHandle)

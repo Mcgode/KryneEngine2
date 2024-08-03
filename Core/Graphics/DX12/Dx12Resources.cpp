@@ -171,6 +171,11 @@ namespace KryneEngine
         return false;
     }
 
+    bool Dx12Resources::DestroyTextureSrv(GenPool::Handle _handle)
+    {
+        return m_cbvSrvUav.Free(_handle);
+    }
+
     GenPool::Handle Dx12Resources::CreateRenderTargetView(const RenderTargetViewDesc &_desc, ID3D12Device *_device)
     {
         auto* texture = m_textures.Get(_desc.m_textureHandle);

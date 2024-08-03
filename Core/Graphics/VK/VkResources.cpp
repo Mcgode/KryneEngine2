@@ -211,6 +211,18 @@ namespace KryneEngine
         return srvHandle;
     }
 
+    bool VkResources::DestroyTextureSrv(GenPool::Handle _handle, VkDevice _device)
+    {
+        VkImageView imageView;
+
+        if (m_imageViews.Free(_handle, &imageView))
+        {
+            vkDestroyImageView(_device, imageView, nullptr);
+            return true;
+        }
+        return false;
+    }
+
     GenPool::Handle VkResources::CreateRenderTargetView(
             const RenderTargetViewDesc &_desc,
             VkDevice &_device)

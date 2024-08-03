@@ -87,6 +87,8 @@ namespace KryneEngine
 
         [[nodiscard]] GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc, VkDevice _device);
 
+        bool DestroyTextureSrv(GenPool::Handle _handle, VkDevice _device);
+
         [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc, VkDevice& _device);
 
         bool FreeRenderTargetView(GenPool::Handle _handle, VkDevice _device);
