@@ -36,6 +36,8 @@ namespace KryneEngine
         [[nodiscard]] GenPool::Handle
         CreateStagingBuffer(const TextureDesc& _desc, const eastl::vector<TextureMemoryFootprint>& _footprints);
 
+        bool DestroyBuffer(GenPool::Handle _bufferHandle);
+
         [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device);
 
         [[nodiscard]] GenPool::Handle RegisterTexture(ID3D12Resource* _texture, D3D12MA::Allocation* _allocation = nullptr);

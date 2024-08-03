@@ -75,6 +75,8 @@ namespace KryneEngine
             const eastl::vector<TextureMemoryFootprint>& _footprints,
             VkDevice _device);
 
+        bool DestroyBuffer(GenPool::Handle _bufferHandle);
+
         [[nodiscard]] GenPool::Handle RegisterTexture(VkImage _image, const uint3& _dimensions);
 
         [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _desc, VkDevice _device);

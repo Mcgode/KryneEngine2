@@ -96,6 +96,22 @@ namespace KryneEngine
         return handle;
     }
 
+    bool Dx12Resources::DestroyBuffer(GenPool::Handle _bufferHandle)
+    {
+        ID3D12Resource* resource;
+        D3D12MA::Allocation* allocation;
+
+        if (m_buffers.Free(_bufferHandle, &resource, &allocation))
+        {
+            SafeRelease(resource);
+            allocation->Release();
+
+            return true;
+        }
+
+        return false;
+    }
+
     GenPool::Handle Dx12Resources::CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device)
     {
         D3D12_RESOURCE_DESC resourceDesc {

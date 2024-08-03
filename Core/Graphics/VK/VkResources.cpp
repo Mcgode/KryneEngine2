@@ -84,6 +84,20 @@ namespace KryneEngine
         return handle;
     }
 
+    bool VkResources::DestroyBuffer(GenPool::Handle _bufferHandle)
+    {
+        VkBuffer buffer;
+        BufferColdData coldData {};
+
+        if (m_buffers.Free(_bufferHandle, &buffer, &coldData))
+        {
+            vmaDestroyBuffer(m_allocator, buffer, coldData.m_allocation);
+            return true;
+        }
+
+        return false;
+    }
+
     GenPool::Handle VkResources::RegisterTexture(VkImage _image, const uint3& _dimensions)
     {
         const auto handle = m_textures.Allocate();

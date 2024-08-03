@@ -76,6 +76,11 @@ namespace KryneEngine
             return m_implementation.FetchTextureSubResourcesMemoryFootprints(_desc);
         }
 
+        inline bool DestroyBuffer(GenPool::Handle _bufferHandle)
+        {
+            return m_implementation.DestroyBuffer(_bufferHandle);
+        }
+
         [[nodiscard]] inline GenPool::Handle CreateStagingBuffer(
             const TextureDesc& _createDesc,
             const eastl::vector<TextureMemoryFootprint>& _footprints)

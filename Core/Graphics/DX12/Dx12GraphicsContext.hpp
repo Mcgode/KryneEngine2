@@ -78,6 +78,11 @@ namespace KryneEngine
             return m_resources.CreateStagingBuffer(_createDesc, _footprints);
         }
 
+        inline bool DestroyBuffer(GenPool::Handle _bufferHandle)
+        {
+            return m_resources.DestroyBuffer(_bufferHandle);
+        }
+
         [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc)
         {
             return m_resources.CreateTexture(_createDesc, m_device.Get());
