@@ -635,10 +635,45 @@ namespace KryneEngine
         memset(&features, VK_FALSE, sizeof(VkPhysicalDeviceFeatures));
 
         const auto requiredExtensionsStrings = _GetRequiredDeviceExtensions();
-        const auto requiredExtensions = StringHelpers::RetrieveStringPointerContainer(requiredExtensionsStrings);
+        auto requiredExtensions = StringHelpers::RetrieveStringPointerContainer(requiredExtensionsStrings);
+
+        void* next = nullptr;
+
+        VkPhysicalDeviceSynchronization2FeaturesKHR synchronization2Features{};
+        {
+            DynamicArray<VkExtensionProperties> availableExtensions;
+            VkHelperFunctions::VkArrayFetch(availableExtensions, vkEnumerateDeviceExtensionProperties, m_physicalDevice, nullptr);
+
+            const auto find = [&availableExtensions](const char* _name)
+            {
+                const auto it = eastl::find(
+                    availableExtensions.begin(),
+                    availableExtensions.end(),
+                    eastl::string(_name),
+                    [](const auto& _property, const auto& _name)
+                    {
+                        return eastl::string(_property.extensionName) == _name;
+                    });
+                return it != availableExtensions.end();
+            };
+
+            if (find(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME))
+            {
+                requiredExtensions.push_back(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
+                m_synchronization2 = true;
+
+                synchronization2Features = {
+                    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES_KHR,
+                    .pNext = next,
+                    .synchronization2 = true,
+                };
+                next = &synchronization2Features;
+            }
+        }
 
         VkDeviceCreateInfo createInfo {
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+            .pNext = next,
             .flags = 0,
             .queueCreateInfoCount = static_cast<u32>(queueCreateInfo.size()),
             .pQueueCreateInfos = queueCreateInfo.data(),
@@ -652,6 +687,11 @@ namespace KryneEngine
         VkAssert(vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device));
 
         _RetrieveQueues(m_queueIndices);
+
+        if (m_synchronization2)
+        {
+            m_vkCmdPipelineBarrier2KHR = reinterpret_cast<PFN_vkCmdPipelineBarrier2KHR>(vkGetDeviceProcAddr(m_device, "vkCmdPipelineBarrier2KHR"));
+        }
     }
 
     void VkGraphicsContext::_RetrieveQueues(const QueueIndices &_queueIndices)
@@ -678,6 +718,8 @@ namespace KryneEngine
         {
             result.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
         }
+
+        result.insert(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
 
         return result;
     }
@@ -783,7 +825,7 @@ namespace KryneEngine
             _commandList,
             *stagingBuffer,
             *dstTexture,
-            VK_IMAGE_LAYOUT_GENERAL,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             1,
             &region);
     }
@@ -794,5 +836,207 @@ namespace KryneEngine
         const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
         const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers)
     {
+        using namespace VkHelperFunctions;
+
+        if (m_vkCmdPipelineBarrier2KHR != nullptr)
+        {
+            DynamicArray<VkMemoryBarrier2> globalMemoryBarriers(_globalMemoryBarriers.size());
+            DynamicArray<VkBufferMemoryBarrier2> bufferMemoryBarriers(_bufferMemoryBarriers.size());
+            DynamicArray<VkImageMemoryBarrier2> imageMemoryBarriers(_textureMemoryBarriers.size());
+
+            for (auto i = 0u; i < globalMemoryBarriers.Size(); i++)
+            {
+                const GlobalMemoryBarrier& barrier = _globalMemoryBarriers[i];
+                globalMemoryBarriers[i] = {
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,
+                    .srcStageMask = ToVkPipelineStageFlagBits2(barrier.m_stagesSrc, true),
+                    .srcAccessMask = ToVkAccessFlags2(barrier.m_accessSrc),
+                    .dstStageMask = ToVkPipelineStageFlagBits2(barrier.m_stagesDst, false),
+                    .dstAccessMask = ToVkAccessFlags2(barrier.m_accessDst),
+                };
+            }
+
+            for (auto i = 0u; i < bufferMemoryBarriers.Size(); i++)
+            {
+                const BufferMemoryBarrier& barrier = _bufferMemoryBarriers[i];
+                VkBuffer* buffer = m_resources.m_buffers.Get(barrier.m_bufferHandle);
+
+                bufferMemoryBarriers[i] = {
+                    .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
+                    .srcStageMask = ToVkPipelineStageFlagBits2(barrier.m_stagesSrc, true),
+                    .srcAccessMask = ToVkAccessFlags2(barrier.m_accessSrc),
+                    .dstStageMask = ToVkPipelineStageFlagBits2(barrier.m_stagesDst, false),
+                    .dstAccessMask = ToVkAccessFlags2(barrier.m_accessDst),
+                    .srcQueueFamilyIndex = 0,
+                    .dstQueueFamilyIndex = 0,
+                    .buffer = buffer != nullptr ? *buffer : VK_NULL_HANDLE,
+                    .offset = barrier.m_offset,
+                    .size = barrier.m_size,
+                };
+            }
+
+            for (auto i = 0u; i < imageMemoryBarriers.Size(); i++)
+            {
+                const TextureMemoryBarrier& barrier = _textureMemoryBarriers[i];
+                VkImage* image = m_resources.m_textures.Get(barrier.m_texture);
+
+                imageMemoryBarriers[i] = {
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+                    .srcStageMask = ToVkPipelineStageFlagBits2(barrier.m_stagesSrc, true),
+                    .srcAccessMask = ToVkAccessFlags2(barrier.m_accessSrc),
+                    .dstStageMask = ToVkPipelineStageFlagBits2(barrier.m_stagesDst, false),
+                    .dstAccessMask = ToVkAccessFlags2(barrier.m_accessDst),
+                    .oldLayout = ToVkLayout(barrier.m_layoutSrc),
+                    .newLayout = ToVkLayout(barrier.m_layoutDst),
+                    .srcQueueFamilyIndex = 0,
+                    .dstQueueFamilyIndex = 0,
+                    .image = image != nullptr ? *image : VK_NULL_HANDLE,
+                    .subresourceRange = {
+                        .aspectMask = RetrieveAspectMask(barrier.m_planes),
+                        .baseMipLevel = barrier.m_mipStart,
+                        .levelCount = barrier.m_mipCount == 0XFF ? VK_REMAINING_MIP_LEVELS : barrier.m_mipCount,
+                        .baseArrayLayer = barrier.m_arrayStart,
+                        .layerCount = barrier.m_arrayCount == 0xFFFF ? VK_REMAINING_ARRAY_LAYERS : barrier.m_arrayCount,
+                    }};
+            }
+
+            const VkDependencyInfo dependencyInfo{
+                .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                .dependencyFlags = 0,
+                .memoryBarrierCount = (u32)globalMemoryBarriers.Size(),
+                .pMemoryBarriers = globalMemoryBarriers.Data(),
+                .bufferMemoryBarrierCount = (u32)bufferMemoryBarriers.Size(),
+                .pBufferMemoryBarriers = bufferMemoryBarriers.Data(),
+                .imageMemoryBarrierCount = (u32)imageMemoryBarriers.Size(),
+                .pImageMemoryBarriers = imageMemoryBarriers.Data(),
+            };
+
+            m_vkCmdPipelineBarrier2KHR(_commandList, &dependencyInfo);
+        }
+        else
+        {
+            eastl::vector<VkMemoryBarrier> globalMemoryBarriers {};
+            eastl::vector<VkBufferMemoryBarrier> bufferMemoryBarriers {};
+            eastl::vector<VkImageMemoryBarrier> imageMemoryBarriers {};
+
+            globalMemoryBarriers.reserve(_globalMemoryBarriers.size());
+            bufferMemoryBarriers.reserve(_bufferMemoryBarriers.size());
+            imageMemoryBarriers.reserve(_textureMemoryBarriers.size());
+
+            u32 gIndex = 0;
+            u32 bIndex = 0;
+            u32 iIndex = 0;
+
+            do
+            {
+                globalMemoryBarriers.clear();
+                bufferMemoryBarriers.clear();
+                imageMemoryBarriers.clear();
+
+                bool found = false;
+                BarrierSyncStageFlags src;
+                BarrierSyncStageFlags dst;
+
+                const auto shouldRegister = [&found, &src, &dst](auto _src, auto _dst)
+                {
+                    if (found)
+                    {
+                        return _src == src && _dst == dst;
+                    }
+                    else
+                    {
+                        found = true;
+                        src = _src;
+                        dst = _dst;
+                        return true;
+                    }
+                };
+
+                for (; gIndex < _globalMemoryBarriers.size(); gIndex++)
+                {
+                    const GlobalMemoryBarrier& barrier = _globalMemoryBarriers[gIndex];
+                    if (shouldRegister(barrier.m_stagesSrc, barrier.m_stagesDst))
+                    {
+                        globalMemoryBarriers.push_back({
+                            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+                            .srcAccessMask = ToVkAccessFlags(barrier.m_accessSrc),
+                            .dstAccessMask = ToVkAccessFlags(barrier.m_accessDst),
+                        });
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                for (; bIndex < _bufferMemoryBarriers.size(); bIndex++)
+                {
+                    const BufferMemoryBarrier& barrier = _bufferMemoryBarriers[bIndex];
+                    VkBuffer* buffer = m_resources.m_buffers.Get(barrier.m_bufferHandle);
+
+                    if (shouldRegister(barrier.m_stagesSrc, barrier.m_stagesDst))
+                    {
+                        bufferMemoryBarriers.push_back({
+                            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+                            .srcAccessMask = ToVkAccessFlags(barrier.m_accessSrc),
+                            .dstAccessMask = ToVkAccessFlags(barrier.m_accessDst),
+                            .srcQueueFamilyIndex = 0,
+                            .dstQueueFamilyIndex = 0,
+                            .buffer = buffer != nullptr ? *buffer : VK_NULL_HANDLE,
+                            .offset = barrier.m_offset,
+                            .size = barrier.m_size,
+                        });
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                for (; iIndex < _textureMemoryBarriers.size(); iIndex++)
+                {
+                    const TextureMemoryBarrier& barrier = _textureMemoryBarriers[iIndex];
+                    VkImage* image = m_resources.m_textures.Get(barrier.m_texture);
+
+                    if (shouldRegister(barrier.m_stagesSrc, barrier.m_stagesDst))
+                    {
+                        imageMemoryBarriers.push_back({
+                            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+                            .srcAccessMask = ToVkAccessFlags(barrier.m_accessSrc),
+                            .dstAccessMask = ToVkAccessFlags(barrier.m_accessDst),
+                            .oldLayout = ToVkLayout(barrier.m_layoutSrc),
+                            .newLayout = ToVkLayout(barrier.m_layoutDst),
+                            .srcQueueFamilyIndex = 0,
+                            .dstQueueFamilyIndex = 0,
+                            .image = image != nullptr ? *image : VK_NULL_HANDLE,
+                            .subresourceRange = {
+                                .aspectMask = RetrieveAspectMask(barrier.m_planes),
+                                .baseMipLevel = barrier.m_mipStart,
+                                .levelCount = barrier.m_mipCount == 0XFF ? VK_REMAINING_MIP_LEVELS : barrier.m_mipCount,
+                                .baseArrayLayer = barrier.m_arrayStart,
+                                .layerCount = barrier.m_arrayCount == 0xFFFF ? VK_REMAINING_ARRAY_LAYERS : barrier.m_arrayCount,
+                            }
+                        });
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                vkCmdPipelineBarrier(
+                    _commandList,
+                    ToVkPipelineStageFlagBits(src, true),
+                    ToVkPipelineStageFlagBits(dst, false),
+                    0,
+                    globalMemoryBarriers.size(),
+                    globalMemoryBarriers.data(),
+                    bufferMemoryBarriers.size(),
+                    bufferMemoryBarriers.data(),
+                    imageMemoryBarriers.size(),
+                    imageMemoryBarriers.data());
+            }
+            while (gIndex < _globalMemoryBarriers.size() && bIndex < _bufferMemoryBarriers.size() && iIndex < _textureMemoryBarriers.size());
+        }
     }
 }

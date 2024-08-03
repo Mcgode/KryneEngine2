@@ -8,7 +8,76 @@
 
 namespace KryneEngine::VkHelperFunctions
 {
-    VkPipelineStageFlagBits ToVkPipelineStageFlagBits(BarrierSyncStageFlags _flags, bool _isSrc)
+    VkPipelineStageFlagBits2 ToVkPipelineStageFlagBits2(BarrierSyncStageFlags _flags, bool _isSrc)
+    {
+        VkPipelineStageFlagBits2 flags = VK_PIPELINE_STAGE_2_NONE;
+
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::None))
+        {
+            return _isSrc ? VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT : VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::All))
+        {
+            flags |= VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::ExecuteIndirect))
+        {
+            flags |= VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT; // Works for all indirect commands, not just draw
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::InputAssembly))
+        {
+            flags |= VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::VertexShading | BarrierSyncStageFlags::AllShading))
+        {
+            flags |= VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT
+                     | VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT
+                     | VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT
+                     | VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT
+                     | VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT
+                     | VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_EXT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::FragmentShading | BarrierSyncStageFlags::AllShading))
+        {
+            flags |= VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::ColorBlending))
+        {
+            flags |= VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::DepthStencilTesting))
+        {
+            flags |= VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::Transfer))
+        {
+            flags |= VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::MultiSampleResolve))
+        {
+            flags |= VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::ComputeShading | BarrierSyncStageFlags::AllShading))
+        {
+            flags |= VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::Raytracing | BarrierSyncStageFlags::AllShading))
+        {
+            flags |= VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::AccelerationStructureBuild))
+        {
+            flags |= VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::AccelerationStructureCopy))
+        {
+            flags |= VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR;
+        }
+
+        return static_cast<VkPipelineStageFlagBits>(flags);
+    }
+
+    VkPipelineStageFlags ToVkPipelineStageFlagBits(BarrierSyncStageFlags _flags, bool _isSrc)
     {
         int flags = VK_PIPELINE_STAGE_NONE;
 
@@ -71,10 +140,94 @@ namespace KryneEngine::VkHelperFunctions
         }
         if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::AccelerationStructureCopy))
         {
-            flags |= VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR;
+            flags |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT; // No specific flag for AS copy in this enum, using most conservative barrier.
         }
 
-        return static_cast<VkPipelineStageFlagBits>(flags);
+        return static_cast<VkPipelineStageFlags>(flags);
+    }
+
+    VkAccessFlags2 ToVkAccessFlags2(BarrierAccessFlags _flags)
+    {
+        VkAccessFlags2 flags = VK_ACCESS_2_NONE;
+
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::None))
+        {
+            return VK_ACCESS_2_NONE;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::VertexBuffer))
+        {
+            flags |= VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::IndexBuffer))
+        {
+            flags |= VK_ACCESS_2_INDEX_READ_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::ConstantBuffer))
+        {
+            flags |= VK_ACCESS_2_UNIFORM_READ_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::IndirectBuffer))
+        {
+            flags |= VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::ColorAttachment))
+        {
+            flags |= VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::DepthStencilWrite))
+        {
+            flags |= VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::DepthStencilRead))
+        {
+            flags |= VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::ShaderResource))
+        {
+            flags |= VK_ACCESS_2_SHADER_READ_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::UnorderedAccess))
+        {
+            flags |= VK_ACCESS_2_SHADER_WRITE_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::ResolveSrc))
+        {
+            flags |= VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::ResolveDst))
+        {
+            flags |= VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::TransferSrc))
+        {
+            flags |= VK_ACCESS_2_TRANSFER_READ_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::TransferDst))
+        {
+            flags |= VK_ACCESS_2_TRANSFER_WRITE_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::AccelerationStructureRead))
+        {
+            flags |= VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::AccelerationStructureWrite))
+        {
+            flags |= VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::ShadingRate))
+        {
+            flags |= VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::AllRead))
+        {
+            flags |= VK_ACCESS_2_MEMORY_READ_BIT;
+        }
+        if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::AllWrite))
+        {
+            flags |= VK_ACCESS_2_MEMORY_WRITE_BIT;
+        }
+
+        return flags;
     }
 
     VkAccessFlags ToVkAccessFlags(BarrierAccessFlags _flags)

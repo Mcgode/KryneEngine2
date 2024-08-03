@@ -326,7 +326,9 @@ namespace KryneEngine::VkHelperFunctions
         return VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT;
     }
 
-    VkPipelineStageFlagBits ToVkPipelineStageFlagBits(BarrierSyncStageFlags _flags, bool _isSrc);
+    VkPipelineStageFlagBits2 ToVkPipelineStageFlagBits2(BarrierSyncStageFlags _flags, bool _isSrc);
+    VkPipelineStageFlags ToVkPipelineStageFlagBits(BarrierSyncStageFlags _flags, bool _isSrc);
+    VkAccessFlags2 ToVkAccessFlags2(BarrierAccessFlags _flags);
     VkAccessFlags ToVkAccessFlags(BarrierAccessFlags _flags);
 
     u16 GetByteSizePerBlock(VkFormat _format);

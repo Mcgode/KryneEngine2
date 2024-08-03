@@ -63,6 +63,10 @@ namespace KryneEngine
 
         bool m_debugUtils = false;
         bool m_debugMarkers = false;
+
+        bool m_synchronization2 = false;
+        PFN_vkCmdPipelineBarrier2KHR m_vkCmdPipelineBarrier2KHR = nullptr;
+
 #if !defined(KE_FINAL)
         eastl::shared_ptr<VkDebugHandler> m_debugHandler;
 #endif
