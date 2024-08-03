@@ -38,7 +38,7 @@ namespace KryneEngine
 
         if (m_fontsStagingHandle != GenPool::kInvalidHandle)
         {
-            //_graphicsContext.DestroyTexture(m_fontsStagingHandle);
+            _graphicsContext.DestroyBuffer(m_fontsStagingHandle);
         }
 
         ImGui::DestroyContext(m_context);
@@ -163,7 +163,7 @@ namespace KryneEngine
 
         if (m_fontsStagingHandle != GenPool::kInvalidHandle && _graphicsContext.IsFrameExecuted(m_stagingFrame))
         {
-            //_graphicsContext.DestroyTexture(m_fontsStagingHandle);
+            _graphicsContext.DestroyBuffer(m_fontsStagingHandle);
             m_fontsStagingHandle = GenPool::kInvalidHandle;
         }
 
