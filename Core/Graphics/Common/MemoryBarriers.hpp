@@ -53,6 +53,7 @@ namespace KryneEngine
         ShadingRate                 = 1 << 14,
         AllRead                     = 1 << 15,
         AllWrite                    = 1 << 16,
+        All                         = AllRead | AllWrite,
         None                        = 1 << 17,
     };
     KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(BarrierAccessFlags)
