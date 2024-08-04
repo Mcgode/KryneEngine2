@@ -96,6 +96,10 @@ namespace KryneEngine
             &allocation,
             IID_PPV_ARGS(&buffer)));
 
+#if !defined(KE_FINAL)
+        Dx12SetName(buffer, L"%s", _desc.m_desc.m_debugName.c_str());
+#endif
+
         const GenPool::Handle handle = m_buffers.Allocate();
         *m_buffers.Get(handle) = buffer;
         *m_buffers.GetCold(handle) = allocation;
@@ -130,6 +134,11 @@ namespace KryneEngine
             nullptr,
             m_buffers.GetCold(handle),
             IID_PPV_ARGS(m_buffers.Get(handle))));
+
+
+#if !defined(KE_FINAL)
+        Dx12SetName(*m_buffers.Get(handle), L"%s staging buffer", _desc.m_debugName.c_str());
+#endif
 
         return handle;
     }
@@ -179,6 +188,10 @@ namespace KryneEngine
             nullptr,
             &allocation,
             IID_PPV_ARGS(&texture)));
+
+#if !defined(KE_FINAL)
+   Dx12SetName(texture, L"%s", _createDesc.m_desc.m_debugName.c_str());
+#endif
 
         return RegisterTexture(texture, allocation);
     }

@@ -41,7 +41,7 @@ namespace KryneEngine
         vmaDestroyAllocator(m_allocator);
     }
 
-    GenPool::Handle VkResources::CreateBuffer(const BufferCreateDesc& _desc)
+    GenPool::Handle VkResources::CreateBuffer(const BufferCreateDesc& _desc, VkDevice _device)
     {
         using namespace VkHelperFunctions;
 
@@ -79,13 +79,24 @@ namespace KryneEngine
 
         const GenPool::Handle handle = m_buffers.Allocate();
 
+        VkBuffer* buffer = m_buffers.Get(handle);
+        BufferColdData* coldData = m_buffers.GetCold(handle);
         VkAssert(vmaCreateBuffer(
             m_allocator,
             &createInfo,
             &allocationInfo,
-            m_buffers.Get(handle),
-            &m_buffers.GetCold(handle)->m_allocation,
-            &m_buffers.GetCold(handle)->m_info));
+            buffer,
+            &coldData->m_allocation,
+            &coldData->m_info));
+
+
+#if !defined(KE_FINAL)
+        m_debugHandler->SetName(
+            _device,
+            VK_OBJECT_TYPE_BUFFER,
+            reinterpret_cast<u64>(*buffer),
+            _desc.m_desc.m_debugName);
+#endif
 
         return handle;
     }

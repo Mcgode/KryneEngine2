@@ -103,7 +103,7 @@ namespace KryneEngine
 
         [[nodiscard]] inline GenPool::Handle CreateBuffer(const BufferCreateDesc& _desc)
         {
-            return m_resources.CreateBuffer(_desc);
+            return m_resources.CreateBuffer(_desc, nullptr);
         }
 
         [[nodiscard]] inline GenPool::Handle CreateStagingBuffer(

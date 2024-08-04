@@ -77,7 +77,7 @@ namespace KryneEngine
 
         void DestroyAllocator();
 
-        [[nodiscard]] GenPool::Handle CreateBuffer(const BufferCreateDesc& _desc);
+        [[nodiscard]] GenPool::Handle CreateBuffer(const BufferCreateDesc& _desc, VkDevice _device);
 
         [[nodiscard]] GenPool::Handle CreateStagingBuffer(
             const TextureDesc& _createDesc,
