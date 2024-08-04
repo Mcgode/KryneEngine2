@@ -41,7 +41,7 @@ namespace KryneEngine
         vmaDestroyAllocator(m_allocator);
     }
 
-    GenPool::Handle VkResources::CreateBuffer(const BufferCreateDesc& _desc, VkDevice _device)
+    BufferHandle VkResources::CreateBuffer(const BufferCreateDesc& _desc, VkDevice _device)
     {
         using namespace VkHelperFunctions;
 
@@ -98,10 +98,10 @@ namespace KryneEngine
             _desc.m_desc.m_debugName);
 #endif
 
-        return handle;
+        return { handle };
     }
 
-    GenPool::Handle VkResources::CreateStagingBuffer(
+    BufferHandle VkResources::CreateStagingBuffer(
         const TextureDesc& _createDesc,
         const eastl::vector<TextureMemoryFootprint>& _footprints,
         VkDevice _device)
@@ -146,15 +146,15 @@ namespace KryneEngine
         *m_buffers.Get(handle) = buffer;
         *m_buffers.GetCold(handle) = coldData;
 
-        return handle;
+        return { handle };
     }
 
-    bool VkResources::DestroyBuffer(GenPool::Handle _bufferHandle)
+    bool VkResources::DestroyBuffer(BufferHandle _buffer)
     {
         VkBuffer buffer;
         BufferColdData coldData {};
 
-        if (m_buffers.Free(_bufferHandle, &buffer, &coldData))
+        if (m_buffers.Free(_buffer.m_handle, &buffer, &coldData))
         {
             vmaDestroyBuffer(m_allocator, buffer, coldData.m_allocation);
             return true;
@@ -163,15 +163,15 @@ namespace KryneEngine
         return false;
     }
 
-    GenPool::Handle VkResources::RegisterTexture(VkImage _image, const uint3& _dimensions)
+    TextureHandle VkResources::RegisterTexture(VkImage _image, const uint3& _dimensions)
     {
         const auto handle = m_textures.Allocate();
         *m_textures.Get(handle) = _image;
         *m_textures.GetCold(handle) = { nullptr, _dimensions };
-        return handle;
+        return { handle };
     }
 
-    GenPool::Handle VkResources::CreateTexture(const TextureCreateDesc& _desc, VkDevice _device)
+    TextureHandle VkResources::CreateTexture(const TextureCreateDesc& _desc, VkDevice _device)
     {
         using namespace VkHelperFunctions;
 
@@ -219,14 +219,14 @@ namespace KryneEngine
             _desc.m_desc.m_debugName.c_str());
 #endif
 
-        return handle;
+        return { handle };
     }
 
-    bool VkResources::ReleaseTexture(GenPool::Handle _handle, VkDevice _device, bool _free)
+    bool VkResources::ReleaseTexture(TextureHandle _texture, VkDevice _device, bool _free)
     {
         VkImage image;
         TextureColdData coldData;
-        if (m_textures.Free(_handle, &image, &coldData))
+        if (m_textures.Free(_texture.m_handle, &image, &coldData))
         {
             if (_free)
             {
@@ -237,12 +237,12 @@ namespace KryneEngine
         return false;
     }
 
-    GenPool::Handle VkResources::CreateTextureSrv(const TextureSrvDesc& _srvDesc, VkDevice _device)
+    TextureSrvHandle VkResources::CreateTextureSrv(const TextureSrvDesc& _srvDesc, VkDevice _device)
     {
-        auto* image = m_textures.Get(_srvDesc.m_textureHandle);
+        auto* image = m_textures.Get(_srvDesc.m_texture.m_handle);
         if (image == nullptr)
         {
-            return GenPool::kInvalidHandle;
+            return { GenPool::kInvalidHandle };
         }
 
         const GenPool::Handle srvHandle = m_imageViews.Allocate();
@@ -268,14 +268,14 @@ namespace KryneEngine
 
         *m_imageViews.Get(srvHandle) = imageView;
 
-        return srvHandle;
+        return { srvHandle };
     }
 
-    bool VkResources::DestroyTextureSrv(GenPool::Handle _handle, VkDevice _device)
+    bool VkResources::DestroyTextureSrv(TextureSrvHandle _textureSrv, VkDevice _device)
     {
         VkImageView imageView;
 
-        if (m_imageViews.Free(_handle, &imageView))
+        if (m_imageViews.Free(_textureSrv.m_handle, &imageView))
         {
             vkDestroyImageView(_device, imageView, nullptr);
             return true;
@@ -283,14 +283,14 @@ namespace KryneEngine
         return false;
     }
 
-    GenPool::Handle VkResources::CreateRenderTargetView(
+    RenderTargetViewHandle VkResources::CreateRenderTargetView(
             const RenderTargetViewDesc &_desc,
             VkDevice &_device)
     {
-        auto* image = m_textures.Get(_desc.m_textureHandle);
+        auto* image = m_textures.Get(_desc.m_texture.m_handle);
         if (image == nullptr)
         {
-            return GenPool::kInvalidHandle;
+            return { GenPool::kInvalidHandle };
         }
 
         const auto rtvHandle = m_renderTargetViews.Allocate();
@@ -320,18 +320,18 @@ namespace KryneEngine
         *m_renderTargetViews.GetCold(rtvHandle) = {
             format,
             {
-                .m_width = (u16) m_textures.GetCold(_desc.m_textureHandle)->m_dimensions.x,
-                .m_height = (u16) m_textures.GetCold(_desc.m_textureHandle)->m_dimensions.y,
+                .m_width = (u16) m_textures.GetCold(_desc.m_texture.m_handle)->m_dimensions.x,
+                .m_height = (u16) m_textures.GetCold(_desc.m_texture.m_handle)->m_dimensions.y,
             }
         };
 
-        return rtvHandle;
+        return { rtvHandle };
     }
 
-    bool VkResources::FreeRenderTargetView(GenPool::Handle _handle, VkDevice _device)
+    bool VkResources::FreeRenderTargetView(RenderTargetViewHandle _rtv, VkDevice _device)
     {
         VkImageView imageView;
-        if (m_renderTargetViews.Free(_handle, &imageView))
+        if (m_renderTargetViews.Free(_rtv.m_handle, &imageView))
         {
             vkDestroyImageView(_device, imageView, nullptr);
             return true;
@@ -339,7 +339,7 @@ namespace KryneEngine
         return false;
     }
 
-    GenPool::Handle VkResources::CreateRenderPass(const RenderPassDesc &_desc, VkDevice _device)
+    RenderPassHandle VkResources::CreateRenderPass(const RenderPassDesc &_desc, VkDevice _device)
     {
         constexpr auto convertLoadOp = [](RenderPassDesc::Attachment::LoadOperation _op)
         {
@@ -387,8 +387,8 @@ namespace KryneEngine
 
         for (const auto& attachment: _desc.m_colorAttachments)
         {
-            auto* rtvColdData = m_renderTargetViews.GetCold(attachment.m_rtv);
-            VERIFY_OR_RETURN(rtvColdData != nullptr, GenPool::kInvalidHandle);
+            auto* rtvColdData = m_renderTargetViews.GetCold(attachment.m_rtv.m_handle);
+            VERIFY_OR_RETURN(rtvColdData != nullptr, { GenPool::kInvalidHandle });
 
             if (size.m_width == 0)
             {
@@ -415,7 +415,7 @@ namespace KryneEngine
             };
 
             attachments.push_back(desc);
-            rtvs.push_back(*m_renderTargetViews.Get(attachment.m_rtv));
+            rtvs.push_back(*m_renderTargetViews.Get(attachment.m_rtv.m_handle));
             attachmentReferences.push_back(ref);
 
             VkClearColorValue clearColorValue;
@@ -428,8 +428,8 @@ namespace KryneEngine
         {
             const auto& attachment = _desc.m_depthStencilAttachment.value();
 
-            auto* rtvColdData = m_renderTargetViews.GetCold(attachment.m_rtv);
-            VERIFY_OR_RETURN(rtvColdData != nullptr, GenPool::kInvalidHandle);
+            auto* rtvColdData = m_renderTargetViews.GetCold(attachment.m_rtv.m_handle);
+            VERIFY_OR_RETURN(rtvColdData != nullptr, { GenPool::kInvalidHandle });
 
             if (size.m_width == 0)
             {
@@ -457,7 +457,7 @@ namespace KryneEngine
             };
 
             attachments.push_back(desc);
-            rtvs.push_back(*m_renderTargetViews.Get(attachment.m_rtv));
+            rtvs.push_back(*m_renderTargetViews.Get(attachment.m_rtv.m_handle));
             clearValues.push_back(VkClearValue {
                 .depthStencil = {
                     .depth = attachment.m_clearColor.r,
@@ -514,13 +514,13 @@ namespace KryneEngine
         }
 #endif
 
-        return handle;
+        return { handle };
     }
 
-    bool VkResources::DestroyRenderPass(GenPool::Handle _handle, VkDevice _device)
+    bool VkResources::DestroyRenderPass(RenderPassHandle _renderPass, VkDevice _device)
     {
         RenderPassData data;
-        if (!m_renderPasses.Free(_handle, &data))
+        if (!m_renderPasses.Free(_renderPass.m_handle, &data))
         {
             return false;
         }

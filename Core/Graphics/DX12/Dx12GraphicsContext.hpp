@@ -72,78 +72,78 @@ namespace KryneEngine
     public:
         [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc);
 
-        [[nodiscard]] inline GenPool::Handle CreateBuffer(const BufferCreateDesc& _desc)
+        [[nodiscard]] inline BufferHandle CreateBuffer(const BufferCreateDesc& _desc)
         {
             return m_resources.CreateBuffer(_desc);
         }
 
-        [[nodiscard]] inline GenPool::Handle CreateStagingBuffer(
+        [[nodiscard]] inline BufferHandle CreateStagingBuffer(
             const TextureDesc& _createDesc,
             const eastl::vector<TextureMemoryFootprint>& _footprints)
         {
             return m_resources.CreateStagingBuffer(_createDesc, _footprints);
         }
 
-        [[nodiscard]] bool NeedsStagingBuffer(GenPool::Handle _buffer);
+        [[nodiscard]] bool NeedsStagingBuffer(BufferHandle _buffer);
 
-        inline bool DestroyBuffer(GenPool::Handle _bufferHandle)
+        inline bool DestroyBuffer(BufferHandle _buffer)
         {
-            return m_resources.DestroyBuffer(_bufferHandle);
+            return m_resources.DestroyBuffer(_buffer);
         }
 
-        [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc)
+        [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _createDesc)
         {
             return m_resources.CreateTexture(_createDesc, m_device.Get());
         }
 
-        inline bool DestroyTexture(GenPool::Handle _handle)
+        inline bool DestroyTexture(TextureHandle _texture)
         {
-            return m_resources.ReleaseTexture(_handle, true);
+            return m_resources.ReleaseTexture(_texture, true);
         }
 
-        [[nodiscard]] inline GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 _frameId)
+        [[nodiscard]] inline TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 _frameId)
         {
             return m_resources.CreateTextureSrv(_srvDesc, m_device.Get(), _frameId % GetFrameContextCount());
         }
 
-        inline bool DestroyTextureSrv(GenPool::Handle _handle)
+        inline bool DestroyTextureSrv(TextureSrvHandle _textureSrv)
         {
-            return m_resources.DestroyTextureSrv(_handle);
+            return m_resources.DestroyTextureSrv(_textureSrv);
         }
 
-        [[nodiscard]] inline GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
+        [[nodiscard]] inline RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
             return m_resources.CreateRenderTargetView(_desc, m_device.Get());
         }
 
-        bool DestroyRenderTargetView(GenPool::Handle _handle)
+        bool DestroyRenderTargetView(RenderTargetViewHandle _rtv)
         {
-            return m_resources.FreeRenderTargetView(_handle);
+            return m_resources.FreeRenderTargetView(_rtv);
         }
 
-        [[nodiscard]] GenPool::Handle GetPresentRenderTarget(u8 _index);
+        [[nodiscard]] RenderTargetViewHandle GetPresentRenderTargetView(u8 _index);
         [[nodiscard]] u32 GetCurrentPresentImageIndex() const;
 
-        GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc)
+        RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc)
         {
             return m_resources.CreateRenderPass(_desc);
         }
 
-        bool DestroyRenderPass(GenPool::Handle _handle)
+        bool DestroyRenderPass(RenderPassHandle _renderPass)
         {
-            return m_resources.FreeRenderPass(_handle);
+            return m_resources.FreeRenderPass(_renderPass);
         }
 
         CommandList BeginGraphicsCommandList(u64 _frameId);
         void EndGraphicsCommandList(u64 _frameId);
 
-        void BeginRenderPass(CommandList _commandList, GenPool::Handle _handle);
+        void BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass);
         void EndRenderPass(CommandList _commandList);
 
         void SetTextureData(
             CommandList _commandList,
-            GenPool::Handle _stagingBuffer,
-            GenPool::Handle _dstTexture,
+            BufferHandle _stagingBuffer,
+            TextureHandle _dstTexture,
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
             void* _data);
@@ -160,6 +160,6 @@ namespace KryneEngine
 
     private:
         Dx12Resources m_resources;
-        GenPool::Handle m_currentRenderPass;
+        RenderPassHandle m_currentRenderPass;
     };
 } // KryneEngine

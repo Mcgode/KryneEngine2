@@ -65,7 +65,7 @@ namespace KryneEngine
         }
     }
 
-    GenPool::Handle Dx12Resources::CreateBuffer(const BufferCreateDesc& _desc)
+    BufferHandle Dx12Resources::CreateBuffer(const BufferCreateDesc& _desc)
     {
         D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_desc.m_desc.m_size);
 
@@ -104,10 +104,10 @@ namespace KryneEngine
         *m_buffers.Get(handle) = buffer;
         *m_buffers.GetCold(handle) = allocation;
 
-        return handle;
+        return { handle };
     }
 
-    GenPool::Handle Dx12Resources::CreateStagingBuffer(
+    BufferHandle Dx12Resources::CreateStagingBuffer(
         const TextureDesc& _desc,
         const eastl::vector<TextureMemoryFootprint>& _footprints)
     {
@@ -140,15 +140,15 @@ namespace KryneEngine
         Dx12SetName(*m_buffers.Get(handle), L"%s staging buffer", _desc.m_debugName.c_str());
 #endif
 
-        return handle;
+        return { handle };
     }
 
-    bool Dx12Resources::DestroyBuffer(GenPool::Handle _bufferHandle)
+    bool Dx12Resources::DestroyBuffer(BufferHandle _buffer)
     {
         ID3D12Resource* resource;
         D3D12MA::Allocation* allocation;
 
-        if (m_buffers.Free(_bufferHandle, &resource, &allocation))
+        if (m_buffers.Free(_buffer.m_handle, &resource, &allocation))
         {
             SafeRelease(resource);
             allocation->Release();
@@ -159,7 +159,7 @@ namespace KryneEngine
         return false;
     }
 
-    GenPool::Handle Dx12Resources::CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device)
+    TextureHandle Dx12Resources::CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device)
     {
         D3D12_RESOURCE_DESC resourceDesc {
             .Dimension = Dx12Converters::GetTextureResourceDimension(_createDesc.m_desc.m_type),
@@ -196,19 +196,19 @@ namespace KryneEngine
         return RegisterTexture(texture, allocation);
     }
 
-    GenPool::Handle Dx12Resources::RegisterTexture(ID3D12Resource* _texture, D3D12MA::Allocation* _allocation)
+    TextureHandle Dx12Resources::RegisterTexture(ID3D12Resource* _texture, D3D12MA::Allocation* _allocation)
     {
         const auto handle = m_textures.Allocate();
         *m_textures.Get(handle) = _texture;
         *m_textures.GetCold(handle) = _allocation;
-        return handle;
+        return { handle };
     }
 
-    bool Dx12Resources::ReleaseTexture(GenPool::Handle _handle, bool _free)
+    bool Dx12Resources::ReleaseTexture(TextureHandle _texture, bool _free)
     {
         ID3D12Resource* texture = nullptr;
         D3D12MA::Allocation* allocation = nullptr;
-        if (m_textures.Free(_handle, _free ? &texture : nullptr, &allocation))
+        if (m_textures.Free(_texture.m_handle, _free ? &texture : nullptr, &allocation))
         {
             SafeRelease(texture);
 
@@ -222,17 +222,18 @@ namespace KryneEngine
         return false;
     }
 
-    bool Dx12Resources::DestroyTextureSrv(GenPool::Handle _handle)
+    bool Dx12Resources::DestroyTextureSrv(TextureSrvHandle _textureSrv)
     {
-        return m_cbvSrvUav.Free(_handle);
+        return m_cbvSrvUav.Free(_textureSrv.m_handle);
     }
 
-    GenPool::Handle Dx12Resources::CreateRenderTargetView(const RenderTargetViewDesc &_desc, ID3D12Device *_device)
+    RenderTargetViewHandle
+    Dx12Resources::CreateRenderTargetView(const RenderTargetViewDesc &_desc, ID3D12Device *_device)
     {
-        auto* texture = m_textures.Get(_desc.m_textureHandle);
+        auto* texture = m_textures.Get(_desc.m_texture.m_handle);
         if (texture == nullptr)
         {
-            return GenPool::kInvalidHandle;
+            return { GenPool::kInvalidHandle };
         }
 
         const auto handle = m_renderTargetViews.Allocate();
@@ -299,40 +300,40 @@ namespace KryneEngine
 
         *m_renderTargetViews.Get(handle) = RtvHotData {
             .m_cpuHandle = cpuDescriptorHandle,
-            .m_resource = _desc.m_textureHandle,
+            .m_resource = _desc.m_texture,
         };
 
-        return handle;
+        return { handle };
     }
 
-    bool Dx12Resources::FreeRenderTargetView(GenPool::Handle _handle)
+    bool Dx12Resources::FreeRenderTargetView(RenderTargetViewHandle _rtv)
     {
         // Don't have to destroy anything, as the memory slot will be marked as free.
         // Only the heap itself will need to be freed using API.
-        return m_renderTargetViews.Free(_handle);
+        return m_renderTargetViews.Free(_rtv.m_handle);
     }
 
-    GenPool::Handle Dx12Resources::CreateRenderPass(const RenderPassDesc &_desc)
+    RenderPassHandle Dx12Resources::CreateRenderPass(const RenderPassDesc &_desc)
     {
         auto handle = m_renderPasses.Allocate();
         auto* desc = m_renderPasses.Get(handle);
 
         // Manually init pointer location using a copy, as the allocator doesn't initialize its objects.
         new (desc) RenderPassDesc(_desc);
-        return handle;
+        return { handle };
     }
 
-    bool Dx12Resources::FreeRenderPass(GenPool::Handle _handle)
+    bool Dx12Resources::FreeRenderPass(RenderPassHandle _handle)
     {
         // Simply mark slot as available.
-        return m_renderPasses.Free(_handle);
+        return m_renderPasses.Free(_handle.m_handle);
     }
 
-    GenPool::Handle
+    TextureSrvHandle
     Dx12Resources::CreateTextureSrv(const TextureSrvDesc& _srvDesc, ID3D12Device* _device, u32 _frameIndex)
     {
-        auto* texturePtr = m_textures.Get(_srvDesc.m_textureHandle);
-        VERIFY_OR_RETURN(texturePtr != nullptr, GenPool::kInvalidHandle);
+        auto* texturePtr = m_textures.Get(_srvDesc.m_texture.m_handle);
+        VERIFY_OR_RETURN(texturePtr != nullptr, { GenPool::kInvalidHandle });
         ID3D12Resource* texture = *texturePtr;
 
         const GenPool::Handle handle = m_cbvSrvUav.Allocate();
@@ -453,7 +454,7 @@ namespace KryneEngine
         // Plan copy operations to spread descriptor to all frames
         m_cbvSrvUavDescriptorCopyTracker.TrackForOtherFrames(handle);
 
-        return GenPool::kInvalidHandle;
+        return { handle };
     }
 
     void Dx12Resources::NextFrame(ID3D12Device* _device, u8 _frameIndex)

@@ -87,18 +87,18 @@ int main() {
 #endif
         GraphicsContext graphicsContext(appInfo);
 
-        DynamicArray<GenPool::Handle> renderPassHandles;
+        DynamicArray<RenderPassHandle> renderPassHandles;
         renderPassHandles.Resize(graphicsContext.GetFrameContextCount());
         for (auto i = 0u; i < renderPassHandles.Size(); i++)
         {
             RenderPassDesc desc;
             desc.m_colorAttachments.push_back(RenderPassDesc::Attachment {
-                    KryneEngine::RenderPassDesc::Attachment::LoadOperation::Clear,
-                    KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store,
-                    TextureLayout::Unknown,
-                    TextureLayout::Present,
-                    graphicsContext.GetPresentRenderTarget(i),
-                    float4(0, 1, 1, 1)
+                KryneEngine::RenderPassDesc::Attachment::LoadOperation::Clear,
+                KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store,
+                TextureLayout::Unknown,
+                TextureLayout::Present,
+                graphicsContext.GetPresentRenderTargetView(i),
+                float4(0, 1, 1, 1)
             });
 #if !defined(KE_FINAL)
             desc.m_debugName.sprintf("PresentRenderPass[%d]", i);
@@ -118,6 +118,8 @@ int main() {
                 static bool open;
                 ImGui::ShowDemoWindow(&open);
             }
+
+            imGuiModule.PrepareToRenderFrame(graphicsContext, commandList);
 
             const u8 index = graphicsContext.GetCurrentPresentImageIndex();
             graphicsContext.BeginRenderPass(commandList, renderPassHandles[index]);

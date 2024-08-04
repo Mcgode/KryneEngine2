@@ -160,7 +160,7 @@ namespace KryneEngine
                 const eastl::string rtvDebugName = _appInfo.m_applicationName + "/Swapchain/RTV[" + eastl::to_string(i) + "]";
 #endif
                 const RenderTargetViewDesc rtvDesc {
-                    .m_textureHandle = textureHandle,
+                    .m_texture = textureHandle,
                     .m_format = VkHelperFunctions::FromVkFormat(selectedSurfaceFormat.format),
 #if !defined(KE_FINAL)
                     .m_debugName = rtvDebugName,

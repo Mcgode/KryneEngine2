@@ -35,6 +35,7 @@ set(CommonFiles
         Common/ResourceViews/ShaderResourceView.hpp
         Common/MemoryBarriers.hpp
         Common/Buffer.hpp
+        Common/Handles.hpp
 )
 
 if (GraphicsApi STREQUAL "VK")

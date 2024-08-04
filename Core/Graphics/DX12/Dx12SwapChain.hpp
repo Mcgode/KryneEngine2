@@ -37,8 +37,8 @@ namespace KryneEngine
     private:
         ComPtr<IDXGISwapChain3> m_swapChain;
 
-        DynamicArray<GenPool::Handle> m_renderTargetTextures;
-        DynamicArray<GenPool::Handle> m_renderTargetViews;
+        DynamicArray<TextureHandle> m_renderTargetTextures;
+        DynamicArray<RenderTargetViewHandle> m_renderTargetViews;
 
         u8 m_currentFrame;
     };

@@ -8,6 +8,7 @@
 
 #include "CommonStructures.hpp"
 #include "VkHeaders.hpp"
+#include <Graphics/Common/Handles.hpp>
 #include <EASTL/shared_ptr.h>
 #include <EASTL/span.h>
 
@@ -48,8 +49,8 @@ namespace KryneEngine
     private:
         VkSwapchainKHR m_swapChain;
         VkSharingMode m_sharingMode;
-        DynamicArray<GenPool::Handle> m_renderTargetTextures;
-        DynamicArray<GenPool::Handle> m_renderTargetViews;
+        DynamicArray<TextureHandle> m_renderTargetTextures;
+        DynamicArray<RenderTargetViewHandle> m_renderTargetViews;
         DynamicArray<VkSemaphore> m_imageAvailableSemaphores;
         u32 m_imageIndex = 0;
     };

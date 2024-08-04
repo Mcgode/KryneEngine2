@@ -102,64 +102,64 @@ namespace KryneEngine
         [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(
             const TextureDesc& _desc);
 
-        [[nodiscard]] inline GenPool::Handle CreateBuffer(const BufferCreateDesc& _desc)
+        [[nodiscard]] inline BufferHandle CreateBuffer(const BufferCreateDesc& _desc)
         {
             return m_resources.CreateBuffer(_desc, nullptr);
         }
 
-        [[nodiscard]] inline GenPool::Handle CreateStagingBuffer(
+        [[nodiscard]] inline BufferHandle CreateStagingBuffer(
             const TextureDesc& _createDesc,
             const eastl::vector<TextureMemoryFootprint>& _footprints)
         {
             return m_resources.CreateStagingBuffer(_createDesc, _footprints, m_device);
         }
 
-        [[nodiscard]] bool NeedsStagingBuffer(GenPool::Handle _buffer);
+        [[nodiscard]] bool NeedsStagingBuffer(BufferHandle _buffer);
 
-        inline bool DestroyBuffer(GenPool::Handle _bufferHandle)
+        inline bool DestroyBuffer(BufferHandle _bufferHandle)
         {
             return m_resources.DestroyBuffer(_bufferHandle);
         }
 
-        [[nodiscard]] inline GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc)
+        [[nodiscard]] inline TextureHandle CreateTexture(const TextureCreateDesc& _createDesc)
         {
             return m_resources.CreateTexture(_createDesc, m_device);
         }
 
-        inline bool DestroyTexture(GenPool::Handle _handle)
+        inline bool DestroyTexture(TextureHandle _handle)
         {
             return m_resources.ReleaseTexture(_handle, m_device);
         }
 
-        [[nodiscard]] GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 /*_frameId*/)
+        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 /*_frameId*/)
         {
             return m_resources.CreateTextureSrv(_srvDesc, m_device);
         }
 
-        inline bool DestroyTextureSrv(GenPool::Handle _handle)
+        inline bool DestroyTextureSrv(TextureSrvHandle _handle)
         {
             return m_resources.DestroyTextureSrv(_handle, m_device);
         }
 
-        [[nodiscard]] inline GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
+        [[nodiscard]] inline RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
             return m_resources.CreateRenderTargetView(_desc, m_device);
         }
 
-        bool DestroyRenderTargetView(GenPool::Handle _handle)
+        bool DestroyRenderTargetView(RenderTargetViewHandle _handle)
         {
             return m_resources.FreeRenderTargetView(_handle, m_device);
         }
 
-        GenPool::Handle GetPresentRenderTarget(u8 _index);
+        RenderTargetViewHandle GetPresentRenderTargetView(u8 _index);
         [[nodiscard]] u32 GetCurrentPresentImageIndex() const;
 
-        [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc)
+        [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc)
         {
             return m_resources.CreateRenderPass(_desc, m_device);
         }
 
-        bool DestroyRenderPass(GenPool::Handle _handle)
+        bool DestroyRenderPass(RenderPassHandle _handle)
         {
             return m_resources.DestroyRenderPass(_handle, m_device);
         }
@@ -174,13 +174,13 @@ namespace KryneEngine
             m_frameContexts[_frameId % m_frameContextCount].EndGraphicsCommandBuffer();
         }
 
-        void BeginRenderPass(CommandList _commandList, GenPool::Handle _handle);
+        void BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass);
         void EndRenderPass(CommandList _commandList);
 
         void SetTextureData(
             CommandList _commandList,
-            GenPool::Handle _stagingBuffer,
-            GenPool::Handle _dstTexture,
+            BufferHandle _stagingBuffer,
+            TextureHandle _dstTexture,
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
             void* _data);

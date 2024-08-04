@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Enums.hpp"
+#include "Handles.hpp"
 #include <Common/BitUtils.hpp>
 #include <Memory/GenerationalPool.hpp>
 
@@ -73,7 +74,7 @@ namespace KryneEngine
 
         u64 m_offset = 0;
         u64 m_size = eastl::numeric_limits<u64>::max();
-        GenPool::Handle m_bufferHandle;
+        BufferHandle m_buffer;
     };
 
     struct TextureMemoryBarrier
@@ -83,7 +84,7 @@ namespace KryneEngine
         BarrierAccessFlags m_accessSrc;
         BarrierAccessFlags m_accessDst;
 
-        GenPool::Handle m_texture;
+        TextureHandle m_texture;
         u16 m_arrayStart = 0;
         u16 m_arrayCount = 1;
         TextureLayout m_layoutSrc;

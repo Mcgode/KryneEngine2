@@ -8,6 +8,7 @@
 
 #include "VkHeaders.hpp"
 #include <EASTL/shared_ptr.h>
+#include <Graphics/Common/Handles.hpp>
 #include <Graphics/Common/Texture.hpp>
 #include <vk_mem_alloc.h>
 
@@ -77,32 +78,25 @@ namespace KryneEngine
 
         void DestroyAllocator();
 
-        [[nodiscard]] GenPool::Handle CreateBuffer(const BufferCreateDesc& _desc, VkDevice _device);
-
-        [[nodiscard]] GenPool::Handle CreateStagingBuffer(
+        [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc, VkDevice _device);
+        [[nodiscard]] BufferHandle CreateStagingBuffer(
             const TextureDesc& _createDesc,
             const eastl::vector<TextureMemoryFootprint>& _footprints,
             VkDevice _device);
+        bool DestroyBuffer(BufferHandle _buffer);
 
-        bool DestroyBuffer(GenPool::Handle _bufferHandle);
+        [[nodiscard]] TextureHandle RegisterTexture(VkImage _image, const uint3& _dimensions);
+        [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _desc, VkDevice _device);
+        bool ReleaseTexture(TextureHandle _texture, VkDevice _device, bool _free = true);
 
-        [[nodiscard]] GenPool::Handle RegisterTexture(VkImage _image, const uint3& _dimensions);
+        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, VkDevice _device);
+        bool DestroyTextureSrv(TextureSrvHandle _textureSrv, VkDevice _device);
 
-        [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _desc, VkDevice _device);
+        [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc, VkDevice& _device);
+        bool FreeRenderTargetView(RenderTargetViewHandle _rtv, VkDevice _device);
 
-        bool ReleaseTexture(GenPool::Handle _handle, VkDevice _device, bool _free = true);
-
-        [[nodiscard]] GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc, VkDevice _device);
-
-        bool DestroyTextureSrv(GenPool::Handle _handle, VkDevice _device);
-
-        [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc, VkDevice& _device);
-
-        bool FreeRenderTargetView(GenPool::Handle _handle, VkDevice _device);
-
-        [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc, VkDevice _device);
-
-        bool DestroyRenderPass(GenPool::Handle _handle, VkDevice _device);
+        [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc, VkDevice _device);
+        bool DestroyRenderPass(RenderPassHandle _renderPass, VkDevice _device);
 
     private:
         VmaAllocator m_allocator;

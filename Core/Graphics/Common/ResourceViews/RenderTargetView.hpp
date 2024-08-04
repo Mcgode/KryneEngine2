@@ -13,7 +13,7 @@ namespace KryneEngine
 {
     struct RenderTargetViewDesc
     {
-        GenPool::Handle m_textureHandle = GenPool::kInvalidHandle;
+        TextureHandle m_texture;
 
         TextureFormat m_format = TextureFormat::NoFormat;
         TextureTypes m_type = TextureTypes::Single2D;

@@ -76,68 +76,68 @@ namespace KryneEngine
             return m_implementation.FetchTextureSubResourcesMemoryFootprints(_desc);
         }
 
-        [[nodiscard]] inline GenPool::Handle CreateBuffer(const BufferCreateDesc& _desc)
+        [[nodiscard]] inline BufferHandle CreateBuffer(const BufferCreateDesc& _desc)
         {
             return m_implementation.CreateBuffer(_desc);
         }
 
-        [[nodiscard]] inline GenPool::Handle CreateStagingBuffer(
+        [[nodiscard]] inline BufferHandle CreateStagingBuffer(
             const TextureDesc& _createDesc,
             const eastl::vector<TextureMemoryFootprint>& _footprints)
         {
             return m_implementation.CreateStagingBuffer(_createDesc, _footprints);
         }
 
-        [[nodiscard]] inline bool NeedsStagingBuffer(GenPool::Handle _buffer)
+        [[nodiscard]] inline bool NeedsStagingBuffer(BufferHandle _buffer)
         {
             return m_implementation.NeedsStagingBuffer(_buffer);
         }
 
-        inline bool DestroyBuffer(GenPool::Handle _bufferHandle)
+        inline bool DestroyBuffer(BufferHandle _bufferHandle)
         {
             return m_implementation.DestroyBuffer(_bufferHandle);
         }
 
-        [[nodiscard]] inline GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc)
+        [[nodiscard]] inline TextureHandle CreateTexture(const TextureCreateDesc& _createDesc)
         {
             if (!KE_VERIFY_MSG(
                     BitUtils::EnumHasAll(_createDesc.m_memoryUsage, MemoryUsage::GpuOnly_UsageType),
                     "The engine is designed around having buffers representing textures on the CPU")) [[unlikely]]
             {
-                return GenPool::kInvalidHandle;
+                return { GenPool::kInvalidHandle };
             }
 
             return m_implementation.CreateTexture(_createDesc);
         }
 
-        inline bool DestroyTexture(GenPool::Handle _handle)
+        inline bool DestroyTexture(TextureHandle _handle)
         {
             return m_implementation.DestroyTexture(_handle);
         }
 
-        [[nodiscard]] GenPool::Handle CreateTextureSrv(const TextureSrvDesc& _srvDesc)
+        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc)
         {
             return m_implementation.CreateTextureSrv(_srvDesc, m_frameId);
         }
 
-        inline bool DestroyTextureSrv(GenPool::Handle _handle)
+        inline bool DestroyTextureSrv(TextureSrvHandle _handle)
         {
             return m_implementation.DestroyTextureSrv(_handle);
         }
 
-        [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
+        [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
             return m_implementation.CreateRenderTargetView(_desc);
         }
 
-        bool DestroyRenderTargetView(GenPool::Handle _handle)
+        bool DestroyRenderTargetView(RenderTargetViewHandle _handle)
         {
             return m_implementation.DestroyRenderTargetView(_handle);
         }
 
-        [[nodiscard]] GenPool::Handle GetPresentRenderTarget(u8 _swapChainIndex)
+        [[nodiscard]] RenderTargetViewHandle GetPresentRenderTargetView(u8 _swapChainIndex)
         {
-            return m_implementation.GetPresentRenderTarget(_swapChainIndex);
+            return m_implementation.GetPresentRenderTargetView(_swapChainIndex);
         }
 
         [[nodiscard]] inline u32 GetCurrentPresentImageIndex() const
@@ -145,12 +145,12 @@ namespace KryneEngine
             return m_implementation.GetCurrentPresentImageIndex();
         }
 
-        [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc)
+        [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc)
         {
             return m_implementation.CreateRenderPass(_desc);
         }
 
-        bool DestroyRenderPass(GenPool::Handle _handle)
+        bool DestroyRenderPass(RenderPassHandle _handle)
         {
             return m_implementation.DestroyRenderPass(_handle);
         }
@@ -165,7 +165,7 @@ namespace KryneEngine
             m_implementation.EndGraphicsCommandList(m_frameId);
         }
 
-        void BeginRenderPass(CommandList _commandList, GenPool::Handle _handle)
+        void BeginRenderPass(CommandList _commandList, RenderPassHandle _handle)
         {
             m_implementation.BeginRenderPass(_commandList, _handle);
         }
@@ -177,8 +177,8 @@ namespace KryneEngine
 
         inline void SetTextureData(
             CommandList _commandList,
-            GenPool::Handle _stagingBuffer,
-            GenPool::Handle _dstTexture,
+            BufferHandle _stagingBuffer,
+            TextureHandle _dstTexture,
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
             void* _data)

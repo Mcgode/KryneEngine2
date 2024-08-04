@@ -96,13 +96,13 @@ namespace KryneEngine
 
             {
                 TextureSrvDesc srvDesc {
-                    .m_textureHandle = m_fontsTextureHandle,
+                    .m_texture = m_fontsTextureHandle,
                     .m_format = textureCreateDesc.m_desc.m_format,
                 };
                 m_fontsTextureSrvHandle = _graphicsContext.CreateTextureSrv(srvDesc);
             }
 
-            io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontsTextureSrvHandle)));
+            io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontsTextureSrvHandle.m_handle)));
 
             {
                 BufferMemoryBarrier stagingBufferBarrier {
@@ -112,7 +112,7 @@ namespace KryneEngine
                     .m_accessDst = BarrierAccessFlags::TransferSrc,
                     .m_offset = 0,
                     .m_size = eastl::numeric_limits<u64>::max(),
-                    .m_bufferHandle = m_fontsStagingHandle,
+                    .m_buffer = m_fontsStagingHandle,
                 };
 
                 TextureMemoryBarrier textureMemoryBarrier {
@@ -170,19 +170,20 @@ namespace KryneEngine
         ImGui::NewFrame();
     }
 
-    void ImGuiModule::RenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
+    void ImGuiModule::PrepareToRenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
     {
         ImGui::Render();
 
         ImGuiContext& context = *m_context;
-        for (auto i = 0; i < context.Viewports.Size; i++)
-        {
-            ImGuiViewportP* viewport = context.Viewports[i];
-            if (viewport == nullptr || !viewport->DrawDataP.Valid)
-            {
-                continue;
-            }
-            ImDrawData& drawData = viewport->DrawDataP;
-        }
+
+        ImDrawData* drawData = ImGui::GetDrawData();
+
+        u64 vertexCount = drawData->TotalVtxCount;
+        u64 indexCount = drawData->TotalIdxCount;
+    }
+
+    void ImGuiModule::RenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
+    {
+
     }
 } // namespace KryneEngine

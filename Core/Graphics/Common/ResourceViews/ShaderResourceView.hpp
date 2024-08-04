@@ -13,7 +13,7 @@ namespace KryneEngine
 {
     struct TextureSrvDesc
     {
-        GenPool::Handle m_textureHandle;
+        TextureHandle m_texture;
 
         Texture4ComponentsMapping  m_componentsMapping = KE_DEFAULT_TEXTURE_COMPONENTS_MAPPING;
 

@@ -8,6 +8,7 @@
 
 #include <Common/Arrays.hpp>
 #include <Common/Utils/MultiFrameTracking.hpp>
+#include <Graphics/Common/Handles.hpp>
 #include <Graphics/Common/RenderPass.hpp>
 #include <Graphics/Common/Texture.hpp>
 
@@ -36,38 +37,34 @@ namespace KryneEngine
         void InitAllocator(ID3D12Device* _device, IDXGIAdapter* _adapter);
         void InitHeaps(ID3D12Device* _device, u32 _frameContextCount, u32 _frameIndex);
 
-        [[nodiscard]] GenPool::Handle CreateBuffer(const BufferCreateDesc& _desc);
+        [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc);
+        [[nodiscard]] BufferHandle CreateStagingBuffer(
+            const TextureDesc& _desc,
+            const eastl::vector<TextureMemoryFootprint>& _footprints);
+        bool DestroyBuffer(BufferHandle _buffer);
 
-        [[nodiscard]] GenPool::Handle
-        CreateStagingBuffer(const TextureDesc& _desc, const eastl::vector<TextureMemoryFootprint>& _footprints);
+        [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device);
+        [[nodiscard]] TextureHandle RegisterTexture(ID3D12Resource* _texture, D3D12MA::Allocation* _allocation = nullptr);
+        bool ReleaseTexture(TextureHandle _texture, bool _free);
 
-        bool DestroyBuffer(GenPool::Handle _bufferHandle);
-
-        [[nodiscard]] GenPool::Handle CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device);
-
-        [[nodiscard]] GenPool::Handle RegisterTexture(ID3D12Resource* _texture, D3D12MA::Allocation* _allocation = nullptr);
-
-        bool ReleaseTexture(GenPool::Handle _handle, bool _free);
-
-        [[nodiscard]] GenPool::Handle CreateTextureSrv(
+        [[nodiscard]] TextureSrvHandle CreateTextureSrv(
             const TextureSrvDesc& _srvDesc,
             ID3D12Device* _device,
             u32 _frameIndex);
+        bool DestroyTextureSrv(TextureSrvHandle _textureSrv);
 
-        bool DestroyTextureSrv(GenPool::Handle _handle);
+        [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc, ID3D12Device* _device);
+        bool FreeRenderTargetView(RenderTargetViewHandle _rtv);
 
-        [[nodiscard]] GenPool::Handle CreateRenderTargetView(const RenderTargetViewDesc& _desc, ID3D12Device* _device);
-        bool FreeRenderTargetView(GenPool::Handle _handle);
-
-        [[nodiscard]] GenPool::Handle CreateRenderPass(const RenderPassDesc& _desc);
-        bool FreeRenderPass(GenPool::Handle _handle);
+        [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc);
+        bool FreeRenderPass(RenderPassHandle _handle);
 
         void NextFrame(ID3D12Device* _device, u8 _frameIndex);
 
         struct RtvHotData
         {
             CD3DX12_CPU_DESCRIPTOR_HANDLE m_cpuHandle;
-            GenPool::Handle m_resource;
+            TextureHandle m_resource;
         };
 
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_buffers;

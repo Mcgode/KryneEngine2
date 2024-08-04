@@ -727,9 +727,9 @@ namespace KryneEngine
         return result;
     }
 
-    void VkGraphicsContext::BeginRenderPass(CommandList _commandList, GenPool::Handle _handle)
+    void VkGraphicsContext::BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass)
     {
-        auto* renderPassData = m_resources.m_renderPasses.Get(_handle);
+        auto* renderPassData = m_resources.m_renderPasses.Get(_renderPass.m_handle);
         VERIFY_OR_RETURN_VOID(renderPassData != nullptr);
 
         VkRenderPassBeginInfo beginInfo {
@@ -782,9 +782,9 @@ namespace KryneEngine
         return footprints;
     }
 
-    bool VkGraphicsContext::NeedsStagingBuffer(GenPool::Handle _buffer)
+    bool VkGraphicsContext::NeedsStagingBuffer(BufferHandle _buffer)
     {
-        VkResources::BufferColdData* coldData = m_resources.m_buffers.GetCold(_buffer);
+        VkResources::BufferColdData* coldData = m_resources.m_buffers.GetCold(_buffer.m_handle);
         VERIFY_OR_RETURN(coldData != nullptr, false);
 
         VkMemoryPropertyFlagBits memoryPropertyFlags;
@@ -795,11 +795,11 @@ namespace KryneEngine
         return !BitUtils::EnumHasAny(memoryPropertyFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     }
 
-    GenPool::Handle VkGraphicsContext::GetPresentRenderTarget(u8 _index)
+    RenderTargetViewHandle VkGraphicsContext::GetPresentRenderTargetView(u8 _index)
     {
         return (m_swapChain != nullptr)
                 ? m_swapChain->m_renderTargetViews[_index]
-                : GenPool::kInvalidHandle;
+                : RenderTargetViewHandle { GenPool::kInvalidHandle };
     }
 
     u32 VkGraphicsContext::GetCurrentPresentImageIndex() const
@@ -811,14 +811,14 @@ namespace KryneEngine
 
     void VkGraphicsContext::SetTextureData(
         CommandList _commandList,
-        GenPool::Handle _stagingBuffer,
-        GenPool::Handle _dstTexture,
+        BufferHandle _stagingBuffer,
+        TextureHandle _dstTexture,
         const TextureMemoryFootprint& _footprint,
         const SubResourceIndexing& _subResourceIndex,
         void* _data)
     {
-        VkBuffer* stagingBuffer = m_resources.m_buffers.Get(_stagingBuffer);
-        VkImage* dstTexture = m_resources.m_textures.Get(_dstTexture);
+        VkBuffer* stagingBuffer = m_resources.m_buffers.Get(_stagingBuffer.m_handle);
+        VkImage* dstTexture = m_resources.m_textures.Get(_dstTexture.m_handle);
 
         VERIFY_OR_RETURN_VOID(stagingBuffer != nullptr);
         VERIFY_OR_RETURN_VOID(dstTexture != nullptr);
@@ -848,7 +848,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::MapBuffer(BufferMapping& _mapping)
     {
-        VkResources::BufferColdData* coldData = m_resources.m_buffers.GetCold(_mapping.m_buffer);
+        VkResources::BufferColdData* coldData = m_resources.m_buffers.GetCold(_mapping.m_buffer.m_handle);
         VERIFY_OR_RETURN_VOID(coldData != nullptr);
         KE_ASSERT_MSG(_mapping.m_ptr == nullptr, "Structure still holds a mapping");
 
@@ -870,7 +870,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::UnmapBuffer(BufferMapping& _mapping)
     {
-        VkResources::BufferColdData* coldData = m_resources.m_buffers.GetCold(_mapping.m_buffer);
+        VkResources::BufferColdData* coldData = m_resources.m_buffers.GetCold(_mapping.m_buffer.m_handle);
         VERIFY_OR_RETURN_VOID(coldData != nullptr);
         KE_ASSERT_MSG(_mapping.m_ptr != nullptr, "Structure holds no mapping");
 
@@ -891,8 +891,8 @@ namespace KryneEngine
 
     void VkGraphicsContext::CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params)
     {
-        VkBuffer* bufferSrc = m_resources.m_buffers.Get(_params.m_bufferSrc);
-        VkBuffer* bufferDst = m_resources.m_buffers.Get(_params.m_bufferDst);
+        VkBuffer* bufferSrc = m_resources.m_buffers.Get(_params.m_bufferSrc.m_handle);
+        VkBuffer* bufferDst = m_resources.m_buffers.Get(_params.m_bufferDst.m_handle);
         VERIFY_OR_RETURN_VOID(bufferSrc != nullptr && bufferDst != nullptr);
 
         const VkBufferCopy region {
@@ -933,7 +933,7 @@ namespace KryneEngine
             for (auto i = 0u; i < bufferMemoryBarriers.Size(); i++)
             {
                 const BufferMemoryBarrier& barrier = _bufferMemoryBarriers[i];
-                VkBuffer* buffer = m_resources.m_buffers.Get(barrier.m_bufferHandle);
+                VkBuffer* buffer = m_resources.m_buffers.Get(barrier.m_buffer.m_handle);
 
                 bufferMemoryBarriers[i] = {
                     .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
@@ -952,7 +952,7 @@ namespace KryneEngine
             for (auto i = 0u; i < imageMemoryBarriers.Size(); i++)
             {
                 const TextureMemoryBarrier& barrier = _textureMemoryBarriers[i];
-                VkImage* image = m_resources.m_textures.Get(barrier.m_texture);
+                VkImage* image = m_resources.m_textures.Get(barrier.m_texture.m_handle);
 
                 imageMemoryBarriers[i] = {
                     .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
@@ -1046,7 +1046,7 @@ namespace KryneEngine
                 for (; bIndex < _bufferMemoryBarriers.size(); bIndex++)
                 {
                     const BufferMemoryBarrier& barrier = _bufferMemoryBarriers[bIndex];
-                    VkBuffer* buffer = m_resources.m_buffers.Get(barrier.m_bufferHandle);
+                    VkBuffer* buffer = m_resources.m_buffers.Get(barrier.m_buffer.m_handle);
 
                     if (shouldRegister(barrier.m_stagesSrc, barrier.m_stagesDst))
                     {
@@ -1070,7 +1070,7 @@ namespace KryneEngine
                 for (; iIndex < _textureMemoryBarriers.size(); iIndex++)
                 {
                     const TextureMemoryBarrier& barrier = _textureMemoryBarriers[iIndex];
-                    VkImage* image = m_resources.m_textures.Get(barrier.m_texture);
+                    VkImage* image = m_resources.m_textures.Get(barrier.m_texture.m_handle);
 
                     if (shouldRegister(barrier.m_stagesSrc, barrier.m_stagesDst))
                     {

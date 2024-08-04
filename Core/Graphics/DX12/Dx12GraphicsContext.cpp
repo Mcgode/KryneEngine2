@@ -311,9 +311,9 @@ namespace KryneEngine
         }
     }
 
-    GenPool::Handle Dx12GraphicsContext::GetPresentRenderTarget(u8 _index)
+    RenderTargetViewHandle Dx12GraphicsContext::GetPresentRenderTargetView(u8 _index)
     {
-        return m_swapChain->m_renderTargetTextures[_index];
+        return m_swapChain->m_renderTargetViews[_index];
     }
 
     CommandList Dx12GraphicsContext::BeginGraphicsCommandList(u64 _frameId)
@@ -326,9 +326,9 @@ namespace KryneEngine
         m_frameContexts[_frameId % m_frameContextCount].EndDirectCommandList();
     }
 
-    void Dx12GraphicsContext::BeginRenderPass(CommandList _commandList, GenPool::Handle _handle)
+    void Dx12GraphicsContext::BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass)
     {
-        const auto* desc = m_resources.m_renderPasses.Get(_handle);
+        const auto* desc = m_resources.m_renderPasses.Get(_renderPass.m_handle);
         VERIFY_OR_RETURN_VOID(desc != nullptr);
 
         constexpr auto convertLoadOperation = [](RenderPassDesc::Attachment::LoadOperation _op)
@@ -395,12 +395,12 @@ namespace KryneEngine
                 convertStoreOperation(attachment.m_storeOperation)
             };
 
-            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv);
+            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv.m_handle);
             VERIFY_OR_RETURN_VOID(rtvData != nullptr);
 
             colorAttachments.push_back(D3D12_RENDER_PASS_RENDER_TARGET_DESC { rtvData->m_cpuHandle, beginningAccess, endingAccess });
 
-            addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource));
+            addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource.m_handle));
         }
 
         D3D12_RENDER_PASS_DEPTH_STENCIL_DESC depthStencilDesc;
@@ -426,7 +426,7 @@ namespace KryneEngine
                 convertStoreOperation(attachment.m_stencilStoreOperation)
             };
 
-            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv);
+            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv.m_handle);
             VERIFY_OR_RETURN_VOID(rtvData != nullptr);
 
             depthStencilDesc = {
@@ -437,7 +437,7 @@ namespace KryneEngine
                     stencilEndingAccess
             };
 
-            addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource), true);
+            addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource.m_handle), true);
         }
 
         _commandList->ResourceBarrier(barriers.size(), barriers.data());
@@ -448,12 +448,12 @@ namespace KryneEngine
                 desc->m_depthStencilAttachment.has_value() ? &depthStencilDesc : nullptr,
                 D3D12_RENDER_PASS_FLAG_NONE);
 
-        m_currentRenderPass = _handle;
+        m_currentRenderPass = _renderPass;
     }
 
     void Dx12GraphicsContext::EndRenderPass(CommandList _commandList)
     {
-        const auto* desc = m_resources.m_renderPasses.Get(m_currentRenderPass);
+        const auto* desc = m_resources.m_renderPasses.Get(m_currentRenderPass.m_handle);
         VERIFY_OR_RETURN_VOID(desc != nullptr);
 
         _commandList->EndRenderPass();
@@ -480,19 +480,19 @@ namespace KryneEngine
 
         for (const auto& attachment: desc->m_colorAttachments)
         {
-            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv);
+            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv.m_handle);
             VERIFY_OR_RETURN_VOID(rtvData != nullptr);
 
-            addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource));
+            addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource.m_handle));
         }
 
         if (desc->m_depthStencilAttachment.has_value())
         {
             const auto& attachment = desc->m_depthStencilAttachment.value();
-            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv);
+            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv.m_handle);
             VERIFY_OR_RETURN_VOID(rtvData != nullptr);
 
-            addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource), true);
+            addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource.m_handle), true);
         }
 
         _commandList->ResourceBarrier(barriers.size(), barriers.data());
@@ -507,14 +507,14 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::SetTextureData(
         CommandList _commandList,
-        GenPool::Handle _stagingBuffer,
-        GenPool::Handle _dstTexture,
+        BufferHandle _stagingBuffer,
+        TextureHandle _dstTexture,
         const TextureMemoryFootprint& _footprint,
         const SubResourceIndexing& _subResourceIndex,
         void* _data)
     {
-        ID3D12Resource** stagingTexture = m_resources.m_buffers.Get(_stagingBuffer);
-        ID3D12Resource** dstTexture = m_resources.m_textures.Get(_dstTexture);
+        ID3D12Resource** stagingTexture = m_resources.m_buffers.Get(_stagingBuffer.m_handle);
+        ID3D12Resource** dstTexture = m_resources.m_textures.Get(_dstTexture.m_handle);
 
         VERIFY_OR_RETURN_VOID(stagingTexture != nullptr);
         VERIFY_OR_RETURN_VOID(dstTexture != nullptr);
@@ -606,9 +606,9 @@ namespace KryneEngine
         return finalFootprints;
     }
 
-    bool Dx12GraphicsContext::NeedsStagingBuffer(GenPool::Handle _buffer)
+    bool Dx12GraphicsContext::NeedsStagingBuffer(BufferHandle _buffer)
     {
-        D3D12MA::Allocation** pAllocation = m_resources.m_buffers.GetCold(_buffer);
+        D3D12MA::Allocation** pAllocation = m_resources.m_buffers.GetCold(_buffer.m_handle);
         VERIFY_OR_RETURN(pAllocation != nullptr, false);
         D3D12MA::Allocation* allocation = *pAllocation;
 
@@ -617,7 +617,7 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::MapBuffer(BufferMapping& _mapping)
     {
-        D3D12MA::Allocation** pAllocation = m_resources.m_buffers.GetCold(_mapping.m_buffer);
+        D3D12MA::Allocation** pAllocation = m_resources.m_buffers.GetCold(_mapping.m_buffer.m_handle);
         VERIFY_OR_RETURN_VOID(pAllocation != nullptr);
         D3D12MA::Allocation* allocation = *pAllocation;
 
@@ -639,7 +639,7 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::UnmapBuffer(BufferMapping& _mapping)
     {
-        ID3D12Resource** pBuffer = m_resources.m_buffers.Get(_mapping.m_buffer);
+        ID3D12Resource** pBuffer = m_resources.m_buffers.Get(_mapping.m_buffer.m_handle);
         VERIFY_OR_RETURN_VOID(pBuffer != nullptr);
         KE_ASSERT_MSG(_mapping.m_ptr != nullptr, "Structure holds no mapping");
 
@@ -650,8 +650,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params)
     {
-        ID3D12Resource** bufferSrc = m_resources.m_buffers.Get(_params.m_bufferSrc);
-        ID3D12Resource** bufferDst = m_resources.m_buffers.Get(_params.m_bufferDst);
+        ID3D12Resource** bufferSrc = m_resources.m_buffers.Get(_params.m_bufferSrc.m_handle);
+        ID3D12Resource** bufferDst = m_resources.m_buffers.Get(_params.m_bufferDst.m_handle);
         VERIFY_OR_RETURN_VOID(bufferSrc != nullptr && bufferDst != nullptr);
 
         _commandList->CopyBufferRegion(
@@ -704,7 +704,7 @@ namespace KryneEngine
                 for (auto i = 0u; i < bufferMemoryBarriers.Size(); i++)
                 {
                     const BufferMemoryBarrier& barrier = _bufferMemoryBarriers[i];
-                    ID3D12Resource** buffer = m_resources.m_buffers.Get(barrier.m_bufferHandle);
+                    ID3D12Resource** buffer = m_resources.m_buffers.Get(barrier.m_buffer.m_handle);
 
                     bufferMemoryBarriers[i] = D3D12_BUFFER_BARRIER{
                         .SyncBefore = ToDx12BarrierSync(barrier.m_stagesSrc),
@@ -731,7 +731,7 @@ namespace KryneEngine
                 for (auto i = 0u; i < textureMemoryBarriers.Size(); i++)
                 {
                     const TextureMemoryBarrier& barrier = _textureMemoryBarriers[i];
-                    ID3D12Resource** texture = m_resources.m_textures.Get(barrier.m_texture);
+                    ID3D12Resource** texture = m_resources.m_textures.Get(barrier.m_texture.m_handle);
 
                     textureMemoryBarriers[i] = D3D12_TEXTURE_BARRIER{
                         .SyncBefore = ToDx12BarrierSync(barrier.m_stagesSrc),
@@ -767,7 +767,7 @@ namespace KryneEngine
 
             for (const auto& barrier: _textureMemoryBarriers)
             {
-                ID3D12Resource** texture = m_resources.m_textures.Get(barrier.m_texture);
+                ID3D12Resource** texture = m_resources.m_textures.Get(barrier.m_texture.m_handle);
                 if (texture == nullptr)
                 {
                     continue;
@@ -806,7 +806,7 @@ namespace KryneEngine
 
             for (const auto& barrier: _bufferMemoryBarriers)
             {
-                ID3D12Resource** buffer = m_resources.m_buffers.Get(barrier.m_bufferHandle);
+                ID3D12Resource** buffer = m_resources.m_buffers.Get(barrier.m_buffer.m_handle);
                 if (buffer == nullptr)
                 {
                     continue;

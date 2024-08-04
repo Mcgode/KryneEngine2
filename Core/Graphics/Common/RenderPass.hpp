@@ -35,7 +35,7 @@ namespace KryneEngine
             StoreOperation m_storeOperation = StoreOperation::DontCare;
             TextureLayout m_initialLayout = TextureLayout::Unknown;
             TextureLayout m_finalLayout = TextureLayout::ColorAttachment;
-            GenPool::Handle m_rtv = GenPool::kInvalidHandle;
+            RenderTargetViewHandle m_rtv;
             float4 m_clearColor = float4(0, 0, 0, 0);
         };
 

@@ -78,7 +78,7 @@ namespace KryneEngine
                 m_renderTargetTextures.Init(i, textureHandle);
 
                 const RenderTargetViewDesc rtvDesc {
-                    .m_textureHandle = textureHandle,
+                    .m_texture = textureHandle,
                     .m_format = displayInfo.m_sRgbPresent == GraphicsCommon::SoftEnable::Disabled
                             ? TextureFormat::BGRA8_UNorm
                             : TextureFormat::BGRA8_sRGB
