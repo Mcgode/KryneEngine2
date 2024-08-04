@@ -133,9 +133,10 @@ int main() {
         }
         while (graphicsContext.EndFrame());
 
+        graphicsContext.WaitForLastFrame();
+
         imGuiContext.Shutdown(graphicsContext);
 
-        graphicsContext.WaitForLastFrame();
         for (auto handle: renderPassHandles)
         {
             graphicsContext.DestroyRenderPass(handle);
