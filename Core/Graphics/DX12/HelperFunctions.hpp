@@ -220,9 +220,9 @@ namespace KryneEngine
             switch (_usage & MemoryUsage::USAGE_TYPE_MASK)
             {
             case MemoryUsage::GpuOnly_UsageType:
+            case MemoryUsage::StageEveryFrame_UsageType:
                 return D3D12_HEAP_TYPE_DEFAULT;
             case MemoryUsage::StageOnce_UsageType:
-            case MemoryUsage::StageEveryFrame_UsageType:
                 return D3D12_HEAP_TYPE_UPLOAD;
             case MemoryUsage::Readback_UsageType:
                 return D3D12_HEAP_TYPE_READBACK;
