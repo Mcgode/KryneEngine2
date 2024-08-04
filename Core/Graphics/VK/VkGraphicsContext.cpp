@@ -853,7 +853,7 @@ namespace KryneEngine
         KE_ASSERT_MSG(_mapping.m_ptr == nullptr, "Structure still holds a mapping");
 
         KE_ASSERT(coldData->m_info.size >= _mapping.m_offset);
-        KE_ASSERT(_mapping.m_size == ~0 || coldData->m_info.size <= _mapping.m_offset + _mapping.m_size);
+        KE_ASSERT(_mapping.m_size == ~0 || coldData->m_info.size >= _mapping.m_offset + _mapping.m_size);
         _mapping.m_size = eastl::min(_mapping.m_size, coldData->m_info.size - _mapping.m_offset);
 
         if (coldData->m_info.pMappedData != nullptr)
