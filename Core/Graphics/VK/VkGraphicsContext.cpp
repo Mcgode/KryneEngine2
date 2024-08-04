@@ -856,7 +856,7 @@ namespace KryneEngine
         KE_ASSERT(_mapping.m_size == ~0 || coldData->m_info.size <= _mapping.m_offset + _mapping.m_size);
         _mapping.m_size = eastl::min(_mapping.m_size, coldData->m_info.size - _mapping.m_offset);
 
-        if (coldData->m_info.pMappedData)
+        if (coldData->m_info.pMappedData != nullptr)
         {
             _mapping.m_ptr = (u8*)coldData->m_info.pMappedData + _mapping.m_offset;
         }
