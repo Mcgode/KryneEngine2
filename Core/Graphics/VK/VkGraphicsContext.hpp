@@ -104,7 +104,7 @@ namespace KryneEngine
 
         [[nodiscard]] inline BufferHandle CreateBuffer(const BufferCreateDesc& _desc)
         {
-            return m_resources.CreateBuffer(_desc, nullptr);
+            return m_resources.CreateBuffer(_desc, m_device);
         }
 
         [[nodiscard]] inline BufferHandle CreateStagingBuffer(
