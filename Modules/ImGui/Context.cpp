@@ -5,6 +5,7 @@
  */
 
 #include "Context.hpp"
+#include <Common/Utils/Alignment.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/Texture.hpp>
 #include <Graphics/Common/Window.hpp>
@@ -12,6 +13,13 @@
 
 namespace KryneEngine::Modules::ImGui
 {
+    struct VertexEntry
+    {
+        float2 m_position;
+        float2 m_uv;
+        u32 m_color;
+    };
+
     Context::Context(GraphicsContext& _graphicsContext)
     {
         m_context = ::ImGui::CreateContext();
@@ -20,12 +28,51 @@ namespace KryneEngine::Modules::ImGui
         io.BackendRendererUserData = nullptr;
         io.BackendRendererName = "KryneEngineGraphics";
         io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
+
+        {
+            const BufferCreateDesc bufferCreateDesc{
+                .m_desc = {
+                    .m_size = kInitialSize * sizeof(VertexEntry),
+#if !defined(KE_FINAL)
+                    .m_debugName = "ImGuiContext/DynamicVertexBuffer"
+#endif
+                },
+                .m_usage = MemoryUsage::StageEveryFrame_UsageType
+                           | MemoryUsage::VertexBuffer
+                           | MemoryUsage::TransferDstBuffer,
+            };
+            m_dynamicVertexBuffer.Init(
+                _graphicsContext,
+                bufferCreateDesc,
+                _graphicsContext.GetFrameContextCount());
+        }
+
+        {
+            const BufferCreateDesc bufferCreateDesc{
+                .m_desc = {
+                    .m_size = kInitialSize * sizeof(u32),
+#if !defined(KE_FINAL)
+                    .m_debugName = "ImGuiContext/DynamicIndexBuffer"
+#endif
+                },
+                .m_usage = MemoryUsage::StageEveryFrame_UsageType
+                           | MemoryUsage::IndexBuffer
+                           | MemoryUsage::TransferDstBuffer,
+            };
+            m_dynamicIndexBuffer.Init(
+                _graphicsContext,
+                bufferCreateDesc,
+                _graphicsContext.GetFrameContextCount());
+        }
     }
 
     Context::~Context() { KE_ASSERT_MSG(m_context == nullptr, "ImGui module was not shut down"); }
 
     void Context::Shutdown(GraphicsContext& _graphicsContext)
     {
+        m_dynamicIndexBuffer.Destroy(_graphicsContext);
+        m_dynamicVertexBuffer.Destroy(_graphicsContext);
+
         if (m_fontsTextureSrvHandle != GenPool::kInvalidHandle)
         {
             _graphicsContext.DestroyTextureSrv(m_fontsTextureSrvHandle);
@@ -178,8 +225,72 @@ namespace KryneEngine::Modules::ImGui
 
         ImDrawData* drawData = ::ImGui::GetDrawData();
 
-        u64 vertexCount = drawData->TotalVtxCount;
-        u64 indexCount = drawData->TotalIdxCount;
+        const u8 frameIndex = _graphicsContext.GetCurrentFrameContextIndex();
+
+        {
+            const u64 vertexCount = drawData->TotalVtxCount;
+
+            const u64 desiredSize = sizeof(VertexEntry) * Alignment::NextPowerOfTwo(vertexCount);
+            if (m_dynamicVertexBuffer.GetSize(frameIndex) < desiredSize)
+            {
+                m_dynamicVertexBuffer.RequestResize(desiredSize);
+            }
+
+            auto* vertexEntries = static_cast<VertexEntry*>(m_dynamicVertexBuffer.Map(_graphicsContext, frameIndex));
+            u64 vertexIndex = 0;
+            for (auto i = 0u; i < drawData->CmdListsCount; i++)
+            {
+                const ImDrawList* drawList = drawData->CmdLists[i];
+                for (auto j = 0; j < drawList->VtxBuffer.Size; j++)
+                {
+                    VertexEntry& entry = vertexEntries[vertexIndex];
+                    const ImDrawVert& vert = drawList->VtxBuffer[j];
+
+                    entry.m_position = { vert.pos.x, vert.pos.y };
+                    entry.m_uv = { vert.uv.x, vert.uv.y };
+                    entry.m_color = vert.col;
+
+                    vertexIndex++;
+                }
+            }
+            m_dynamicVertexBuffer.Unmap(_graphicsContext);
+
+            m_dynamicVertexBuffer.PrepareBuffers(
+                _graphicsContext,
+                _commandList,
+                BarrierAccessFlags::VertexBuffer,
+                frameIndex);
+        }
+
+        {
+            const u64 indexCount = drawData->TotalIdxCount;
+
+            const u64 desiredSize = sizeof(u32) * Alignment::NextPowerOfTwo(indexCount);
+            if (m_dynamicIndexBuffer.GetSize(frameIndex) < desiredSize)
+            {
+                m_dynamicIndexBuffer.RequestResize(desiredSize);
+            }
+
+            u32* indexBuffer = static_cast<u32*>(m_dynamicIndexBuffer.Map(_graphicsContext, frameIndex));
+            u32 offset = 0;
+            for (auto i = 0u; i < drawData->CmdListsCount; i++)
+            {
+                const ImDrawList* drawList = drawData->CmdLists[i];
+                for (auto j = 0; j < drawList->IdxBuffer.Size; j++)
+                {
+                    indexBuffer[j] = drawList->IdxBuffer[j] + offset;
+                }
+                indexBuffer += drawList->IdxBuffer.Size;
+                offset += drawList->VtxBuffer.Size;
+            }
+            m_dynamicIndexBuffer.Unmap(_graphicsContext);
+
+            m_dynamicIndexBuffer.PrepareBuffers(
+                _graphicsContext,
+                _commandList,
+                BarrierAccessFlags::IndexBuffer,
+                frameIndex);
+        }
     }
 
     void Context::RenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)

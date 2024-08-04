@@ -8,6 +8,7 @@
 
 #include <imgui.h>
 #include <Graphics/Common/GraphicsContext.hpp>
+#include <GraphicsUtils/DynamicBuffer.hpp>
 
 namespace KryneEngine::Modules::ImGui
 {
@@ -30,5 +31,9 @@ namespace KryneEngine::Modules::ImGui
         BufferHandle m_fontsStagingHandle { GenPool::kInvalidHandle };
         TextureHandle m_fontsTextureHandle { GenPool::kInvalidHandle };
         TextureSrvHandle m_fontsTextureSrvHandle { GenPool::kInvalidHandle };
+
+        static constexpr u64 kInitialSize = 1024;
+        GraphicsUtils::DynamicBuffer m_dynamicVertexBuffer;
+        GraphicsUtils::DynamicBuffer m_dynamicIndexBuffer;
     };
 }// namespace KryneEngine
