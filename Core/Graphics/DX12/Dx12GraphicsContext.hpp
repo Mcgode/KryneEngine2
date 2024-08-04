@@ -21,6 +21,7 @@ namespace KryneEngine
     class Dx12SwapChain;
 
     struct BufferMapping;
+    struct BufferCopyParameters;
 
     class Dx12GraphicsContext
     {
@@ -147,6 +148,7 @@ namespace KryneEngine
 
         void MapBuffer(BufferMapping& _mapping);
         void UnmapBuffer(BufferMapping& _mapping);
+        void CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params);
 
         void PlaceMemoryBarriers(
             CommandList _commandList,

@@ -639,6 +639,20 @@ namespace KryneEngine
         _mapping.m_ptr = nullptr;
     }
 
+    void Dx12GraphicsContext::CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params)
+    {
+        ID3D12Resource** bufferSrc = m_resources.m_buffers.Get(_params.m_bufferSrc);
+        ID3D12Resource** bufferDst = m_resources.m_buffers.Get(_params.m_bufferDst);
+        VERIFY_OR_RETURN_VOID(bufferSrc != nullptr && bufferDst != nullptr);
+
+        _commandList->CopyBufferRegion(
+            *bufferDst,
+            _params.m_offsetDst,
+            *bufferSrc,
+            _params.m_offsetSrc,
+            _params.m_copySize);
+    }
+
     void Dx12GraphicsContext::PlaceMemoryBarriers(
         CommandList _commandList,
         const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,

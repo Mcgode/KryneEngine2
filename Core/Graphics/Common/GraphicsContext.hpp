@@ -197,6 +197,11 @@ namespace KryneEngine
             m_implementation.UnmapBuffer(_mapping);
         }
 
+        inline void CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params)
+        {
+            m_implementation.CopyBuffer(_commandList, _params);
+        }
+
         inline void PlaceMemoryBarriers(
             CommandList _commandList,
             const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,

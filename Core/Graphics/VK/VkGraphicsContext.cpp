@@ -876,6 +876,21 @@ namespace KryneEngine
         _mapping.m_ptr = nullptr;
     }
 
+    void VkGraphicsContext::CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params)
+    {
+        VkBuffer* bufferSrc = m_resources.m_buffers.Get(_params.m_bufferSrc);
+        VkBuffer* bufferDst = m_resources.m_buffers.Get(_params.m_bufferDst);
+        VERIFY_OR_RETURN_VOID(bufferSrc != nullptr && bufferDst != nullptr);
+
+        const VkBufferCopy region {
+            .srcOffset = _params.m_offsetSrc,
+            .dstOffset = _params.m_offsetDst,
+            .size = _params.m_copySize,
+        };
+
+        vkCmdCopyBuffer(_commandList, *bufferSrc, *bufferDst, 1, &region);
+    }
+
     void VkGraphicsContext::PlaceMemoryBarriers(
         CommandList _commandList,
         const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,

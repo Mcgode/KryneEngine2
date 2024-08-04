@@ -23,6 +23,7 @@ namespace KryneEngine
     class VkDebugHandler;
 
     struct BufferMapping;
+    struct BufferCopyParameters;
     struct RenderTargetViewDesc;
 
     class VkGraphicsContext
@@ -184,6 +185,7 @@ namespace KryneEngine
 
         void MapBuffer(BufferMapping& _mapping);
         void UnmapBuffer(BufferMapping& _mapping);
+        void CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params);
 
         void PlaceMemoryBarriers(
             CommandList _commandList,

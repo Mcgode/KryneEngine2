@@ -40,4 +40,15 @@ namespace KryneEngine
             , m_pureWrite(_pureWrite)
         {}
     };
+
+    struct BufferCopyParameters
+    {
+        u64 m_copySize;
+
+        GenPool::Handle m_bufferSrc;
+        GenPool::Handle m_bufferDst;
+
+        u64 m_offsetSrc = 0;
+        u64 m_offsetDst = 0;
+    };
 }
