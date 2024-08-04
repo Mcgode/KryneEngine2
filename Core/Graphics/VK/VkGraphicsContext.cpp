@@ -11,6 +11,7 @@
 #include <EASTL/algorithm.h>
 #include <EASTL/vector_map.h>
 #include <Common/StringHelpers.hpp>
+#include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/Window.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
 #include <Graphics/VK/VkSurface.hpp>
@@ -830,6 +831,49 @@ namespace KryneEngine
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             1,
             &region);
+    }
+
+    void VkGraphicsContext::MapBuffer(BufferMapping& _mapping)
+    {
+        VkResources::BufferColdData* coldData = m_resources.m_buffers.GetCold(_mapping.m_buffer);
+        VERIFY_OR_RETURN_VOID(coldData != nullptr);
+        KE_ASSERT_MSG(_mapping.m_ptr == nullptr, "Structure still holds a mapping");
+
+        KE_ASSERT(coldData->m_info.size >= _mapping.m_offset);
+        KE_ASSERT(_mapping.m_size == ~0 || coldData->m_info.size <= _mapping.m_offset + _mapping.m_size);
+        _mapping.m_size = eastl::min(_mapping.m_size, coldData->m_info.size - _mapping.m_offset);
+
+        if (coldData->m_info.pMappedData)
+        {
+            _mapping.m_ptr = (u8*)coldData->m_info.pMappedData + _mapping.m_offset;
+        }
+        else
+        {
+            void* ptr;
+            vmaMapMemory(m_resources.m_allocator, coldData->m_allocation, &ptr);
+            _mapping.m_ptr = (u8*)ptr + _mapping.m_offset;
+        }
+    }
+
+    void VkGraphicsContext::UnmapBuffer(BufferMapping& _mapping)
+    {
+        VkResources::BufferColdData* coldData = m_resources.m_buffers.GetCold(_mapping.m_buffer);
+        VERIFY_OR_RETURN_VOID(coldData != nullptr);
+        KE_ASSERT_MSG(_mapping.m_ptr != nullptr, "Structure holds no mapping");
+
+        if (coldData->m_info.pMappedData)
+        {
+            vmaFlushAllocation(
+                m_resources.m_allocator,
+                coldData->m_allocation,
+                _mapping.m_offset,
+                _mapping.m_size);
+        }
+        else
+        {
+            vmaUnmapMemory(m_resources.m_allocator, coldData->m_allocation);
+        }
+        _mapping.m_ptr = nullptr;
     }
 
     void VkGraphicsContext::PlaceMemoryBarriers(

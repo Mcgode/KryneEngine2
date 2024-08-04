@@ -8,7 +8,8 @@
 #include "Dx12SwapChain.hpp"
 #include "HelperFunctions.hpp"
 #include <Common/Utils/Alignment.hpp>
-#include <Graphics/Common/Texture.hpp>
+#include <D3D12MemAlloc.h>
+#include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/Window.hpp>
 #include <Memory/GenerationalPool.inl>
 #include <dxgidebug.h>
@@ -603,6 +604,39 @@ namespace KryneEngine
         }
 
         return finalFootprints;
+    }
+
+    void Dx12GraphicsContext::MapBuffer(BufferMapping& _mapping)
+    {
+        D3D12MA::Allocation** pAllocation = m_resources.m_buffers.GetCold(_mapping.m_buffer);
+        VERIFY_OR_RETURN_VOID(pAllocation != nullptr);
+        D3D12MA::Allocation* allocation = *pAllocation;
+
+        KE_ASSERT_MSG(_mapping.m_ptr == nullptr, "Structure still holds a mapping");
+        KE_ASSERT(allocation->GetSize() >= _mapping.m_offset);
+        KE_ASSERT(_mapping.m_size == ~0 || allocation->GetSize() <= _mapping.m_offset + _mapping.m_size);
+        _mapping.m_size = eastl::min(_mapping.m_size, allocation->GetSize() - _mapping.m_offset);
+
+        D3D12_RANGE range { 0, 0 };
+        if (!_mapping.m_pureWrite)
+        {
+            range = { _mapping.m_offset, _mapping.m_offset + _mapping.m_size };
+        }
+
+        void* ptr;
+        Dx12Assert(allocation->GetResource()->Map(0, &range, &ptr));
+        _mapping.m_ptr = (u8*)ptr + _mapping.m_offset;
+    }
+
+    void Dx12GraphicsContext::UnmapBuffer(BufferMapping& _mapping)
+    {
+        ID3D12Resource** pBuffer = m_resources.m_buffers.Get(_mapping.m_buffer);
+        VERIFY_OR_RETURN_VOID(pBuffer != nullptr);
+        KE_ASSERT_MSG(_mapping.m_ptr != nullptr, "Structure holds no mapping");
+
+        const D3D12_RANGE range { _mapping.m_offset, _mapping.m_offset + _mapping.m_size };
+        (*pBuffer)->Unmap(0, &range);
+        _mapping.m_ptr = nullptr;
     }
 
     void Dx12GraphicsContext::PlaceMemoryBarriers(

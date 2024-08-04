@@ -20,8 +20,10 @@ namespace KryneEngine
     class Window;
     class VkSurface;
     class VkSwapChain;
-    struct RenderTargetViewDesc;
     class VkDebugHandler;
+
+    struct BufferMapping;
+    struct RenderTargetViewDesc;
 
     class VkGraphicsContext
     {
@@ -179,6 +181,9 @@ namespace KryneEngine
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
             void* _data);
+
+        void MapBuffer(BufferMapping& _mapping);
+        void UnmapBuffer(BufferMapping& _mapping);
 
         void PlaceMemoryBarriers(
             CommandList _commandList,

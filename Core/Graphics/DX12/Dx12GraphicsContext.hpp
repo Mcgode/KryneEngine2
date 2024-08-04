@@ -20,6 +20,8 @@ namespace KryneEngine
     class Window;
     class Dx12SwapChain;
 
+    struct BufferMapping;
+
     class Dx12GraphicsContext
     {
     public:
@@ -142,6 +144,9 @@ namespace KryneEngine
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
             void* _data);
+
+        void MapBuffer(BufferMapping& _mapping);
+        void UnmapBuffer(BufferMapping& _mapping);
 
         void PlaceMemoryBarriers(
             CommandList _commandList,

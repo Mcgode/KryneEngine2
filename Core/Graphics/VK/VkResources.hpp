@@ -27,9 +27,12 @@ namespace KryneEngine
 
     struct VkResources
     {
+        friend class VkGraphicsContext;
+
         struct BufferColdData
         {
             VmaAllocation m_allocation;
+            VmaAllocationInfo m_info;
         };
         GenerationalPool<VkBuffer, BufferColdData> m_buffers {};
 

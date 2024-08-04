@@ -27,6 +27,8 @@ namespace KryneEngine
 
     class Dx12Resources
     {
+        friend class Dx12GraphicsContext;
+
     public:
         Dx12Resources();
         ~Dx12Resources();

@@ -77,19 +77,15 @@ namespace KryneEngine
                                    | VMA_ALLOCATION_CREATE_MAPPED_BIT;
         }
 
-        VkBuffer buffer;
-        BufferColdData coldData {};
+        const GenPool::Handle handle = m_buffers.Allocate();
+
         VkAssert(vmaCreateBuffer(
             m_allocator,
             &createInfo,
             &allocationInfo,
-            &buffer,
-            &coldData.m_allocation,
-            nullptr));
-
-        const GenPool::Handle handle = m_buffers.Allocate();
-        *m_buffers.Get(handle) = buffer;
-        *m_buffers.GetCold(handle) = coldData;
+            m_buffers.Get(handle),
+            &m_buffers.GetCold(handle)->m_allocation,
+            &m_buffers.GetCold(handle)->m_info));
 
         return handle;
     }
@@ -119,14 +115,14 @@ namespace KryneEngine
         const GenPool::Handle handle = m_buffers.Allocate();
 
         VkBuffer buffer;
-        VmaAllocation allocation;
+        BufferColdData coldData {};
         VkAssert(vmaCreateBuffer(
             m_allocator,
             &bufferCreateInfo,
             &allocationCreateInfo,
             &buffer,
-            &allocation,
-            nullptr));
+            &coldData.m_allocation,
+            &coldData.m_info));
 
 #if !defined(KE_FINAL)
         m_debugHandler->SetName(
@@ -137,7 +133,7 @@ namespace KryneEngine
 #endif
 
         *m_buffers.Get(handle) = buffer;
-        *m_buffers.GetCold(handle) = { allocation };
+        *m_buffers.GetCold(handle) = coldData;
 
         return handle;
     }
