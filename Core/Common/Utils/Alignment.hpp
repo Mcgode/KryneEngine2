@@ -21,4 +21,16 @@ namespace KryneEngine::Alignment
     {
         return ((_value + BitUtils::BitMask<T>(_pot)) >> _pot) << _pot;
     }
+
+    constexpr inline u64 NextPowerOfTwo(u64 _value)
+    {
+        _value--;
+        _value |= _value >> 1;
+        _value |= _value >> 2;
+        _value |= _value >> 4;
+        _value |= _value >> 8;
+        _value |= _value >> 16;
+        _value |= _value >> 32;
+        return ++_value;
+    }
 }
