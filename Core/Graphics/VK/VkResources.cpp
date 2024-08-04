@@ -54,23 +54,24 @@ namespace KryneEngine
         };
 
         VmaAllocationCreateInfo allocationInfo {};
-        if (_desc.m_usage == MemoryUsage::GpuOnly_UsageType)
+        const MemoryUsage usageType = _desc.m_usage & MemoryUsage::USAGE_TYPE_MASK;
+        if (usageType == MemoryUsage::GpuOnly_UsageType)
         {
             allocationInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
         }
-        else if (_desc.m_usage == MemoryUsage::StageOnce_UsageType)
+        else if (usageType == MemoryUsage::StageOnce_UsageType)
         {
             allocationInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
             allocationInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
         }
-        else if (_desc.m_usage == MemoryUsage::StageEveryFrame_UsageType)
+        else if (usageType == MemoryUsage::StageEveryFrame_UsageType)
         {
             allocationInfo.usage = VMA_MEMORY_USAGE_AUTO;
             allocationInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
                                    | VMA_ALLOCATION_CREATE_MAPPED_BIT
                                    | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
         }
-        else if (_desc.m_usage == MemoryUsage::Readback_UsageType)
+        else if (usageType == MemoryUsage::Readback_UsageType)
         {
             allocationInfo.usage = VMA_MEMORY_USAGE_AUTO;
             allocationInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
