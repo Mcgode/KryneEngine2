@@ -38,6 +38,7 @@ namespace KryneEngine::Modules::GraphicsUtils
         {
             // Will be able to use cpu-writable directly on the GPU
 
+            m_mappableRecreateDesc = _bufferDesc;
             m_mappableBuffers[0] = baseBuffer;
             for (u8 i = 1; i < _frameCount; i++)
             {
