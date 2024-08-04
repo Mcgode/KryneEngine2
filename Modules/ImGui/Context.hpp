@@ -9,13 +9,13 @@
 #include <imgui.h>
 #include <Graphics/Common/GraphicsContext.hpp>
 
-namespace KryneEngine
+namespace KryneEngine::Modules::ImGui
 {
-    class ImGuiModule
+    class Context
     {
     public:
-        explicit ImGuiModule(GraphicsContext &_graphicsContext);
-        ~ImGuiModule();
+        explicit Context(GraphicsContext &_graphicsContext);
+        ~Context();
 
         void Shutdown(GraphicsContext& _graphicsContext);
 

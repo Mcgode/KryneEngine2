@@ -1,11 +1,12 @@
-#include <iostream>
 #include <Graphics/Common/GraphicsContext.hpp>
+#include <Graphics/Common/RenderPass.hpp>
+#include <ImGui/Context.hpp>
 #include <Threads/FibersManager.hpp>
 #include <Threads/Semaphore.hpp>
-#include <Graphics/Common/RenderPass.hpp>
-#include <ImGuiModule/ImGuiModule.hpp>
+#include <iostream>
 
 using namespace KryneEngine;
+namespace KEModules = KryneEngine::Modules;
 
 void Job0(void* _counterPtr)
 {
@@ -106,25 +107,25 @@ int main() {
             renderPassHandles[i] = graphicsContext.CreateRenderPass(desc);
         }
 
-        KryneEngine::ImGuiModule imGuiModule { graphicsContext };
+        KEModules::ImGui::Context imGuiContext{ graphicsContext };
 
         do
         {
             CommandList commandList = graphicsContext.BeginGraphicsCommandList();
 
-            imGuiModule.NewFrame(graphicsContext, commandList);
+            imGuiContext.NewFrame(graphicsContext, commandList);
 
             {
                 static bool open;
                 ImGui::ShowDemoWindow(&open);
             }
 
-            imGuiModule.PrepareToRenderFrame(graphicsContext, commandList);
+            imGuiContext.PrepareToRenderFrame(graphicsContext, commandList);
 
             const u8 index = graphicsContext.GetCurrentPresentImageIndex();
             graphicsContext.BeginRenderPass(commandList, renderPassHandles[index]);
 
-            imGuiModule.RenderFrame(graphicsContext, commandList);
+            imGuiContext.RenderFrame(graphicsContext, commandList);
 
             graphicsContext.EndRenderPass(commandList);
 
@@ -132,7 +133,7 @@ int main() {
         }
         while (graphicsContext.EndFrame());
 
-        imGuiModule.Shutdown(graphicsContext);
+        imGuiContext.Shutdown(graphicsContext);
 
         graphicsContext.WaitForLastFrame();
         for (auto handle: renderPassHandles)

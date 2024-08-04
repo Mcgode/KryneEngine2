@@ -4,27 +4,27 @@
  * @date 21/07/2024.
  */
 
-#include "ImGuiModule.hpp"
+#include "Context.hpp"
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/Texture.hpp>
 #include <Graphics/Common/Window.hpp>
 #include <imgui_internal.h>
 
-namespace KryneEngine
+namespace KryneEngine::Modules::ImGui
 {
-    ImGuiModule::ImGuiModule(GraphicsContext& _graphicsContext)
+    Context::Context(GraphicsContext& _graphicsContext)
     {
-        m_context = ImGui::CreateContext();
+        m_context = ::ImGui::CreateContext();
 
-        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO& io = ::ImGui::GetIO();
         io.BackendRendererUserData = nullptr;
         io.BackendRendererName = "KryneEngineGraphics";
         io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
     }
 
-    ImGuiModule::~ImGuiModule() { KE_ASSERT_MSG(m_context == nullptr, "ImGui module was not shut down"); }
+    Context::~Context() { KE_ASSERT_MSG(m_context == nullptr, "ImGui module was not shut down"); }
 
-    void ImGuiModule::Shutdown(GraphicsContext& _graphicsContext)
+    void Context::Shutdown(GraphicsContext& _graphicsContext)
     {
         if (m_fontsTextureSrvHandle != GenPool::kInvalidHandle)
         {
@@ -41,15 +41,15 @@ namespace KryneEngine
             _graphicsContext.DestroyBuffer(m_fontsStagingHandle);
         }
 
-        ImGui::DestroyContext(m_context);
+        ::ImGui::DestroyContext(m_context);
         m_context = nullptr;
     }
 
-    void ImGuiModule::NewFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
+    void Context::NewFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
     {
-        ImGui::SetCurrentContext(m_context);
+        ::ImGui::SetCurrentContext(m_context);
 
-        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO& io = ::ImGui::GetIO();
 
         {
             auto* window = _graphicsContext.GetWindow()->GetGlfwWindow();
@@ -167,22 +167,22 @@ namespace KryneEngine
             m_fontsStagingHandle = GenPool::kInvalidHandle;
         }
 
-        ImGui::NewFrame();
+        ::ImGui::NewFrame();
     }
 
-    void ImGuiModule::PrepareToRenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
+    void Context::PrepareToRenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
     {
-        ImGui::Render();
+        ::ImGui::Render();
 
         ImGuiContext& context = *m_context;
 
-        ImDrawData* drawData = ImGui::GetDrawData();
+        ImDrawData* drawData = ::ImGui::GetDrawData();
 
         u64 vertexCount = drawData->TotalVtxCount;
         u64 indexCount = drawData->TotalIdxCount;
     }
 
-    void ImGuiModule::RenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
+    void Context::RenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
     {
 
     }
