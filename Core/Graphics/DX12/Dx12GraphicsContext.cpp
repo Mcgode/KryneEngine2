@@ -623,7 +623,7 @@ namespace KryneEngine
 
         KE_ASSERT_MSG(_mapping.m_ptr == nullptr, "Structure still holds a mapping");
         KE_ASSERT(allocation->GetSize() >= _mapping.m_offset);
-        KE_ASSERT(_mapping.m_size == ~0 || allocation->GetSize() <= _mapping.m_offset + _mapping.m_size);
+        KE_ASSERT(_mapping.m_size == ~0 || allocation->GetSize() >= _mapping.m_offset + _mapping.m_size);
         _mapping.m_size = eastl::min(_mapping.m_size, allocation->GetSize() - _mapping.m_offset);
 
         D3D12_RANGE range { 0, 0 };
