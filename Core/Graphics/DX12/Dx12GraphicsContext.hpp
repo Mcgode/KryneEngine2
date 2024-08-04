@@ -84,6 +84,8 @@ namespace KryneEngine
             return m_resources.CreateStagingBuffer(_createDesc, _footprints);
         }
 
+        [[nodiscard]] bool NeedsStagingBuffer(GenPool::Handle _buffer);
+
         inline bool DestroyBuffer(GenPool::Handle _bufferHandle)
         {
             return m_resources.DestroyBuffer(_bufferHandle);

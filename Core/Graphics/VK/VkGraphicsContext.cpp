@@ -782,6 +782,19 @@ namespace KryneEngine
         return footprints;
     }
 
+    bool VkGraphicsContext::NeedsStagingBuffer(GenPool::Handle _buffer)
+    {
+        VkResources::BufferColdData* coldData = m_resources.m_buffers.GetCold(_buffer);
+        VERIFY_OR_RETURN(coldData != nullptr, false);
+
+        VkMemoryPropertyFlagBits memoryPropertyFlags;
+        vmaGetAllocationMemoryProperties(
+            m_resources.m_allocator,
+            coldData->m_allocation,
+            reinterpret_cast<VkMemoryPropertyFlags*>(&memoryPropertyFlags));
+        return !BitUtils::EnumHasAny(memoryPropertyFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    }
+
     GenPool::Handle VkGraphicsContext::GetPresentRenderTarget(u8 _index)
     {
         return (m_swapChain != nullptr)

@@ -606,6 +606,15 @@ namespace KryneEngine
         return finalFootprints;
     }
 
+    bool Dx12GraphicsContext::NeedsStagingBuffer(GenPool::Handle _buffer)
+    {
+        D3D12MA::Allocation** pAllocation = m_resources.m_buffers.GetCold(_buffer);
+        VERIFY_OR_RETURN(pAllocation != nullptr, false);
+        D3D12MA::Allocation* allocation = *pAllocation;
+
+        return allocation->GetHeap()->GetDesc().Properties.Type != D3D12_HEAP_TYPE_UPLOAD;
+    }
+
     void Dx12GraphicsContext::MapBuffer(BufferMapping& _mapping)
     {
         D3D12MA::Allocation** pAllocation = m_resources.m_buffers.GetCold(_mapping.m_buffer);

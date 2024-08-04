@@ -88,6 +88,11 @@ namespace KryneEngine
             return m_implementation.CreateStagingBuffer(_createDesc, _footprints);
         }
 
+        [[nodiscard]] inline bool NeedsStagingBuffer(GenPool::Handle _buffer)
+        {
+            return m_implementation.NeedsStagingBuffer(_buffer);
+        }
+
         inline bool DestroyBuffer(GenPool::Handle _bufferHandle)
         {
             return m_implementation.DestroyBuffer(_bufferHandle);
