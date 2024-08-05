@@ -160,5 +160,6 @@ namespace KryneEngine
         InputAssemblyDesc m_inputAssembly;
         ColorBlendingDesc m_colorBlending;
         DepthStencilStateDesc m_depthStencil;
+        RenderPassHandle m_renderPass;
     };
 }
