@@ -6,20 +6,21 @@
 
 #pragma once
 
-#include <Common/Types.hpp>
+#include "Handles.hpp"
 #include <Common/BitUtils.hpp>
+#include <Common/Types.hpp>
 #include <EASTL/fixed_vector.h>
 
 namespace KryneEngine
 {
-    enum class PrimitiveTopology: u8
-    {
-        TriangleList,
-        TriangleStrip,
-    };
-
     struct InputAssemblyDesc
     {
+        enum class PrimitiveTopology: u8
+        {
+            TriangleList,
+            TriangleStrip,
+        };
+
         PrimitiveTopology m_topology = PrimitiveTopology::TriangleList;
     };
 
@@ -103,11 +104,61 @@ namespace KryneEngine
         eastl::fixed_vector<ColorAttachmentBlendDesc, 8, false> m_attachments {};
         float4 m_blendFactor = float4(0);
         LogicOp m_logicOp = LogicOp::None;
+        bool m_dynamicBlendFactor = false;
+    };
+
+    struct DepthStencilStateDesc
+    {
+        enum class CompareOp : u8
+        {
+            Never,
+            Less,
+            Equal,
+            LessEqual,
+            Greater,
+            NotEqual,
+            GreaterEqual,
+            Always,
+        };
+
+        enum class StencilOp : u8
+        {
+            Keep,
+            Zero,
+            Replace,
+            IncrementAndClamp,
+            DecrementAndClamp,
+            Invert,
+            IncrementAndWrap,
+            DecrementAndWrap,
+        };
+
+        struct StencilOpState
+        {
+            StencilOp m_passOp = StencilOp::Keep;
+            StencilOp m_failOp = StencilOp::Keep;
+            StencilOp m_depthFailOp = StencilOp::Keep;
+            CompareOp m_compareOp = CompareOp::Never;
+        };
+
+        bool m_depthTest = true;
+        bool m_depthWrite = true;
+        CompareOp m_depthCompare = CompareOp::Less;
+        bool m_stencilTest = false;
+
+        u8 m_stencilReadMask = 0xFF;
+        u8 m_stencilWriteMask = 0xFF;
+        u8 m_stencilRef = 0xFF;
+        bool m_dynamicStencilRef = false;
+
+        StencilOpState m_front {};
+        StencilOpState m_back {};
     };
 
     struct GraphicsPipelineDesc
     {
         InputAssemblyDesc m_inputAssembly;
         ColorBlendingDesc m_colorBlending;
+        DepthStencilStateDesc m_depthStencil;
     };
 }
