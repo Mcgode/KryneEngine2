@@ -228,6 +228,36 @@ namespace KryneEngine
         StencilOpState m_back {};
     };
 
+    enum class ShaderVisibility: u8
+    {
+        Vertex = 1 << 0,
+        TesselationControl = 1 << 1,
+        TesselationEvaluation = 1 << 2,
+        Geometry = 1 << 3,
+        Fragment = 1 << 4,
+        Compute = 1 << 5,
+        Task = 1 << 6,
+        Mesh = 1 << 7,
+
+        All = 0xFF,
+    };
+    KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(ShaderVisibility)
+
+    struct PushConstantDesc
+    {
+        u8 m_sizeInBytes = 0;
+        u8 m_offset = 0;
+        u8 m_index = 0;
+        ShaderVisibility m_visibility = ShaderVisibility::All;
+    };
+
+    struct PipelineLayoutDesc
+    {
+        eastl::vector<DescriptorSetHandle> m_descriptorSets {};
+        eastl::vector<PushConstantDesc> m_pushConstants {};
+        bool m_useVertexLayout = true;
+    };
+
     struct GraphicsPipelineDesc
     {
         eastl::vector<GraphicsShaderStage> m_stages {};
@@ -236,6 +266,7 @@ namespace KryneEngine
         RasterStateDesc m_rasterState {};
         ColorBlendingDesc m_colorBlending {};
         DepthStencilStateDesc m_depthStencil {};
-        RenderPassHandle m_renderPass {};
+        RenderPassHandle m_renderPass { GenPool::kInvalidHandle };
+        PipelineLayoutHandle m_pipelineLayout { GenPool::kInvalidHandle };
     };
 }
