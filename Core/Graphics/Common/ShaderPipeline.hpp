@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "Enums.hpp"
 #include "Handles.hpp"
 #include <Common/BitUtils.hpp>
 #include <Common/Types.hpp>
@@ -28,6 +29,27 @@ namespace KryneEngine
         eastl::string m_shaderPath = "";
         u64 m_shaderPathHash = 0;
         Stage m_stage = Stage::Vertex;
+    };
+
+    struct VertexLayoutElement
+    {
+        enum class SemanticName : u8
+        {
+            Position,
+            Normal,
+            Uv,
+            Color,
+            Tangent,
+            BiTangent,
+            BoneIndices,
+            BoneWeights,
+        };
+
+        SemanticName m_semanticName = SemanticName::Position;
+        u8 m_semanticIndex : 4 = 0;
+        u8 m_bindingIndex : 4 = 0;
+        TextureFormat m_format = TextureFormat::RGBA8_UNorm;
+        u16 m_offset;
     };
 
     struct InputAssemblyDesc
@@ -178,6 +200,7 @@ namespace KryneEngine
     struct GraphicsPipelineDesc
     {
         eastl::vector<GraphicsShaderStage> m_stages {};
+        eastl::vector<VertexLayoutElement> m_vertexLayout {};
         InputAssemblyDesc m_inputAssembly;
         ColorBlendingDesc m_colorBlending;
         DepthStencilStateDesc m_depthStencil;
