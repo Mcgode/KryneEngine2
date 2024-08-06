@@ -49,7 +49,7 @@ namespace KryneEngine
         u8 m_semanticIndex : 4 = 0;
         u8 m_bindingIndex : 4 = 0;
         TextureFormat m_format = TextureFormat::RGBA8_UNorm;
-        u16 m_offset;
+        u16 m_offset = 0;
     };
 
     struct InputAssemblyDesc
@@ -64,6 +64,37 @@ namespace KryneEngine
         };
 
         PrimitiveTopology m_topology = PrimitiveTopology::TriangleList;
+    };
+
+    struct RasterStateDesc
+    {
+        enum class FillMode: u8
+        {
+            Wireframe,
+            Solid
+        };
+
+        enum class CullMode: u8
+        {
+            None,
+            Front,
+            Back,
+        };
+
+        enum class Front
+        {
+            Clockwise,
+            CounterClockwise,
+        };
+
+        FillMode m_fillMode = FillMode::Solid;
+        CullMode m_cullMode = CullMode::Back;
+        Front m_front = Front::CounterClockwise;
+        bool m_depthClip = true;
+        bool m_depthBias = false;
+        float m_depthBiasConstantFactor = 0;
+        float m_depthBiasSlopFactor = 0;
+        float m_depthBiasClampValue = 0;
     };
 
     struct ColorAttachmentBlendDesc
@@ -201,9 +232,10 @@ namespace KryneEngine
     {
         eastl::vector<GraphicsShaderStage> m_stages {};
         eastl::vector<VertexLayoutElement> m_vertexLayout {};
-        InputAssemblyDesc m_inputAssembly;
-        ColorBlendingDesc m_colorBlending;
-        DepthStencilStateDesc m_depthStencil;
-        RenderPassHandle m_renderPass;
+        InputAssemblyDesc m_inputAssembly {};
+        RasterStateDesc m_rasterState {};
+        ColorBlendingDesc m_colorBlending {};
+        DepthStencilStateDesc m_depthStencil {};
+        RenderPassHandle m_renderPass {};
     };
 }
