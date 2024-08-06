@@ -13,10 +13,30 @@
 
 namespace KryneEngine
 {
+    struct GraphicsShaderStage
+    {
+        enum class Stage : u8
+        {
+            Vertex,
+            TesselationControl,
+            TesselationEvaluation,
+            Geometry,
+            Fragment,
+            COUNT,
+        };
+
+        eastl::string m_shaderPath = "";
+        u64 m_shaderPathHash = 0;
+        Stage m_stage = Stage::Vertex;
+    };
+
     struct InputAssemblyDesc
     {
         enum class PrimitiveTopology: u8
         {
+            PointList,
+            LineList,
+            LineStrip,
             TriangleList,
             TriangleStrip,
         };
@@ -157,6 +177,7 @@ namespace KryneEngine
 
     struct GraphicsPipelineDesc
     {
+        eastl::vector<GraphicsShaderStage> m_stages {};
         InputAssemblyDesc m_inputAssembly;
         ColorBlendingDesc m_colorBlending;
         DepthStencilStateDesc m_depthStencil;
