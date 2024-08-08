@@ -35,7 +35,7 @@ function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
     message(STATUS "Output directory name: '${OUTPUT_DIR}'")
 
     if (GraphicsApi STREQUAL "DX12")
-        set(OutputFormat "")
+        set(OutputFormat "cso")
     else ()
         set(OutputFormat "spirv")
     endif()
@@ -71,7 +71,6 @@ function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
     message(STATUS "${CMAKE_MAKE_PROGRAM}")
     add_custom_target(${TARGET_NAME}_ShaderCommands
             COMMAND ${CMAKE_MAKE_PROGRAM}
-                -d explain
             WORKING_DIRECTORY ${WORKING_DIR}
             DEPENDS ${COMMANDS_FILE}
             COMMENT "Shader Compilation [${TARGET_NAME}]"
