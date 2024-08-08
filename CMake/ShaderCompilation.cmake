@@ -23,10 +23,12 @@ else ()
     message(FATAL_ERROR "Unable to find '${ShaderCompiler}'")
 endif ()
 
+# Global variables set
 set(SHADER_OUTPUT_DIR "${CMAKE_BINARY_DIR}/Shaders")
 set(GENERATE_SCRIPT "${CMAKE_SOURCE_DIR}/CMake/ShaderListParser.py")
 find_package(Python3 REQUIRED)
 
+# target_compile_shaders implementation
 function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
     set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${LOCAL_SHADERS_DIR}")
     set(OUTPUT_DIR "${SHADER_OUTPUT_DIR}/${OUTPUT_DIR_NAME}")
@@ -48,6 +50,15 @@ function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
     file(GLOB ShaderListFiles "${SHADER_DIR}/*.shader")
     message(STATUS "Shader list files list: ${ShaderListFiles}")
 
+    get_target_property(SHADER_INCLUDE_LIST ${TARGET_NAME} SHADER_INCLUDE_LIST)
+    if (SHADER_INCLUDE_LIST STREQUAL "SHADER_INCLUDE_LIST-NOTFOUND")
+        set(SHADER_INCLUDE_LIST "None")
+    endif ()
+    list(LENGTH SHADER_INCLUDE_LIST LIST_COUNT)
+    if (LIST_COUNT EQUAL 0)
+        set(SHADER_INCLUDE_LIST "None")
+    endif ()
+
     set(COMMANDS_FILE "${OUTPUT_DIR}/build.ninja")
     set(WORKING_DIR ${OUTPUT_DIR})
 
@@ -63,6 +74,7 @@ function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
                 ${ShaderCompiler}
                 ${SHADER_DIR}
                 ${CMAKE_SOURCE_DIR}
+                "${SHADER_INCLUDE_LIST}"
                 ${ShaderListFiles}
             DEPENDS ${GENERATE_SCRIPT} ${ShaderListFiles}
             COMMENT "Parsing shader list"
@@ -76,5 +88,36 @@ function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
             COMMENT "Shader Compilation [${TARGET_NAME}]"
     )
 
+    set_target_properties(${TARGET_NAME} PROPERTIES SET_UP_COMPILE_COMMANDS ON)
+
     add_dependencies(${TARGET_NAME} ${TARGET_NAME}_ShaderCommands)
+endfunction()
+
+# target_declare_shader_library implementation
+function(target_declare_shader_library TARGET_NAME LOCAL_SHADERS_DIR)
+    set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${LOCAL_SHADERS_DIR}")
+    set_target_properties(${TARGET_NAME} PROPERTIES SHADER_INCLUDE_DIR ${SHADER_DIR})
+endfunction()
+
+# target_link_shader_libraries implementation
+function(target_link_shader_libraries TARGET_NAME)
+    get_target_property(SET_UP ${TARGET_NAME} SET_UP_COMPILE_COMMANDS)
+    if (SET_UP)
+        message(FATAL_ERROR "Shader libraries must be linked before commands are set up")
+    endif ()
+
+    set(INCLUDE_LIST "")
+    foreach (LINKED_TARGET_NAME IN LISTS ARGN)
+        if (NOT TARGET ${LINKED_TARGET_NAME})
+            message(FATAL_ERROR "Unknown target named '${LINKED_TARGET_NAME}'")
+        endif ()
+        get_target_property(SHADER_INCLUDE_DIR ${LINKED_TARGET_NAME} SHADER_INCLUDE_DIR)
+        if (${SHADER_INCLUDE_DIR} STREQUAL "SHADER_INCLUDE_DIR-NOTFOUND")
+            message(FATAL_ERROR "No shader lib was declared for '${LINKED_TARGET_NAME}'")
+        endif ()
+        list(APPEND INCLUDE_LIST ${SHADER_INCLUDE_DIR})
+        message(WARNING "${SHADER_INCLUDE_DIR}")
+        message(WARNING "${INCLUDE_LIST}")
+    endforeach ()
+    set_target_properties(${TARGET_NAME} PROPERTIES SHADER_INCLUDE_LIST "${INCLUDE_LIST}")
 endfunction()

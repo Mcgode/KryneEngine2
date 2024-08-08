@@ -15,12 +15,8 @@ def main():
     shader_compiler = Path(sys.argv[5])
     shaders_dir = Path(sys.argv[6])
     source_dir = Path(sys.argv[7])
-    shader_list_files = sys.argv[8:]
-    # print(f"Source dir: {source_dir}")
-    # print(f"Working dir: {working_dir}")
-    # print(f"Output file: {output_file}")
-    # print(f"Shader compiler: {shader_compiler}")
-    # print(f"Shader list files: {shader_list_files}")
+    include_list = sys.argv[8]
+    shader_list_files = sys.argv[9:]
 
     output_dir = output_file.parent
 
@@ -34,12 +30,21 @@ def main():
 
         writer.variable("python", f"\"{sys.executable}\"")
 
+        include_variable = ''
+        if include_list != "None":
+            for directory in include_list.split(';'):
+                include_variable += f'-I "{os.path.relpath(directory, working_dir)}" '
+        writer.variable("includes", include_variable)
+
+        writer.newline()
+
         base_command = f"{os.path.relpath(shader_compiler, working_dir)} "
         if shader_format == "spirv":
             base_command += "-spirv "
         base_command += "$in "
         base_command += "-T $shader_type "
-        base_command += "-E $entry_point"
+        base_command += "-E $entry_point "
+        base_command += "$includes "
 
         python_script = source_dir / "CMake/ShaderBuildCommand.py"
         command = f"$python {os.path.relpath(python_script, working_dir)} $out {base_command}"
