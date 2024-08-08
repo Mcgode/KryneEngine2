@@ -9,7 +9,7 @@ from ninja import ninja_syntax
 
 def main():
     target_name = sys.argv[1]
-    working_dir = Path(sys.argv[2])
+    shader_output_dir = Path(sys.argv[2])
     shader_format = sys.argv[3]
     output_file = Path(sys.argv[4])
     shader_compiler = Path(sys.argv[5])
@@ -18,7 +18,7 @@ def main():
     include_list = sys.argv[8]
     shader_list_files = sys.argv[9:]
 
-    output_dir = output_file.parent
+    working_dir = output_file.parent
 
     with open(output_file, 'w') as f:
         writer = ninja_syntax.Writer(f, 150)
@@ -86,7 +86,7 @@ def main():
                     shader_type = configuration["ShaderType"]
 
                     # Output location
-                    output_shader = output_dir / shader_file.relative_to(shaders_dir)
+                    output_shader = shader_output_dir / shader_file.relative_to(shaders_dir)
                     output_shader = output_shader.with_name(f"{output_shader.stem}_{entry_point}{format_extension}")
 
                     writer.newline()
