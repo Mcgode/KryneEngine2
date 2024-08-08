@@ -2,7 +2,7 @@
 
 import sys
 import json
-from pathlib import Path
+from pathlib import Path, PurePath
 import os
 from ninja import ninja_syntax
 
@@ -20,6 +20,8 @@ def main():
 
     working_dir = output_file.parent
 
+    python_script = source_dir / "CMake/ShaderBuildCommand.py"
+
     with open(output_file, 'w') as f:
         writer = ninja_syntax.Writer(f, 150)
 
@@ -28,7 +30,13 @@ def main():
         writer.comment("####################################################################")
         writer.newline()
 
-        writer.variable("python", f"\"{sys.executable}\"")
+        writer.comment("--------------------------------------------------------------------")
+        writer.comment(f" Variables")
+        writer.comment("--------------------------------------------------------------------")
+        writer.newline()
+
+        python_name = "python"
+        writer.variable(python_name, f"\"{sys.executable}\"")
 
         include_variable = ''
         if include_list != "None":
@@ -36,9 +44,21 @@ def main():
                 include_variable += f'-I "{os.path.relpath(directory, working_dir)}" '
         writer.variable("includes", include_variable)
 
+        build_shader_script_name = "build_shader_script"
+        writer.variable(build_shader_script_name, os.path.relpath(python_script, working_dir))
+
+        shader_compiler_name = "shader_compiler"
+        writer.variable(shader_compiler_name, os.path.relpath(shader_compiler, working_dir))
+
+        shader_input_dir_name = "input_dir"
+        writer.variable(shader_input_dir_name, os.path.relpath(shaders_dir, working_dir))
+
+        shader_output_dir_name = "output_dir"
+        writer.variable(shader_output_dir_name, os.path.relpath(shader_output_dir, working_dir))
+
         writer.newline()
 
-        base_command = f"{os.path.relpath(shader_compiler, working_dir)} "
+        base_command = f"${shader_compiler_name} "
         if shader_format == "spirv":
             base_command += "-spirv "
         base_command += "$in "
@@ -46,8 +66,7 @@ def main():
         base_command += "-E $entry_point "
         base_command += "$includes "
 
-        python_script = source_dir / "CMake/ShaderBuildCommand.py"
-        command = f"$python {os.path.relpath(python_script, working_dir)} $out {base_command}"
+        command = f"${python_name} ${build_shader_script_name} $out {base_command}"
 
         format_extension = ".cso"
         if shader_format == "spirv":
@@ -86,16 +105,20 @@ def main():
                     shader_type = configuration["ShaderType"]
 
                     # Output location
-                    output_shader = shader_output_dir / shader_file.relative_to(shaders_dir)
+                    output_shader = shader_file.relative_to(shaders_dir)
                     output_shader = output_shader.with_name(f"{output_shader.stem}_{entry_point}{format_extension}")
+                    output_shader = PurePath(f"${shader_output_dir_name}") / output_shader
+
+                    input_path = PurePath(f'${shader_input_dir_name}') / shader_file.relative_to(shaders_dir)
+                    print(input_path)
 
                     writer.newline()
                     writer.build(
-                        [os.path.relpath(output_shader, working_dir)],
+                        [str(output_shader)],
                         "shader_compile",
-                        [os.path.relpath(shader_file, working_dir)],
+                        [str(input_path)],
                         implicit=[
-                            os.path.relpath(python_script, working_dir)
+                            f"${build_shader_script_name}"
                         ],
                         variables={
                             "shader_type": shader_type,

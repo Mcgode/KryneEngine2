@@ -4,7 +4,7 @@ if (LINUX)
     set(ShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/bin/dxc")
 elseif (WIN32)
     if (CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64")
-        set(ShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/bin/x86/dxc.exe")
+        set(ShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/bin/x64/dxc.exe")
     elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86")
         set(ShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/bin/x86/dxc.exe")
     elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64")
@@ -31,11 +31,8 @@ find_package(Python3 REQUIRED)
 
 # target_compile_shaders implementation
 function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
-    set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${LOCAL_SHADERS_DIR}")
+    set(SHADER_INPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${LOCAL_SHADERS_DIR}")
     set(BUILD_OUTPUT_DIR "${SHADER_BUILD_OUTPUT_DIR}/${OUTPUT_DIR_NAME}")
-    message(STATUS "Target directory name: '${LOCAL_SHADERS_DIR}'")
-    message(STATUS "Absolute target directory name: '${SHADER_DIR}'")
-    message(STATUS "Output directory name: '${OUTPUT_DIR}'")
 
     if (GraphicsApi STREQUAL "DX12")
         set(OutputFormat "cso")
@@ -48,7 +45,7 @@ function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
     endif ()
     message(STATUS "${CMAKE_MAKE_PROGRAM}")
 
-    file(GLOB_RECURSE ShaderListFiles "${SHADER_DIR}" "*.shader")
+    file(GLOB_RECURSE ShaderListFiles "${SHADER_INPUT_DIR}" "*.shader")
     message(STATUS "Shader list files list: ${ShaderListFiles}")
 
     get_target_property(SHADER_INCLUDE_LIST ${TARGET_NAME} SHADER_INCLUDE_LIST)
@@ -73,7 +70,7 @@ function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
                 ${OutputFormat}
                 ${COMMANDS_FILE}
                 ${ShaderCompiler}
-                ${SHADER_DIR}
+                ${SHADER_INPUT_DIR}
                 ${CMAKE_SOURCE_DIR}
                 "${SHADER_INCLUDE_LIST}"
                 ${ShaderListFiles}
