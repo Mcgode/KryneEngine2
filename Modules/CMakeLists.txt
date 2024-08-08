@@ -1,6 +1,7 @@
 add_library(KEModuleIncludes INTERFACE)
 target_include_directories(KEModuleIncludes INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
+add_subdirectory(ShaderLib)
 add_subdirectory(GraphicsUtils)
 add_subdirectory(ImGui)
 
