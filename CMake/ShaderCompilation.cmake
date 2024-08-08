@@ -117,3 +117,11 @@ function(target_link_shader_libraries TARGET_NAME)
     endforeach ()
     set_target_properties(${TARGET_NAME} PROPERTIES SHADER_INCLUDE_LIST "${INCLUDE_LIST}")
 endfunction()
+
+function(target_shaders_dir_symlink TARGET_NAME)
+    add_custom_command(
+            TARGET ${TARGET_NAME}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E create_symlink ${SHADER_OUTPUT_DIR} "${CMAKE_CURRENT_BINARY_DIR}/Shaders"
+    )
+endfunction()
