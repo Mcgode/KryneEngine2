@@ -1,23 +1,25 @@
+#include "Platform.hlsl"
+
 struct PushConstants
 {
     float2 scale;
     float2 translate;
 };
 
-[[vk::push_constant]]
+vkPushConstant
 ConstantBuffer<PushConstants> pushConstants: register(b0);
 
 struct VsInput 
 {
-    [[vk::location(0)]] float2 position: POSITION0;
-    [[vk::location(1)]] float4 color: COLOR0;
-    [[vk::location(2)]] float2 uv: TEXCOORD0;
+    vkLocation(0) float2 position: POSITION0;
+    vkLocation(1) float4 color: COLOR0;
+    vkLocation(2) float2 uv: TEXCOORD0;
 };
 
 struct VsOutput
 {
-    [[vk::location(0)]] float4 color: COLOR0;
-    [[vk::location(1)]] float2 uv: TEXCOORD0;
+    vkLocation(0) float4 color: COLOR0;
+    vkLocation(1) float2 uv: TEXCOORD0;
     float4 position: SV_POSITION;
 };
 
