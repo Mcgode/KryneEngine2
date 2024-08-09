@@ -219,6 +219,8 @@ namespace KryneEngine
                 _bufferMemoryBarriers,
                 _textureMemoryBarriers);
         }
+
+        [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
     };
 }
 

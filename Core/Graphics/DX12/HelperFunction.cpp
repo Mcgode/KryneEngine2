@@ -266,6 +266,177 @@ namespace KryneEngine
         return states;
     }
 
+    D3D12_BLEND Dx12Converters::ToDx12Blend(ColorAttachmentBlendDesc::BlendFactor _blendFactor)
+    {
+        switch (_blendFactor)
+        {
+        case ColorAttachmentBlendDesc::BlendFactor::Zero:
+            return D3D12_BLEND_ZERO;
+        case ColorAttachmentBlendDesc::BlendFactor::One:
+            return D3D12_BLEND_ONE;
+        case ColorAttachmentBlendDesc::BlendFactor::SrcColor:
+            return D3D12_BLEND_SRC_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::InvSrcColor:
+            return D3D12_BLEND_INV_SRC_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::SrcAlpha:
+            return D3D12_BLEND_SRC_ALPHA;
+        case ColorAttachmentBlendDesc::BlendFactor::InvSrcAlpha:
+            return D3D12_BLEND_INV_SRC_ALPHA;
+        case ColorAttachmentBlendDesc::BlendFactor::DstColor:
+            return D3D12_BLEND_DEST_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::InvDstColor:
+            return D3D12_BLEND_INV_DEST_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::DstAlpha:
+            return D3D12_BLEND_DEST_ALPHA;
+        case ColorAttachmentBlendDesc::BlendFactor::InvDstAlpha:
+            return D3D12_BLEND_INV_DEST_ALPHA;
+        case ColorAttachmentBlendDesc::BlendFactor::SrcAlphaSaturate:
+            return D3D12_BLEND_SRC_ALPHA_SAT;
+        case ColorAttachmentBlendDesc::BlendFactor::FactorColor:
+            return D3D12_BLEND_BLEND_FACTOR;
+        case ColorAttachmentBlendDesc::BlendFactor::InvFactorColor:
+            return D3D12_BLEND_INV_BLEND_FACTOR;
+        case ColorAttachmentBlendDesc::BlendFactor::FactorAlpha:
+            return D3D12_BLEND_ALPHA_FACTOR;
+        case ColorAttachmentBlendDesc::BlendFactor::InvFactorAlpha:
+            return D3D12_BLEND_INV_ALPHA_FACTOR;
+        case ColorAttachmentBlendDesc::BlendFactor::Src1Color:
+            return D3D12_BLEND_SRC1_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::InvSrc1Color:
+            return D3D12_BLEND_INV_SRC1_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::Src1Alpha:
+            return D3D12_BLEND_SRC1_ALPHA;
+        case ColorAttachmentBlendDesc::BlendFactor::InvSrc1Alpha:
+            return D3D12_BLEND_INV_SRC1_ALPHA;
+        }
+    }
+
+    D3D12_BLEND_OP Dx12Converters::ToDx12BlendOp(ColorAttachmentBlendDesc::BlendOp _blendOp)
+    {
+        switch (_blendOp)
+        {
+        case ColorAttachmentBlendDesc::BlendOp::Add:
+            return D3D12_BLEND_OP_ADD;
+        case ColorAttachmentBlendDesc::BlendOp::Subtract:
+            return D3D12_BLEND_OP_SUBTRACT;
+        case ColorAttachmentBlendDesc::BlendOp::ReverseSubtract:
+            return D3D12_BLEND_OP_REV_SUBTRACT;
+        case ColorAttachmentBlendDesc::BlendOp::Min:
+            return D3D12_BLEND_OP_MIN;
+        case ColorAttachmentBlendDesc::BlendOp::Max:
+            return D3D12_BLEND_OP_MAX;
+        }
+    }
+
+    D3D12_LOGIC_OP Dx12Converters::ToDx12LogicOp(ColorBlendingDesc::LogicOp _logicOp)
+    {
+        switch (_logicOp)
+        {
+        case ColorBlendingDesc::LogicOp::Clear:
+            return D3D12_LOGIC_OP_CLEAR;
+        case ColorBlendingDesc::LogicOp::Set:
+            return D3D12_LOGIC_OP_SET;
+        case ColorBlendingDesc::LogicOp::Copy:
+            return D3D12_LOGIC_OP_COPY;
+        case ColorBlendingDesc::LogicOp::CopyInverted:
+            return D3D12_LOGIC_OP_COPY_INVERTED;
+        case ColorBlendingDesc::LogicOp::None:
+        case ColorBlendingDesc::LogicOp::NoOp:
+            return D3D12_LOGIC_OP_NOOP;
+        case ColorBlendingDesc::LogicOp::Invert:
+            return D3D12_LOGIC_OP_INVERT;
+        case ColorBlendingDesc::LogicOp::And:
+            return D3D12_LOGIC_OP_AND;
+        case ColorBlendingDesc::LogicOp::NAnd:
+            return D3D12_LOGIC_OP_NAND;
+        case ColorBlendingDesc::LogicOp::Or:
+            return D3D12_LOGIC_OP_OR;
+        case ColorBlendingDesc::LogicOp::NOr:
+            return D3D12_LOGIC_OP_NOR;
+        case ColorBlendingDesc::LogicOp::XOr:
+            return D3D12_LOGIC_OP_XOR;
+        case ColorBlendingDesc::LogicOp::Equiv:
+            return D3D12_LOGIC_OP_EQUIV;
+        case ColorBlendingDesc::LogicOp::AndReverse:
+            return D3D12_LOGIC_OP_AND_REVERSE;
+        case ColorBlendingDesc::LogicOp::AndInverted:
+            return D3D12_LOGIC_OP_AND_INVERTED;
+        case ColorBlendingDesc::LogicOp::OrReverse:
+            return D3D12_LOGIC_OP_OR_REVERSE;
+        case ColorBlendingDesc::LogicOp::OrInverted:
+            return D3D12_LOGIC_OP_OR_INVERTED;
+        }
+    }
+
+    D3D12_COMPARISON_FUNC Dx12Converters::ToDx12CompareFunc(DepthStencilStateDesc::CompareOp _compareOp)
+    {
+        switch (_compareOp)
+        {
+        case DepthStencilStateDesc::CompareOp::Never:
+            return D3D12_COMPARISON_FUNC_NEVER;
+        case DepthStencilStateDesc::CompareOp::Less:
+            return D3D12_COMPARISON_FUNC_LESS;
+        case DepthStencilStateDesc::CompareOp::Equal:
+            return D3D12_COMPARISON_FUNC_EQUAL;
+        case DepthStencilStateDesc::CompareOp::LessEqual:
+            return D3D12_COMPARISON_FUNC_LESS_EQUAL;
+        case DepthStencilStateDesc::CompareOp::Greater:
+            return D3D12_COMPARISON_FUNC_GREATER;
+        case DepthStencilStateDesc::CompareOp::NotEqual:
+            return D3D12_COMPARISON_FUNC_NOT_EQUAL;
+        case DepthStencilStateDesc::CompareOp::GreaterEqual:
+            return D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+        case DepthStencilStateDesc::CompareOp::Always:
+            return D3D12_COMPARISON_FUNC_ALWAYS;
+        }
+    }
+
+    D3D12_STENCIL_OP Dx12Converters::ToDx12StencilOp(DepthStencilStateDesc::StencilOp _stencilOp)
+    {
+        switch (_stencilOp)
+        {
+        case DepthStencilStateDesc::StencilOp::Keep:
+            return D3D12_STENCIL_OP_KEEP;
+        case DepthStencilStateDesc::StencilOp::Zero:
+            return D3D12_STENCIL_OP_ZERO;
+        case DepthStencilStateDesc::StencilOp::Replace:
+            return D3D12_STENCIL_OP_REPLACE;
+        case DepthStencilStateDesc::StencilOp::IncrementAndClamp:
+            return D3D12_STENCIL_OP_INCR_SAT;
+        case DepthStencilStateDesc::StencilOp::DecrementAndClamp:
+            return D3D12_STENCIL_OP_DECR_SAT;
+        case DepthStencilStateDesc::StencilOp::Invert:
+            return D3D12_STENCIL_OP_INVERT;
+        case DepthStencilStateDesc::StencilOp::IncrementAndWrap:
+            return D3D12_STENCIL_OP_INCR;
+        case DepthStencilStateDesc::StencilOp::DecrementAndWrap:
+            return D3D12_STENCIL_OP_DECR;
+        }
+    }
+
+    const char* Dx12Converters::ToDx12SemanticName(VertexLayoutElement::SemanticName _semanticName)
+    {
+        switch (_semanticName)
+        {
+        case VertexLayoutElement::SemanticName::Position:
+            return "POSITION";
+        case VertexLayoutElement::SemanticName::Normal:
+            return "NORMAL";
+        case VertexLayoutElement::SemanticName::Uv:
+            return "TEXCOORD";
+        case VertexLayoutElement::SemanticName::Color:
+            return "COLOR";
+        case VertexLayoutElement::SemanticName::Tangent:
+            return "BITANGENT";
+        case VertexLayoutElement::SemanticName::BiTangent:
+            return "BINORMAL";
+        case VertexLayoutElement::SemanticName::BoneIndices:
+            return "BLENDINDICES";
+        case VertexLayoutElement::SemanticName::BoneWeights:
+            return "BLENDWEIGHTS";
+        }
+    }
+
     u8 GetTextureBytesPerPixel(DXGI_FORMAT _format)
     {
         switch(_format)

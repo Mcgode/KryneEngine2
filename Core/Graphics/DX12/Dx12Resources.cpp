@@ -10,6 +10,7 @@
 #include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
+#include <Graphics/Common/ShaderPipeline.hpp>
 #include <Memory/GenerationalPool.inl>
 
 namespace KryneEngine
@@ -302,6 +303,7 @@ namespace KryneEngine
             .m_cpuHandle = cpuDescriptorHandle,
             .m_resource = _desc.m_texture,
         };
+        *m_renderTargetViews.GetCold(handle) = Dx12Converters::ToDx12Format(_desc.m_format);
 
         return { handle };
     }
@@ -507,5 +509,269 @@ namespace KryneEngine
 
             m_cbvSrvUavDescriptorCopyTracker.AdvanceToNextFrame();
         }
+    }
+
+    GraphicsPipelineHandle Dx12Resources::CreateGraphicsPipeline(
+        const GraphicsPipelineDesc& _desc,
+        ID3D12Device* _device)
+    {
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
+
+        VERIFY_OR_RETURN(_desc.m_renderPass != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
+        const RenderPassDesc* renderPassDesc = m_renderPasses.Get(_desc.m_renderPass.m_handle);
+        VERIFY_OR_RETURN(renderPassDesc != nullptr, { GenPool::kInvalidHandle });
+
+        // Set root signature
+        {
+            VERIFY_OR_RETURN(_desc.m_pipelineLayout != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
+            ID3D12RootSignature** pSignature = m_rootSignatures.Get(_desc.m_pipelineLayout.m_handle);
+            VERIFY_OR_RETURN(pSignature != nullptr, { GenPool::kInvalidHandle });
+
+            desc.pRootSignature = *pSignature;
+        }
+
+        // Set shader stages
+        for (const auto& stage: _desc.m_stages)
+        {
+            VERIFY_OR_RETURN(stage.m_shaderModule != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
+
+            D3D12_SHADER_BYTECODE* pByteCode = m_shaderBytecodes.Get(stage.m_shaderModule.m_handle);
+            VERIFY_OR_RETURN(pByteCode != nullptr, { GenPool::kInvalidHandle });
+            VERIFY_OR_RETURN(pByteCode->pShaderBytecode != nullptr, { GenPool::kInvalidHandle });
+
+            switch (stage.m_stage)
+            {
+            case GraphicsShaderStage::Stage::Vertex:
+                KE_ASSERT_MSG(desc.VS.pShaderBytecode == nullptr, "Defined vertex shader stage twice");
+                desc.VS = *pByteCode;
+                break;
+            case GraphicsShaderStage::Stage::TesselationControl:
+                KE_ASSERT_MSG(desc.HS.pShaderBytecode == nullptr, "Defined tesselation control shader stage twice");
+                desc.HS = *pByteCode;
+                break;
+            case GraphicsShaderStage::Stage::TesselationEvaluation:
+                KE_ASSERT_MSG(desc.DS.pShaderBytecode == nullptr, "Defined tesselation evaluation shader stage twice");
+                desc.DS = *pByteCode;
+                break;
+            case GraphicsShaderStage::Stage::Geometry:
+                KE_ASSERT_MSG(desc.GS.pShaderBytecode == nullptr, "Defined geometry shader stage twice");
+                desc.GS = *pByteCode;
+                break;
+            case GraphicsShaderStage::Stage::Fragment:
+                KE_ASSERT_MSG(desc.PS.pShaderBytecode == nullptr, "Defined fragment shader stage twice");
+                desc.PS = *pByteCode;
+                break;
+            default:
+                KE_ERROR("Unsupported shader stage");
+                break;
+            }
+        }
+
+        // Blend state
+        {
+            const auto& colorBlending = _desc.m_colorBlending;
+
+            desc.BlendState = {
+                .AlphaToCoverageEnable = false,
+            };
+
+            const D3D12_LOGIC_OP logicOp = Dx12Converters::ToDx12LogicOp(colorBlending.m_logicOp);
+
+            for (auto i = 0u; i < colorBlending.m_attachments.size(); i++)
+            {
+                const auto& attachmentDesc = colorBlending.m_attachments[i];
+                auto& renderTarget = desc.BlendState.RenderTarget[i];
+
+                renderTarget.BlendEnable = attachmentDesc.m_blendEnable;
+                renderTarget.LogicOpEnable = colorBlending.m_logicOp != ColorBlendingDesc::LogicOp::None;
+
+                renderTarget.SrcBlend = Dx12Converters::ToDx12Blend(attachmentDesc.m_srcColor);
+                renderTarget.DestBlend = Dx12Converters::ToDx12Blend(attachmentDesc.m_dstColor);
+                renderTarget.BlendOp = Dx12Converters::ToDx12BlendOp(attachmentDesc.m_colorOp);
+                renderTarget.SrcBlendAlpha = Dx12Converters::ToDx12Blend(attachmentDesc.m_srcColor);
+                renderTarget.DestBlendAlpha = Dx12Converters::ToDx12Blend(attachmentDesc.m_dstColor);
+                renderTarget.BlendOpAlpha = Dx12Converters::ToDx12BlendOp(attachmentDesc.m_alphaOp);
+
+                renderTarget.LogicOp = logicOp;
+
+                renderTarget.RenderTargetWriteMask = static_cast<u8>(attachmentDesc.m_writeMak);
+            }
+
+            if (_desc.m_colorBlending.m_logicOp != ColorBlendingDesc::LogicOp::None)
+            {
+                desc.BlendState.IndependentBlendEnable = false;
+            }
+        }
+
+        // Sample mask
+        {
+            desc.SampleMask = 0xffffffff; // TODO: Multisampling support
+        }
+
+        // Rasterizer stater
+        {
+            const auto& rasterState = _desc.m_rasterState;
+
+            switch(rasterState.m_fillMode)
+            {
+            case RasterStateDesc::FillMode::Wireframe:
+                desc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+                break;
+            case RasterStateDesc::FillMode::Solid:
+                desc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+                break;
+            }
+
+            switch (rasterState.m_cullMode)
+            {
+            case RasterStateDesc::CullMode::None:
+                desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+                break;
+            case RasterStateDesc::CullMode::Front:
+                desc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+                break;
+            case RasterStateDesc::CullMode::Back:
+                desc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+                break;
+            }
+
+            desc.RasterizerState.FrontCounterClockwise = rasterState.m_front == RasterStateDesc::Front::CounterClockwise;
+
+            if (rasterState.m_depthBias)
+            {
+                desc.RasterizerState.DepthBias = *reinterpret_cast<const s32*>(&rasterState.m_depthBiasConstantFactor);
+                desc.RasterizerState.DepthBiasClamp = rasterState.m_depthBiasClampValue;
+                desc.RasterizerState.SlopeScaledDepthBias = rasterState.m_depthBiasSlopFactor;
+            }
+            else
+            {
+                desc.RasterizerState.DepthBias = 0;
+                desc.RasterizerState.DepthBiasClamp = 0;
+                desc.RasterizerState.SlopeScaledDepthBias = 0;
+            }
+
+            desc.RasterizerState.DepthClipEnable = rasterState.m_depthClip;
+
+            // TODO: multisampling support
+            desc.RasterizerState.MultisampleEnable = false;
+            desc.RasterizerState.AntialiasedLineEnable = false;
+            desc.RasterizerState.ForcedSampleCount = 0;
+
+            // TODO: Conservative rasterizing support.
+            desc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+        }
+
+        // Depth stencil desc
+        if (renderPassDesc->m_depthStencilAttachment.has_value())
+        {
+            desc.DepthStencilState.DepthEnable = _desc.m_depthStencil.m_depthTest;
+            desc.DepthStencilState.DepthWriteMask = _desc.m_depthStencil.m_depthWrite
+                ? D3D12_DEPTH_WRITE_MASK_ALL
+                : D3D12_DEPTH_WRITE_MASK_ZERO;
+            desc.DepthStencilState.DepthFunc = Dx12Converters::ToDx12CompareFunc(_desc.m_depthStencil.m_depthCompare);
+
+            desc.DepthStencilState.StencilEnable = _desc.m_depthStencil.m_stencilTest;
+            desc.DepthStencilState.StencilReadMask = _desc.m_depthStencil.m_stencilReadMask;
+            desc.DepthStencilState.StencilWriteMask = _desc.m_depthStencil.m_stencilWriteMask;
+
+            desc.DepthStencilState.FrontFace = D3D12_DEPTH_STENCILOP_DESC {
+                .StencilFailOp = Dx12Converters::ToDx12StencilOp(_desc.m_depthStencil.m_front.m_failOp),
+                .StencilDepthFailOp = Dx12Converters::ToDx12StencilOp(_desc.m_depthStencil.m_front.m_depthFailOp),
+                .StencilPassOp = Dx12Converters::ToDx12StencilOp(_desc.m_depthStencil.m_front.m_passOp),
+                .StencilFunc = Dx12Converters::ToDx12CompareFunc(_desc.m_depthStencil.m_front.m_compareOp),
+            };
+
+            desc.DepthStencilState.BackFace = D3D12_DEPTH_STENCILOP_DESC {
+                .StencilFailOp = Dx12Converters::ToDx12StencilOp(_desc.m_depthStencil.m_back.m_failOp),
+                .StencilDepthFailOp = Dx12Converters::ToDx12StencilOp(_desc.m_depthStencil.m_back.m_depthFailOp),
+                .StencilPassOp = Dx12Converters::ToDx12StencilOp(_desc.m_depthStencil.m_back.m_passOp),
+                .StencilFunc = Dx12Converters::ToDx12CompareFunc(_desc.m_depthStencil.m_back.m_compareOp),
+            };
+        }
+
+        // Input layout
+        eastl::vector<D3D12_INPUT_ELEMENT_DESC> inputElements;
+        if (!_desc.m_vertexLayout.empty())
+        {
+            inputElements.reserve(_desc.m_vertexLayout.size());
+            for (const auto& vertexInput: _desc.m_vertexLayout)
+            {
+                inputElements.push_back(D3D12_INPUT_ELEMENT_DESC {
+                    .SemanticName = Dx12Converters::ToDx12SemanticName(vertexInput.m_semanticName),
+                    .SemanticIndex = vertexInput.m_semanticIndex,
+                    .Format = Dx12Converters::ToDx12Format(vertexInput.m_format),
+                    .InputSlot = vertexInput.m_bindingIndex,
+                    .AlignedByteOffset = vertexInput.m_offset,
+                    .InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+                    .InstanceDataStepRate = 0,
+                });
+            }
+            desc.InputLayout.NumElements = inputElements.size();
+            desc.InputLayout.pInputElementDescs = inputElements.data();
+        }
+
+        // Input assemlbly
+        {
+            desc.IBStripCutValue = _desc.m_inputAssembly.m_cutStripAtSpecialIndex
+                ? _desc.m_inputAssembly.m_indexSize == InputAssemblyDesc::IndexIntSize::U16
+                    ? D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF
+                    : D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFFFFFF
+                : D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
+
+            switch (_desc.m_inputAssembly.m_topology)
+            {
+            case InputAssemblyDesc::PrimitiveTopology::PointList:
+                desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+            case InputAssemblyDesc::PrimitiveTopology::LineList:
+            case InputAssemblyDesc::PrimitiveTopology::LineStrip:
+                desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+            case InputAssemblyDesc::PrimitiveTopology::TriangleList:
+            case InputAssemblyDesc::PrimitiveTopology::TriangleStrip:
+                desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+            }
+        }
+
+        // Render pass
+        {
+            desc.NumRenderTargets = renderPassDesc->m_colorAttachments.size();
+
+            for (auto i = 0u; i < desc.NumRenderTargets; i++)
+            {
+                VERIFY_OR_RETURN(renderPassDesc->m_colorAttachments[i].m_rtv != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
+                auto* pRtvFormat = m_renderTargetViews.GetCold(renderPassDesc->m_colorAttachments[i].m_rtv.m_handle);
+                VERIFY_OR_RETURN(pRtvFormat != nullptr, { GenPool::kInvalidHandle });
+
+                desc.RTVFormats[i] = *pRtvFormat;
+            }
+
+            if (renderPassDesc->m_depthStencilAttachment.has_value())
+            {
+                VERIFY_OR_RETURN(renderPassDesc->m_depthStencilAttachment.value().m_rtv != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
+                auto* pRtvFormat = m_renderTargetViews.GetCold(renderPassDesc->m_depthStencilAttachment.value().m_rtv.m_handle);
+                VERIFY_OR_RETURN(pRtvFormat != nullptr, { GenPool::kInvalidHandle });
+
+                desc.DSVFormat = *pRtvFormat;
+            }
+        }
+
+        desc.SampleDesc = {
+            .Count = 1,
+            .Quality = 0,
+        };
+
+        desc.NodeMask = 0;
+
+#if !defined(KE_FINAL)
+        desc.Flags = D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG;
+#endif
+
+        const GenPool::Handle handle = m_pipelineStateObjects.Allocate();
+        Dx12Assert(_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(m_pipelineStateObjects.Get(handle))));
+
+#if !defined(KE_FINAL)
+        Dx12SetName(*m_pipelineStateObjects.Get(handle), L"%s", _desc.m_debugName.c_str());
+#endif
+
+        return { handle };
     }
 } // KryneEngine

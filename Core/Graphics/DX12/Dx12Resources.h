@@ -21,6 +21,7 @@ namespace D3D12MA
 namespace KryneEngine
 {
     struct BufferCreateDesc;
+    struct GraphicsPipelineDesc;
     struct TextureSrvDesc;
     struct RenderTargetViewDesc;
 
@@ -59,6 +60,8 @@ namespace KryneEngine
         [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc);
         bool FreeRenderPass(RenderPassHandle _handle);
 
+        [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc, ID3D12Device* _device);
+
         void NextFrame(ID3D12Device* _device, u8 _frameIndex);
 
         struct RtvHotData
@@ -70,8 +73,11 @@ namespace KryneEngine
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_buffers;
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_textures;
         GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_cbvSrvUav;
-        GenerationalPool<RtvHotData> m_renderTargetViews;
+        GenerationalPool<RtvHotData, DXGI_FORMAT> m_renderTargetViews;
         GenerationalPool<RenderPassDesc> m_renderPasses;
+        GenerationalPool<ID3D12RootSignature*> m_rootSignatures;
+        GenerationalPool<D3D12_SHADER_BYTECODE> m_shaderBytecodes;
+        GenerationalPool<ID3D12PipelineState*> m_pipelineStateObjects;
 
     private:
         static constexpr u16 kRtvHeapSize = 2048;
@@ -86,6 +92,5 @@ namespace KryneEngine
         u32 m_cbvSrvUavDescriptorSize = 0;
 
         D3D12MA::Allocator* m_memoryAllocator = nullptr;
-
     };
 } // KryneEngine

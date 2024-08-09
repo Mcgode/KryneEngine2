@@ -158,6 +158,8 @@ namespace KryneEngine
             const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
             const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers);
 
+        [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
+
     private:
         Dx12Resources m_resources;
         RenderPassHandle m_currentRenderPass;

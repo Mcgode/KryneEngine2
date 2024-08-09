@@ -23,11 +23,9 @@ namespace KryneEngine
             TesselationEvaluation,
             Geometry,
             Fragment,
-            COUNT,
         };
 
-        eastl::string m_shaderPath = "";
-        u64 m_shaderPathHash = 0;
+        ShaderModuleHandle m_shaderModule { GenPool::kInvalidHandle };
         Stage m_stage = Stage::Vertex;
     };
 
@@ -63,7 +61,15 @@ namespace KryneEngine
             TriangleStrip,
         };
 
+        enum class IndexIntSize: u8
+        {
+            U16,
+            U32,
+        };
+
         PrimitiveTopology m_topology = PrimitiveTopology::TriangleList;
+        IndexIntSize m_indexSize = IndexIntSize::U32;
+        bool m_cutStripAtSpecialIndex = true;
     };
 
     struct RasterStateDesc
@@ -268,5 +274,9 @@ namespace KryneEngine
         DepthStencilStateDesc m_depthStencil {};
         RenderPassHandle m_renderPass { GenPool::kInvalidHandle };
         PipelineLayoutHandle m_pipelineLayout { GenPool::kInvalidHandle };
+
+#if !defined(KE_FINAL)
+        eastl::string m_debugName = "";
+#endif
     };
 }
