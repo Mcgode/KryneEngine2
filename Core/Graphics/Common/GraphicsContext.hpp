@@ -220,6 +220,7 @@ namespace KryneEngine
                 _textureMemoryBarriers);
         }
 
+        [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
     };
 }

@@ -33,4 +33,14 @@ namespace KryneEngine
     {
         m_implementation.WaitForFrame(m_frameId - 1);
     }
+
+    PipelineLayoutHandle GraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
+    {
+        return m_implementation.CreatePipelineLayout(_desc);
+    }
+
+    GraphicsPipelineHandle GraphicsContext::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc)
+    {
+        return m_implementation.CreateGraphicsPipeline(_desc);
+    }
 }

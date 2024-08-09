@@ -22,6 +22,7 @@ namespace KryneEngine
 {
     struct BufferCreateDesc;
     struct GraphicsPipelineDesc;
+    struct PipelineLayoutDesc;
     struct TextureSrvDesc;
     struct RenderTargetViewDesc;
 
@@ -60,14 +61,15 @@ namespace KryneEngine
         [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc);
         bool FreeRenderPass(RenderPassHandle _handle);
 
+        [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc, ID3D12Device* _device);
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc, ID3D12Device* _device);
 
         void NextFrame(ID3D12Device* _device, u8 _frameIndex);
 
         struct RtvHotData
         {
-            CD3DX12_CPU_DESCRIPTOR_HANDLE m_cpuHandle;
-            TextureHandle m_resource;
+            CD3DX12_CPU_DESCRIPTOR_HANDLE m_cpuHandle {};
+            TextureHandle m_resource {};
         };
 
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_buffers;

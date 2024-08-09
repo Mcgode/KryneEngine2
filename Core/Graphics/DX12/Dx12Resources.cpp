@@ -511,6 +511,49 @@ namespace KryneEngine
         }
     }
 
+    PipelineLayoutHandle Dx12Resources::CreatePipelineLayout(const PipelineLayoutDesc& _desc, ID3D12Device* _device)
+    {
+        eastl::vector<D3D12_ROOT_PARAMETER> rootParameters;
+
+        for (const auto& pushConstant: _desc.m_pushConstants)
+        {
+            rootParameters.push_back(D3D12_ROOT_PARAMETER {
+                .ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS,
+                .Constants = D3D12_ROOT_CONSTANTS {
+                    .ShaderRegister = 0,
+                    .RegisterSpace = 0,
+                    .Num32BitValues = pushConstant.m_sizeInBytes / 4u,
+                },
+                .ShaderVisibility = Dx12Converters::ToDx12ShaderVisibility(pushConstant.m_visibility),
+            });
+        }
+
+        // TODO: Handle descriptor set
+
+        D3D12_ROOT_SIGNATURE_DESC rootDesc {
+            .NumParameters = static_cast<u32>(rootParameters.size()),
+            .pParameters = rootParameters.data(),
+            .Flags = _desc.m_useVertexLayout
+                ? D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+                : D3D12_ROOT_SIGNATURE_FLAG_NONE,
+        };
+
+        ID3DBlob* serializedRootBlob;
+        Dx12Assert(D3D12SerializeRootSignature(
+            &rootDesc,
+            D3D_ROOT_SIGNATURE_VERSION_1,
+            &serializedRootBlob,
+            nullptr));
+        const GenPool::Handle handle = m_rootSignatures.Allocate();
+        Dx12Assert(_device->CreateRootSignature(
+            0,
+            serializedRootBlob->GetBufferPointer(),
+            serializedRootBlob->GetBufferSize(),
+            IID_PPV_ARGS(m_rootSignatures.Get(handle))));
+
+        return { handle };
+    }
+
     GraphicsPipelineHandle Dx12Resources::CreateGraphicsPipeline(
         const GraphicsPipelineDesc& _desc,
         ID3D12Device* _device)

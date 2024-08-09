@@ -247,12 +247,15 @@ namespace KryneEngine
         D3D12_BARRIER_LAYOUT ToDx12BarrierLayout(TextureLayout _layout);
         D3D12_RESOURCE_STATES RetrieveState(BarrierAccessFlags _access, TextureLayout _layout);
 
+        D3D12_SHADER_VISIBILITY ToDx12ShaderVisibility(ShaderVisibility _visibility);
+
         D3D12_BLEND ToDx12Blend(ColorAttachmentBlendDesc::BlendFactor _blendFactor);
         D3D12_BLEND_OP ToDx12BlendOp(ColorAttachmentBlendDesc::BlendOp _blendOp);
         D3D12_LOGIC_OP ToDx12LogicOp(ColorBlendingDesc::LogicOp _logicOp);
         D3D12_COMPARISON_FUNC ToDx12CompareFunc(DepthStencilStateDesc::CompareOp _compareOp);
         D3D12_STENCIL_OP ToDx12StencilOp(DepthStencilStateDesc::StencilOp _stencilOp);
         const char* ToDx12SemanticName(VertexLayoutElement::SemanticName _semanticName);
+
     }
 
     u8 GetTextureBytesPerPixel(DXGI_FORMAT _format);

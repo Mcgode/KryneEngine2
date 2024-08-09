@@ -851,4 +851,14 @@ namespace KryneEngine
             _commandList->ResourceBarrier(resourceBarriers.size(), resourceBarriers.data());
         }
     }
+
+    PipelineLayoutHandle Dx12GraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
+    {
+        return m_resources.CreatePipelineLayout(_desc, m_device.Get());
+    }
+
+    GraphicsPipelineHandle Dx12GraphicsContext::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc)
+    {
+        return m_resources.CreateGraphicsPipeline(_desc, m_device.Get());
+    }
 } // KryneEngine

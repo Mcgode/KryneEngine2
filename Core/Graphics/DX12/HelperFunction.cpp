@@ -266,6 +266,35 @@ namespace KryneEngine
         return states;
     }
 
+    D3D12_SHADER_VISIBILITY Dx12Converters::ToDx12ShaderVisibility(ShaderVisibility _visibility)
+    {
+        if (std::popcount((u8)_visibility) > 1)
+        {
+            return D3D12_SHADER_VISIBILITY_ALL;
+        }
+        switch (_visibility)
+        {
+        case ShaderVisibility::Vertex:
+            return D3D12_SHADER_VISIBILITY_VERTEX;
+        case ShaderVisibility::TesselationControl:
+            return D3D12_SHADER_VISIBILITY_HULL;
+        case ShaderVisibility::TesselationEvaluation:
+            return D3D12_SHADER_VISIBILITY_DOMAIN;
+        case ShaderVisibility::Geometry:
+            return D3D12_SHADER_VISIBILITY_GEOMETRY;
+        case ShaderVisibility::Fragment:
+            return D3D12_SHADER_VISIBILITY_PIXEL;
+        case ShaderVisibility::Task:
+            return D3D12_SHADER_VISIBILITY_AMPLIFICATION;
+        case ShaderVisibility::Mesh:
+            return D3D12_SHADER_VISIBILITY_MESH;
+
+        default:
+            KE_ERROR("Unsupported visibility");
+            return D3D12_SHADER_VISIBILITY_ALL;
+        }
+    }
+
     D3D12_BLEND Dx12Converters::ToDx12Blend(ColorAttachmentBlendDesc::BlendFactor _blendFactor)
     {
         switch (_blendFactor)
