@@ -852,6 +852,11 @@ namespace KryneEngine
         }
     }
 
+    ShaderModuleHandle Dx12GraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
+    {
+        return m_resources.RegisterShaderModule(_bytecodeData, _bytecodeSize);
+    }
+
     PipelineLayoutHandle Dx12GraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
     {
         return m_resources.CreatePipelineLayout(_desc, m_device.Get());

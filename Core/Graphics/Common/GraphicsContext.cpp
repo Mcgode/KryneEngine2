@@ -34,6 +34,11 @@ namespace KryneEngine
         m_implementation.WaitForFrame(m_frameId - 1);
     }
 
+    ShaderModuleHandle GraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
+    {
+        return m_implementation.RegisterShaderModule(_bytecodeData, _bytecodeSize);
+    }
+
     PipelineLayoutHandle GraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
     {
         return m_implementation.CreatePipelineLayout(_desc);

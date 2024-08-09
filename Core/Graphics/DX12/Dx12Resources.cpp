@@ -511,6 +511,16 @@ namespace KryneEngine
         }
     }
 
+    ShaderModuleHandle Dx12Resources::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
+    {
+        GenPool::Handle handle = m_shaderBytecodes.Allocate();
+        *m_shaderBytecodes.Get(handle) = {
+            .pShaderBytecode = _bytecodeData,
+            .BytecodeLength = _bytecodeSize,
+        };
+        return { handle };
+    }
+
     PipelineLayoutHandle Dx12Resources::CreatePipelineLayout(const PipelineLayoutDesc& _desc, ID3D12Device* _device)
     {
         eastl::vector<D3D12_ROOT_PARAMETER> rootParameters;
