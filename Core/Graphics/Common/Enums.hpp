@@ -32,6 +32,11 @@ namespace KryneEngine
         RGB8_SNorm,
         RGBA8_SNorm,
 
+        R32_Float,
+        RG32_Float,
+        RGB32_Float,
+        RGBA32_Float,
+
         D16,
         D24,
         D24S8,

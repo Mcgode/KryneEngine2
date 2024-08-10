@@ -93,13 +93,18 @@ namespace KryneEngine
                 MAP(RGB8_SNorm, DXGI_FORMAT_R8G8B8A8_SNORM);
                 MAP(RGBA8_SNorm, DXGI_FORMAT_R8G8B8A8_SNORM);
 
+                MAP(R32_Float, DXGI_FORMAT_R32_FLOAT);
+                MAP(RG32_Float, DXGI_FORMAT_R32G32_FLOAT);
+                MAP(RGB32_Float, DXGI_FORMAT_R32G32B32_FLOAT);
+                MAP(RGBA32_Float, DXGI_FORMAT_R32G32B32A32_FLOAT);
+
                 MAP(D16, DXGI_FORMAT_D16_UNORM);
                 MAP(D24, DXGI_FORMAT_D24_UNORM_S8_UINT);
                 MAP(D32F, DXGI_FORMAT_D32_FLOAT);
                 MAP(D24S8, DXGI_FORMAT_D24_UNORM_S8_UINT);
                 MAP(D32FS8, DXGI_FORMAT_D32_FLOAT_S8X24_UINT);
                 default:
-                    KE_ASSERT_MSG(_format != TextureFormat::NoFormat, "Unknown format");
+                    KE_ASSERT_MSG(_format == TextureFormat::NoFormat, "Unknown format");
                     format = DXGI_FORMAT_UNKNOWN;
             }
 
