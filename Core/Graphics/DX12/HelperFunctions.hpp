@@ -261,6 +261,7 @@ namespace KryneEngine
         D3D12_STENCIL_OP ToDx12StencilOp(DepthStencilStateDesc::StencilOp _stencilOp);
         const char* ToDx12SemanticName(VertexLayoutElement::SemanticName _semanticName);
 
+        D3D_PRIMITIVE_TOPOLOGY ToDx12Topology(InputAssemblyDesc::PrimitiveTopology _topology);
     }
 
     u8 GetTextureBytesPerPixel(DXGI_FORMAT _format);

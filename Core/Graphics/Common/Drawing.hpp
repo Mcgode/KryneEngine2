@@ -19,4 +19,13 @@ namespace KryneEngine
         float m_minDepth = 0.f;
         float m_maxDepth = 1.f;
     };
+
+    struct DrawIndexedInstancedDesc
+    {
+        u32 m_elementCount = 0;
+        u32 m_instanceCount = 1;
+        u32 m_indexOffset = 0;
+        u32 m_vertexOffset = 0;
+        u32 m_instanceOffset = 0;
+    };
 }

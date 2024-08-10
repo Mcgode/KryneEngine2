@@ -466,6 +466,23 @@ namespace KryneEngine
         }
     }
 
+    D3D_PRIMITIVE_TOPOLOGY Dx12Converters::ToDx12Topology(InputAssemblyDesc::PrimitiveTopology _topology)
+    {
+        switch(_topology)
+        {
+        case InputAssemblyDesc::PrimitiveTopology::PointList:
+            return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+        case InputAssemblyDesc::PrimitiveTopology::LineList:
+            return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+        case InputAssemblyDesc::PrimitiveTopology::LineStrip:
+            return D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
+        case InputAssemblyDesc::PrimitiveTopology::TriangleList:
+            return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+        case InputAssemblyDesc::PrimitiveTopology::TriangleStrip:
+            return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+        }
+    }
+
     u8 GetTextureBytesPerPixel(DXGI_FORMAT _format)
     {
         switch(_format)

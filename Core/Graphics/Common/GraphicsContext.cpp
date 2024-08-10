@@ -68,4 +68,23 @@ namespace KryneEngine
     {
         m_implementation.SetVertexBuffers(_commandList, _bufferViews);
     }
+
+    void GraphicsContext::SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline)
+    {
+        m_implementation.SetGraphicsPipeline(_commandList, _graphicsPipeline);
+    }
+
+    void GraphicsContext::SetGraphicsPushConstant(
+        CommandList _commandList,
+        u32 _index,
+        const eastl::span<u32>& _data,
+        u32 _offset)
+    {
+        m_implementation.SetGraphicsPushConstant(_commandList, _index, _data, _offset);
+    }
+
+    void GraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)
+    {
+        m_implementation.DrawIndexedInstanced(_commandList, _desc);
+    }
 }

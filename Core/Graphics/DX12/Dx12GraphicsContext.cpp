@@ -928,4 +928,40 @@ namespace KryneEngine
 
         _commandList->IASetVertexBuffers(0, bufferViews.size(), bufferViews.data());
     }
+
+    void Dx12GraphicsContext::SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline)
+    {
+        VERIFY_OR_RETURN_VOID(_graphicsPipeline != GenPool::kInvalidHandle);
+        ID3D12PipelineState** pPso = m_resources.m_pipelineStateObjects.Get(_graphicsPipeline.m_handle);
+        VERIFY_OR_RETURN_VOID(pPso != nullptr);
+        Dx12Resources::PsoColdData* coldData = m_resources.m_pipelineStateObjects.GetCold(_graphicsPipeline.m_handle);
+        VERIFY_OR_RETURN_VOID(coldData != nullptr);
+
+        _commandList->SetGraphicsRootSignature(coldData->m_signature);
+        _commandList->IASetPrimitiveTopology(Dx12Converters::ToDx12Topology(coldData->m_topology));
+        _commandList->SetPipelineState(*pPso);
+    }
+
+    void Dx12GraphicsContext::SetGraphicsPushConstant(
+        CommandList _commandList,
+        u32 _index,
+        const eastl::span<u32>& _data,
+        u32 _offset)
+    {
+        _commandList->SetGraphicsRoot32BitConstants(
+            _index,
+            _data.size(),
+            _data.data(),
+            _offset);
+    }
+
+    void Dx12GraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)
+    {
+        _commandList->DrawIndexedInstanced(
+            _desc.m_elementCount,
+            _desc.m_instanceCount,
+            _desc.m_indexOffset,
+            _desc.m_vertexOffset,
+            _desc.m_instanceOffset);
+    }
 } // KryneEngine

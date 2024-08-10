@@ -821,6 +821,11 @@ namespace KryneEngine
         Dx12SetName(*m_pipelineStateObjects.Get(handle), L"%s", _desc.m_debugName.c_str());
 #endif
 
+        *m_pipelineStateObjects.GetCold(handle) = {
+            .m_signature = desc.pRootSignature,
+            .m_topology = _desc.m_inputAssembly.m_topology,
+        };
+
         return { handle };
     }
 } // KryneEngine

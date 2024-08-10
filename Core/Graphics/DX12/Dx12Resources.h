@@ -10,6 +10,7 @@
 #include <Common/Utils/MultiFrameTracking.hpp>
 #include <Graphics/Common/Handles.hpp>
 #include <Graphics/Common/RenderPass.hpp>
+#include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Common/Texture.hpp>
 
 namespace D3D12MA
@@ -21,8 +22,6 @@ namespace D3D12MA
 namespace KryneEngine
 {
     struct BufferCreateDesc;
-    struct GraphicsPipelineDesc;
-    struct PipelineLayoutDesc;
     struct TextureSrvDesc;
     struct RenderTargetViewDesc;
 
@@ -73,6 +72,12 @@ namespace KryneEngine
             TextureHandle m_resource {};
         };
 
+        struct PsoColdData
+        {
+            ID3D12RootSignature* m_signature;
+            InputAssemblyDesc::PrimitiveTopology m_topology;
+        };
+
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_buffers;
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_textures;
         GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_cbvSrvUav;
@@ -80,7 +85,7 @@ namespace KryneEngine
         GenerationalPool<RenderPassDesc> m_renderPasses;
         GenerationalPool<ID3D12RootSignature*> m_rootSignatures;
         GenerationalPool<D3D12_SHADER_BYTECODE> m_shaderBytecodes;
-        GenerationalPool<ID3D12PipelineState*> m_pipelineStateObjects;
+        GenerationalPool<ID3D12PipelineState*, PsoColdData> m_pipelineStateObjects;
 
     private:
         static constexpr u16 kRtvHeapSize = 2048;
