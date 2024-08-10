@@ -23,6 +23,12 @@ namespace KryneEngine::Modules::ImGui
         u32 m_color;
     };
 
+    struct PushConstants
+    {
+        float2 m_scale;
+        float2 m_translate;
+    };
+
     Context::Context(GraphicsContext& _graphicsContext, RenderPassHandle _renderPass)
     {
         m_context = ::ImGui::CreateContext();
@@ -363,11 +369,28 @@ namespace KryneEngine::Modules::ImGui
 
                 // Draw
                 {
-                    const u64 drawIdxOffset = indexOffset + drawCmd.IdxOffset;
+                    _graphicsContext.SetGraphicsPipeline(_commandList, m_pso);
 
-                    const u64 drawVtxOffset = vertexOffset + drawCmd.VtxOffset;
-                    const u32 elementCount = drawCmd.ElemCount;
-                    // TODO: Draw
+                    PushConstants pushConstants {};
+                    pushConstants.m_scale = {
+                        2.0f / drawData->DisplaySize.x,
+                        -2.0f / drawData->DisplaySize.y
+                    };
+                    pushConstants.m_translate = {
+                        -1.0f - drawData->DisplayPos.x * pushConstants.m_scale.x,
+                        1.0f - drawData->DisplayPos.y * pushConstants.m_scale.y,
+                    };
+                    _graphicsContext.SetGraphicsPushConstant(
+                        _commandList,
+                        0,
+                        { reinterpret_cast<u32*>(&pushConstants), 4 });
+
+                    const DrawIndexedInstancedDesc desc {
+                        .m_elementCount = drawCmd.ElemCount,
+                        .m_indexOffset = static_cast<u32>(indexOffset + drawCmd.IdxOffset),
+                        .m_vertexOffset = static_cast<u32>(vertexOffset + drawCmd.VtxOffset),
+                    };
+                    _graphicsContext.DrawIndexedInstanced(_commandList, desc);
                 }
             }
 
