@@ -52,4 +52,12 @@ namespace KryneEngine
         u64 m_offsetSrc = 0;
         u64 m_offsetDst = 0;
     };
+
+    struct BufferView
+    {
+        u64 m_size;
+        u64 m_offset = 0;
+        u32 m_stride = sizeof(u32);
+        BufferHandle m_buffer;
+    };
 }

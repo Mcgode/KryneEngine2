@@ -20,8 +20,9 @@ namespace KryneEngine
     class Window;
     class Dx12SwapChain;
 
-    struct BufferMapping;
     struct BufferCopyParameters;
+    struct BufferMapping;
+    struct BufferView;
     struct Viewport;
 
     class Dx12GraphicsContext
@@ -165,6 +166,8 @@ namespace KryneEngine
 
         void SetViewport(CommandList  _commandList, const Viewport& _viewport);
         void SetScissorsRect(CommandList  _commandList, const Rect& _rect);
+        void SetIndexBuffer(CommandList _commandList, BufferHandle _indexBuffer, u64 _bufferSize, bool _isU16);
+        void SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews);
 
     private:
         Dx12Resources m_resources;

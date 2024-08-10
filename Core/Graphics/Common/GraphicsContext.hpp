@@ -225,7 +225,9 @@ namespace KryneEngine
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
 
         void SetViewport(CommandList  _commandList, const Viewport& _viewport);
-        void SetScissorsRect(CommandList  _commandList, const Rect& _rect);
+        void SetScissorsRect(CommandList _commandList, const Rect& _rect);
+        void SetIndexBuffer(CommandList _commandList, BufferHandle _indexBuffer, u64 _bufferSize, bool _isU16 = false);
+        void SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews);
     };
 }
 

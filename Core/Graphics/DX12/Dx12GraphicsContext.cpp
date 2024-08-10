@@ -891,4 +891,41 @@ namespace KryneEngine
         };
         _commandList->RSSetScissorRects(1, &scissorRect);
     }
+
+    void Dx12GraphicsContext::SetIndexBuffer(
+        CommandList _commandList, BufferHandle _indexBuffer, u64 _bufferSize, bool _isU16)
+    {
+        VERIFY_OR_RETURN_VOID(_indexBuffer != GenPool::kInvalidHandle);
+        ID3D12Resource** pIndexBuffer = m_resources.m_buffers.Get(_indexBuffer.m_handle);
+        VERIFY_OR_RETURN_VOID(pIndexBuffer != nullptr);
+
+        const D3D12_INDEX_BUFFER_VIEW indexBufferView {
+            .BufferLocation = (*pIndexBuffer)->GetGPUVirtualAddress(),
+            .SizeInBytes = static_cast<u32>(_bufferSize),
+            .Format = _isU16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT,
+        };
+
+        _commandList->IASetIndexBuffer(&indexBufferView);
+    }
+
+    void Dx12GraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews)
+    {
+        eastl::fixed_vector<D3D12_VERTEX_BUFFER_VIEW, 4> bufferViews;
+        bufferViews.reserve(_bufferViews.size());
+
+        for (const auto& view: _bufferViews)
+        {
+            VERIFY_OR_RETURN_VOID(view.m_buffer != GenPool::kInvalidHandle);
+            ID3D12Resource** pIndexBuffer = m_resources.m_buffers.Get(view.m_buffer.m_handle);
+            VERIFY_OR_RETURN_VOID(pIndexBuffer != nullptr);
+
+            bufferViews.push_back({
+                .BufferLocation = (*pIndexBuffer)->GetGPUVirtualAddress(),
+                .SizeInBytes = static_cast<u32>(view.m_size),
+                .StrideInBytes = view.m_stride,
+            });
+        }
+
+        _commandList->IASetVertexBuffers(0, bufferViews.size(), bufferViews.data());
+    }
 } // KryneEngine
