@@ -7,8 +7,10 @@
 #include "Context.hpp"
 #include <Common/Utils/Alignment.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
+#include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Common/Texture.hpp>
 #include <Graphics/Common/Window.hpp>
+#include <fstream>
 #include <imgui_internal.h>
 
 namespace KryneEngine::Modules::ImGui
@@ -20,7 +22,7 @@ namespace KryneEngine::Modules::ImGui
         u32 m_color;
     };
 
-    Context::Context(GraphicsContext& _graphicsContext)
+    Context::Context(GraphicsContext& _graphicsContext, RenderPassHandle _renderPass)
     {
         m_context = ::ImGui::CreateContext();
 
@@ -64,6 +66,8 @@ namespace KryneEngine::Modules::ImGui
                 bufferCreateDesc,
                 _graphicsContext.GetFrameContextCount());
         }
+
+        _InitPso(_graphicsContext, _renderPass);
     }
 
     Context::~Context() { KE_ASSERT_MSG(m_context == nullptr, "ImGui module was not shut down"); }
@@ -296,5 +300,99 @@ namespace KryneEngine::Modules::ImGui
     void Context::RenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
     {
 
+    }
+
+    void Context::_InitPso(GraphicsContext& _graphicsContext, RenderPassHandle _renderPass)
+    {
+        // Read shader files
+        {
+            constexpr auto readShaderFile = [](const char* _path, auto& _vec)
+            {
+                std::ifstream file(_path, std::ios::binary);
+                VERIFY_OR_RETURN_VOID(file);
+
+                file.seekg(0, std::ios::end);
+                _vec.resize(file.tellg());
+                file.seekg(0, std::ios::beg);
+
+                KE_VERIFY(file.read(_vec.data(), _vec.size()));
+            };
+
+            readShaderFile("Shaders/ImGui/ImGui_vs_MainVS.cso", m_vsBytecode);
+            readShaderFile("Shaders/ImGui/ImGui_ps_MainPS.cso", m_fsBytecode);
+
+            m_vsModule = _graphicsContext.RegisterShaderModule(m_vsBytecode.data(), m_vsBytecode.size());
+            m_fsModule = _graphicsContext.RegisterShaderModule(m_fsBytecode.data(), m_fsBytecode.size());
+        }
+
+        // Pipeline layout creation
+        {
+            PipelineLayoutDesc pipelineLayoutDesc {};
+
+            // Scale and translate push constant
+            pipelineLayoutDesc.m_pushConstants.push_back(PushConstantDesc {
+                .m_sizeInBytes = sizeof(float2) + sizeof(float2),
+            });
+
+            m_pipelineLayout = _graphicsContext.CreatePipelineLayout(pipelineLayoutDesc);
+        }
+
+        // PSO creation
+        {
+            GraphicsPipelineDesc desc {
+                .m_rasterState = {
+                    .m_cullMode = RasterStateDesc::CullMode::None,
+                    .m_depthClip = false,
+                },
+                .m_colorBlending = {
+                    .m_attachments = { { kDefaultColorAttachmentAlphaBlendDesc } },
+                },
+                .m_depthStencil = {
+                    .m_depthTest = false,
+                    .m_depthWrite = false,
+                    .m_depthCompare = DepthStencilStateDesc::CompareOp::Always,
+                },
+                .m_renderPass = _renderPass,
+                .m_pipelineLayout = m_pipelineLayout,
+#if !defined(KE_FINAL)
+                .m_debugName = "ImGui_Render_PSO",
+#endif
+            };
+
+            desc.m_stages.push_back(GraphicsShaderStage {
+                .m_shaderModule = m_vsModule,
+                .m_stage = GraphicsShaderStage::Stage::Vertex,
+            });
+            desc.m_stages.push_back(GraphicsShaderStage {
+                .m_shaderModule = m_fsModule,
+                .m_stage = GraphicsShaderStage::Stage::Fragment,
+            });
+
+            desc.m_vertexLayout = {
+                VertexLayoutElement {
+                    .m_semanticName = VertexLayoutElement::SemanticName::Position,
+                    .m_semanticIndex = 0,
+                    .m_bindingIndex = 0,
+                    .m_format = TextureFormat::RG32_Float,
+                    .m_offset = 0,
+                },
+                VertexLayoutElement {
+                    .m_semanticName = VertexLayoutElement::SemanticName::Uv,
+                    .m_semanticIndex = 0,
+                    .m_bindingIndex = 0,
+                    .m_format = TextureFormat::RG32_Float,
+                    .m_offset = sizeof(float2),
+                },
+                VertexLayoutElement {
+                    .m_semanticName = VertexLayoutElement::SemanticName::Color,
+                    .m_semanticIndex = 0,
+                    .m_bindingIndex = 0,
+                    .m_format = TextureFormat::RGBA8_UNorm,
+                    .m_offset = sizeof(float2) + sizeof(float2),
+                },
+            };
+
+            m_pso = _graphicsContext.CreateGraphicsPipeline(desc);
+        }
     }
 } // namespace KryneEngine

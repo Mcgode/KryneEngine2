@@ -15,7 +15,7 @@ namespace KryneEngine::Modules::ImGui
     class Context
     {
     public:
-        explicit Context(GraphicsContext &_graphicsContext);
+        explicit Context(GraphicsContext& _graphicsContext, RenderPassHandle _renderPass);
         ~Context();
 
         void Shutdown(GraphicsContext& _graphicsContext);
@@ -32,8 +32,17 @@ namespace KryneEngine::Modules::ImGui
         TextureHandle m_fontsTextureHandle { GenPool::kInvalidHandle };
         TextureSrvHandle m_fontsTextureSrvHandle { GenPool::kInvalidHandle };
 
+        eastl::vector<char> m_vsBytecode {};
+        eastl::vector<char> m_fsBytecode {};
+        ShaderModuleHandle m_vsModule { GenPool::kInvalidHandle };
+        ShaderModuleHandle m_fsModule { GenPool::kInvalidHandle };
+        PipelineLayoutHandle m_pipelineLayout { GenPool::kInvalidHandle };
+        GraphicsPipelineHandle m_pso { GenPool::kInvalidHandle };
+
         static constexpr u64 kInitialSize = 1024;
         GraphicsUtils::DynamicBuffer m_dynamicVertexBuffer;
         GraphicsUtils::DynamicBuffer m_dynamicIndexBuffer;
+
+        void _InitPso(GraphicsContext& _graphicsContext, RenderPassHandle _renderPass);
     };
 }// namespace KryneEngine
