@@ -568,7 +568,7 @@ namespace KryneEngine
         const GraphicsPipelineDesc& _desc,
         ID3D12Device* _device)
     {
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC desc {};
 
         VERIFY_OR_RETURN(_desc.m_renderPass != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
         const RenderPassDesc* renderPassDesc = m_renderPasses.Get(_desc.m_renderPass.m_handle);
@@ -763,7 +763,7 @@ namespace KryneEngine
             desc.InputLayout.pInputElementDescs = inputElements.data();
         }
 
-        // Input assemlbly
+        // Input assembly
         {
             desc.IBStripCutValue = _desc.m_inputAssembly.m_cutStripAtSpecialIndex
                 ? _desc.m_inputAssembly.m_indexSize == InputAssemblyDesc::IndexIntSize::U16
@@ -813,10 +813,6 @@ namespace KryneEngine
         };
 
         desc.NodeMask = 0;
-
-#if !defined(KE_FINAL)
-        desc.Flags = D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG;
-#endif
 
         const GenPool::Handle handle = m_pipelineStateObjects.Allocate();
         Dx12Assert(_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(m_pipelineStateObjects.Get(handle))));
