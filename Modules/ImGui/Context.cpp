@@ -6,6 +6,7 @@
 
 #include "Context.hpp"
 #include <Common/Utils/Alignment.hpp>
+#include <Graphics/Common/Drawing.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Common/Texture.hpp>
@@ -225,8 +226,6 @@ namespace KryneEngine::Modules::ImGui
     {
         ::ImGui::Render();
 
-        ImGuiContext& context = *m_context;
-
         ImDrawData* drawData = ::ImGui::GetDrawData();
 
         const u8 frameIndex = _graphicsContext.GetCurrentFrameContextIndex();
@@ -299,7 +298,69 @@ namespace KryneEngine::Modules::ImGui
 
     void Context::RenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
     {
+        ImDrawData* drawData = ::ImGui::GetDrawData();
 
+        {
+            const Viewport viewport {
+                .m_width = static_cast<s32>(drawData->DisplaySize.x),
+                .m_height = static_cast<s32>(drawData->DisplaySize.y),
+            };
+            _graphicsContext.SetViewport(_commandList, viewport);
+        }
+
+        u64 vertexOffset = 0;
+        u64 indexOffset = 0;
+
+        for (auto i = 0u; i < drawData->CmdListsCount; i++)
+        {
+            const ImDrawList* drawList = drawData->CmdLists[i];
+
+            for (const auto& drawCmd : drawList->CmdBuffer)
+            {
+                // If user callback, run it instead
+                if (drawCmd.UserCallback != nullptr)
+                {
+                    drawCmd.UserCallback(drawList, &drawCmd);
+                    continue;
+                }
+
+                // Set up scissor rect
+                {
+                    const ImVec2 clipOffset = drawData->DisplayPos;
+                    const ImVec2 clipMin{drawCmd.ClipRect.x - clipOffset.x, drawCmd.ClipRect.y - clipOffset.y};
+                    const ImVec2 clipMax{drawCmd.ClipRect.z - clipOffset.x, drawCmd.ClipRect.w - clipOffset.y};
+
+                    const Rect rect{
+                        .m_left = static_cast<u32>(clipMin.x),
+                        .m_top = static_cast<u32>(clipMin.y),
+                        .m_right = static_cast<u32>(clipMax.x),
+                        .m_bottom = static_cast<u32>(clipMax.y),
+                    };
+                    _graphicsContext.SetScissorsRect(_commandList, rect);
+                }
+
+                // Set index buffer
+                {
+                    const u64 drawIdxOffset = indexOffset + drawCmd.IdxOffset;
+                    // TODO: Bind index buffer
+                }
+
+                // Set vertex buffer
+                {
+                    const u64 drawVtxOffset = vertexOffset + drawCmd.VtxOffset;
+                    // TODO: Bind vertex buffer
+                }
+
+                // Draw
+                {
+                    const u32 elementCount = drawCmd.ElemCount;
+                    // TODO: Draw
+                }
+            }
+
+            vertexOffset += drawList->VtxBuffer.Size;
+            indexOffset += drawList->IdxBuffer.Size;
+        }
     }
 
     void Context::_InitPso(GraphicsContext& _graphicsContext, RenderPassHandle _renderPass)
