@@ -48,4 +48,14 @@ namespace KryneEngine
     {
         return m_implementation.CreateGraphicsPipeline(_desc);
     }
+
+    void GraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)
+    {
+        m_implementation.SetViewport(_commandList, _viewport);
+    }
+
+    void GraphicsContext::SetScissorsRect(CommandList _commandList, const Rect& _rect)
+    {
+        m_implementation.SetScissorsRect(_commandList, _rect);
+    }
 }

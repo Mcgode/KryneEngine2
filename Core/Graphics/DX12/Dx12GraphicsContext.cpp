@@ -10,6 +10,7 @@
 #include <Common/Utils/Alignment.hpp>
 #include <D3D12MemAlloc.h>
 #include <Graphics/Common/Buffer.hpp>
+#include <Graphics/Common/Drawing.hpp>
 #include <Graphics/Common/Window.hpp>
 #include <Memory/GenerationalPool.inl>
 #include <dxgidebug.h>
@@ -865,5 +866,29 @@ namespace KryneEngine
     GraphicsPipelineHandle Dx12GraphicsContext::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc)
     {
         return m_resources.CreateGraphicsPipeline(_desc, m_device.Get());
+    }
+
+    void Dx12GraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)
+    {
+        const D3D12_VIEWPORT viewport {
+            .TopLeftX = static_cast<float>(_viewport.m_topLeftX),
+            .TopLeftY = static_cast<float>(_viewport.m_topLeftY),
+            .Width = static_cast<float>(_viewport.m_width),
+            .Height = static_cast<float>(_viewport.m_height),
+            .MinDepth = _viewport.m_minDepth,
+            .MaxDepth = _viewport.m_maxDepth,
+        };
+        _commandList->RSSetViewports(1, &viewport);
+    }
+
+    void Dx12GraphicsContext::SetScissorsRect(CommandList _commandList, const Rect& _rect)
+    {
+        const D3D12_RECT scissorRect = {
+            .left = static_cast<LONG>(_rect.m_left),
+            .top = static_cast<LONG>(_rect.m_top),
+            .right = static_cast<LONG>(_rect.m_right),
+            .bottom = static_cast<LONG>(_rect.m_bottom),
+        };
+        _commandList->RSSetScissorRects(1, &scissorRect);
     }
 } // KryneEngine

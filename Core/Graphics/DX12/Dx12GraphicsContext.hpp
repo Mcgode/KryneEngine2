@@ -22,6 +22,7 @@ namespace KryneEngine
 
     struct BufferMapping;
     struct BufferCopyParameters;
+    struct Viewport;
 
     class Dx12GraphicsContext
     {
@@ -161,6 +162,9 @@ namespace KryneEngine
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
+
+        void SetViewport(CommandList  _commandList, const Viewport& _viewport);
+        void SetScissorsRect(CommandList  _commandList, const Rect& _rect);
 
     private:
         Dx12Resources m_resources;

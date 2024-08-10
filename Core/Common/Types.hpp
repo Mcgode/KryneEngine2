@@ -49,4 +49,12 @@ namespace KryneEngine
         u16 m_width = 0;
         u16 m_height = 0;
     };
+
+    struct Rect
+    {
+        u32 m_left;
+        u32 m_top;
+        u32 m_right;
+        u32 m_bottom;
+    };
 }

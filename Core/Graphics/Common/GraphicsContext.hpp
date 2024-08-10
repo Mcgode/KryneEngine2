@@ -223,6 +223,9 @@ namespace KryneEngine
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
+
+        void SetViewport(CommandList  _commandList, const Viewport& _viewport);
+        void SetScissorsRect(CommandList  _commandList, const Rect& _rect);
     };
 }
 
