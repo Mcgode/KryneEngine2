@@ -300,6 +300,7 @@ namespace KryneEngine::Modules::ImGui
     {
         ImDrawData* drawData = ::ImGui::GetDrawData();
 
+        // Set viewport
         {
             const Viewport viewport {
                 .m_width = static_cast<s32>(drawData->DisplaySize.x),
@@ -309,31 +310,32 @@ namespace KryneEngine::Modules::ImGui
         }
 
         const u8 frameIndex = _graphicsContext.GetCurrentFrameContextIndex();
+
+        // Set index buffer
+        {
+            _graphicsContext.SetIndexBuffer(
+                _commandList,
+                m_dynamicIndexBuffer.GetBuffer(frameIndex),
+                m_dynamicIndexBuffer.GetSize(frameIndex),
+                false);
+        }
+
+        // Set vertex buffer
+        {
+            BufferView bufferView {
+                .m_size = m_dynamicVertexBuffer.GetSize(frameIndex),
+                .m_stride = sizeof(VertexEntry),
+                .m_buffer = m_dynamicVertexBuffer.GetBuffer(frameIndex),
+            };
+            _graphicsContext.SetVertexBuffers(_commandList, {&bufferView,1});
+        }
+
         u64 vertexOffset = 0;
         u64 indexOffset = 0;
 
         for (auto i = 0u; i < drawData->CmdListsCount; i++)
         {
             const ImDrawList* drawList = drawData->CmdLists[i];
-
-            // Set index buffer
-            {
-                _graphicsContext.SetIndexBuffer(
-                    _commandList,
-                    m_dynamicIndexBuffer.GetBuffer(frameIndex),
-                    m_dynamicIndexBuffer.GetSize(frameIndex),
-                    false);
-            }
-
-            // Set vertex buffer
-            {
-                BufferView bufferView {
-                    .m_size = m_dynamicVertexBuffer.GetSize(frameIndex),
-                    .m_stride = sizeof(VertexEntry),
-                    .m_buffer = m_dynamicVertexBuffer.GetBuffer(frameIndex),
-                };
-                _graphicsContext.SetVertexBuffers(_commandList, {&bufferView,1});
-            }
 
             for (const auto& drawCmd : drawList->CmdBuffer)
             {
