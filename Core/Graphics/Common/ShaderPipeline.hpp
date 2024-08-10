@@ -69,7 +69,7 @@ namespace KryneEngine
 
         PrimitiveTopology m_topology = PrimitiveTopology::TriangleList;
         IndexIntSize m_indexSize = IndexIntSize::U32;
-        bool m_cutStripAtSpecialIndex = true;
+        bool m_cutStripAtSpecialIndex = false;
     };
 
     struct RasterStateDesc
@@ -156,6 +156,17 @@ namespace KryneEngine
         WriteMask m_writeMak = WriteMask::All;
     };
     KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(ColorAttachmentBlendDesc::WriteMask)
+
+    static constexpr ColorAttachmentBlendDesc kDefaultColorAttachmentOpaqueBlendDesc {};
+    static constexpr ColorAttachmentBlendDesc kDefaultColorAttachmentAlphaBlendDesc {
+        .m_blendEnable = true,
+        .m_srcColor = ColorAttachmentBlendDesc::BlendFactor::SrcAlpha,
+        .m_dstColor = ColorAttachmentBlendDesc::BlendFactor::InvSrcAlpha,
+        .m_colorOp = ColorAttachmentBlendDesc::BlendOp::Add,
+        .m_srcAlpha = ColorAttachmentBlendDesc::BlendFactor::One,
+        .m_dstAlpha = ColorAttachmentBlendDesc::BlendFactor::InvSrcAlpha,
+        .m_alphaOp = ColorAttachmentBlendDesc::BlendOp::Add,
+    };
 
     struct ColorBlendingDesc
     {
