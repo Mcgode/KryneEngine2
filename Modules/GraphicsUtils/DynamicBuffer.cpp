@@ -170,6 +170,18 @@ namespace KryneEngine::Modules::GraphicsUtils
         }
     }
 
+    BufferHandle DynamicBuffer::GetBuffer(u8 _frameIndex)
+    {
+        if (m_gpuBuffer != GenPool::kInvalidHandle)
+        {
+            return m_gpuBuffer;
+        }
+        else
+        {
+            return m_mappableBuffers[_frameIndex];
+        }
+    }
+
     void DynamicBuffer::Destroy(GraphicsContext& _graphicsContext)
     {
         for (auto buffer: m_mappableBuffers)

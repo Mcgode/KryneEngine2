@@ -30,6 +30,8 @@ namespace KryneEngine::Modules::GraphicsUtils
             return m_sizes[_frameIndex];
         }
 
+        BufferHandle GetBuffer(u8 _frameIndex);
+
         void Destroy(GraphicsContext& _graphicsContext);
 
     private:
