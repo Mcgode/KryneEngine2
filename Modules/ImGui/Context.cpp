@@ -308,12 +308,32 @@ namespace KryneEngine::Modules::ImGui
             _graphicsContext.SetViewport(_commandList, viewport);
         }
 
+        const u8 frameIndex = _graphicsContext.GetCurrentFrameContextIndex();
         u64 vertexOffset = 0;
         u64 indexOffset = 0;
 
         for (auto i = 0u; i < drawData->CmdListsCount; i++)
         {
             const ImDrawList* drawList = drawData->CmdLists[i];
+
+            // Set index buffer
+            {
+                _graphicsContext.SetIndexBuffer(
+                    _commandList,
+                    m_dynamicIndexBuffer.GetBuffer(frameIndex),
+                    m_dynamicIndexBuffer.GetSize(frameIndex),
+                    false);
+            }
+
+            // Set vertex buffer
+            {
+                BufferView bufferView {
+                    .m_size = m_dynamicVertexBuffer.GetSize(frameIndex),
+                    .m_stride = sizeof(VertexEntry),
+                    .m_buffer = m_dynamicVertexBuffer.GetBuffer(frameIndex),
+                };
+                _graphicsContext.SetVertexBuffers(_commandList, {&bufferView,1});
+            }
 
             for (const auto& drawCmd : drawList->CmdBuffer)
             {
@@ -339,20 +359,11 @@ namespace KryneEngine::Modules::ImGui
                     _graphicsContext.SetScissorsRect(_commandList, rect);
                 }
 
-                // Set index buffer
-                {
-                    const u64 drawIdxOffset = indexOffset + drawCmd.IdxOffset;
-                    // TODO: Bind index buffer
-                }
-
-                // Set vertex buffer
-                {
-                    const u64 drawVtxOffset = vertexOffset + drawCmd.VtxOffset;
-                    // TODO: Bind vertex buffer
-                }
-
                 // Draw
                 {
+                    const u64 drawIdxOffset = indexOffset + drawCmd.IdxOffset;
+
+                    const u64 drawVtxOffset = vertexOffset + drawCmd.VtxOffset;
                     const u32 elementCount = drawCmd.ElemCount;
                     // TODO: Draw
                 }
@@ -435,21 +446,21 @@ namespace KryneEngine::Modules::ImGui
                     .m_semanticIndex = 0,
                     .m_bindingIndex = 0,
                     .m_format = TextureFormat::RG32_Float,
-                    .m_offset = 0,
+                    .m_offset = offsetof(VertexEntry, m_position),
                 },
                 VertexLayoutElement {
                     .m_semanticName = VertexLayoutElement::SemanticName::Uv,
                     .m_semanticIndex = 0,
                     .m_bindingIndex = 0,
                     .m_format = TextureFormat::RG32_Float,
-                    .m_offset = sizeof(float2),
+                    .m_offset = offsetof(VertexEntry, m_uv),
                 },
                 VertexLayoutElement {
                     .m_semanticName = VertexLayoutElement::SemanticName::Color,
                     .m_semanticIndex = 0,
                     .m_bindingIndex = 0,
                     .m_format = TextureFormat::RGBA8_UNorm,
-                    .m_offset = sizeof(float2) + sizeof(float2),
+                    .m_offset = offsetof(VertexEntry, m_color),
                 },
             };
 
