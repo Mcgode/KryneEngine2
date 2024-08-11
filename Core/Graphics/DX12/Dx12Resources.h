@@ -26,6 +26,7 @@ namespace KryneEngine
     struct RenderTargetViewDesc;
 
     class Dx12FrameContext;
+    class Dx12DescriptorSetManager;
 
     class Dx12Resources
     {
@@ -64,7 +65,10 @@ namespace KryneEngine
         bool FreeRenderPass(RenderPassHandle _handle);
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
-        [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc, ID3D12Device* _device);
+        [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(
+            const PipelineLayoutDesc& _desc,
+            Dx12DescriptorSetManager* _setManager,
+            ID3D12Device* _device);
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc, ID3D12Device* _device);
 
         void NextFrame(ID3D12Device* _device, u8 _frameIndex);
