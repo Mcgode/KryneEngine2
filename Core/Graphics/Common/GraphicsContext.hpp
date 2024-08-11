@@ -224,6 +224,7 @@ namespace KryneEngine
         }
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
+        [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(const DescriptorSetDesc& _desc, u32* _bindingIndices);
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
 

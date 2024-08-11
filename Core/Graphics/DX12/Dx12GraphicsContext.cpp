@@ -872,6 +872,11 @@ namespace KryneEngine
         return m_resources.RegisterShaderModule(_bytecodeData, _bytecodeSize);
     }
 
+    DescriptorSetHandle Dx12GraphicsContext::CreateDescriptorSet(const DescriptorSetDesc& _desc, u32* _bindingIndices)
+    {
+        return m_descriptorSetManager->CreateDescriptorSet(_desc, _bindingIndices);
+    }
+
     PipelineLayoutHandle Dx12GraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
     {
         return m_resources.CreatePipelineLayout(_desc, m_descriptorSetManager.get(), m_device.Get());

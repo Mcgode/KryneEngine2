@@ -49,9 +49,10 @@ namespace KryneEngine
 
     DescriptorSetHandle Dx12DescriptorSetManager::CreateDescriptorSet(
         const DescriptorSetDesc& _setDesc,
-        u32* _bindingIndices,
-        ID3D12Device* _device)
+        u32* _bindingIndices)
     {
+        VERIFY_OR_RETURN(_bindingIndices != nullptr, { GenPool::kInvalidHandle });
+
         const GenPool::Handle handle = m_descriptorSets.Allocate();
         auto [ranges, desc] = m_descriptorSets.GetAll(handle);
         *desc = _setDesc;

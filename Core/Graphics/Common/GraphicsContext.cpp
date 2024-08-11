@@ -49,6 +49,11 @@ namespace KryneEngine
         return m_implementation.RegisterShaderModule(_bytecodeData, _bytecodeSize);
     }
 
+    DescriptorSetHandle GraphicsContext::CreateDescriptorSet(const DescriptorSetDesc& _desc, u32* _bindingIndices)
+    {
+        return m_implementation.CreateDescriptorSet(_desc, _bindingIndices);
+    }
+
     PipelineLayoutHandle GraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
     {
         return m_implementation.CreatePipelineLayout(_desc);
