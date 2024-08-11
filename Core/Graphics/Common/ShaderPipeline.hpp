@@ -257,6 +257,7 @@ namespace KryneEngine
         Mesh = 1 << 7,
 
         All = 0xFF,
+        None = 0,
     };
     KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(ShaderVisibility)
 
@@ -266,6 +267,29 @@ namespace KryneEngine
         u8 m_offset = 0;
         u8 m_index = 0;
         ShaderVisibility m_visibility = ShaderVisibility::All;
+    };
+
+    struct DescriptorBindingDesc
+    {
+        enum class Type: u8
+        {
+            Sampler,
+            SampledTexture,
+            StorageReadOnlyTexture,
+            StorageReadWriteTexture,
+            ConstantBuffer,
+            StorageReadOnlyBuffer,
+            StorageReadWriteBuffer,
+        };
+
+        Type m_type = Type::SampledTexture;
+        ShaderVisibility m_visibility = ShaderVisibility::Fragment;
+        u16 m_count = 1;
+    };
+
+    struct DescriptorSetDesc
+    {
+        eastl::vector<DescriptorBindingDesc> m_bindings{};
     };
 
     struct PipelineLayoutDesc

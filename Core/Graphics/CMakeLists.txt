@@ -21,6 +21,8 @@ set (DX12Files
         DX12/Dx12Resources.cpp
         DX12/Dx12Resources.h
         DX12/Dx12Types.hpp
+        DX12/Dx12DescriptorSetManager.cpp
+        DX12/Dx12DescriptorSetManager.hpp
 )
 
 set(CommonFiles

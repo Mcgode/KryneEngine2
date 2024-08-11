@@ -179,6 +179,7 @@ namespace KryneEngine
 
     private:
         Dx12Resources m_resources;
+        eastl::unique_ptr<Dx12DescriptorSetManager> m_descriptorSetManager;
         RenderPassHandle m_currentRenderPass;
     };
 } // KryneEngine
