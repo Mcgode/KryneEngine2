@@ -155,6 +155,12 @@ namespace KryneEngine::Modules::ImGui
             {
                 TextureSrvDesc srvDesc {
                     .m_texture = m_fontsTextureHandle,
+                    .m_componentsMapping = {
+                        TextureComponentMapping::Red,
+                        TextureComponentMapping::Red,
+                        TextureComponentMapping::Red,
+                        TextureComponentMapping::Red,
+                    },
                     .m_format = textureCreateDesc.m_desc.m_format,
                 };
                 m_fontsTextureSrvHandle = _graphicsContext.CreateTextureSrv(srvDesc);
