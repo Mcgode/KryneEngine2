@@ -36,6 +36,8 @@ namespace KryneEngine::Modules::ImGui
         eastl::vector<char> m_fsBytecode {};
         ShaderModuleHandle m_vsModule { GenPool::kInvalidHandle };
         ShaderModuleHandle m_fsModule { GenPool::kInvalidHandle };
+        DescriptorSetHandle m_descriptorSet { GenPool::kInvalidHandle };
+        eastl::vector<u32> m_setIndices;
         PipelineLayoutHandle m_pipelineLayout { GenPool::kInvalidHandle };
         GraphicsPipelineHandle m_pso { GenPool::kInvalidHandle };
 

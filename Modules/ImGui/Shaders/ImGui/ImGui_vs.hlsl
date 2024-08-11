@@ -7,7 +7,7 @@ struct PushConstants
 };
 
 vkPushConstant
-ConstantBuffer<PushConstants> pushConstants: register(b0);
+ConstantBuffer<PushConstants> pushConstants: register(b0, space2);
 
 struct VsInput 
 {

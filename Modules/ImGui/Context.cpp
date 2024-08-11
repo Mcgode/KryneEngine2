@@ -388,7 +388,7 @@ namespace KryneEngine::Modules::ImGui
                     };
                     _graphicsContext.SetGraphicsPushConstant(
                         _commandList,
-                        0,
+                        2,
                         { reinterpret_cast<u32*>(&pushConstants), 4 });
 
                     const DrawIndexedInstancedDesc desc {
@@ -428,9 +428,29 @@ namespace KryneEngine::Modules::ImGui
             m_fsModule = _graphicsContext.RegisterShaderModule(m_fsBytecode.data(), m_fsBytecode.size());
         }
 
+        // Set up descriptor set
+        {
+            DescriptorSetDesc desc {
+                .m_bindings = {
+                    {
+                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                        .m_visibility = ShaderVisibility::Fragment,
+                    },
+                    {
+                        .m_type = DescriptorBindingDesc::Type::Sampler,
+                        .m_visibility = ShaderVisibility::Fragment,
+                    },
+                }
+            };
+            m_setIndices.resize(desc.m_bindings.size());
+            m_descriptorSet = _graphicsContext.CreateDescriptorSet(desc, m_setIndices.data());
+        }
+
         // Pipeline layout creation
         {
             PipelineLayoutDesc pipelineLayoutDesc {};
+
+            pipelineLayoutDesc.m_descriptorSets.push_back(m_descriptorSet);
 
             // Scale and translate push constant
             pipelineLayoutDesc.m_pushConstants.push_back(PushConstantDesc {
