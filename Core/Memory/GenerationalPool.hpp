@@ -70,8 +70,14 @@ namespace KryneEngine
 
         HotDataStruct* Get(const GenPool::Handle& _handle);
         eastl::pair<HotDataStruct*, ColdDataStruct*> GetAll(const GenPool::Handle& _handle);
-
         inline ColdDataStruct* GetCold(const GenPool::Handle& _handle)
+        {
+            return GetAll(_handle).second;
+        }
+
+        const HotDataStruct* Get(const GenPool::Handle& _handle) const;
+        eastl::pair<const HotDataStruct*, const ColdDataStruct*> GetAll(GenPool::Handle _handle) const;
+        inline const ColdDataStruct* GetCold(const GenPool::Handle& _handle) const
         {
             return GetAll(_handle).second;
         }

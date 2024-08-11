@@ -90,6 +90,30 @@ namespace KryneEngine
         return eastl::pair<HotDataStruct *, ColdDataStruct *>(hotData, &m_coldDataArray[_handle.m_index]);
     }
 
+    template <class HotDataStruct, class ColdDataStruct>
+    const HotDataStruct* GenerationalPool<HotDataStruct, ColdDataStruct>::Get(const GenPool::Handle& _handle) const
+    {
+        KE_ASSERT(_handle.m_index < m_size);
+
+        const HotData& hotData = m_hotDataArray[_handle.m_index];
+        if (hotData.m_generation != _handle.m_generation)
+        {
+            return nullptr;
+        }
+        return &hotData.m_userHotData;
+    }
+
+    template <class HotDataStruct, class ColdDataStruct>
+    eastl::pair<const HotDataStruct*, const ColdDataStruct*>GenerationalPool<HotDataStruct, ColdDataStruct>::GetAll(GenPool::Handle _handle) const
+    {
+        const HotDataStruct* hotData = Get(_handle);
+        if (hotData == nullptr)
+        {
+            return eastl::pair<const HotDataStruct *, const ColdDataStruct *>(nullptr, nullptr);
+        }
+        return eastl::pair<const HotDataStruct *, const ColdDataStruct *>(hotData, &m_coldDataArray[_handle.m_index]);
+    }
+
     template<class HotDataStruct, class ColdDataStruct>
     GenPool::Handle GenerationalPool<HotDataStruct, ColdDataStruct>::Allocate()
     {
