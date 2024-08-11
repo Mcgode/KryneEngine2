@@ -615,6 +615,7 @@ namespace KryneEngine
         eastl::vector<D3D12_ROOT_PARAMETER> rootParameters;
 
         eastl::vector<D3D12_DESCRIPTOR_RANGE> ranges {};
+        eastl::vector<u32> offsets {};
         for (auto setIndex = 0u; setIndex < _desc.m_descriptorSets.size(); setIndex++)
         {
             auto set = _desc.m_descriptorSets[setIndex];
@@ -622,7 +623,7 @@ namespace KryneEngine
             const DescriptorSetDesc* setDesc = _setManager->GetDescriptorSetDesc(set);
 
             constexpr u32 count = static_cast<u32>(Dx12DescriptorSetManager::RangeType::COUNT);
-            ShaderVisibility visibility = ShaderVisibility::None;
+            ShaderVisibility visibilities[2] = { ShaderVisibility::None, ShaderVisibility::None };
             u16 totals[count] = { 0, 0, 0, 0};
 
             for (auto binding : setDesc->m_bindings)
@@ -647,58 +648,94 @@ namespace KryneEngine
                     break;
                 }
 
-                visibility |= binding.m_visibility;
+                const u32 visibilityIndex = type == Dx12DescriptorSetManager::RangeType::Sampler ? 1 : 0;
+                visibilities[visibilityIndex] |= binding.m_visibility;
                 totals[static_cast<u32>(type)] += binding.m_count;
             }
 
             u32 rangesCount = 0;
             const u32 rangesOffset = ranges.size();
-            for (auto i = 0u; i < count; i++)
+
+            constexpr u32 samplerIndex = static_cast<u32>(Dx12DescriptorSetManager::RangeType::Sampler);
+
+            // Must separate CBV/SRV/UAV descriptor table from Sampler descriptor table, as they live on different
+            // descriptor heaps.
             {
-                if (totals[i] > 0)
+                // Set up CBV/SRV/UAV descriptor table
+                for (auto i = 0u; i < samplerIndex; i++)
                 {
-                    D3D12_DESCRIPTOR_RANGE range {
-                        .NumDescriptors = totals[i],
+                    if (totals[i] > 0)
+                    {
+                        D3D12_DESCRIPTOR_RANGE range{
+                            .NumDescriptors = totals[i],
+                            .BaseShaderRegister = 0,
+                            .RegisterSpace = setIndex,
+                            .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
+                        };
+
+                        switch (static_cast<Dx12DescriptorSetManager::RangeType>(i))
+                        {
+                        case Dx12DescriptorSetManager::RangeType::CBV:
+                            range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+                            break;
+                        case Dx12DescriptorSetManager::RangeType::SRV:
+                            range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+                            break;
+                        case Dx12DescriptorSetManager::RangeType::UAV:
+                            range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+                            break;
+                        default:
+                            KE_ERROR("Erroneous value %d", i);
+                            continue;
+                        }
+
+                        ranges.push_back(range);
+                        rangesCount++;
+                    }
+                }
+
+                if (rangesCount > 0)
+                {
+                    rootParameters.push_back(D3D12_ROOT_PARAMETER {
+                        .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
+                        .DescriptorTable = {
+                            .NumDescriptorRanges = rangesCount,
+                        },
+                        .ShaderVisibility = Dx12Converters::ToDx12ShaderVisibility(visibilities[0]),
+                    });
+                    offsets.push_back(rangesOffset);
+                }
+
+                // Set up sampler descriptor table
+                if (totals[samplerIndex] > 0)
+                {
+                    D3D12_DESCRIPTOR_RANGE range{
+                        .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
+                        .NumDescriptors = totals[samplerIndex],
                         .BaseShaderRegister = 0,
                         .RegisterSpace = setIndex,
                         .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
                     };
 
-                    switch (static_cast<Dx12DescriptorSetManager::RangeType>(i))
-                    {
-                    case Dx12DescriptorSetManager::RangeType::CBV:
-                        range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-                        break;
-                    case Dx12DescriptorSetManager::RangeType::SRV:
-                        range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-                        break;
-                    case Dx12DescriptorSetManager::RangeType::UAV:
-                        range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-                        break;
-                    case Dx12DescriptorSetManager::RangeType::Sampler:
-                        range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
-                        break;
-                    default:
-                        KE_ERROR("Erroneous value %d", i);
-                        continue;
-                    }
+                    rootParameters.push_back(D3D12_ROOT_PARAMETER {
+                        .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
+                        .DescriptorTable = {
+                            .NumDescriptorRanges = 1,
+                        },
+                        .ShaderVisibility = Dx12Converters::ToDx12ShaderVisibility(visibilities[1]),
+                    });
+                    offsets.push_back(ranges.size());
 
                     ranges.push_back(range);
-                    rangesCount++;
                 }
             }
+        }
 
-            if (rangesCount > 0)
-            {
-                rootParameters.push_back(D3D12_ROOT_PARAMETER {
-                    .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
-                    .DescriptorTable = {
-                        .NumDescriptorRanges = rangesCount,
-                        .pDescriptorRanges = ranges.data() + rangesOffset,
-                    },
-                    .ShaderVisibility = Dx12Converters::ToDx12ShaderVisibility(visibility),
-                });
-            }
+        // Set ranges pointers appropriately now that the ranges vector won't grow any more
+        KE_ASSERT(rootParameters.size() == offsets.size());
+        for (auto i = 0u; i < rootParameters.size(); i++)
+        {
+            rootParameters[i].DescriptorTable.pDescriptorRanges = ranges.data() + offsets[i];
         }
 
         for (const auto& pushConstant: _desc.m_pushConstants)
@@ -723,11 +760,16 @@ namespace KryneEngine
         };
 
         ID3DBlob* serializedRootBlob;
-        Dx12Assert(D3D12SerializeRootSignature(
+        ID3DBlob* errorBlob;
+        const auto hr = D3D12SerializeRootSignature(
             &rootDesc,
             D3D_ROOT_SIGNATURE_VERSION_1,
             &serializedRootBlob,
-            nullptr));
+            &errorBlob);
+        if (!SUCCEEDED(hr))
+        {
+            KE_ERROR((const char*)errorBlob->GetBufferPointer());
+        }
         const GenPool::Handle handle = m_rootSignatures.Allocate();
         Dx12Assert(_device->CreateRootSignature(
             0,
