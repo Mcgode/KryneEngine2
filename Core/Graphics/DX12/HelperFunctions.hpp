@@ -12,6 +12,7 @@
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <Graphics/Common/MemoryBarriers.hpp>
 #include <Graphics/Common/ShaderPipeline.hpp>
+#include <Graphics/Common/Texture.hpp>
 #include <comdef.h>
 
 namespace KryneEngine
@@ -247,21 +248,23 @@ namespace KryneEngine
             return 0;
         }
 
-        D3D12_BARRIER_SYNC ToDx12BarrierSync(BarrierSyncStageFlags _flags);
-        D3D12_BARRIER_ACCESS ToDx12BarrierAccess(BarrierAccessFlags _flags);
-        D3D12_BARRIER_LAYOUT ToDx12BarrierLayout(TextureLayout _layout);
-        D3D12_RESOURCE_STATES RetrieveState(BarrierAccessFlags _access, TextureLayout _layout);
+        [[nodiscard]] D3D12_TEXTURE_ADDRESS_MODE ToDx12AddressMode(SamplerDesc::AddressMode _addressMode);
 
-        D3D12_SHADER_VISIBILITY ToDx12ShaderVisibility(ShaderVisibility _visibility);
+        [[nodiscard]] D3D12_BARRIER_SYNC ToDx12BarrierSync(BarrierSyncStageFlags _flags);
+        [[nodiscard]] D3D12_BARRIER_ACCESS ToDx12BarrierAccess(BarrierAccessFlags _flags);
+        [[nodiscard]] D3D12_BARRIER_LAYOUT ToDx12BarrierLayout(TextureLayout _layout);
+        [[nodiscard]] D3D12_RESOURCE_STATES RetrieveState(BarrierAccessFlags _access, TextureLayout _layout);
 
-        D3D12_BLEND ToDx12Blend(ColorAttachmentBlendDesc::BlendFactor _blendFactor);
-        D3D12_BLEND_OP ToDx12BlendOp(ColorAttachmentBlendDesc::BlendOp _blendOp);
-        D3D12_LOGIC_OP ToDx12LogicOp(ColorBlendingDesc::LogicOp _logicOp);
-        D3D12_COMPARISON_FUNC ToDx12CompareFunc(DepthStencilStateDesc::CompareOp _compareOp);
-        D3D12_STENCIL_OP ToDx12StencilOp(DepthStencilStateDesc::StencilOp _stencilOp);
-        const char* ToDx12SemanticName(VertexLayoutElement::SemanticName _semanticName);
+        [[nodiscard]] D3D12_SHADER_VISIBILITY ToDx12ShaderVisibility(ShaderVisibility _visibility);
 
-        D3D_PRIMITIVE_TOPOLOGY ToDx12Topology(InputAssemblyDesc::PrimitiveTopology _topology);
+        [[nodiscard]] D3D12_BLEND ToDx12Blend(ColorAttachmentBlendDesc::BlendFactor _blendFactor);
+        [[nodiscard]] D3D12_BLEND_OP ToDx12BlendOp(ColorAttachmentBlendDesc::BlendOp _blendOp);
+        [[nodiscard]] D3D12_LOGIC_OP ToDx12LogicOp(ColorBlendingDesc::LogicOp _logicOp);
+        [[nodiscard]] D3D12_COMPARISON_FUNC ToDx12CompareFunc(DepthStencilStateDesc::CompareOp _compareOp);
+        [[nodiscard]] D3D12_STENCIL_OP ToDx12StencilOp(DepthStencilStateDesc::StencilOp _stencilOp);
+        [[nodiscard]] const char* ToDx12SemanticName(VertexLayoutElement::SemanticName _semanticName);
+
+        [[nodiscard]] D3D_PRIMITIVE_TOPOLOGY ToDx12Topology(InputAssemblyDesc::PrimitiveTopology _topology);
     }
 
     u8 GetTextureBytesPerPixel(DXGI_FORMAT _format);

@@ -228,6 +228,91 @@ namespace KryneEngine
         return m_cbvSrvUav.Free(_textureSrv.m_handle);
     }
 
+    SamplerHandle Dx12Resources::CreateSampler(const SamplerDesc& _samplerDesc, ID3D12Device* _device)
+    {
+        if (m_samplerStorageHeap == nullptr)
+        {
+            const D3D12_DESCRIPTOR_HEAP_DESC heapDesc {
+                .Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
+                .NumDescriptors = kSamplerHeapSize,
+                .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE // Not shader visible, this is a storage heap
+            };
+            Dx12Assert(_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_samplerStorageHeap)));
+#if !defined(KE_FINAL)
+            Dx12SetName(m_samplerStorageHeap.Get(), L"Sampler descriptor storage heap");
+#endif
+            m_samplerDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+        }
+
+        D3D12_SAMPLER_DESC samplerDesc {
+            .AddressU = Dx12Converters::ToDx12AddressMode(_samplerDesc.m_addressModeU),
+            .AddressV = Dx12Converters::ToDx12AddressMode(_samplerDesc.m_addressModeV),
+            .AddressW = Dx12Converters::ToDx12AddressMode(_samplerDesc.m_addressModeW),
+            .MipLODBias = _samplerDesc.m_lodBias,
+            .MaxAnisotropy = _samplerDesc.m_anisotropy,
+            .ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,
+            .BorderColor = {
+                _samplerDesc.m_borderColor.x,
+                _samplerDesc.m_borderColor.y,
+                _samplerDesc.m_borderColor.z,
+                _samplerDesc.m_borderColor.w },
+            .MinLOD = _samplerDesc.m_lodMin,
+            .MaxLOD = _samplerDesc.m_lodMax,
+        };
+
+        {
+            // Point filtering flag is 0
+            int filter = 0;
+
+            if (_samplerDesc.m_minFilter == SamplerDesc::Filter::Linear)
+            {
+                filter &= D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT; // Min linear flag
+            }
+            if (_samplerDesc.m_magFilter == SamplerDesc::Filter::Linear)
+            {
+                filter &= D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT; // Mag linear flag
+            }
+            if (_samplerDesc.m_mipFilter == SamplerDesc::Filter::Linear)
+            {
+                filter &= D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR; // Mip linear flag
+            }
+
+            if (_samplerDesc.m_opType != SamplerDesc::OpType::Blend)
+            {
+                // Set comparison filter mode
+                filter &= D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+            }
+
+            samplerDesc.Filter = static_cast<D3D12_FILTER>(filter);
+
+            // Set comparison operators
+            if (_samplerDesc.m_opType == SamplerDesc::OpType::Maximum)
+            {
+                samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_GREATER;
+            }
+            else if (_samplerDesc.m_opType == SamplerDesc::OpType::Minimum)
+            {
+                samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS;
+            }
+        }
+
+        const GenPool::Handle handle = m_samplers.Allocate();
+        CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
+            m_samplerStorageHeap->GetCPUDescriptorHandleForHeapStart(),
+            handle.m_index,
+            m_samplerDescriptorSize);
+        _device->CreateSampler(&samplerDesc, cpuDescriptorHandle);
+
+        *m_samplers.Get(handle) = cpuDescriptorHandle;
+
+        return { handle };
+    }
+
+    bool Dx12Resources::DestroySampler(SamplerHandle _sampler)
+    {
+        return m_samplers.Free(_sampler.m_handle);
+    }
+
     RenderTargetViewHandle
     Dx12Resources::CreateRenderTargetView(const RenderTargetViewDesc &_desc, ID3D12Device *_device)
     {

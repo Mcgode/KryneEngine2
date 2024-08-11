@@ -114,6 +114,9 @@ namespace KryneEngine
             return m_resources.DestroyTextureSrv(_textureSrv);
         }
 
+        [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
+        bool DestroySampler(SamplerHandle _sampler);
+
         [[nodiscard]] inline RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
             return m_resources.CreateRenderTargetView(_desc, m_device.Get());

@@ -69,4 +69,45 @@ namespace KryneEngine
             , m_planeSlice(_planeSlice)
         {}
     };
+
+    struct SamplerDesc
+    {
+        enum class Filter: u8
+        {
+            Point,
+            Linear,
+        };
+
+        enum class AddressMode: u8
+        {
+            Repeat,
+            MirroredRepeat,
+            Border,
+            Clamp,
+        };
+
+        enum class OpType: u8
+        {
+            Blend,
+            Minimum,
+            Maximum,
+        };
+
+        Filter m_minFilter = Filter::Linear;
+        Filter m_magFilter = Filter::Linear;
+        Filter m_mipFilter = Filter::Linear;
+        AddressMode m_addressModeU = AddressMode::Repeat;
+        AddressMode m_addressModeV = AddressMode::Repeat;
+        AddressMode m_addressModeW = AddressMode::Repeat;
+
+        OpType m_opType = OpType::Blend;
+        u8 m_anisotropy = 0;
+
+        float4 m_borderColor = { 0, 0, 0, 1 };
+
+        float m_lodBias = 0.f;
+        float m_lodMin = 0.f;
+        float m_lodMax = kNoMaxLod;
+        static constexpr float kNoMaxLod = 1024.f;
+    };
 }

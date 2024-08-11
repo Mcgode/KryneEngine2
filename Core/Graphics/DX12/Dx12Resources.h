@@ -54,6 +54,9 @@ namespace KryneEngine
             u32 _frameIndex);
         bool DestroyTextureSrv(TextureSrvHandle _textureSrv);
 
+        [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc, ID3D12Device* _device);
+        bool DestroySampler(SamplerHandle _sampler);
+
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc, ID3D12Device* _device);
         bool FreeRenderTargetView(RenderTargetViewHandle _rtv);
 
@@ -81,6 +84,7 @@ namespace KryneEngine
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_buffers;
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_textures;
         GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_cbvSrvUav;
+        GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_samplers;
         GenerationalPool<RtvHotData, DXGI_FORMAT> m_renderTargetViews;
         GenerationalPool<RenderPassDesc> m_renderPasses;
         GenerationalPool<ID3D12RootSignature*> m_rootSignatures;
@@ -98,6 +102,10 @@ namespace KryneEngine
         DynamicArray<ComPtr<ID3D12DescriptorHeap>> m_cbvSrvUavDescriptorHeaps;
         MultiFrameDataTracker<GenPool::Handle> m_cbvSrvUavDescriptorCopyTracker;
         u32 m_cbvSrvUavDescriptorSize = 0;
+
+        static constexpr u16 kSamplerHeapSize = 512;
+        ComPtr<ID3D12DescriptorHeap> m_samplerStorageHeap = nullptr;
+        u32 m_samplerDescriptorSize = 0;
 
         D3D12MA::Allocator* m_memoryAllocator = nullptr;
     };

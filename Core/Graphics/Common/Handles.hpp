@@ -21,6 +21,7 @@ namespace KryneEngine
     KE_GRAPHICS_DECLARE_HANDLE(BufferHandle);
     KE_GRAPHICS_DECLARE_HANDLE(TextureHandle);
     KE_GRAPHICS_DECLARE_HANDLE(TextureSrvHandle);
+    KE_GRAPHICS_DECLARE_HANDLE(SamplerHandle);
     KE_GRAPHICS_DECLARE_HANDLE(RenderTargetViewHandle);
     KE_GRAPHICS_DECLARE_HANDLE(RenderPassHandle);
     KE_GRAPHICS_DECLARE_HANDLE(ShaderModuleHandle);

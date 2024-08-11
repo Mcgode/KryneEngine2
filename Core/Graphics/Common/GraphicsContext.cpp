@@ -34,6 +34,16 @@ namespace KryneEngine
         m_implementation.WaitForFrame(m_frameId - 1);
     }
 
+    SamplerHandle GraphicsContext::CreateSampler(const SamplerDesc& _samplerDesc)
+    {
+        return m_implementation.CreateSampler(_samplerDesc);
+    }
+
+    bool GraphicsContext::DestroySampler(SamplerHandle _sampler)
+    {
+        return m_implementation.DestroySampler(_sampler);
+    }
+
     ShaderModuleHandle GraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
     {
         return m_implementation.RegisterShaderModule(_bytecodeData, _bytecodeSize);

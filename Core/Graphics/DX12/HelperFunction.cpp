@@ -9,6 +9,21 @@
 
 namespace KryneEngine
 {
+    D3D12_TEXTURE_ADDRESS_MODE Dx12Converters::ToDx12AddressMode(SamplerDesc::AddressMode _addressMode)
+    {
+        switch (_addressMode)
+        {
+        case SamplerDesc::AddressMode::Repeat:
+            return D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        case SamplerDesc::AddressMode::MirroredRepeat:
+            return D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
+        case SamplerDesc::AddressMode::Border:
+            return D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+        case SamplerDesc::AddressMode::Clamp:
+            return D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        }
+    }
+
     D3D12_BARRIER_SYNC Dx12Converters::ToDx12BarrierSync(BarrierSyncStageFlags _flags)
     {
         D3D12_BARRIER_SYNC flags = D3D12_BARRIER_SYNC_NONE;

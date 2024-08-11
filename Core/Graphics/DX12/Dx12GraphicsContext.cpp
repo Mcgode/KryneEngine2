@@ -312,6 +312,16 @@ namespace KryneEngine
         }
     }
 
+    SamplerHandle Dx12GraphicsContext::CreateSampler(const SamplerDesc& _samplerDesc)
+    {
+        return m_resources.CreateSampler(_samplerDesc, m_device.Get());
+    }
+
+    bool Dx12GraphicsContext::DestroySampler(SamplerHandle _sampler)
+    {
+        return m_resources.DestroySampler(_sampler);
+    }
+
     RenderTargetViewHandle Dx12GraphicsContext::GetPresentRenderTargetView(u8 _index)
     {
         return m_swapChain->m_renderTargetViews[_index];
