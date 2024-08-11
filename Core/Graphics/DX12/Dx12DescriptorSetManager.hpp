@@ -44,8 +44,9 @@ namespace KryneEngine
 
         struct DescriptorSetRanges
         {
-            eastl::array<u32, static_cast<u32>(RangeType::COUNT)> m_offsets;
             eastl::array<u16, static_cast<u32>(RangeType::COUNT)> m_sizes;
+            u32 m_cbvSrvUavOffset;
+            u32 m_samplerOffset;
         };
         GenerationalPool<DescriptorSetRanges, DescriptorSetDesc> m_descriptorSets;
     };

@@ -91,17 +91,23 @@ namespace KryneEngine
 
         for (auto i = 0u; i < samplerIndex; i++)
         {
+            u32 total = 0;
             if (totals[i] > 0)
             {
                 ranges->m_sizes[i] = totals[i];
-                ranges->m_offsets[i] = m_cbvSrvUavLinearAllocIndex.fetch_add(totals[i]);
+                total += totals[i];
+            }
+
+            if (total > 0)
+            {
+                ranges->m_cbvSrvUavOffset = m_cbvSrvUavLinearAllocIndex.fetch_add(total);
             }
         }
 
         if (totals[samplerIndex] > 0)
         {
             ranges->m_sizes[samplerIndex] = totals[samplerIndex];
-            ranges->m_offsets[samplerIndex] = m_samplerLinearAllocIndex.fetch_add(totals[samplerIndex]);
+            ranges->m_samplerOffset = m_samplerLinearAllocIndex.fetch_add(totals[samplerIndex]);
         }
 
         return { handle };
