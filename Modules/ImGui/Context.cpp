@@ -377,6 +377,8 @@ namespace KryneEngine::Modules::ImGui
                 {
                     _graphicsContext.SetGraphicsPipeline(_commandList, m_pso);
 
+                    _graphicsContext.SetGraphicsDescriptorSets(_commandList, { &m_descriptorSet, 1 });
+
                     PushConstants pushConstants {};
                     pushConstants.m_scale = {
                         2.0f / drawData->DisplaySize.x,
