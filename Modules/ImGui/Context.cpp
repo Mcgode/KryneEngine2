@@ -84,9 +84,9 @@ namespace KryneEngine::Modules::ImGui
         m_dynamicIndexBuffer.Destroy(_graphicsContext);
         m_dynamicVertexBuffer.Destroy(_graphicsContext);
 
-        if (m_fontsTextureSrvHandle != GenPool::kInvalidHandle)
+        if (m_fontTextureSrvHandle != GenPool::kInvalidHandle)
         {
-            _graphicsContext.DestroyTextureSrv(m_fontsTextureSrvHandle);
+            _graphicsContext.DestroyTextureSrv(m_fontTextureSrvHandle);
         }
 
         if (m_fontsTextureHandle != GenPool::kInvalidHandle)
@@ -153,7 +153,8 @@ namespace KryneEngine::Modules::ImGui
             m_fontsTextureHandle = _graphicsContext.CreateTexture(textureCreateDesc);
 
             {
-                TextureSrvDesc srvDesc {
+                // Set up font srv
+                const TextureSrvDesc srvDesc {
                     .m_texture = m_fontsTextureHandle,
                     .m_componentsMapping = {
                         TextureComponentMapping::Red,
@@ -163,10 +164,30 @@ namespace KryneEngine::Modules::ImGui
                     },
                     .m_format = textureCreateDesc.m_desc.m_format,
                 };
-                m_fontsTextureSrvHandle = _graphicsContext.CreateTextureSrv(srvDesc);
+                m_fontTextureSrvHandle = _graphicsContext.CreateTextureSrv(srvDesc);
+
+                // Set up font sampler
+                const SamplerDesc samplerDesc {}; // Default sampler works great for us
+                m_fontSamplerHandle = _graphicsContext.CreateSampler(samplerDesc);
+
+                // Set font descriptor set values
+                DescriptorSetWriteInfo writeInfo[2] = {
+                    {
+                        .m_index = m_setIndices[0],
+                        .m_handles = { m_fontTextureSrvHandle.m_handle },
+                        .m_textureLayout = TextureLayout::ShaderResource,
+                    },
+                    {
+                        .m_index = m_setIndices[1],
+                        .m_handles = { m_fontSamplerHandle.m_handle },
+                    }
+                };
+                _graphicsContext.UpdateDescriptorSet(
+                    m_fontDescriptorSet,
+                    writeInfo);
             }
 
-            io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontsTextureSrvHandle.m_handle)));
+            io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontTextureSrvHandle.m_handle)));
 
             {
                 BufferMemoryBarrier stagingBufferBarrier {
@@ -377,7 +398,7 @@ namespace KryneEngine::Modules::ImGui
                 {
                     _graphicsContext.SetGraphicsPipeline(_commandList, m_pso);
 
-                    _graphicsContext.SetGraphicsDescriptorSets(_commandList, { &m_descriptorSet, 1 });
+                    _graphicsContext.SetGraphicsDescriptorSets(_commandList, { &m_fontDescriptorSet, 1 });
 
                     PushConstants pushConstants {};
                     pushConstants.m_scale = {
@@ -445,14 +466,14 @@ namespace KryneEngine::Modules::ImGui
                 }
             };
             m_setIndices.resize(desc.m_bindings.size());
-            m_descriptorSet = _graphicsContext.CreateDescriptorSet(desc, m_setIndices.data());
+            m_fontDescriptorSet = _graphicsContext.CreateDescriptorSet(desc, m_setIndices.data());
         }
 
         // Pipeline layout creation
         {
             PipelineLayoutDesc pipelineLayoutDesc {};
 
-            pipelineLayoutDesc.m_descriptorSets.push_back(m_descriptorSet);
+            pipelineLayoutDesc.m_descriptorSets.push_back(m_fontDescriptorSet);
 
             // Scale and translate push constant
             pipelineLayoutDesc.m_pushConstants.push_back(PushConstantDesc {

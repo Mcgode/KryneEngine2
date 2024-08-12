@@ -30,13 +30,15 @@ namespace KryneEngine::Modules::ImGui
         u64 m_stagingFrame = 0;
         BufferHandle m_fontsStagingHandle { GenPool::kInvalidHandle };
         TextureHandle m_fontsTextureHandle { GenPool::kInvalidHandle };
-        TextureSrvHandle m_fontsTextureSrvHandle { GenPool::kInvalidHandle };
+        TextureSrvHandle m_fontTextureSrvHandle{ GenPool::kInvalidHandle };
+        SamplerHandle m_fontSamplerHandle { GenPool::kInvalidHandle };
+
+        DescriptorSetHandle m_fontDescriptorSet{ GenPool::kInvalidHandle };
 
         eastl::vector<char> m_vsBytecode {};
         eastl::vector<char> m_fsBytecode {};
         ShaderModuleHandle m_vsModule { GenPool::kInvalidHandle };
         ShaderModuleHandle m_fsModule { GenPool::kInvalidHandle };
-        DescriptorSetHandle m_descriptorSet { GenPool::kInvalidHandle };
         eastl::vector<u32> m_setIndices;
         PipelineLayoutHandle m_pipelineLayout { GenPool::kInvalidHandle };
         GraphicsPipelineHandle m_pso { GenPool::kInvalidHandle };
