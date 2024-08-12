@@ -219,7 +219,9 @@ namespace KryneEngine
 
         auto* dstHeap = (isSampler ? m_samplerGpuDescriptorHeaps : m_cbvSrvUavGpuDescriptorHeaps)[_currentFrame].Get();
 
-        auto* pSrcCpuHandle = _resources.m_cbvSrvUav.Get(_data.m_object);
+        auto* pSrcCpuHandle = isSampler
+                                  ? _resources.m_samplers.Get(_data.m_object)
+                                  : _resources.m_cbvSrvUav.Get(_data.m_object);
         if (pSrcCpuHandle == nullptr)
         {
             return;
