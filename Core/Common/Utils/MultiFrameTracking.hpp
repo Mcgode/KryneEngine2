@@ -24,11 +24,14 @@ namespace KryneEngine
 
         inline void AdvanceToNextFrame()
         {
-            // Clear current frame
-            GetData(0).clear();
-
             // Advance frame index
             m_currentFrame = (m_currentFrame + 1) % m_trackedData.Size();
+        }
+
+        inline void ClearData()
+        {
+            // Clear current frame
+            GetData(0).clear();
         }
 
         inline void TrackForOtherFrames(const UserData& _userData)

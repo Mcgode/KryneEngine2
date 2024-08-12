@@ -292,6 +292,14 @@ namespace KryneEngine
         eastl::vector<DescriptorBindingDesc> m_bindings{};
     };
 
+    struct DescriptorSetWriteInfo
+    {
+        u32 m_index = 0;
+        u16 m_arrayOffset = 0;
+        eastl::vector<GenPool::Handle> m_handles;
+        TextureLayout m_textureLayout = TextureLayout::Unknown;
+    };
+
     struct PipelineLayoutDesc
     {
         eastl::vector<DescriptorSetHandle> m_descriptorSets {};

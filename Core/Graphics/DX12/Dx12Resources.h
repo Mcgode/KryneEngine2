@@ -31,13 +31,14 @@ namespace KryneEngine
     class Dx12Resources
     {
         friend class Dx12GraphicsContext;
+        friend class Dx12DescriptorSetManager;
 
     public:
         Dx12Resources();
         ~Dx12Resources();
 
         void InitAllocator(ID3D12Device* _device, IDXGIAdapter* _adapter);
-        void InitHeaps(ID3D12Device* _device, u32 _frameContextCount, u32 _frameIndex);
+        void InitHeaps(ID3D12Device* _device);
 
         [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc);
         [[nodiscard]] BufferHandle CreateStagingBuffer(
@@ -49,10 +50,7 @@ namespace KryneEngine
         [[nodiscard]] TextureHandle RegisterTexture(ID3D12Resource* _texture, D3D12MA::Allocation* _allocation = nullptr);
         bool ReleaseTexture(TextureHandle _texture, bool _free);
 
-        [[nodiscard]] TextureSrvHandle CreateTextureSrv(
-            const TextureSrvDesc& _srvDesc,
-            ID3D12Device* _device,
-            u32 _frameIndex);
+        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, ID3D12Device* _device);
         bool DestroyTextureSrv(TextureSrvHandle _textureSrv);
 
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc, ID3D12Device* _device);
@@ -70,8 +68,6 @@ namespace KryneEngine
             Dx12DescriptorSetManager* _setManager,
             ID3D12Device* _device);
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc, ID3D12Device* _device);
-
-        void NextFrame(ID3D12Device* _device, u8 _frameIndex);
 
         struct RtvHotData
         {
@@ -103,8 +99,6 @@ namespace KryneEngine
         static_assert(sizeof(GenPool::IndexType) == 2, "GenPool index type changed, please update size appropriately.");
         static constexpr u64 kCbvSrvUavHeapSize = 1u << 16;
         ComPtr<ID3D12DescriptorHeap> m_cbvSrvUavDescriptorStorageHeap;
-        DynamicArray<ComPtr<ID3D12DescriptorHeap>> m_cbvSrvUavDescriptorHeaps;
-        MultiFrameDataTracker<GenPool::Handle> m_cbvSrvUavDescriptorCopyTracker;
         u32 m_cbvSrvUavDescriptorSize = 0;
 
         static constexpr u16 kSamplerHeapSize = 512;

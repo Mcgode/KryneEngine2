@@ -106,7 +106,7 @@ namespace KryneEngine
 
         [[nodiscard]] inline TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 _frameId)
         {
-            return m_resources.CreateTextureSrv(_srvDesc, m_device.Get(), _frameId % GetFrameContextCount());
+            return m_resources.CreateTextureSrv(_srvDesc, m_device.Get());
         }
 
         inline bool DestroyTextureSrv(TextureSrvHandle _textureSrv)
@@ -168,6 +168,10 @@ namespace KryneEngine
         [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(const DescriptorSetDesc& _desc, u32* _bindingIndices);
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
+
+        void UpdateDescriptorSet(
+            DescriptorSetHandle _descriptorSet,
+            const eastl::span<DescriptorSetWriteInfo>& _writes);
 
         void SetViewport(CommandList  _commandList, const Viewport& _viewport);
         void SetScissorsRect(CommandList  _commandList, const Rect& _rect);

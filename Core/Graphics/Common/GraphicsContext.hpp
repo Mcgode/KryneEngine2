@@ -228,6 +228,10 @@ namespace KryneEngine
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
 
+        void UpdateDescriptorSet(
+            DescriptorSetHandle _descriptorSet,
+            const eastl::span<DescriptorSetWriteInfo>& _writes);
+
         void SetViewport(CommandList  _commandList, const Viewport& _viewport);
         void SetScissorsRect(CommandList _commandList, const Rect& _rect);
         void SetIndexBuffer(CommandList _commandList, BufferHandle _indexBuffer, u64 _bufferSize, bool _isU16 = false);

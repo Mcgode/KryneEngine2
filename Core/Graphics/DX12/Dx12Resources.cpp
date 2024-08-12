@@ -29,41 +29,18 @@ namespace KryneEngine
         Dx12Assert(D3D12MA::CreateAllocator(&allocatorDesc, &m_memoryAllocator));
     }
 
-    void Dx12Resources::InitHeaps(ID3D12Device* _device, u32 _frameContextCount, u32 _frameIndex)
+    void Dx12Resources::InitHeaps(ID3D12Device* _device)
     {
-        // CBV/SRV/UAV descriptor heaps initialization
         {
-            m_cbvSrvUavDescriptorHeaps.Resize(_frameContextCount);
-            m_cbvSrvUavDescriptorHeaps.InitAll(nullptr);
-
-            m_cbvSrvUavDescriptorCopyTracker.Init(_frameContextCount, _frameIndex);
-
-            {
-                const D3D12_DESCRIPTOR_HEAP_DESC heapDesc{
-                    .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-                    .NumDescriptors = kCbvSrvUavHeapSize,
-                    .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-                };
-                Dx12Assert(_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_cbvSrvUavDescriptorStorageHeap)));
+            const D3D12_DESCRIPTOR_HEAP_DESC heapDesc{
+                .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+                .NumDescriptors = kCbvSrvUavHeapSize,
+                .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+            };
+            Dx12Assert(_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_cbvSrvUavDescriptorStorageHeap)));
 #if !defined(KE_FINAL)
-                Dx12SetName(m_cbvSrvUavDescriptorStorageHeap.Get(), L"CBV/SRV/UAV Descriptor Storage Heap");
+            Dx12SetName(m_cbvSrvUavDescriptorStorageHeap.Get(), L"CBV/SRV/UAV Descriptor Storage Heap");
 #endif
-            }
-
-            for (u32 i = 0; i < _frameContextCount; i++)
-            {
-                const D3D12_DESCRIPTOR_HEAP_DESC heapDesc{
-                    .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-                    .NumDescriptors = kCbvSrvUavHeapSize,
-                    .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-                };
-                Dx12Assert(_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_cbvSrvUavDescriptorHeaps[i])));
-#if !defined(KE_FINAL)
-                Dx12SetName(m_cbvSrvUavDescriptorHeaps[i].Get(), L"CBV/SRV/UAV Descriptor Heap [%d]", i);
-#endif
-            }
-
-            m_cbvSrvUavDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         }
     }
 
@@ -417,8 +394,7 @@ namespace KryneEngine
         return m_renderPasses.Free(_handle.m_handle);
     }
 
-    TextureSrvHandle
-    Dx12Resources::CreateTextureSrv(const TextureSrvDesc& _srvDesc, ID3D12Device* _device, u32 _frameIndex)
+    TextureSrvHandle Dx12Resources::CreateTextureSrv(const TextureSrvDesc& _srvDesc, ID3D12Device* _device)
     {
         auto* texturePtr = m_textures.Get(_srvDesc.m_texture.m_handle);
         VERIFY_OR_RETURN(texturePtr != nullptr, { GenPool::kInvalidHandle });
@@ -519,82 +495,9 @@ namespace KryneEngine
             _device->CreateShaderResourceView(texture, &srvDesc, cpuDescriptorHandle);
 
             *m_cbvSrvUav.Get(handle) = cpuDescriptorHandle;
-
-            // Copy to shader visible heap
-            {
-                const CD3DX12_CPU_DESCRIPTOR_HANDLE dstHandle(
-                    m_cbvSrvUavDescriptorHeaps[_frameIndex]->GetCPUDescriptorHandleForHeapStart(),
-                    handle.m_index,
-                    m_cbvSrvUavDescriptorSize);
-                const u32 count = 1;
-
-                _device->CopyDescriptors(
-                    1,
-                    &dstHandle,
-                    &count,
-                    1,
-                    &cpuDescriptorHandle,
-                    &count,
-                    D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-            }
         }
-
-        // Plan copy operations to spread descriptor to all frames
-        m_cbvSrvUavDescriptorCopyTracker.TrackForOtherFrames(handle);
 
         return { handle };
-    }
-
-    void Dx12Resources::NextFrame(ID3D12Device* _device, u8 _frameIndex)
-    {
-        // Multi-frame descriptor creation
-        if (!m_cbvSrvUavDescriptorHeaps.Empty())
-        {
-            const u8 nextFrame = (_frameIndex + 1) % m_cbvSrvUavDescriptorHeaps.Size();
-
-            if (!m_cbvSrvUavDescriptorCopyTracker.GetData().empty())
-            {
-                eastl::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srcHandles;
-                eastl::vector<D3D12_CPU_DESCRIPTOR_HANDLE> dstHandles;
-                eastl::vector<u32> counts;
-
-                const auto& data = m_cbvSrvUavDescriptorCopyTracker.GetData();
-
-                const auto srcHeapStart = m_cbvSrvUavDescriptorStorageHeap->GetCPUDescriptorHandleForHeapStart();
-                const auto dstHeapStart = m_cbvSrvUavDescriptorHeaps[nextFrame]->GetCPUDescriptorHandleForHeapStart();
-
-                srcHandles.reserve(data.size());
-                dstHandles.reserve(data.size());
-                counts.resize(data.size(), 1);
-
-                for (GenPool::Handle handle : data)
-                {
-                    auto* cpuHandle = m_cbvSrvUav.Get(handle);
-                    if (cpuHandle != nullptr)
-                    {
-                        srcHandles.push_back(CD3DX12_CPU_DESCRIPTOR_HANDLE(
-                            srcHeapStart,
-                            handle.m_index,
-                            m_cbvSrvUavDescriptorSize));
-                        dstHandles.push_back(CD3DX12_CPU_DESCRIPTOR_HANDLE(
-                            dstHeapStart,
-                            handle.m_index,
-                            m_cbvSrvUavDescriptorSize));
-                    }
-                }
-
-                _device->CopyDescriptors(
-                    dstHandles.size(),
-                    dstHandles.data(),
-                    counts.data(),
-                    srcHandles.size(),
-                    srcHandles.data(),
-                    counts.data(),
-                    D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-            }
-
-            m_cbvSrvUavDescriptorCopyTracker.AdvanceToNextFrame();
-        }
     }
 
     ShaderModuleHandle Dx12Resources::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)

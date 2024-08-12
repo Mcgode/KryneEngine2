@@ -64,6 +64,13 @@ namespace KryneEngine
         return m_implementation.CreateGraphicsPipeline(_desc);
     }
 
+    void GraphicsContext::UpdateDescriptorSet(
+        DescriptorSetHandle _descriptorSet,
+        const eastl::span<DescriptorSetWriteInfo>& _writes)
+    {
+        m_implementation.UpdateDescriptorSet(_descriptorSet, _writes);
+    }
+
     void GraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)
     {
         m_implementation.SetViewport(_commandList, _viewport);
