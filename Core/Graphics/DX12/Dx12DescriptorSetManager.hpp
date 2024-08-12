@@ -39,6 +39,8 @@ namespace KryneEngine
             const bool* _unchanged,
             u8 _currentFrame);
 
+        void OnBeginGraphicsCommandList(CommandList _commandList, u8 _frameIndex);
+
         void NextFrame(ID3D12Device* _device, const Dx12Resources& _resources, u8 _frameIndex);
 
         enum class RangeType: u32

@@ -196,6 +196,15 @@ namespace KryneEngine
         }
     }
 
+    void Dx12DescriptorSetManager::OnBeginGraphicsCommandList(CommandList _commandList, u8 _frameIndex)
+    {
+        ID3D12DescriptorHeap* heaps[2] = {
+            m_cbvSrvUavGpuDescriptorHeaps[_frameIndex].Get(),
+            m_samplerGpuDescriptorHeaps[_frameIndex].Get(),
+        };
+        _commandList->SetDescriptorHeaps(2, heaps);
+    }
+
     void Dx12DescriptorSetManager::NextFrame(ID3D12Device* _device, const Dx12Resources& _resources, u8 _frameIndex)
     {
         m_multiFrameUpdateTracker.AdvanceToNextFrame();

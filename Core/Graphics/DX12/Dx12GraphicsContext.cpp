@@ -333,7 +333,10 @@ namespace KryneEngine
 
     CommandList Dx12GraphicsContext::BeginGraphicsCommandList(u64 _frameId)
     {
-        return m_frameContexts[_frameId % m_frameContextCount].BeginDirectCommandList();
+        const u8 frameIndex = _frameId % m_frameContextCount;
+        CommandList list = m_frameContexts[frameIndex].BeginDirectCommandList();
+        m_descriptorSetManager->OnBeginGraphicsCommandList(list, frameIndex);
+        return list;
     }
 
     void Dx12GraphicsContext::EndGraphicsCommandList(u64 _frameId)
