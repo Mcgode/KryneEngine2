@@ -131,7 +131,8 @@ namespace KryneEngine
         DescriptorSetHandle _descriptorSet,
         const Dx12Resources& _resources,
         const eastl::span<DescriptorSetWriteInfo>& _writes,
-        ID3D12Device* _device)
+        ID3D12Device* _device,
+        u8 _frameIndex)
     {
         for (const auto& writeDesc: _writes)
         {
@@ -142,7 +143,7 @@ namespace KryneEngine
                     .m_object = writeDesc.m_handles[i],
                     .m_packedIndex = writeDesc.m_index + (static_cast<u32>(writeDesc.m_arrayOffset + i) << 16),
                 };
-                _ProcessUpdate(_device, _resources, data, 0);
+                _ProcessUpdate(_device, _resources, data, _frameIndex);
                 m_multiFrameUpdateTracker.TrackForOtherFrames(data);
             }
         }

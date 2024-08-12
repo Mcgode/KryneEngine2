@@ -892,9 +892,14 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::UpdateDescriptorSet(
         DescriptorSetHandle _descriptorSet,
-        const eastl::span<DescriptorSetWriteInfo>& _writes)
+        const eastl::span<DescriptorSetWriteInfo>& _writes,
+        u64 _frameId)
     {
-        m_descriptorSetManager->UpdateDescriptorSet(_descriptorSet, m_resources, _writes, m_device.Get());
+        m_descriptorSetManager->UpdateDescriptorSet(
+            _descriptorSet,
+            m_resources, _writes,
+            m_device.Get(),
+            _frameId % m_frameContextCount);
     }
 
     void Dx12GraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)

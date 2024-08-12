@@ -31,7 +31,8 @@ namespace KryneEngine
             DescriptorSetHandle _descriptorSet,
             const Dx12Resources& _resources,
             const eastl::span<DescriptorSetWriteInfo>& _writes,
-            ID3D12Device* _device);
+            ID3D12Device* _device,
+            u8 _frameIndex);
 
         void SetGraphicsDescriptorSets(
             CommandList _commandList,

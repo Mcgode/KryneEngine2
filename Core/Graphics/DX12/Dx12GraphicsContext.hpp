@@ -171,7 +171,8 @@ namespace KryneEngine
 
         void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,
-            const eastl::span<DescriptorSetWriteInfo>& _writes);
+            const eastl::span<DescriptorSetWriteInfo>& _writes,
+            u64 _frameId);
 
         void SetViewport(CommandList  _commandList, const Viewport& _viewport);
         void SetScissorsRect(CommandList  _commandList, const Rect& _rect);
