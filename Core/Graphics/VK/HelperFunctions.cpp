@@ -373,7 +373,8 @@ namespace KryneEngine::VkHelperFunctions
         case VK_FORMAT_BC6H_UFLOAT_BLOCK:
         case VK_FORMAT_BC6H_SFLOAT_BLOCK:
         case VK_FORMAT_BC7_UNORM_BLOCK:
-        case VK_FORMAT_BC7_SRGB_BLOCK:case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
+        case VK_FORMAT_BC7_SRGB_BLOCK:
+        case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
         case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
         case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
         case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
@@ -465,6 +466,7 @@ namespace KryneEngine::VkHelperFunctions
         case VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG:
         case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG:
         case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG:
+        case VK_FORMAT_R16G16_SFIXED5_NV:
         case VK_FORMAT_MAX_ENUM:
             KE_ERROR("Format not supported yet");
             return 0;
@@ -606,6 +608,7 @@ namespace KryneEngine::VkHelperFunctions
         case VK_FORMAT_R12X4_UNORM_PACK16:
         case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
         case VK_FORMAT_A4B4G4R4_UNORM_PACK16:
+        case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
             return 2;
         case VK_FORMAT_R4G4_UNORM_PACK8:
         case VK_FORMAT_R8_UNORM:
@@ -616,6 +619,7 @@ namespace KryneEngine::VkHelperFunctions
         case VK_FORMAT_R8_SINT:
         case VK_FORMAT_R8_SRGB:
         case VK_FORMAT_S8_UINT:
+        case VK_FORMAT_A8_UNORM_KHR:
             return 1;
         }
     }

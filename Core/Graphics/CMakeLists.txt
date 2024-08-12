@@ -68,6 +68,12 @@ elseif(GraphicsApi STREQUAL "DX12")
     target_link_libraries(KryneEngineGraphics d3d12 dxgi d3dcompiler dxguid DirectX-Headers D3D12MemoryAllocator)
 endif()
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(KryneEngineGraphics PRIVATE -Werror=switch)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(KryneEngineGraphics PRIVATE /we4062)
+endif()
+
 if (PrecompileHeaders)
     message(STATUS "Precompiling indicated headers: ${PrecompileHeaders}")
     target_precompile_headers(KryneEngineGraphics PUBLIC ${PrecompileHeaders})
