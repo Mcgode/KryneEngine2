@@ -105,6 +105,14 @@ namespace KryneEngine
         m_implementation.SetGraphicsPushConstant(_commandList, _index, _data, _offset);
     }
 
+    void GraphicsContext::SetGraphicsDescriptorSets(
+        CommandList _commandList,
+        const eastl::span<DescriptorSetHandle>& _sets,
+        const bool* _unchanged)
+    {
+        m_implementation.SetGraphicsDescriptorSets(_commandList, _sets, _unchanged, m_frameId);
+    }
+
     void GraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)
     {
         m_implementation.DrawIndexedInstanced(_commandList, _desc);

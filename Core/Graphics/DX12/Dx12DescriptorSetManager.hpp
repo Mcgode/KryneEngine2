@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Dx12Headers.hpp"
+#include "Dx12Types.hpp"
 #include <Common/Utils/MultiFrameTracking.hpp>
 #include <Graphics/Common/Handles.hpp>
 
@@ -31,6 +32,12 @@ namespace KryneEngine
             const Dx12Resources& _resources,
             const eastl::span<DescriptorSetWriteInfo>& _writes,
             ID3D12Device* _device);
+
+        void SetGraphicsDescriptorSets(
+            CommandList _commandList,
+            const eastl::span<DescriptorSetHandle>& _sets,
+            const bool* _unchanged,
+            u8 _currentFrame);
 
         void NextFrame(ID3D12Device* _device, const Dx12Resources& _resources, u8 _frameIndex);
 

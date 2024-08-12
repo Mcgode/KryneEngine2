@@ -148,6 +148,54 @@ namespace KryneEngine
         }
     }
 
+    void Dx12DescriptorSetManager::SetGraphicsDescriptorSets(
+        CommandList _commandList,
+        const eastl::span<DescriptorSetHandle>& _sets,
+        const bool* _unchanged,
+        u8 _currentFrame)
+    {
+        constexpr u32 samplerIndex = static_cast<u32>(RangeType::Sampler);
+
+        u32 tableIndex = 0;
+        for (auto setIndex = 0u; setIndex < _sets.size(); setIndex++)
+        {
+            DescriptorSetHandle set = _sets[setIndex];
+            DescriptorSetRanges* pRanges = m_descriptorSets.Get(set.m_handle);
+            VERIFY_OR_RETURN_VOID(pRanges != nullptr);
+
+            bool unchanged = _unchanged != nullptr && _unchanged[setIndex];
+
+            u32 cbvSrvUavTotal = 0;
+            for (auto i = 0u; i < samplerIndex; i++) { cbvSrvUavTotal += pRanges->m_sizes[i]; }
+
+            if (cbvSrvUavTotal > 0)
+            {
+                if (!unchanged)
+                {
+                    CD3DX12_GPU_DESCRIPTOR_HANDLE handle(
+                        m_cbvSrvUavGpuDescriptorHeaps[_currentFrame]->GetGPUDescriptorHandleForHeapStart(),
+                        pRanges->m_offsets[0],
+                        m_cbvSrvUavDescriptorSize);
+                    _commandList->SetGraphicsRootDescriptorTable(tableIndex, handle);
+                }
+                tableIndex++;
+            }
+
+            if (pRanges->m_sizes[samplerIndex] > 0)
+            {
+                if (!unchanged)
+                {
+                    CD3DX12_GPU_DESCRIPTOR_HANDLE handle(
+                        m_samplerGpuDescriptorHeaps[_currentFrame]->GetGPUDescriptorHandleForHeapStart(),
+                        pRanges->m_offsets[samplerIndex],
+                        m_samplerDescriptorSize);
+                    _commandList->SetGraphicsRootDescriptorTable(tableIndex, handle);
+                }
+                tableIndex++;
+            }
+        }
+    }
+
     void Dx12DescriptorSetManager::NextFrame(ID3D12Device* _device, const Dx12Resources& _resources, u8 _frameIndex)
     {
         m_multiFrameUpdateTracker.AdvanceToNextFrame();

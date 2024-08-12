@@ -981,6 +981,16 @@ namespace KryneEngine
             _offset);
     }
 
+    void Dx12GraphicsContext::SetGraphicsDescriptorSets(
+        CommandList _commandList, const eastl::span<DescriptorSetHandle>& _sets, const bool* _unchanged, u32 _frameId)
+    {
+        m_descriptorSetManager->SetGraphicsDescriptorSets(
+            _commandList,
+            _sets,
+            _unchanged,
+            _frameId % m_frameContextCount);
+    }
+
     void Dx12GraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)
     {
         _commandList->DrawIndexedInstanced(
