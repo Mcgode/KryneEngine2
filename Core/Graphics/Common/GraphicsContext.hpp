@@ -234,7 +234,7 @@ namespace KryneEngine
 
         void SetViewport(CommandList  _commandList, const Viewport& _viewport);
         void SetScissorsRect(CommandList _commandList, const Rect& _rect);
-        void SetIndexBuffer(CommandList _commandList, BufferHandle _indexBuffer, u64 _bufferSize, bool _isU16 = false);
+        void SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16 = false);
         void SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews);
         void SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline);
         void SetGraphicsPushConstant(CommandList _commandList, u32 _index, const eastl::span<u32>& _data, u32 _offset = 0);

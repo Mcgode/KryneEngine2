@@ -1170,7 +1170,7 @@ namespace KryneEngine
         KE_ERROR("Not yet implemented");
     }
 
-    void VkGraphicsContext::SetIndexBuffer(CommandList _commandList, BufferHandle _indexBuffer, u64 _bufferSize, bool _isU16)
+    void VkGraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16)
     {
         KE_ERROR("Not yet implemented");
     }

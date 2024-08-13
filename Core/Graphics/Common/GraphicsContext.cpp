@@ -81,9 +81,9 @@ namespace KryneEngine
         m_implementation.SetScissorsRect(_commandList, _rect);
     }
 
-    void GraphicsContext::SetIndexBuffer(CommandList _commandList, BufferHandle _indexBuffer, u64 _bufferSize, bool _isU16)
+    void GraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16)
     {
-        m_implementation.SetIndexBuffer(_commandList, _indexBuffer, _bufferSize, _isU16);
+        m_implementation.SetIndexBuffer(_commandList, _indexBufferView, _isU16);
     }
 
     void GraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews)

@@ -346,11 +346,11 @@ namespace KryneEngine::Modules::ImGui
 
         // Set index buffer
         {
-            _graphicsContext.SetIndexBuffer(
-                _commandList,
-                m_dynamicIndexBuffer.GetBuffer(frameIndex),
-                m_dynamicIndexBuffer.GetSize(frameIndex),
-                false);
+            const BufferView bufferView {
+                .m_size = m_dynamicIndexBuffer.GetSize(frameIndex),
+                .m_buffer = m_dynamicIndexBuffer.GetBuffer(frameIndex),
+            };
+            _graphicsContext.SetIndexBuffer(_commandList, bufferView, false);
         }
 
         // Set vertex buffer
