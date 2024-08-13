@@ -882,7 +882,7 @@ namespace KryneEngine
 
     PipelineLayoutHandle Dx12GraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
     {
-        return m_resources.CreatePipelineLayout(_desc, m_descriptorSetManager.get(), m_device.Get());
+        return m_resources.CreatePipelineLayout(_desc, m_device.Get());
     }
 
     GraphicsPipelineHandle Dx12GraphicsContext::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc)
@@ -926,16 +926,15 @@ namespace KryneEngine
         _commandList->RSSetScissorRects(1, &scissorRect);
     }
 
-    void Dx12GraphicsContext::SetIndexBuffer(
-        CommandList _commandList, BufferHandle _indexBuffer, u64 _bufferSize, bool _isU16)
+    void Dx12GraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16)
     {
-        VERIFY_OR_RETURN_VOID(_indexBuffer != GenPool::kInvalidHandle);
-        ID3D12Resource** pIndexBuffer = m_resources.m_buffers.Get(_indexBuffer.m_handle);
+        VERIFY_OR_RETURN_VOID(_indexBufferView.m_buffer != GenPool::kInvalidHandle);
+        ID3D12Resource** pIndexBuffer = m_resources.m_buffers.Get(_indexBufferView.m_buffer.m_handle);
         VERIFY_OR_RETURN_VOID(pIndexBuffer != nullptr);
 
         const D3D12_INDEX_BUFFER_VIEW indexBufferView {
-            .BufferLocation = (*pIndexBuffer)->GetGPUVirtualAddress(),
-            .SizeInBytes = static_cast<u32>(_bufferSize),
+            .BufferLocation = (*pIndexBuffer)->GetGPUVirtualAddress() + _indexBufferView.m_offset,
+            .SizeInBytes = static_cast<u32>(_indexBufferView.m_size),
             .Format = _isU16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT,
         };
 
@@ -954,7 +953,7 @@ namespace KryneEngine
             VERIFY_OR_RETURN_VOID(pIndexBuffer != nullptr);
 
             bufferViews.push_back({
-                .BufferLocation = (*pIndexBuffer)->GetGPUVirtualAddress(),
+                .BufferLocation = (*pIndexBuffer)->GetGPUVirtualAddress() + view.m_offset,
                 .SizeInBytes = static_cast<u32>(view.m_size),
                 .StrideInBytes = view.m_stride,
             });

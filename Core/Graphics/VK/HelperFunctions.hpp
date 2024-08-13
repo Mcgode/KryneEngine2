@@ -10,6 +10,7 @@
 #include <Graphics/Common/Enums.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <Graphics/Common/MemoryBarriers.hpp>
+#include <Graphics/Common/Texture.hpp>
 #include <vulkan/vulkan_core.h>
 
 namespace KryneEngine
@@ -332,6 +333,8 @@ namespace KryneEngine::VkHelperFunctions
     VkPipelineStageFlags ToVkPipelineStageFlagBits(BarrierSyncStageFlags _flags, bool _isSrc);
     VkAccessFlags2 ToVkAccessFlags2(BarrierAccessFlags _flags);
     VkAccessFlags ToVkAccessFlags(BarrierAccessFlags _flags);
+
+    VkSamplerAddressMode ToVkAddressMode(SamplerDesc::AddressMode _addressMode);
 
     u16 GetByteSizePerBlock(VkFormat _format);
 }

@@ -30,8 +30,9 @@ namespace KryneEngine
 
     class VkDebugHandler;
 
-    struct VkResources
+    class VkResources
     {
+    public:
         friend class VkGraphicsContext;
 
         struct BufferColdData
@@ -49,6 +50,7 @@ namespace KryneEngine
         GenerationalPool<VkImage, TextureColdData> m_textures {};
 
         GenerationalPool<VkImageView> m_imageViews {};
+        GenerationalPool<VkSampler> m_samplers;
 
         struct RTVColdData
         {
@@ -65,6 +67,8 @@ namespace KryneEngine
             eastl::vector<VkClearValue> m_clearValues;
         };
         GenerationalPool<RenderPassData> m_renderPasses {};
+
+        GenerationalPool<VkShaderModule> m_shaderModules;
 
 #if !defined(KE_FINAL)
         eastl::shared_ptr<VkDebugHandler> m_debugHandler;
@@ -96,11 +100,17 @@ namespace KryneEngine
         [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, VkDevice _device);
         bool DestroyTextureSrv(TextureSrvHandle _textureSrv, VkDevice _device);
 
+        [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc, VkDevice _device);
+        bool DestroySampler(SamplerHandle _sampler, VkDevice _device);
+
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc, VkDevice& _device);
         bool FreeRenderTargetView(RenderTargetViewHandle _rtv, VkDevice _device);
 
         [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc, VkDevice _device);
         bool DestroyRenderPass(RenderPassHandle _renderPass, VkDevice _device);
+
+        [[nodiscard]] ShaderModuleHandle CreateShaderModule(void* _bytecodeData, u64 _bytecodeSize, VkDevice _device);
+        bool DestroyShaderModule(ShaderModuleHandle _shaderModule, VkDevice _device);
 
     private:
         VmaAllocator m_allocator;

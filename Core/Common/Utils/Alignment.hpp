@@ -11,6 +11,12 @@
 namespace KryneEngine::Alignment
 {
     template <class T>
+    inline bool IsAligned(T _value, T _alignment)
+    {
+        return (_value % _alignment) == 0;
+    }
+
+    template <class T>
     inline T AlignUp(T _value, T _alignment)
     {
         return ((_value + _alignment - 1) / _alignment) * _alignment;

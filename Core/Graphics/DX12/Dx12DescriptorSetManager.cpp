@@ -57,13 +57,12 @@ namespace KryneEngine
         VERIFY_OR_RETURN(_bindingIndices != nullptr, { GenPool::kInvalidHandle });
 
         const GenPool::Handle handle = m_descriptorSets.Allocate();
-        auto [ranges, desc] = m_descriptorSets.GetAll(handle);
-        *desc = _setDesc;
+        DescriptorSetRanges* ranges = m_descriptorSets.Get(handle);
 
         u16 totals[4] = { 0, 0, 0, 0 };
-        for (auto i = 0; i < desc->m_bindings.size(); i++)
+        for (auto i = 0; i < _setDesc.m_bindings.size(); i++)
         {
-            DescriptorBindingDesc binding = desc->m_bindings[i];
+            DescriptorBindingDesc binding = _setDesc.m_bindings[i];
 
             RangeType type;
             switch (binding.m_type)
@@ -119,12 +118,6 @@ namespace KryneEngine
         }
 
         return { handle };
-    }
-
-    const DescriptorSetDesc* Dx12DescriptorSetManager::GetDescriptorSetDesc(DescriptorSetHandle _set) const
-    {
-        VERIFY_OR_RETURN(_set != GenPool::kInvalidHandle, nullptr);
-        return m_descriptorSets.GetCold(_set.m_handle);
     }
 
     void Dx12DescriptorSetManager::UpdateDescriptorSet(

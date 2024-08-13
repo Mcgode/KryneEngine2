@@ -25,8 +25,6 @@ namespace KryneEngine
 
         [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(const DescriptorSetDesc& _setDesc, u32* _bindingIndices);
 
-        [[nodiscard]] const DescriptorSetDesc* GetDescriptorSetDesc(DescriptorSetHandle _set) const;
-
         void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,
             const Dx12Resources& _resources,
@@ -69,7 +67,7 @@ namespace KryneEngine
             eastl::array<u16, static_cast<u32>(RangeType::COUNT)> m_sizes;
             eastl::array<u32, static_cast<u32>(RangeType::COUNT)> m_offsets;
         };
-        GenerationalPool<DescriptorSetRanges, DescriptorSetDesc> m_descriptorSets;
+        GenerationalPool<DescriptorSetRanges> m_descriptorSets;
 
         struct TrackedData
         {
