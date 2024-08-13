@@ -19,6 +19,7 @@
 #include <Graphics/VK/VkSwapChain.hpp>
 #include <GLFW/glfw3.h>
 #include "VkDebugHandler.hpp"
+#include "VkDescriptorSetManager.hpp"
 
 namespace KryneEngine
 {
@@ -149,6 +150,9 @@ namespace KryneEngine
         *m_debugHandler = VkDebugHandler::Initialize(m_device, m_appInfo, m_debugUtils, m_debugMarkers);
         m_resources.m_debugHandler = m_debugHandler;
 #endif
+
+        m_descriptorSetManager = eastl::make_unique<VkDescriptorSetManager>();
+        m_descriptorSetManager->Init(m_frameContextCount);
 
         if (m_appInfo.m_features.m_present)
         {
@@ -1137,8 +1141,9 @@ namespace KryneEngine
         const DescriptorSetDesc& _desc,
         u32* _bindingIndices)
     {
-        KE_ERROR("Not yet implemented");
-        return { GenPool::kInvalidHandle };
+        return m_descriptorSetManager->CreateDescriptorSetLayout(
+            _desc,
+            _bindingIndices, m_device);
     }
 
     DescriptorSetHandle VkGraphicsContext::CreateDescriptorSet(DescriptorSetLayoutHandle _layout)

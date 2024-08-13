@@ -10,6 +10,7 @@
 #include <Graphics/Common/Enums.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <Graphics/Common/MemoryBarriers.hpp>
+#include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Common/Texture.hpp>
 #include <vulkan/vulkan_core.h>
 
@@ -335,6 +336,8 @@ namespace KryneEngine::VkHelperFunctions
     VkAccessFlags ToVkAccessFlags(BarrierAccessFlags _flags);
 
     VkSamplerAddressMode ToVkAddressMode(SamplerDesc::AddressMode _addressMode);
+    VkDescriptorType ToVkDescriptorType(DescriptorBindingDesc::Type _type);
+    VkShaderStageFlags ToVkShaderStageFlags(ShaderVisibility _visibility);
 
     u16 GetByteSizePerBlock(VkFormat _format);
 }

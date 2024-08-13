@@ -368,6 +368,72 @@ namespace KryneEngine::VkHelperFunctions
         }
     }
 
+    VkDescriptorType ToVkDescriptorType(DescriptorBindingDesc::Type _type)
+    {
+        switch (_type)
+        {
+        case DescriptorBindingDesc::Type::Sampler:
+            return VK_DESCRIPTOR_TYPE_SAMPLER;
+        case DescriptorBindingDesc::Type::SampledTexture:
+            return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        case DescriptorBindingDesc::Type::StorageReadOnlyTexture:
+        case DescriptorBindingDesc::Type::StorageReadWriteTexture:
+            return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        case DescriptorBindingDesc::Type::ConstantBuffer:
+            return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:
+        case DescriptorBindingDesc::Type::StorageReadWriteBuffer:
+            return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        }
+    }
+
+    VkShaderStageFlags ToVkShaderStageFlags(ShaderVisibility _visibility)
+    {
+        VkShaderStageFlags flags = 0;
+        if (_visibility == ShaderVisibility::None)
+        {
+            return 0;
+        }
+        else if (_visibility == ShaderVisibility::All)
+        {
+            return VK_SHADER_STAGE_ALL;
+        }
+
+        if (BitUtils::EnumHasAny(_visibility, ShaderVisibility::Vertex))
+        {
+            flags |= VK_SHADER_STAGE_VERTEX_BIT;
+        }
+        if (BitUtils::EnumHasAny(_visibility, ShaderVisibility::TesselationControl))
+        {
+            flags |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        }
+        if (BitUtils::EnumHasAny(_visibility, ShaderVisibility::TesselationEvaluation))
+        {
+            flags |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        }
+        if (BitUtils::EnumHasAny(_visibility, ShaderVisibility::Geometry))
+        {
+            flags |= VK_SHADER_STAGE_GEOMETRY_BIT;
+        }
+        if (BitUtils::EnumHasAny(_visibility, ShaderVisibility::Fragment))
+        {
+            flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+        }
+        if (BitUtils::EnumHasAny(_visibility, ShaderVisibility::Compute))
+        {
+            flags |= VK_SHADER_STAGE_COMPUTE_BIT;
+        }
+        if (BitUtils::EnumHasAny(_visibility, ShaderVisibility::Task))
+        {
+            flags |= VK_SHADER_STAGE_TASK_BIT_EXT;
+        }
+        if (BitUtils::EnumHasAny(_visibility, ShaderVisibility::Mesh))
+        {
+            flags |= VK_SHADER_STAGE_MESH_BIT_EXT;
+        }
+        return flags;
+    }
+
     u16 GetByteSizePerBlock(VkFormat _format)
     {
         switch (_format)

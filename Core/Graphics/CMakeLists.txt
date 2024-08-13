@@ -10,6 +10,7 @@ set(VkFiles
         VK/VkTypes.hpp
         VK/VkDebugHandler.hpp
         VK/VmaUsage.cpp
+        VK/VkDescriptorSetManager.cpp VK/VkDescriptorSetManager.hpp
 )
 
 set (DX12Files
@@ -21,8 +22,7 @@ set (DX12Files
         DX12/Dx12Resources.cpp
         DX12/Dx12Resources.h
         DX12/Dx12Types.hpp
-        DX12/Dx12DescriptorSetManager.cpp
-        DX12/Dx12DescriptorSetManager.hpp
+        DX12/Dx12DescriptorSetManager.cpp DX12/Dx12DescriptorSetManager.hpp
 )
 
 set(CommonFiles

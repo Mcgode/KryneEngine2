@@ -17,10 +17,11 @@
 
 namespace KryneEngine
 {
-    class Window;
+    class VkDebugHandler;
+    class VkDescriptorSetManager;
     class VkSurface;
     class VkSwapChain;
-    class VkDebugHandler;
+    class Window;
 
     struct BufferMapping;
     struct BufferCopyParameters;
@@ -226,6 +227,7 @@ namespace KryneEngine
 
     private:
         VkResources m_resources {};
+        eastl::unique_ptr<VkDescriptorSetManager> m_descriptorSetManager;
     };
 }
 
