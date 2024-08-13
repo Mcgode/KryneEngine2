@@ -7,7 +7,6 @@
 #pragma once
 
 #include <Common/Arrays.hpp>
-#include <Common/Utils/MultiFrameTracking.hpp>
 #include <Graphics/Common/Handles.hpp>
 #include <Graphics/Common/RenderPass.hpp>
 #include <Graphics/Common/ShaderPipeline.hpp>

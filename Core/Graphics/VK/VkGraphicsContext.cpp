@@ -122,7 +122,10 @@ namespace KryneEngine
 
         VkAssert(vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance));
 
-        _SetupValidationLayersCallback();
+        if (m_appInfo.m_features.m_validationLayers)
+        {
+            _SetupValidationLayersCallback();
+        }
 
         if (m_appInfo.m_features.m_present)
         {
