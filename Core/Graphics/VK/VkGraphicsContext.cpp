@@ -1131,8 +1131,7 @@ namespace KryneEngine
 
     ShaderModuleHandle VkGraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
     {
-        KE_ERROR("Not yet implemented");
-        return { GenPool::kInvalidHandle };
+        return m_resources.CreateShaderModule(_bytecodeData, _bytecodeSize, m_device);
     }
 
     DescriptorSetHandle VkGraphicsContext::CreateDescriptorSet(const DescriptorSetDesc& _desc, u32* _bindingIndices)

@@ -5,13 +5,14 @@
  */
 
 #include "VkResources.hpp"
-#include "VkDebugHandler.hpp"
 #include "HelperFunctions.hpp"
-#include <Graphics/Common/GraphicsCommon.hpp>
+#include "VkDebugHandler.hpp"
+#include <Common/Utils/Alignment.hpp>
 #include <Graphics/Common/Buffer.hpp>
+#include <Graphics/Common/GraphicsCommon.hpp>
+#include <Graphics/Common/RenderPass.hpp>
 #include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
-#include <Graphics/Common/RenderPass.hpp>
 #include <Memory/GenerationalPool.inl>
 
 namespace KryneEngine
@@ -531,6 +532,32 @@ namespace KryneEngine
         vkDestroyRenderPass(_device, data.m_renderPass, nullptr);
 
         return true;
+    }
+
+    ShaderModuleHandle VkResources::CreateShaderModule(void* _bytecodeData, u64 _bytecodeSize, VkDevice _device)
+    {
+        VERIFY_OR_RETURN(Alignment::IsAligned<u64>(_bytecodeSize, 4u), { GenPool::kInvalidHandle });
+
+        const VkShaderModuleCreateInfo createInfo {
+            .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+            .codeSize = _bytecodeSize,
+            .pCode = static_cast<u32*>(_bytecodeData),
+        };
+
+        const GenPool::Handle handle = m_shaderModules.Allocate();
+        VkAssert(vkCreateShaderModule(_device, &createInfo, nullptr, m_shaderModules.Get(handle)));
+        return { handle };
+    }
+
+    bool VkResources::DestroyShaderModule(ShaderModuleHandle _shaderModule, VkDevice _device)
+    {
+        VkShaderModule module;
+        if (m_shaderModules.Free(_shaderModule.m_handle, &module))
+        {
+            vkDestroyShaderModule(_device, module, nullptr);
+            return true;
+        }
+        return false;
     }
 
     VkImageView VkResources::CreateImageView(

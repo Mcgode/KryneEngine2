@@ -66,6 +66,8 @@ namespace KryneEngine
         };
         GenerationalPool<RenderPassData> m_renderPasses {};
 
+        GenerationalPool<VkShaderModule> m_shaderModules;
+
 #if !defined(KE_FINAL)
         eastl::shared_ptr<VkDebugHandler> m_debugHandler;
 #endif
@@ -101,6 +103,9 @@ namespace KryneEngine
 
         [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc, VkDevice _device);
         bool DestroyRenderPass(RenderPassHandle _renderPass, VkDevice _device);
+
+        [[nodiscard]] ShaderModuleHandle CreateShaderModule(void* _bytecodeData, u64 _bytecodeSize, VkDevice _device);
+        bool DestroyShaderModule(ShaderModuleHandle _shaderModule, VkDevice _device);
 
     private:
         VmaAllocator m_allocator;
