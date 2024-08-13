@@ -801,14 +801,12 @@ namespace KryneEngine
 
     SamplerHandle VkGraphicsContext::CreateSampler(const SamplerDesc& _samplerDesc)
     {
-        KE_ERROR("Not yet implemented");
-        return { GenPool::kInvalidHandle };
+        return m_resources.CreateSampler(_samplerDesc, m_device);
     }
 
     bool VkGraphicsContext::DestroySampler(SamplerHandle _sampler)
     {
-        KE_ERROR("Not yet implemented");
-        return false;
+        return m_resources.DestroySampler(_sampler, m_device);
     }
 
     RenderTargetViewHandle VkGraphicsContext::GetPresentRenderTargetView(u8 _index)

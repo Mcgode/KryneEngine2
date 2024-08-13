@@ -353,6 +353,21 @@ namespace KryneEngine::VkHelperFunctions
         return flags;
     }
 
+    VkSamplerAddressMode ToVkAddressMode(SamplerDesc::AddressMode _addressMode)
+    {
+        switch (_addressMode)
+        {
+        case SamplerDesc::AddressMode::Repeat:
+            return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        case SamplerDesc::AddressMode::MirroredRepeat:
+            return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+        case SamplerDesc::AddressMode::Border:
+            return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+        case SamplerDesc::AddressMode::Clamp:
+            return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        }
+    }
+
     u16 GetByteSizePerBlock(VkFormat _format)
     {
         switch (_format)

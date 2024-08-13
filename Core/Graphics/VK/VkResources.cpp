@@ -285,6 +285,55 @@ namespace KryneEngine
         return false;
     }
 
+    SamplerHandle VkResources::CreateSampler(const SamplerDesc& _samplerDesc, VkDevice _device)
+    {
+        VkSamplerCreateInfo createInfo {
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .magFilter = _samplerDesc.m_magFilter == SamplerDesc::Filter::Linear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
+            .minFilter = _samplerDesc.m_minFilter == SamplerDesc::Filter::Linear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
+            .mipmapMode = _samplerDesc.m_mipFilter == SamplerDesc::Filter::Linear ? VK_SAMPLER_MIPMAP_MODE_LINEAR : VK_SAMPLER_MIPMAP_MODE_NEAREST,
+            .addressModeU = VkHelperFunctions::ToVkAddressMode(_samplerDesc.m_addressModeU),
+            .addressModeV = VkHelperFunctions::ToVkAddressMode(_samplerDesc.m_addressModeV),
+            .addressModeW = VkHelperFunctions::ToVkAddressMode(_samplerDesc.m_addressModeW),
+            .mipLodBias = _samplerDesc.m_lodBias,
+            .anisotropyEnable = _samplerDesc.m_anisotropy > 0,
+            .maxAnisotropy = static_cast<float>(_samplerDesc.m_anisotropy),
+            .compareEnable = _samplerDesc.m_opType != SamplerDesc::OpType::Blend,
+            .minLod = _samplerDesc.m_lodMin,
+            .maxLod = _samplerDesc.m_lodMax,
+            .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
+            .unnormalizedCoordinates = false,
+        };
+
+        switch (_samplerDesc.m_opType)
+        {
+        case SamplerDesc::OpType::Blend:
+            createInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+            break;
+        case SamplerDesc::OpType::Minimum:
+            createInfo.compareOp = VK_COMPARE_OP_LESS;
+            break;
+        case SamplerDesc::OpType::Maximum:
+            createInfo.compareOp = VK_COMPARE_OP_GREATER;
+            break;
+        }
+
+        const GenPool::Handle handle = m_samplers.Allocate();
+        VkAssert(vkCreateSampler(_device, &createInfo, nullptr, m_samplers.Get(handle)));
+        return { handle };
+    }
+
+    bool VkResources::DestroySampler(SamplerHandle _sampler, VkDevice _device)
+    {
+        VkSampler sampler;
+        if (m_samplers.Free(_sampler.m_handle, &sampler))
+        {
+            vkDestroySampler(_device, sampler, nullptr);
+            return true;
+        }
+        return false;
+    }
+
     RenderTargetViewHandle VkResources::CreateRenderTargetView(
             const RenderTargetViewDesc &_desc,
             VkDevice &_device)

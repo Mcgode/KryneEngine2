@@ -30,8 +30,9 @@ namespace KryneEngine
 
     class VkDebugHandler;
 
-    struct VkResources
+    class VkResources
     {
+    public:
         friend class VkGraphicsContext;
 
         struct BufferColdData
@@ -49,6 +50,7 @@ namespace KryneEngine
         GenerationalPool<VkImage, TextureColdData> m_textures {};
 
         GenerationalPool<VkImageView> m_imageViews {};
+        GenerationalPool<VkSampler> m_samplers;
 
         struct RTVColdData
         {
@@ -97,6 +99,9 @@ namespace KryneEngine
 
         [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, VkDevice _device);
         bool DestroyTextureSrv(TextureSrvHandle _textureSrv, VkDevice _device);
+
+        [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc, VkDevice _device);
+        bool DestroySampler(SamplerHandle _sampler, VkDevice _device);
 
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc, VkDevice& _device);
         bool FreeRenderTargetView(RenderTargetViewHandle _rtv, VkDevice _device);
