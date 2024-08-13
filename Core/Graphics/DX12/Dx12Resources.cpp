@@ -510,10 +510,7 @@ namespace KryneEngine
         return { handle };
     }
 
-    PipelineLayoutHandle Dx12Resources::CreatePipelineLayout(
-        const PipelineLayoutDesc& _desc,
-        Dx12DescriptorSetManager* _setManager,
-        ID3D12Device* _device)
+    PipelineLayoutHandle Dx12Resources::CreatePipelineLayout(const PipelineLayoutDesc& _desc, ID3D12Device* _device)
     {
         eastl::vector<D3D12_ROOT_PARAMETER> rootParameters;
 
@@ -523,13 +520,11 @@ namespace KryneEngine
         {
             auto set = _desc.m_descriptorSets[setIndex];
 
-            const DescriptorSetDesc* setDesc = _setManager->GetDescriptorSetDesc(set);
-
             constexpr u32 count = static_cast<u32>(Dx12DescriptorSetManager::RangeType::COUNT);
             ShaderVisibility visibilities[2] = { ShaderVisibility::None, ShaderVisibility::None };
             u16 totals[count] = { 0, 0, 0, 0};
 
-            for (auto binding : setDesc->m_bindings)
+            for (auto binding : _desc.m_descriptorSets[setIndex].m_bindings)
             {
                 Dx12DescriptorSetManager::RangeType type;
                 switch(binding.m_type)

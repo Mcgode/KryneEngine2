@@ -451,29 +451,30 @@ namespace KryneEngine::Modules::ImGui
             m_fsModule = _graphicsContext.RegisterShaderModule(m_fsBytecode.data(), m_fsBytecode.size());
         }
 
+        const DescriptorSetDesc descriptorSetDesc {
+            .m_bindings = {
+                {
+                    .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                    .m_visibility = ShaderVisibility::Fragment,
+                },
+                {
+                    .m_type = DescriptorBindingDesc::Type::Sampler,
+                    .m_visibility = ShaderVisibility::Fragment,
+                },
+            }
+        };
+
         // Set up descriptor set
         {
-            DescriptorSetDesc desc {
-                .m_bindings = {
-                    {
-                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
-                        .m_visibility = ShaderVisibility::Fragment,
-                    },
-                    {
-                        .m_type = DescriptorBindingDesc::Type::Sampler,
-                        .m_visibility = ShaderVisibility::Fragment,
-                    },
-                }
-            };
-            m_setIndices.resize(desc.m_bindings.size());
-            m_fontDescriptorSet = _graphicsContext.CreateDescriptorSet(desc, m_setIndices.data());
+            m_setIndices.resize(descriptorSetDesc.m_bindings.size());
+            m_fontDescriptorSet = _graphicsContext.CreateDescriptorSet(descriptorSetDesc, m_setIndices.data());
         }
 
         // Pipeline layout creation
         {
             PipelineLayoutDesc pipelineLayoutDesc {};
 
-            pipelineLayoutDesc.m_descriptorSets.push_back(m_fontDescriptorSet);
+            pipelineLayoutDesc.m_descriptorSets.push_back(descriptorSetDesc);
 
             // Scale and translate push constant
             pipelineLayoutDesc.m_pushConstants.push_back(PushConstantDesc {

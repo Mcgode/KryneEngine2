@@ -882,7 +882,7 @@ namespace KryneEngine
 
     PipelineLayoutHandle Dx12GraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
     {
-        return m_resources.CreatePipelineLayout(_desc, m_descriptorSetManager.get(), m_device.Get());
+        return m_resources.CreatePipelineLayout(_desc, m_device.Get());
     }
 
     GraphicsPipelineHandle Dx12GraphicsContext::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc)
