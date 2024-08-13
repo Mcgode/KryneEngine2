@@ -4,8 +4,9 @@
  * @date 13/08/2024.
  */
 
-#include "HelperFunctions.hpp"
 #include "VkDescriptorSetManager.hpp"
+#include "HelperFunctions.hpp"
+#include <EASTL/vector_map.h>
 #include <Graphics/Common/ShaderPipeline.hpp>
 #include <Memory/GenerationalPool.inl>
 
@@ -37,6 +38,9 @@ namespace KryneEngine
     {
         eastl::vector<VkDescriptorSetLayoutBinding> bindings;
         bindings.reserve(_desc.m_bindings.size());
+
+        eastl::vector_map<VkDescriptorType, u32> countPerType;
+
         for (auto i = 0u; i < _desc.m_bindings.size(); i++)
         {
             const DescriptorBindingDesc& binding = _desc.m_bindings[i];
@@ -50,6 +54,8 @@ namespace KryneEngine
             });
             KE_ASSERT(type < (1 << PackedIndex::kTypeBits));
 
+            countPerType[type] += binding.m_count;
+
             const PackedIndex packedIndex {
                 .m_type = static_cast<u32>(type),
                 .m_binding = i,
@@ -62,12 +68,76 @@ namespace KryneEngine
             .bindingCount = static_cast<u32>(bindings.size()),
             .pBindings = bindings.data(),
         };
-        const GenPool::Handle handle = m_descriptorSetLayouts.Allocate();
+
+        VkDescriptorSetLayout layout;
         VkAssert(vkCreateDescriptorSetLayout(
             _device,
             &createInfo,
             nullptr,
-            m_descriptorSetLayouts.Get(handle)));
+            &layout));
+
+        const GenPool::Handle handle = m_descriptorSetLayouts.Allocate();
+        auto* data = m_descriptorSetLayouts.Get(handle);
+        data->m_layout = layout;
+        data->m_poolSizes.clear();
+        for (auto [type, count]: countPerType)
+        {
+            data->m_poolSizes.push_back(VkDescriptorPoolSize { type, static_cast<u32>(count * m_frameCount) });
+        }
+
+        return { handle };
+    }
+
+    DescriptorSetHandle VkDescriptorSetManager::CreateDescriptorSet(DescriptorSetLayoutHandle _layout, VkDevice _device)
+    {
+        VERIFY_OR_RETURN(_layout != GenPool::kInvalidHandle, {GenPool::kInvalidHandle });
+        LayoutData* pLayoutData = m_descriptorSetLayouts.Get(_layout.m_handle);
+        VERIFY_OR_RETURN(pLayoutData != nullptr, {GenPool::kInvalidHandle });
+
+        // Create descriptor pool
+        VkDescriptorPool pool;
+        {
+            VkDescriptorPoolCreateInfo createInfo {
+                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+                .flags = 0,
+                .maxSets = static_cast<u32>(m_frameCount),
+                .poolSizeCount = static_cast<u32>(pLayoutData->m_poolSizes.size()),
+                .pPoolSizes = pLayoutData->m_poolSizes.data(),
+            };
+
+            VkAssert(vkCreateDescriptorPool(
+                _device,
+                &createInfo,
+                nullptr,
+                &pool));
+        }
+
+        const GenPool::Handle handle = m_descriptorSetPools.Allocate();
+        *m_descriptorSetPools.Get(handle) = pool;
+
+        // Allocate descriptor sets
+        {
+            const u64 offset = static_cast<u64>(handle.m_index) * m_frameCount;
+            if (m_descriptorSets.size() < offset + m_frameCount)
+            {
+                m_descriptorSets.resize(offset + m_frameCount, VK_NULL_HANDLE);
+            }
+
+            DynamicArray<VkDescriptorSetLayout> layouts(m_frameCount);
+            layouts.InitAll(pLayoutData->m_layout);
+
+            const VkDescriptorSetAllocateInfo allocateInfo{
+                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+                .descriptorPool = pool,
+                .descriptorSetCount = static_cast<u32>(m_frameCount),
+                .pSetLayouts = layouts.Data(),
+            };
+            VkAssert(vkAllocateDescriptorSets(
+                _device,
+                &allocateInfo,
+                m_descriptorSets.begin() + offset));
+        }
+
         return { handle };
     }
 } // namespace KryneEngine

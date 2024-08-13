@@ -1148,8 +1148,7 @@ namespace KryneEngine
 
     DescriptorSetHandle VkGraphicsContext::CreateDescriptorSet(DescriptorSetLayoutHandle _layout)
     {
-        KE_ERROR("Not yet implemented");
-        return { GenPool::kInvalidHandle };
+        return m_descriptorSetManager->CreateDescriptorSet(_layout, m_device);
     }
 
     PipelineLayoutHandle VkGraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
