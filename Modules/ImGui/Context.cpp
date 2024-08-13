@@ -432,9 +432,9 @@ namespace KryneEngine::Modules::ImGui
     {
         // Read shader files
         {
-            constexpr auto readShaderFile = [](const char* _path, auto& _vec)
+            constexpr auto readShaderFile = [](const auto& _path, auto& _vec)
             {
-                std::ifstream file(_path, std::ios::binary);
+                std::ifstream file(_path.c_str(), std::ios::binary);
                 VERIFY_OR_RETURN_VOID(file);
 
                 file.seekg(0, std::ios::end);
@@ -444,8 +444,12 @@ namespace KryneEngine::Modules::ImGui
                 KE_VERIFY(file.read(_vec.data(), _vec.size()));
             };
 
-            readShaderFile("Shaders/ImGui/ImGui_vs_MainVS.cso", m_vsBytecode);
-            readShaderFile("Shaders/ImGui/ImGui_ps_MainPS.cso", m_fsBytecode);
+            readShaderFile(
+                eastl::string("Shaders/ImGui/ImGui_vs_MainVS.") + GraphicsContext::GetShaderFileExtension(),
+                m_vsBytecode);
+            readShaderFile(
+                eastl::string("Shaders/ImGui/ImGui_ps_MainPS.") + GraphicsContext::GetShaderFileExtension(),
+                m_fsBytecode);
 
             m_vsModule = _graphicsContext.RegisterShaderModule(m_vsBytecode.data(), m_vsBytecode.size());
             m_fsModule = _graphicsContext.RegisterShaderModule(m_fsBytecode.data(), m_fsBytecode.size());
