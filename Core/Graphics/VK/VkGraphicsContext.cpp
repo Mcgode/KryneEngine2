@@ -12,6 +12,7 @@
 #include <EASTL/vector_map.h>
 #include <Common/StringHelpers.hpp>
 #include <Graphics/Common/Buffer.hpp>
+#include <Graphics/Common/Drawing.hpp>
 #include <Graphics/Common/Window.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
 #include <Graphics/VK/VkSurface.hpp>
@@ -1162,22 +1163,65 @@ namespace KryneEngine
 
     void VkGraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)
     {
-        KE_ERROR("Not yet implemented");
+        const VkViewport viewport {
+            .x = static_cast<float>(_viewport.m_topLeftX),
+            .y = static_cast<float>(_viewport.m_topLeftY),
+            .width = static_cast<float>(_viewport.m_width),
+            .height = static_cast<float>(_viewport.m_height),
+            .minDepth = _viewport.m_minDepth,
+            .maxDepth = _viewport.m_maxDepth,
+        };
+        vkCmdSetViewport(_commandList, 0, 1, &viewport);
     }
 
     void VkGraphicsContext::SetScissorsRect(CommandList _commandList, const Rect& _rect)
     {
-        KE_ERROR("Not yet implemented");
+        const VkRect2D scissorRect {
+            .offset = {
+                static_cast<s32>(_rect.m_left),
+                static_cast<s32>(_rect.m_left),
+            },
+            .extent = {
+                _rect.m_right - _rect.m_left,
+                _rect.m_bottom - _rect.m_top,
+            }
+        };
+        vkCmdSetScissor(_commandList, 0, 1, &scissorRect);
     }
 
     void VkGraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16)
     {
-        KE_ERROR("Not yet implemented");
+        VkBuffer* pBuffer = m_resources.m_buffers.Get(_indexBufferView.m_buffer.m_handle);
+        VERIFY_OR_RETURN_VOID(pBuffer != nullptr);
+        vkCmdBindIndexBuffer(
+            _commandList,
+            *pBuffer,
+            _indexBufferView.m_offset,
+            _isU16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
     }
 
     void VkGraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews)
     {
-        KE_ERROR("Not yet implemented");
+        eastl::fixed_vector<VkBuffer, 4> buffers;
+        eastl::fixed_vector<u64, 4> offsets;
+        buffers.reserve(_bufferViews.size());
+        offsets.reserve(_bufferViews.size());
+
+        for (const auto& view: _bufferViews)
+        {
+            VERIFY_OR_RETURN_VOID(view.m_buffer != GenPool::kInvalidHandle);
+            VkBuffer* pBuffer = m_resources.m_buffers.Get(view.m_buffer.m_handle);
+            VERIFY_OR_RETURN_VOID(pBuffer != nullptr);
+
+            buffers.push_back(*pBuffer);
+            offsets.push_back(view.m_offset);
+        }
+        vkCmdBindVertexBuffers(
+            _commandList,
+            0,
+            _bufferViews.size(),
+            buffers.data(),
+            offsets.data());
     }
 
     void VkGraphicsContext::SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline)
@@ -1204,6 +1248,12 @@ namespace KryneEngine
 
     void VkGraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)
     {
-        KE_ERROR("Not yet implemented");
+        vkCmdDrawIndexed(
+            _commandList,
+            _desc.m_elementCount,
+            _desc.m_instanceCount,
+            _desc.m_indexOffset,
+            _desc.m_vertexOffset,
+            _desc.m_instanceOffset);
     }
 }
