@@ -34,6 +34,18 @@ namespace KryneEngine
         m_implementation.WaitForFrame(m_frameId - 1);
     }
 
+    const char* GraphicsContext::GetShaderFileExtension()
+    {
+#if defined(KE_GRAPHICS_API_VK)
+        return "spv";
+#elif defined(KE_GRAPHICS_API_DX12)
+        return "cso";
+#else
+        static_assert("Not yet implemented");
+        return nullptr;
+#endif
+    }
+
     SamplerHandle GraphicsContext::CreateSampler(const SamplerDesc& _samplerDesc)
     {
         return m_implementation.CreateSampler(_samplerDesc);

@@ -59,6 +59,8 @@ namespace KryneEngine
             return m_implementation.GetApplicationInfo();
         }
 
+        [[nodiscard]] static const char* GetShaderFileExtension();
+
     private:
 #if defined(KE_GRAPHICS_API_VK)
         using UnderlyingGraphicsContext = VkGraphicsContext;
