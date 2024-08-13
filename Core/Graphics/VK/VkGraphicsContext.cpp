@@ -798,6 +798,18 @@ namespace KryneEngine
         return !BitUtils::EnumHasAny(memoryPropertyFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     }
 
+    SamplerHandle VkGraphicsContext::CreateSampler(const SamplerDesc& _samplerDesc)
+    {
+        KE_ERROR("Not yet implemented");
+        return { GenPool::kInvalidHandle };
+    }
+
+    bool VkGraphicsContext::DestroySampler(SamplerHandle _sampler)
+    {
+        KE_ERROR("Not yet implemented");
+        return false;
+    }
+
     RenderTargetViewHandle VkGraphicsContext::GetPresentRenderTargetView(u8 _index)
     {
         return (m_swapChain != nullptr)
@@ -1115,5 +1127,84 @@ namespace KryneEngine
             }
             while (gIndex < _globalMemoryBarriers.size() && bIndex < _bufferMemoryBarriers.size() && iIndex < _textureMemoryBarriers.size());
         }
+    }
+
+    ShaderModuleHandle VkGraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
+    {
+        KE_ERROR("Not yet implemented");
+        return { GenPool::kInvalidHandle };
+    }
+
+    DescriptorSetHandle VkGraphicsContext::CreateDescriptorSet(const DescriptorSetDesc& _desc, u32* _bindingIndices)
+    {
+        KE_ERROR("Not yet implemented");
+        return { GenPool::kInvalidHandle };
+    }
+
+    PipelineLayoutHandle VkGraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
+    {
+        KE_ERROR("Not yet implemented");
+        return { GenPool::kInvalidHandle };
+    }
+
+    GraphicsPipelineHandle VkGraphicsContext::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc)
+    {
+        KE_ERROR("Not yet implemented");
+        return { GenPool::kInvalidHandle };
+    }
+
+    void VkGraphicsContext::UpdateDescriptorSet(
+        DescriptorSetHandle _descriptorSet,
+        const eastl::span<DescriptorSetWriteInfo>& _writes,
+        u64 _frameId)
+    {
+        KE_ERROR("Not yet implemented");
+    }
+
+    void VkGraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)
+    {
+        KE_ERROR("Not yet implemented");
+    }
+
+    void VkGraphicsContext::SetScissorsRect(CommandList _commandList, const Rect& _rect)
+    {
+        KE_ERROR("Not yet implemented");
+    }
+
+    void VkGraphicsContext::SetIndexBuffer(CommandList _commandList, BufferHandle _indexBuffer, u64 _bufferSize, bool _isU16)
+    {
+        KE_ERROR("Not yet implemented");
+    }
+
+    void VkGraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews)
+    {
+        KE_ERROR("Not yet implemented");
+    }
+
+    void VkGraphicsContext::SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline)
+    {
+        KE_ERROR("Not yet implemented");
+    }
+
+    void VkGraphicsContext::SetGraphicsPushConstant(
+        CommandList _commandList,
+        u32 _index,
+        const eastl::span<u32>& _data,
+        u32 _offset)
+    {
+        KE_ERROR("Not yet implemented");
+    }
+    void VkGraphicsContext::SetGraphicsDescriptorSets(
+        CommandList _commandList,
+        const eastl::span<DescriptorSetHandle>& _sets,
+        const bool* _unchanged,
+        u32 _frameId)
+    {
+        KE_ERROR("Not yet implemented");
+    }
+
+    void VkGraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)
+    {
+        KE_ERROR("Not yet implemented");
     }
 }

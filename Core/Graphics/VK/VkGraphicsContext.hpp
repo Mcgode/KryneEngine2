@@ -24,7 +24,9 @@ namespace KryneEngine
 
     struct BufferMapping;
     struct BufferCopyParameters;
-    struct RenderTargetViewDesc;
+    struct BufferView;
+    struct DrawIndexedInstancedDesc;
+    struct Viewport;
 
     class VkGraphicsContext
     {
@@ -141,6 +143,9 @@ namespace KryneEngine
             return m_resources.DestroyTextureSrv(_handle, m_device);
         }
 
+        [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
+        bool DestroySampler(SamplerHandle _sampler);
+
         [[nodiscard]] inline RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
             return m_resources.CreateRenderTargetView(_desc, m_device);
@@ -194,6 +199,29 @@ namespace KryneEngine
             const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,
             const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
             const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers);
+
+        [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
+        [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(const DescriptorSetDesc& _desc, u32* _bindingIndices);
+        [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
+        [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
+
+        void UpdateDescriptorSet(
+            DescriptorSetHandle _descriptorSet,
+            const eastl::span<DescriptorSetWriteInfo>& _writes,
+            u64 _frameId);
+
+        void SetViewport(CommandList  _commandList, const Viewport& _viewport);
+        void SetScissorsRect(CommandList  _commandList, const Rect& _rect);
+        void SetIndexBuffer(CommandList _commandList, BufferHandle _indexBuffer, u64 _bufferSize, bool _isU16);
+        void SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews);
+        void SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline);
+        void SetGraphicsPushConstant(CommandList _commandList, u32 _index, const eastl::span<u32>& _data, u32 _offset = 0);
+        void SetGraphicsDescriptorSets(
+            CommandList _commandList,
+            const eastl::span<DescriptorSetHandle>& _sets,
+            const bool* _unchanged,
+            u32 _frameId);
+        void DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc);
 
     private:
         VkResources m_resources {};

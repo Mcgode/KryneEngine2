@@ -9,6 +9,7 @@
 #include "VkHeaders.hpp"
 #include <EASTL/shared_ptr.h>
 #include <Graphics/Common/Handles.hpp>
+#include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Common/Texture.hpp>
 #include <vk_mem_alloc.h>
 
@@ -23,6 +24,9 @@ namespace KryneEngine
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
     struct TextureSrvDesc;
+    struct BufferCreateDesc;
+    struct TextureSrvDesc;
+    struct RenderTargetViewDesc;
 
     class VkDebugHandler;
 
