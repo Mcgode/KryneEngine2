@@ -11,6 +11,16 @@
 
 namespace KryneEngine
 {
+    union PackedIndex
+    {
+        struct {
+            u16 m_type;
+            u16 m_binding;
+        };
+        u32 m_packed;
+    };
+
+
     void Dx12DescriptorSetManager::Init(ID3D12Device* _device, u8 _frameContextCount, u8 _currentFrame)
     {
         m_cbvSrvUavGpuDescriptorHeaps.Resize(_frameContextCount);
@@ -50,19 +60,22 @@ namespace KryneEngine
         m_multiFrameUpdateTracker.Init(_frameContextCount, _currentFrame);
     }
 
-    DescriptorSetHandle Dx12DescriptorSetManager::CreateDescriptorSet(
-        const DescriptorSetDesc& _setDesc,
+    DescriptorSetLayoutHandle Dx12DescriptorSetManager::CreateDescriptorSetLayout(
+        const DescriptorSetDesc& _desc,
         u32* _bindingIndices)
     {
         VERIFY_OR_RETURN(_bindingIndices != nullptr, { GenPool::kInvalidHandle });
 
-        const GenPool::Handle handle = m_descriptorSets.Allocate();
-        DescriptorSetRanges* ranges = m_descriptorSets.Get(handle);
+        eastl::array<ShaderVisibility, kRangeTypesCount> visibilities {
+            ShaderVisibility::None,
+            ShaderVisibility::None,
+            ShaderVisibility::None,
+            ShaderVisibility::None, };
+        eastl::array<u16, kRangeTypesCount> totals = { 0, 0, 0, 0 };
 
-        u16 totals[4] = { 0, 0, 0, 0 };
-        for (auto i = 0; i < _setDesc.m_bindings.size(); i++)
+        for (auto i = 0; i < _desc.m_bindings.size(); i++)
         {
-            DescriptorBindingDesc binding = _setDesc.m_bindings[i];
+            DescriptorBindingDesc binding = _desc.m_bindings[i];
 
             RangeType type;
             switch (binding.m_type)
@@ -84,10 +97,30 @@ namespace KryneEngine
                 break;
             }
 
-            u16& total = totals[static_cast<u32>(type)];
-            _bindingIndices[i] = (static_cast<u32>(total) << 16) | static_cast<u32>(type); // Pack index data into a single u32
+            const auto typeIndex = static_cast<u16>(type);
+
+            u16& total = totals[typeIndex];
+            // Pack index data into a single u32
+            _bindingIndices[i] = PackedIndex { .m_type = typeIndex, .m_binding = total }.m_packed;
             total += binding.m_count;
+
+            visibilities[typeIndex] |= binding.m_visibility;
         }
+
+        const GenPool::Handle handle = m_descriptorSetLayout.Allocate();
+        *m_descriptorSetLayout.Get(handle) = { visibilities, totals };
+        return { handle };
+    }
+
+    DescriptorSetHandle Dx12DescriptorSetManager::CreateDescriptorSet(DescriptorSetLayoutHandle _layout)
+    {
+        VERIFY_OR_RETURN(_layout != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
+        LayoutData* pData = m_descriptorSetLayout.Get(_layout.m_handle);
+        VERIFY_OR_RETURN(pData != nullptr, { GenPool::kInvalidHandle });
+        eastl::array<u16, kRangeTypesCount>& totals = pData->m_totals;
+
+        const GenPool::Handle handle = m_descriptorSets.Allocate();
+        DescriptorSetRanges* ranges = m_descriptorSets.Get(handle);
 
         constexpr u32 samplerIndex = static_cast<u32>(RangeType::Sampler);
 
@@ -209,6 +242,12 @@ namespace KryneEngine
         }
 
         m_multiFrameUpdateTracker.ClearData();
+    }
+
+    const Dx12DescriptorSetManager::LayoutData* Dx12DescriptorSetManager::GetDescriptorSetLayoutData(
+        DescriptorSetLayoutHandle _layout)
+    {
+        return m_descriptorSetLayout.Get(_layout.m_handle);
     }
 
     void Dx12DescriptorSetManager::_ProcessUpdate(

@@ -25,6 +25,7 @@ namespace KryneEngine
     KE_GRAPHICS_DECLARE_HANDLE(RenderTargetViewHandle);
     KE_GRAPHICS_DECLARE_HANDLE(RenderPassHandle);
     KE_GRAPHICS_DECLARE_HANDLE(ShaderModuleHandle);
+    KE_GRAPHICS_DECLARE_HANDLE(DescriptorSetLayoutHandle);
     KE_GRAPHICS_DECLARE_HANDLE(DescriptorSetHandle);
     KE_GRAPHICS_DECLARE_HANDLE(PipelineLayoutHandle);
     KE_GRAPHICS_DECLARE_HANDLE(GraphicsPipelineHandle);

@@ -33,7 +33,8 @@ namespace KryneEngine::Modules::ImGui
         TextureSrvHandle m_fontTextureSrvHandle{ GenPool::kInvalidHandle };
         SamplerHandle m_fontSamplerHandle { GenPool::kInvalidHandle };
 
-        DescriptorSetHandle m_fontDescriptorSet{ GenPool::kInvalidHandle };
+        DescriptorSetLayoutHandle m_fontDescriptorSetLayout { GenPool::kInvalidHandle };
+        DescriptorSetHandle m_fontDescriptorSet { GenPool::kInvalidHandle };
 
         eastl::vector<char> m_vsBytecode {};
         eastl::vector<char> m_fsBytecode {};

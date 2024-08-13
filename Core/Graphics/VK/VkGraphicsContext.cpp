@@ -1133,7 +1133,15 @@ namespace KryneEngine
         return m_resources.CreateShaderModule(_bytecodeData, _bytecodeSize, m_device);
     }
 
-    DescriptorSetHandle VkGraphicsContext::CreateDescriptorSet(const DescriptorSetDesc& _desc, u32* _bindingIndices)
+    DescriptorSetLayoutHandle VkGraphicsContext::CreateDescriptorSetLayout(
+        const DescriptorSetDesc& _desc,
+        u32* _bindingIndices)
+    {
+        KE_ERROR("Not yet implemented");
+        return { GenPool::kInvalidHandle };
+    }
+
+    DescriptorSetHandle VkGraphicsContext::CreateDescriptorSet(DescriptorSetLayoutHandle _layout)
     {
         KE_ERROR("Not yet implemented");
         return { GenPool::kInvalidHandle };

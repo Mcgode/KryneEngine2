@@ -510,7 +510,10 @@ namespace KryneEngine
         return { handle };
     }
 
-    PipelineLayoutHandle Dx12Resources::CreatePipelineLayout(const PipelineLayoutDesc& _desc, ID3D12Device* _device)
+    PipelineLayoutHandle Dx12Resources::CreatePipelineLayout(
+        const PipelineLayoutDesc& _desc,
+        Dx12DescriptorSetManager* _setManager,
+        ID3D12Device* _device)
     {
         eastl::vector<D3D12_ROOT_PARAMETER> rootParameters;
 
@@ -518,38 +521,9 @@ namespace KryneEngine
         eastl::vector<u32> offsets {};
         for (auto setIndex = 0u; setIndex < _desc.m_descriptorSets.size(); setIndex++)
         {
-            auto set = _desc.m_descriptorSets[setIndex];
+            auto layout = _desc.m_descriptorSets[setIndex];
 
-            constexpr u32 count = static_cast<u32>(Dx12DescriptorSetManager::RangeType::COUNT);
-            ShaderVisibility visibilities[2] = { ShaderVisibility::None, ShaderVisibility::None };
-            u16 totals[count] = { 0, 0, 0, 0};
-
-            for (auto binding : _desc.m_descriptorSets[setIndex].m_bindings)
-            {
-                Dx12DescriptorSetManager::RangeType type;
-                switch(binding.m_type)
-                {
-                case DescriptorBindingDesc::Type::ConstantBuffer:
-                    type = Dx12DescriptorSetManager::RangeType::CBV;
-                    break;
-                case DescriptorBindingDesc::Type::SampledTexture:
-                case DescriptorBindingDesc::Type::StorageReadOnlyTexture:
-                case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:
-                    type = Dx12DescriptorSetManager::RangeType::SRV;
-                    break;
-                case DescriptorBindingDesc::Type::StorageReadWriteTexture:
-                case DescriptorBindingDesc::Type::StorageReadWriteBuffer:
-                    type = Dx12DescriptorSetManager::RangeType::UAV;
-                    break;
-                case DescriptorBindingDesc::Type::Sampler:
-                    type = Dx12DescriptorSetManager::RangeType::Sampler;
-                    break;
-                }
-
-                const u32 visibilityIndex = type == Dx12DescriptorSetManager::RangeType::Sampler ? 1 : 0;
-                visibilities[visibilityIndex] |= binding.m_visibility;
-                totals[static_cast<u32>(type)] += binding.m_count;
-            }
+            const Dx12DescriptorSetManager::LayoutData* layoutData = _setManager->GetDescriptorSetLayoutData(layout);
 
             u32 rangesCount = 0;
             const u32 rangesOffset = ranges.size();
@@ -562,10 +536,10 @@ namespace KryneEngine
                 // Set up CBV/SRV/UAV descriptor table
                 for (auto i = 0u; i < samplerIndex; i++)
                 {
-                    if (totals[i] > 0)
+                    if (layoutData->m_totals[i] > 0)
                     {
                         D3D12_DESCRIPTOR_RANGE range{
-                            .NumDescriptors = totals[i],
+                            .NumDescriptors = layoutData->m_totals[i],
                             .BaseShaderRegister = 0,
                             .RegisterSpace = setIndex,
                             .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
@@ -599,17 +573,20 @@ namespace KryneEngine
                         .DescriptorTable = {
                             .NumDescriptorRanges = rangesCount,
                         },
-                        .ShaderVisibility = Dx12Converters::ToDx12ShaderVisibility(visibilities[0]),
+                        .ShaderVisibility = Dx12Converters::ToDx12ShaderVisibility(
+                            layoutData->m_visibilities[static_cast<u32>(Dx12DescriptorSetManager::RangeType::CBV)] |
+                            layoutData->m_visibilities[static_cast<u32>(Dx12DescriptorSetManager::RangeType::SRV)] |
+                            layoutData->m_visibilities[static_cast<u32>(Dx12DescriptorSetManager::RangeType::UAV)]),
                     });
                     offsets.push_back(rangesOffset);
                 }
 
                 // Set up sampler descriptor table
-                if (totals[samplerIndex] > 0)
+                if (layoutData->m_totals[samplerIndex] > 0)
                 {
                     D3D12_DESCRIPTOR_RANGE range{
                         .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
-                        .NumDescriptors = totals[samplerIndex],
+                        .NumDescriptors = layoutData->m_totals[samplerIndex],
                         .BaseShaderRegister = 0,
                         .RegisterSpace = setIndex,
                         .OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
@@ -620,7 +597,8 @@ namespace KryneEngine
                         .DescriptorTable = {
                             .NumDescriptorRanges = 1,
                         },
-                        .ShaderVisibility = Dx12Converters::ToDx12ShaderVisibility(visibilities[1]),
+                        .ShaderVisibility = Dx12Converters::ToDx12ShaderVisibility(
+                            layoutData->m_visibilities[static_cast<u32>(Dx12DescriptorSetManager::RangeType::Sampler)]),
                     });
                     offsets.push_back(ranges.size());
 

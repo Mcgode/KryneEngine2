@@ -165,7 +165,8 @@ namespace KryneEngine
             const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers);
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
-        [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(const DescriptorSetDesc& _desc, u32* _bindingIndices);
+        [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
+        [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout);
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
 

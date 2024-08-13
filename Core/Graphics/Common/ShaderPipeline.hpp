@@ -302,7 +302,7 @@ namespace KryneEngine
 
     struct PipelineLayoutDesc
     {
-        eastl::vector<DescriptorSetDesc> m_descriptorSets {};
+        eastl::vector<DescriptorSetLayoutHandle> m_descriptorSets {};
         eastl::vector<PushConstantDesc> m_pushConstants {};
         bool m_useVertexLayout = true;
     };

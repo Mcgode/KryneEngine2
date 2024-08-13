@@ -455,30 +455,36 @@ namespace KryneEngine::Modules::ImGui
             m_fsModule = _graphicsContext.RegisterShaderModule(m_fsBytecode.data(), m_fsBytecode.size());
         }
 
-        const DescriptorSetDesc descriptorSetDesc {
-            .m_bindings = {
-                {
-                    .m_type = DescriptorBindingDesc::Type::SampledTexture,
-                    .m_visibility = ShaderVisibility::Fragment,
-                },
-                {
-                    .m_type = DescriptorBindingDesc::Type::Sampler,
-                    .m_visibility = ShaderVisibility::Fragment,
-                },
-            }
-        };
+        // Set up descriptor set layout
+        {
+            const DescriptorSetDesc descriptorSetDesc {
+                .m_bindings = {
+                    {
+                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                        .m_visibility = ShaderVisibility::Fragment,
+                    },
+                    {
+                        .m_type = DescriptorBindingDesc::Type::Sampler,
+                        .m_visibility = ShaderVisibility::Fragment,
+                    },
+                }
+            };
+            m_setIndices.resize(descriptorSetDesc.m_bindings.size());
+            m_fontDescriptorSetLayout = _graphicsContext.CreateDescriptorSetLayout(
+                descriptorSetDesc,
+                m_setIndices.data());
+        }
 
         // Set up descriptor set
         {
-            m_setIndices.resize(descriptorSetDesc.m_bindings.size());
-            m_fontDescriptorSet = _graphicsContext.CreateDescriptorSet(descriptorSetDesc, m_setIndices.data());
+            m_fontDescriptorSet = _graphicsContext.CreateDescriptorSet(m_fontDescriptorSetLayout);
         }
 
         // Pipeline layout creation
         {
             PipelineLayoutDesc pipelineLayoutDesc {};
 
-            pipelineLayoutDesc.m_descriptorSets.push_back(descriptorSetDesc);
+            pipelineLayoutDesc.m_descriptorSets.push_back(m_fontDescriptorSetLayout);
 
             // Scale and translate push constant
             pipelineLayoutDesc.m_pushConstants.push_back(PushConstantDesc {

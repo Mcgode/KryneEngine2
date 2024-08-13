@@ -10,6 +10,7 @@
 #include "Dx12Types.hpp"
 #include <Common/Utils/MultiFrameTracking.hpp>
 #include <Graphics/Common/Handles.hpp>
+#include <Graphics/Common/ShaderPipeline.hpp>
 
 namespace KryneEngine
 {
@@ -23,7 +24,8 @@ namespace KryneEngine
     public:
         void Init(ID3D12Device* _device, u8 _frameContextCount, u8 _currentFrame);
 
-        [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(const DescriptorSetDesc& _setDesc, u32* _bindingIndices);
+        [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
+        [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout);
 
         void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,
@@ -48,8 +50,17 @@ namespace KryneEngine
             SRV,
             UAV,
             Sampler,
-            COUNT
+            COUNT,
         };
+        static constexpr u32 kRangeTypesCount = static_cast<u32>(RangeType::COUNT);
+
+        struct LayoutData
+        {
+            eastl::array<ShaderVisibility, kRangeTypesCount> m_visibilities;
+            eastl::array<u16, kRangeTypesCount> m_totals;
+        };
+
+        const LayoutData* GetDescriptorSetLayoutData(DescriptorSetLayoutHandle _layout);
 
     private:
         static constexpr u32 kCbvSrvUavHeapSize = 1024;
@@ -61,6 +72,8 @@ namespace KryneEngine
         DynamicArray<ComPtr<ID3D12DescriptorHeap>> m_samplerGpuDescriptorHeaps;
         u32 m_samplerDescriptorSize = 0;
         std::atomic<u32> m_samplerLinearAllocIndex { 0 };
+
+        GenerationalPool<LayoutData> m_descriptorSetLayout;
 
         struct DescriptorSetRanges
         {
