@@ -1153,14 +1153,12 @@ namespace KryneEngine
 
     PipelineLayoutHandle VkGraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
     {
-        KE_ERROR("Not yet implemented");
-        return { GenPool::kInvalidHandle };
+        return m_resources.CreatePipelineLayout(_desc, m_device, m_descriptorSetManager.get());
     }
 
     GraphicsPipelineHandle VkGraphicsContext::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc)
     {
-        KE_ERROR("Not yet implemented");
-        return { GenPool::kInvalidHandle };
+        return m_resources.CreateGraphicsPipeline(_desc, m_device);
     }
 
     void VkGraphicsContext::UpdateDescriptorSet(

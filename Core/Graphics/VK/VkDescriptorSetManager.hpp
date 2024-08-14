@@ -27,6 +27,8 @@ namespace KryneEngine
             VkDevice _device);
         bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout, VkDevice _device);
 
+        [[nodiscard]] VkDescriptorSetLayout GetDescriptorSetLayout(DescriptorSetLayoutHandle _layout);
+
         [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout, VkDevice _device);
         bool DestroyDescriptorSet(DescriptorSetHandle _descriptorSet, VkDevice _device);
 

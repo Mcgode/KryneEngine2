@@ -7,6 +7,7 @@
 #include "VkResources.hpp"
 #include "HelperFunctions.hpp"
 #include "VkDebugHandler.hpp"
+#include "VkDescriptorSetManager.hpp"
 #include <Common/Utils/Alignment.hpp>
 #include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
@@ -604,6 +605,72 @@ namespace KryneEngine
         if (m_shaderModules.Free(_shaderModule.m_handle, &module))
         {
             vkDestroyShaderModule(_device, module, nullptr);
+            return true;
+        }
+        return false;
+    }
+
+    PipelineLayoutHandle VkResources::CreatePipelineLayout(
+        const PipelineLayoutDesc& _desc, VkDevice _device, VkDescriptorSetManager* _setManager)
+    {
+        DynamicArray<VkDescriptorSetLayout> setLayouts(_desc.m_descriptorSets.size());
+        for (auto i = 0u; i < setLayouts.Size(); i++)
+        {
+            setLayouts[i] = _setManager->GetDescriptorSetLayout(_desc.m_descriptorSets[i]);
+        }
+
+        DynamicArray<VkPushConstantRange> pushConstants(_desc.m_pushConstants.size());
+        for (auto i = 0u; i < pushConstants.Size(); i++)
+        {
+            const PushConstantDesc& pushConstant = _desc.m_pushConstants[i];
+            pushConstants[i] = {
+                .stageFlags = VkHelperFunctions::ToVkShaderStageFlags(pushConstant.m_visibility),
+                .offset = pushConstant.m_offset,
+                .size = pushConstant.m_sizeInBytes,
+            };
+        }
+
+        const VkPipelineLayoutCreateInfo createInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            .setLayoutCount = static_cast<u32>(setLayouts.Size()),
+            .pSetLayouts = setLayouts.Data(),
+            .pushConstantRangeCount = static_cast<u32>(pushConstants.Size()),
+            .pPushConstantRanges = pushConstants.Data(),
+        };
+
+        const GenPool::Handle handle = m_pipelineLayouts.Allocate();
+        VkAssert(vkCreatePipelineLayout(
+            _device,
+            &createInfo,
+            nullptr,
+            m_pipelineLayouts.Get(handle)));
+
+        return { handle };
+    }
+
+    bool VkResources::DestroyPipelineLayout(PipelineLayoutHandle _pipeline, VkDevice _device)
+    {
+        VkPipelineLayout layout;
+        if (m_pipelineLayouts.Free(_pipeline.m_handle, &layout))
+        {
+            vkDestroyPipelineLayout(_device, layout, nullptr);
+            return true;
+        }
+        return false;
+    }
+
+    GraphicsPipelineHandle VkResources::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc, VkDevice _device)
+    {
+        KE_ERROR("Not yet implemented");
+        return { GenPool::kInvalidHandle };
+    }
+
+    bool VkResources::DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline, VkDevice _device)
+    {
+        VkPipeline pipeline;
+        if (m_pipelines.Free(_pipeline.m_handle, &pipeline))
+        {
+            vkDestroyPipeline(_device, pipeline, nullptr);
             return true;
         }
         return false;

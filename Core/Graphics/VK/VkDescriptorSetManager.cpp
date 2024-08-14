@@ -99,6 +99,13 @@ namespace KryneEngine
         return false;
     }
 
+    VkDescriptorSetLayout VkDescriptorSetManager::GetDescriptorSetLayout(DescriptorSetLayoutHandle _layout)
+    {
+        const LayoutData* pData = m_descriptorSetLayouts.Get(_layout.m_handle);
+        VERIFY_OR_RETURN(pData != nullptr, VK_NULL_HANDLE);
+        return pData->m_layout;
+    }
+
     DescriptorSetHandle VkDescriptorSetManager::CreateDescriptorSet(DescriptorSetLayoutHandle _layout, VkDevice _device)
     {
         VERIFY_OR_RETURN(_layout != GenPool::kInvalidHandle, {GenPool::kInvalidHandle });

@@ -29,6 +29,7 @@ namespace KryneEngine
     struct RenderTargetViewDesc;
 
     class VkDebugHandler;
+    class VkDescriptorSetManager;
 
     class VkResources
     {
@@ -69,6 +70,10 @@ namespace KryneEngine
         GenerationalPool<RenderPassData> m_renderPasses {};
 
         GenerationalPool<VkShaderModule> m_shaderModules;
+
+        GenerationalPool<VkPipelineLayout> m_pipelineLayouts;
+
+        GenerationalPool<VkPipeline> m_pipelines;
 
 #if !defined(KE_FINAL)
         eastl::shared_ptr<VkDebugHandler> m_debugHandler;
@@ -111,6 +116,15 @@ namespace KryneEngine
 
         [[nodiscard]] ShaderModuleHandle CreateShaderModule(void* _bytecodeData, u64 _bytecodeSize, VkDevice _device);
         bool DestroyShaderModule(ShaderModuleHandle _shaderModule, VkDevice _device);
+
+        [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(
+            const PipelineLayoutDesc& _desc,
+            VkDevice _device,
+            VkDescriptorSetManager* _setManager);
+        bool DestroyPipelineLayout(PipelineLayoutHandle _pipeline, VkDevice _device);
+
+        [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc, VkDevice _device);
+        bool DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline, VkDevice _device);
 
     private:
         VmaAllocator m_allocator;
