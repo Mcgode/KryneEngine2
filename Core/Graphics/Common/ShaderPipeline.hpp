@@ -27,6 +27,7 @@ namespace KryneEngine
 
         ShaderModuleHandle m_shaderModule { GenPool::kInvalidHandle };
         Stage m_stage = Stage::Vertex;
+        eastl::string m_entryPoint = "main";
     };
 
     struct VertexLayoutElement
@@ -48,6 +49,19 @@ namespace KryneEngine
         u8 m_bindingIndex : 4 = 0;
         TextureFormat m_format = TextureFormat::RGBA8_UNorm;
         u16 m_offset = 0;
+        u8 m_location = 0;
+    };
+
+    struct VertexBindingDesc
+    {
+        u16 m_stride = 0;
+        u8 m_binding = 0;
+    };
+
+    struct VertexInputDesc
+    {
+        eastl::vector<VertexLayoutElement> m_elements{};
+        eastl::vector<VertexBindingDesc> m_bindings {};
     };
 
     struct InputAssemblyDesc
@@ -153,7 +167,7 @@ namespace KryneEngine
         BlendFactor m_srcAlpha = BlendFactor::One;
         BlendFactor m_dstAlpha = BlendFactor::Zero;
         BlendOp m_alphaOp = BlendOp::Add;
-        WriteMask m_writeMak = WriteMask::All;
+        WriteMask m_writeMask = WriteMask::All;
     };
     KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(ColorAttachmentBlendDesc::WriteMask)
 
@@ -310,7 +324,7 @@ namespace KryneEngine
     struct GraphicsPipelineDesc
     {
         eastl::vector<GraphicsShaderStage> m_stages {};
-        eastl::vector<VertexLayoutElement> m_vertexLayout {};
+        VertexInputDesc m_vertexInput {};
         InputAssemblyDesc m_inputAssembly {};
         RasterStateDesc m_rasterState {};
         ColorBlendingDesc m_colorBlending {};

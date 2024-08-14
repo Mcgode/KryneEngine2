@@ -661,7 +661,222 @@ namespace KryneEngine
 
     GraphicsPipelineHandle VkResources::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc, VkDevice _device)
     {
-        KE_ERROR("Not yet implemented");
+        // Shader stages
+
+        DynamicArray<VkPipelineShaderStageCreateInfo> shaderStages(_desc.m_stages.size());
+        for (auto i = 0u; i < shaderStages.Size(); i++)
+        {
+            const GraphicsShaderStage& stage = _desc.m_stages[i];
+
+            VkShaderModule* pModule = m_shaderModules.Get(stage.m_shaderModule.m_handle);
+            VERIFY_OR_RETURN(pModule != nullptr, { GenPool::kInvalidHandle });
+
+            shaderStages[i] = VkPipelineShaderStageCreateInfo {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .stage = VkHelperFunctions::ToVkShaderStageFlagBits(stage.m_stage),
+                .module = *pModule,
+                .pName = stage.m_entryPoint.c_str(),
+            };
+        }
+
+        // Vertex input
+
+        DynamicArray<VkVertexInputBindingDescription> vertexInputBindings(_desc.m_vertexInput.m_bindings.size());
+        for (auto i = 0u; i < vertexInputBindings.Size(); i++)
+        {
+            vertexInputBindings[i] = {
+                .binding = _desc.m_vertexInput.m_bindings[i].m_binding,
+                .stride = _desc.m_vertexInput.m_bindings[i].m_stride,
+                .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+            };
+        }
+
+        DynamicArray<VkVertexInputAttributeDescription> vertexInputAttributes(_desc.m_vertexInput.m_elements.size());
+        for (auto i = 0; i < vertexInputAttributes.Size(); i++)
+        {
+            const VertexLayoutElement& element = _desc.m_vertexInput.m_elements[i];
+            vertexInputAttributes[i] = {
+                .location = element.m_location,
+                .binding = element.m_bindingIndex,
+                .format = VkHelperFunctions::ToVkFormat(element.m_format),
+                .offset = element.m_offset,
+            };
+        }
+
+        const VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+            .vertexBindingDescriptionCount = static_cast<u32>(vertexInputBindings.Size()),
+            .pVertexBindingDescriptions = vertexInputBindings.Data(),
+            .vertexAttributeDescriptionCount = static_cast<u32>(vertexInputAttributes.Size()),
+            .pVertexAttributeDescriptions = vertexInputAttributes.Data(),
+        };
+
+        // Input assembly
+
+        const VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+            .topology = VkHelperFunctions::ToVkPrimitiveTopology(_desc.m_inputAssembly.m_topology),
+            .primitiveRestartEnable = _desc.m_inputAssembly.m_cutStripAtSpecialIndex
+        };
+
+        // Viewport state
+
+        const VkPipelineViewportStateCreateInfo viewportStateCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+            .viewportCount = 1,
+            .scissorCount = 1,
+        };
+
+        // Raster state
+
+        VkPipelineRasterizationStateCreateInfo rasterStateCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+            .depthClampEnable = !_desc.m_rasterState.m_depthClip,
+            .rasterizerDiscardEnable = VK_FALSE,
+            .polygonMode = VkHelperFunctions::ToVkPolygonMode(_desc.m_rasterState.m_fillMode),
+            .cullMode = VkHelperFunctions::ToVkCullModeFlags(_desc.m_rasterState.m_cullMode),
+            .frontFace = VkHelperFunctions::ToVkFrontFace(_desc.m_rasterState.m_front),
+            .depthBiasEnable = _desc.m_rasterState.m_depthBias,
+            .depthBiasConstantFactor = _desc.m_rasterState.m_depthBiasConstantFactor,
+            .depthBiasClamp = _desc.m_rasterState.m_depthBiasClampValue,
+            .depthBiasSlopeFactor = _desc.m_rasterState.m_depthBiasSlopFactor,
+            .lineWidth = 1.f
+        };
+
+        // Multisample state
+
+        // TODO: Multi-sampling support
+        const VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+            .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+            .sampleShadingEnable = VK_FALSE,
+            .minSampleShading = 1.f,
+            .pSampleMask = nullptr,
+            .alphaToCoverageEnable = VK_FALSE,
+            .alphaToOneEnable = VK_FALSE,
+        };
+
+        // Depth stencil state
+
+        const VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+            .depthTestEnable = _desc.m_depthStencil.m_depthTest,
+            .depthWriteEnable = _desc.m_depthStencil.m_depthWrite,
+            .depthCompareOp = VkHelperFunctions::ToVkCompareOp(_desc.m_depthStencil.m_depthCompare),
+            .depthBoundsTestEnable = VK_TRUE,
+            .stencilTestEnable = _desc.m_depthStencil.m_stencilTest,
+            .front = {
+                .failOp = VkHelperFunctions::ToVkStencilOp(_desc.m_depthStencil.m_front.m_failOp),
+                .passOp = VkHelperFunctions::ToVkStencilOp(_desc.m_depthStencil.m_front.m_passOp),
+                .depthFailOp = VkHelperFunctions::ToVkStencilOp(_desc.m_depthStencil.m_front.m_depthFailOp),
+                .compareOp = VkHelperFunctions::ToVkCompareOp(_desc.m_depthStencil.m_front.m_compareOp),
+                .compareMask = _desc.m_depthStencil.m_stencilReadMask,
+                .writeMask = _desc.m_depthStencil.m_stencilWriteMask,
+                .reference = _desc.m_depthStencil.m_stencilRef,
+            },
+            .back = {
+                .failOp = VkHelperFunctions::ToVkStencilOp(_desc.m_depthStencil.m_back.m_failOp),
+                .passOp = VkHelperFunctions::ToVkStencilOp(_desc.m_depthStencil.m_back.m_passOp),
+                .depthFailOp = VkHelperFunctions::ToVkStencilOp(_desc.m_depthStencil.m_back.m_depthFailOp),
+                .compareOp = VkHelperFunctions::ToVkCompareOp(_desc.m_depthStencil.m_back.m_compareOp),
+                .compareMask = _desc.m_depthStencil.m_stencilReadMask,
+                .writeMask = _desc.m_depthStencil.m_stencilWriteMask,
+                .reference = _desc.m_depthStencil.m_stencilRef,
+            },
+            .minDepthBounds = 0.f,
+            .maxDepthBounds = 1.f,
+        };
+
+        // Color blend state
+
+        DynamicArray<VkPipelineColorBlendAttachmentState> attachments(_desc.m_colorBlending.m_attachments.size());
+        for (auto i = 0; i < attachments.Size(); i++)
+        {
+            const ColorAttachmentBlendDesc& attachmentBlendDesc = _desc.m_colorBlending.m_attachments[i];
+            attachments[i] = {
+                .blendEnable = attachmentBlendDesc.m_blendEnable,
+                .srcColorBlendFactor = VkHelperFunctions::ToVkBlendFactor(attachmentBlendDesc.m_srcColor),
+                .dstColorBlendFactor = VkHelperFunctions::ToVkBlendFactor(attachmentBlendDesc.m_dstColor),
+                .colorBlendOp = VkHelperFunctions::ToVkBlendOp(attachmentBlendDesc.m_colorOp),
+                .srcAlphaBlendFactor = VkHelperFunctions::ToVkBlendFactor(attachmentBlendDesc.m_srcAlpha),
+                .dstAlphaBlendFactor = VkHelperFunctions::ToVkBlendFactor(attachmentBlendDesc.m_dstAlpha),
+                .alphaBlendOp = VkHelperFunctions::ToVkBlendOp(attachmentBlendDesc.m_alphaOp),
+                .colorWriteMask = VkHelperFunctions::ToVkColorComponentFlags(attachmentBlendDesc.m_writeMask),
+            };
+        }
+
+        const VkPipelineColorBlendStateCreateInfo blendStateCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+            .logicOpEnable = _desc.m_colorBlending.m_logicOp != ColorBlendingDesc::LogicOp::None,
+            .logicOp = VkHelperFunctions::ToVkLogicOp(_desc.m_colorBlending.m_logicOp),
+            .attachmentCount = static_cast<u32>(attachments.Size()),
+            .pAttachments = attachments.Data(),
+            .blendConstants = {
+                _desc.m_colorBlending.m_blendFactor.r,
+                _desc.m_colorBlending.m_blendFactor.g,
+                _desc.m_colorBlending.m_blendFactor.b,
+                _desc.m_colorBlending.m_blendFactor.a,
+            }
+        };
+
+        // Dynamic state
+
+        eastl::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_VIEWPORT };
+
+        if (_desc.m_colorBlending.m_dynamicBlendFactor)
+        {
+            dynamicStates.push_back(VK_DYNAMIC_STATE_BLEND_CONSTANTS);
+        }
+
+        if (_desc.m_depthStencil.m_dynamicStencilRef)
+        {
+            dynamicStates.push_back(VK_DYNAMIC_STATE_STENCIL_REFERENCE);
+        }
+
+        const VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+            .dynamicStateCount = static_cast<u32>(dynamicStates.size()),
+            .pDynamicStates = dynamicStates.data(),
+        };
+
+        // Layout
+
+        VkPipelineLayout* pLayout = m_pipelineLayouts.Get(_desc.m_pipelineLayout.m_handle);
+        VERIFY_OR_RETURN(pLayout != nullptr, { GenPool::kInvalidHandle });
+
+        // Render Pass
+
+        RenderPassData* pRenderPassData = m_renderPasses.Get(_desc.m_renderPass.m_handle);
+        VERIFY_OR_RETURN(pRenderPassData != nullptr, { GenPool::kInvalidHandle });
+
+        // Pipeline creation
+
+        const VkGraphicsPipelineCreateInfo pipelineCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+            .stageCount = static_cast<u32>(shaderStages.Size()),
+            .pStages = shaderStages.Data(),
+            .pVertexInputState = &vertexInputCreateInfo,
+            .pInputAssemblyState = &inputAssemblyCreateInfo,
+            .pViewportState = &viewportStateCreateInfo,
+            .pRasterizationState = &rasterStateCreateInfo,
+            .pMultisampleState = &multisampleStateCreateInfo,
+            .pDepthStencilState = &depthStencilStateCreateInfo,
+            .pColorBlendState = &blendStateCreateInfo,
+            .pDynamicState = &dynamicStateCreateInfo,
+            .layout = *pLayout,
+            .renderPass = pRenderPassData->m_renderPass,
+            .subpass = 0,
+        };
+
+        const GenPool::Handle handle = m_pipelines.Allocate();
+        VkAssert(vkCreateGraphicsPipelines(
+            _device,
+            VK_NULL_HANDLE,
+            1,
+            &pipelineCreateInfo,
+            nullptr,
+            m_pipelines.Get(handle)));
+
         return { GenPool::kInvalidHandle };
     }
 

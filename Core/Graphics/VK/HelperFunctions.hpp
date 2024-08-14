@@ -106,13 +106,18 @@ namespace KryneEngine::VkHelperFunctions
             MAP(RGB8_SNorm, VK_FORMAT_R8G8B8_SNORM);
             MAP(RGBA8_SNorm, VK_FORMAT_R8G8B8A8_SNORM);
 
+            MAP(R32_Float, VK_FORMAT_R32_SFLOAT);
+            MAP(RG32_Float, VK_FORMAT_R32G32_SFLOAT);
+            MAP(RGB32_Float, VK_FORMAT_R32G32B32_SFLOAT);
+            MAP(RGBA32_Float, VK_FORMAT_R32G32B32A32_SFLOAT);
+
             MAP(D16, VK_FORMAT_D16_UNORM);
             MAP(D24, VK_FORMAT_X8_D24_UNORM_PACK32);
             MAP(D32F, VK_FORMAT_D32_SFLOAT);
             MAP(D24S8, VK_FORMAT_D24_UNORM_S8_UINT);
             MAP(D32FS8, VK_FORMAT_D32_SFLOAT_S8_UINT);
             default:
-                KE_ASSERT_MSG(_format != TextureFormat::NoFormat, "Unknown format");
+                KE_ASSERT_MSG(_format == TextureFormat::NoFormat, "Unknown format");
                 format = VK_FORMAT_UNDEFINED;
         }
 
@@ -338,6 +343,17 @@ namespace KryneEngine::VkHelperFunctions
     VkSamplerAddressMode ToVkAddressMode(SamplerDesc::AddressMode _addressMode);
     VkDescriptorType ToVkDescriptorType(DescriptorBindingDesc::Type _type);
     VkShaderStageFlags ToVkShaderStageFlags(ShaderVisibility _visibility);
+    VkShaderStageFlagBits ToVkShaderStageFlagBits(GraphicsShaderStage::Stage _stage);
+    VkPrimitiveTopology ToVkPrimitiveTopology(InputAssemblyDesc::PrimitiveTopology _topology);
+    VkPolygonMode ToVkPolygonMode(RasterStateDesc::FillMode _fillMode);
+    VkCullModeFlags ToVkCullModeFlags(RasterStateDesc::CullMode _cullMode);
+    VkFrontFace ToVkFrontFace(RasterStateDesc::Front _face);
+    VkCompareOp ToVkCompareOp(DepthStencilStateDesc::CompareOp _compareOp);
+    VkStencilOp ToVkStencilOp(DepthStencilStateDesc::StencilOp _stencilOp);
+    VkLogicOp ToVkLogicOp(ColorBlendingDesc::LogicOp _logicOp);
+    VkBlendFactor ToVkBlendFactor(ColorAttachmentBlendDesc::BlendFactor _blendFactor);
+    VkBlendOp ToVkBlendOp(ColorAttachmentBlendDesc::BlendOp _blendOp);
+    VkColorComponentFlags ToVkColorComponentFlags(ColorAttachmentBlendDesc::WriteMask _mask);
 
     u16 GetByteSizePerBlock(VkFormat _format);
 }

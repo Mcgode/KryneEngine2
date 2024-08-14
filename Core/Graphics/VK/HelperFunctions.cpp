@@ -434,6 +434,247 @@ namespace KryneEngine::VkHelperFunctions
         return flags;
     }
 
+    VkShaderStageFlagBits ToVkShaderStageFlagBits(GraphicsShaderStage::Stage _stage)
+    {
+        switch (_stage)
+        {
+        case GraphicsShaderStage::Stage::Vertex:
+            return VK_SHADER_STAGE_VERTEX_BIT;
+        case GraphicsShaderStage::Stage::TesselationControl:
+            return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        case GraphicsShaderStage::Stage::TesselationEvaluation:
+            return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        case GraphicsShaderStage::Stage::Geometry:
+            return VK_SHADER_STAGE_GEOMETRY_BIT;
+        case GraphicsShaderStage::Stage::Fragment:
+            return VK_SHADER_STAGE_FRAGMENT_BIT;
+        }
+    }
+
+    VkPrimitiveTopology ToVkPrimitiveTopology(InputAssemblyDesc::PrimitiveTopology _topology)
+    {
+        switch (_topology)
+        {
+        case InputAssemblyDesc::PrimitiveTopology::PointList:
+            return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+        case InputAssemblyDesc::PrimitiveTopology::LineList:
+            return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+        case InputAssemblyDesc::PrimitiveTopology::LineStrip:
+            return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+        case InputAssemblyDesc::PrimitiveTopology::TriangleList:
+            return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        case InputAssemblyDesc::PrimitiveTopology::TriangleStrip:
+            return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+        }
+    }
+
+    VkPolygonMode ToVkPolygonMode(RasterStateDesc::FillMode _fillMode)
+    {
+        switch (_fillMode)
+        {
+        case RasterStateDesc::FillMode::Wireframe:
+            return VK_POLYGON_MODE_LINE;
+        case RasterStateDesc::FillMode::Solid:
+            return VK_POLYGON_MODE_FILL;
+        }
+    }
+
+    VkCullModeFlags ToVkCullModeFlags(RasterStateDesc::CullMode _cullMode)
+    {
+        switch (_cullMode)
+        {
+        case RasterStateDesc::CullMode::None:
+            return VK_CULL_MODE_NONE;
+        case RasterStateDesc::CullMode::Front:
+            return VK_CULL_MODE_FRONT_BIT;
+        case RasterStateDesc::CullMode::Back:
+            return VK_CULL_MODE_BACK_BIT;
+        }
+    }
+
+    VkFrontFace ToVkFrontFace(RasterStateDesc::Front _face)
+    {
+        switch (_face)
+        {
+        case RasterStateDesc::Front::Clockwise:
+            return VK_FRONT_FACE_CLOCKWISE;
+        case RasterStateDesc::Front::CounterClockwise:
+            return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        }
+    }
+
+    VkCompareOp ToVkCompareOp(DepthStencilStateDesc::CompareOp _compareOp)
+    {
+        switch (_compareOp)
+        {
+        case DepthStencilStateDesc::CompareOp::Never:
+            return VK_COMPARE_OP_NEVER;
+        case DepthStencilStateDesc::CompareOp::Less:
+            return VK_COMPARE_OP_LESS;
+        case DepthStencilStateDesc::CompareOp::Equal:
+            return VK_COMPARE_OP_EQUAL;
+        case DepthStencilStateDesc::CompareOp::LessEqual:
+            return VK_COMPARE_OP_LESS_OR_EQUAL;
+        case DepthStencilStateDesc::CompareOp::Greater:
+            return VK_COMPARE_OP_GREATER;
+        case DepthStencilStateDesc::CompareOp::NotEqual:
+            return VK_COMPARE_OP_NOT_EQUAL;
+        case DepthStencilStateDesc::CompareOp::GreaterEqual:
+            return VK_COMPARE_OP_GREATER_OR_EQUAL;
+        case DepthStencilStateDesc::CompareOp::Always:
+            return VK_COMPARE_OP_ALWAYS;
+        }
+    }
+
+    VkStencilOp ToVkStencilOp(DepthStencilStateDesc::StencilOp _stencilOp)
+    {
+        switch (_stencilOp)
+        {
+        case DepthStencilStateDesc::StencilOp::Keep:
+            return VK_STENCIL_OP_KEEP;
+        case DepthStencilStateDesc::StencilOp::Zero:
+            return VK_STENCIL_OP_ZERO;
+        case DepthStencilStateDesc::StencilOp::Replace:
+            return VK_STENCIL_OP_REPLACE;
+        case DepthStencilStateDesc::StencilOp::IncrementAndClamp:
+            return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
+        case DepthStencilStateDesc::StencilOp::DecrementAndClamp:
+            return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
+        case DepthStencilStateDesc::StencilOp::Invert:
+            return VK_STENCIL_OP_INVERT;
+        case DepthStencilStateDesc::StencilOp::IncrementAndWrap:
+            return VK_STENCIL_OP_INCREMENT_AND_WRAP;
+        case DepthStencilStateDesc::StencilOp::DecrementAndWrap:
+            return VK_STENCIL_OP_DECREMENT_AND_WRAP;
+        }
+    }
+
+    VkLogicOp ToVkLogicOp(ColorBlendingDesc::LogicOp _logicOp)
+    {
+        switch (_logicOp)
+        {
+        case ColorBlendingDesc::LogicOp::Clear:
+            return VK_LOGIC_OP_CLEAR;
+        case ColorBlendingDesc::LogicOp::Set:
+            return VK_LOGIC_OP_SET;
+        case ColorBlendingDesc::LogicOp::Copy:
+            return VK_LOGIC_OP_COPY;
+        case ColorBlendingDesc::LogicOp::CopyInverted:
+            return VK_LOGIC_OP_COPY_INVERTED;
+        case ColorBlendingDesc::LogicOp::None:
+        case ColorBlendingDesc::LogicOp::NoOp:
+            return VK_LOGIC_OP_NO_OP;
+        case ColorBlendingDesc::LogicOp::Invert:
+            return VK_LOGIC_OP_INVERT;
+        case ColorBlendingDesc::LogicOp::And:
+            return VK_LOGIC_OP_AND;
+        case ColorBlendingDesc::LogicOp::NAnd:
+            return VK_LOGIC_OP_NAND;
+        case ColorBlendingDesc::LogicOp::Or:
+            return VK_LOGIC_OP_OR;
+        case ColorBlendingDesc::LogicOp::NOr:
+            return VK_LOGIC_OP_NOR;
+        case ColorBlendingDesc::LogicOp::XOr:
+            return VK_LOGIC_OP_XOR;
+        case ColorBlendingDesc::LogicOp::Equiv:
+            return VK_LOGIC_OP_EQUIVALENT;
+        case ColorBlendingDesc::LogicOp::AndReverse:
+            return VK_LOGIC_OP_AND_REVERSE;
+        case ColorBlendingDesc::LogicOp::AndInverted:
+            return VK_LOGIC_OP_AND_INVERTED;
+        case ColorBlendingDesc::LogicOp::OrReverse:
+            return VK_LOGIC_OP_OR_REVERSE;
+        case ColorBlendingDesc::LogicOp::OrInverted:
+            return VK_LOGIC_OP_OR_INVERTED;
+        }
+    }
+
+    VkBlendFactor ToVkBlendFactor(ColorAttachmentBlendDesc::BlendFactor _blendFactor)
+    {
+        switch (_blendFactor)
+        {
+        case ColorAttachmentBlendDesc::BlendFactor::Zero:
+            return VK_BLEND_FACTOR_ZERO;
+        case ColorAttachmentBlendDesc::BlendFactor::One:
+            return VK_BLEND_FACTOR_ONE;
+        case ColorAttachmentBlendDesc::BlendFactor::SrcColor:
+            return VK_BLEND_FACTOR_SRC_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::InvSrcColor:
+            return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::SrcAlpha:
+            return VK_BLEND_FACTOR_SRC_ALPHA;
+        case ColorAttachmentBlendDesc::BlendFactor::InvSrcAlpha:
+            return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        case ColorAttachmentBlendDesc::BlendFactor::DstColor:
+            return VK_BLEND_FACTOR_DST_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::InvDstColor:
+            return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::DstAlpha:
+            return VK_BLEND_FACTOR_DST_ALPHA;
+        case ColorAttachmentBlendDesc::BlendFactor::InvDstAlpha:
+            return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        case ColorAttachmentBlendDesc::BlendFactor::SrcAlphaSaturate:
+            return VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
+        case ColorAttachmentBlendDesc::BlendFactor::FactorColor:
+            return VK_BLEND_FACTOR_CONSTANT_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::InvFactorColor:
+            return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::FactorAlpha:
+            return VK_BLEND_FACTOR_CONSTANT_ALPHA;
+        case ColorAttachmentBlendDesc::BlendFactor::InvFactorAlpha:
+            return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
+        case ColorAttachmentBlendDesc::BlendFactor::Src1Color:
+            return VK_BLEND_FACTOR_SRC1_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::InvSrc1Color:
+            return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
+        case ColorAttachmentBlendDesc::BlendFactor::Src1Alpha:
+            return VK_BLEND_FACTOR_SRC1_ALPHA;
+        case ColorAttachmentBlendDesc::BlendFactor::InvSrc1Alpha:
+            return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+        }
+    }
+
+    VkBlendOp ToVkBlendOp(ColorAttachmentBlendDesc::BlendOp _blendOp)
+    {
+        switch (_blendOp)
+        {
+        case ColorAttachmentBlendDesc::BlendOp::Add:
+            return VK_BLEND_OP_ADD;
+        case ColorAttachmentBlendDesc::BlendOp::Subtract:
+            return VK_BLEND_OP_SUBTRACT;
+        case ColorAttachmentBlendDesc::BlendOp::ReverseSubtract:
+            return VK_BLEND_OP_REVERSE_SUBTRACT;
+        case ColorAttachmentBlendDesc::BlendOp::Min:
+            return VK_BLEND_OP_MIN;
+        case ColorAttachmentBlendDesc::BlendOp::Max:
+            return VK_BLEND_OP_MAX;
+        }
+    }
+
+    VkColorComponentFlags ToVkColorComponentFlags(ColorAttachmentBlendDesc::WriteMask _mask)
+    {
+        VkColorComponentFlags flags = 0;
+
+        if (BitUtils::EnumHasAny(_mask, ColorAttachmentBlendDesc::WriteMask::Red))
+        {
+            flags |= VK_COLOR_COMPONENT_R_BIT;
+        }
+        if (BitUtils::EnumHasAny(_mask, ColorAttachmentBlendDesc::WriteMask::Green))
+        {
+            flags |= VK_COLOR_COMPONENT_G_BIT;
+        }
+        if (BitUtils::EnumHasAny(_mask, ColorAttachmentBlendDesc::WriteMask::Blue))
+        {
+            flags |= VK_COLOR_COMPONENT_B_BIT;
+        }
+        if (BitUtils::EnumHasAny(_mask, ColorAttachmentBlendDesc::WriteMask::Alpha))
+        {
+            flags |= VK_COLOR_COMPONENT_A_BIT;
+        }
+
+        return flags;
+    }
+
     u16 GetByteSizePerBlock(VkFormat _format)
     {
         switch (_format)

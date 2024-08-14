@@ -152,7 +152,6 @@ namespace KryneEngine
 #endif
 
         m_descriptorSetManager = eastl::make_unique<VkDescriptorSetManager>();
-        m_descriptorSetManager->Init(m_frameContextCount);
 
         if (m_appInfo.m_features.m_present)
         {
@@ -187,6 +186,8 @@ namespace KryneEngine
             m_frameContexts[i].SetDebugHandler(m_debugHandler, m_device, i);
         }
 #endif
+
+        m_descriptorSetManager->Init(m_frameContextCount);
     }
 
     VkGraphicsContext::~VkGraphicsContext()

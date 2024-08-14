@@ -77,7 +77,7 @@ int main() {
 //        fibersManager.ResetCounter(syncCounter);
 
         auto appInfo = GraphicsCommon::ApplicationInfo();
-        appInfo.m_features.m_validationLayers = false;
+//        appInfo.m_features.m_validationLayers = false;
         appInfo.m_applicationName = "Basic Example - Kryne Engine 2";
 #if defined(KE_GRAPHICS_API_VK)
         appInfo.m_api = GraphicsCommon::Api::Vulkan_1_3;

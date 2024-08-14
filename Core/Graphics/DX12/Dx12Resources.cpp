@@ -739,7 +739,7 @@ namespace KryneEngine
 
                 renderTarget.LogicOp = logicOp;
 
-                renderTarget.RenderTargetWriteMask = static_cast<u8>(attachmentDesc.m_writeMak);
+                renderTarget.RenderTargetWriteMask = static_cast<u8>(attachmentDesc.m_writeMask);
             }
 
             if (_desc.m_colorBlending.m_logicOp != ColorBlendingDesc::LogicOp::None)
@@ -836,10 +836,10 @@ namespace KryneEngine
 
         // Input layout
         eastl::vector<D3D12_INPUT_ELEMENT_DESC> inputElements;
-        if (!_desc.m_vertexLayout.empty())
+        if (!_desc.m_vertexInput.m_elements.empty())
         {
-            inputElements.reserve(_desc.m_vertexLayout.size());
-            for (const auto& vertexInput: _desc.m_vertexLayout)
+            inputElements.reserve(_desc.m_vertexInput.m_elements.size());
+            for (const auto& vertexInput: _desc.m_vertexInput.m_elements)
             {
                 inputElements.push_back(D3D12_INPUT_ELEMENT_DESC {
                     .SemanticName = Dx12Converters::ToDx12SemanticName(vertexInput.m_semanticName),

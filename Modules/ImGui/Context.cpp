@@ -499,7 +499,6 @@ namespace KryneEngine::Modules::ImGui
             GraphicsPipelineDesc desc {
                 .m_rasterState = {
                     .m_cullMode = RasterStateDesc::CullMode::None,
-                    .m_depthClip = false,
                 },
                 .m_colorBlending = {
                     .m_attachments = { { kDefaultColorAttachmentAlphaBlendDesc } },
@@ -519,33 +518,46 @@ namespace KryneEngine::Modules::ImGui
             desc.m_stages.push_back(GraphicsShaderStage {
                 .m_shaderModule = m_vsModule,
                 .m_stage = GraphicsShaderStage::Stage::Vertex,
+                .m_entryPoint = "MainVS",
             });
             desc.m_stages.push_back(GraphicsShaderStage {
                 .m_shaderModule = m_fsModule,
                 .m_stage = GraphicsShaderStage::Stage::Fragment,
+                .m_entryPoint = "MainPS",
             });
 
-            desc.m_vertexLayout = {
-                VertexLayoutElement {
-                    .m_semanticName = VertexLayoutElement::SemanticName::Position,
-                    .m_semanticIndex = 0,
-                    .m_bindingIndex = 0,
-                    .m_format = TextureFormat::RG32_Float,
-                    .m_offset = offsetof(VertexEntry, m_position),
+            desc.m_vertexInput = VertexInputDesc {
+                .m_elements = {
+                    VertexLayoutElement {
+                        .m_semanticName = VertexLayoutElement::SemanticName::Position,
+                        .m_semanticIndex = 0,
+                        .m_bindingIndex = 0,
+                        .m_format = TextureFormat::RG32_Float,
+                        .m_offset = offsetof(VertexEntry, m_position),
+                        .m_location = 0,
+                    },
+                    VertexLayoutElement {
+                        .m_semanticName = VertexLayoutElement::SemanticName::Uv,
+                        .m_semanticIndex = 0,
+                        .m_bindingIndex = 0,
+                        .m_format = TextureFormat::RG32_Float,
+                        .m_offset = offsetof(VertexEntry, m_uv),
+                        .m_location = 1,
+                    },
+                    VertexLayoutElement {
+                        .m_semanticName = VertexLayoutElement::SemanticName::Color,
+                        .m_semanticIndex = 0,
+                        .m_bindingIndex = 0,
+                        .m_format = TextureFormat::RGBA8_UNorm,
+                        .m_offset = offsetof(VertexEntry, m_color),
+                        .m_location = 2,
+                    },
                 },
-                VertexLayoutElement {
-                    .m_semanticName = VertexLayoutElement::SemanticName::Uv,
-                    .m_semanticIndex = 0,
-                    .m_bindingIndex = 0,
-                    .m_format = TextureFormat::RG32_Float,
-                    .m_offset = offsetof(VertexEntry, m_uv),
-                },
-                VertexLayoutElement {
-                    .m_semanticName = VertexLayoutElement::SemanticName::Color,
-                    .m_semanticIndex = 0,
-                    .m_bindingIndex = 0,
-                    .m_format = TextureFormat::RGBA8_UNorm,
-                    .m_offset = offsetof(VertexEntry, m_color),
+                .m_bindings = {
+                    VertexBindingDesc {
+                        .m_stride = sizeof(VertexEntry),
+                        .m_binding = 0,
+                    },
                 },
             };
 

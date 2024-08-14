@@ -21,12 +21,12 @@ namespace KryneEngine
 
         DynamicArray() = default;
 
-        explicit DynamicArray(u64 _count)
+        explicit DynamicArray(size_t _count)
         {
             Resize(_count);
         }
 
-        DynamicArray(u64 _count, const T& _value)
+        DynamicArray(size_t _count, const T& _value)
         {
             Resize(_count);
             SetAll(_value);
@@ -81,7 +81,7 @@ namespace KryneEngine
             Resize(0);
         }
 
-        [[nodiscard]] u64 Size() const
+        [[nodiscard]] size_t Size() const
         {
             return m_count;
         }
@@ -91,7 +91,7 @@ namespace KryneEngine
             return m_count == 0;
         }
 
-        void Resize(u64 _count)
+        void Resize(size_t _count)
         {
             if (m_array != nullptr)
             {
@@ -102,7 +102,7 @@ namespace KryneEngine
 
             if (m_count > 0)
             {
-                const u64 size = sizeof(T) * m_count;
+                const size_t size = sizeof(T) * m_count;
                 m_buffer = new u8[size];
             }
         }
@@ -132,7 +132,7 @@ namespace KryneEngine
             }
         }
 
-        Ref operator[](u64 _index) const
+        Ref operator[](size_t _index) const
         {
             KE_ASSERT_MSG(_index < m_count, "Beyond max index!");
             return m_array[_index];
@@ -175,6 +175,6 @@ namespace KryneEngine
             u8* m_buffer = nullptr;
             Ptr m_array;
         };
-        u64 m_count = 0;
+        size_t m_count = 0;
     };
 }
