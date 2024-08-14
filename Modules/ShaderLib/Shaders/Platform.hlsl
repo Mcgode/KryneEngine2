@@ -1,10 +1,10 @@
 
-#if defined(_spriv_)
+#ifdef __spirv__
 #   define vkPushConstant [[vk::push_constant]]
-#   define vkLocation(x) [[vk::location(x)]]
-#   define vkBinding(x, y) [[vk::binding(x, y)]]
+#   define vkLocation(index) [[vk::location(index)]]
+#   define vkBinding(index, set) [[vk::binding(index, set)]]
 #else
 #   define vkPushConstant
-#   define vkLocation(x)
-#   define vkBinding(x, y)
+#   define vkLocation(index)
+#   define vkBinding(index, set)
 #endif
