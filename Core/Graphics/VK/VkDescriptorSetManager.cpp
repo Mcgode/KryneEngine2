@@ -88,6 +88,17 @@ namespace KryneEngine
         return { handle };
     }
 
+    bool VkDescriptorSetManager::DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout, VkDevice _device)
+    {
+        LayoutData data;
+        if (m_descriptorSetLayouts.Free(_layout.m_handle, &data))
+        {
+            vkDestroyDescriptorSetLayout(_device, data.m_layout, nullptr);
+            return true;
+        }
+        return false;
+    }
+
     DescriptorSetHandle VkDescriptorSetManager::CreateDescriptorSet(DescriptorSetLayoutHandle _layout, VkDevice _device)
     {
         VERIFY_OR_RETURN(_layout != GenPool::kInvalidHandle, {GenPool::kInvalidHandle });
@@ -139,5 +150,17 @@ namespace KryneEngine
         }
 
         return { handle };
+    }
+
+    bool VkDescriptorSetManager::DestroyDescriptorSet(DescriptorSetHandle _descriptorSet, VkDevice _device)
+    {
+        VkDescriptorPool pool;
+        if (m_descriptorSetPools.Free(_descriptorSet.m_handle, &pool))
+        {
+            // Descriptor sets in the vector can be left as loose memory, their memory location will be reallocated
+            vkDestroyDescriptorPool(_device, pool, nullptr);
+            return true;
+        }
+        return false;
     }
 } // namespace KryneEngine

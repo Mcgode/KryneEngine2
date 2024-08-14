@@ -25,7 +25,10 @@ namespace KryneEngine
             const DescriptorSetDesc& _desc,
             u32* _bindingIndices,
             VkDevice _device);
+        bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout, VkDevice _device);
+
         [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout, VkDevice _device);
+        bool DestroyDescriptorSet(DescriptorSetHandle _descriptorSet, VkDevice _device);
 
     private:
         u64 m_frameCount = 0;
