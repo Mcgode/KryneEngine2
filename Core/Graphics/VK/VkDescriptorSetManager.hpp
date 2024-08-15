@@ -19,6 +19,8 @@ namespace KryneEngine
     class VkDescriptorSetManager
     {
     public:
+        friend class VkGraphicsContext;
+
         VkDescriptorSetManager();
         ~VkDescriptorSetManager();
 

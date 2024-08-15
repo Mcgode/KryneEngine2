@@ -404,7 +404,7 @@ namespace KryneEngine::Modules::ImGui
                 {
                     _graphicsContext.SetGraphicsPipeline(_commandList, m_pso);
 
-                    _graphicsContext.SetGraphicsDescriptorSets(_commandList, { &m_fontDescriptorSet, 1 });
+                    _graphicsContext.SetGraphicsDescriptorSets(_commandList, m_pipelineLayout, { &m_fontDescriptorSet, 1 });
 
                     PushConstants pushConstants {};
                     pushConstants.m_scale = {
@@ -417,8 +417,9 @@ namespace KryneEngine::Modules::ImGui
                     };
                     _graphicsContext.SetGraphicsPushConstant(
                         _commandList,
-                        2,
-                        { reinterpret_cast<u32*>(&pushConstants), 4 });
+                        m_pipelineLayout,
+                        { reinterpret_cast<u32*>(&pushConstants), 4 },
+                        ShaderVisibility::Vertex);
 
                     const DrawIndexedInstancedDesc desc {
                         .m_elementCount = drawCmd.ElemCount,
@@ -494,7 +495,8 @@ namespace KryneEngine::Modules::ImGui
 
             // Scale and translate push constant
             pipelineLayoutDesc.m_pushConstants.push_back(PushConstantDesc {
-                .m_sizeInBytes = sizeof(float2) + sizeof(float2),
+                .m_sizeInBytes = sizeof(PushConstants),
+                .m_visibility = ShaderVisibility::Vertex,
             });
 
             m_pipelineLayout = _graphicsContext.CreatePipelineLayout(pipelineLayoutDesc);

@@ -117,19 +117,31 @@ namespace KryneEngine
 
     void GraphicsContext::SetGraphicsPushConstant(
         CommandList _commandList,
-        u32 _index,
+        PipelineLayoutHandle _layout,
         const eastl::span<u32>& _data,
+        ShaderVisibility _visibility,
         u32 _offset)
     {
-        m_implementation.SetGraphicsPushConstant(_commandList, _index, _data, _offset);
+        m_implementation.SetGraphicsPushConstant(
+            _commandList,
+            _layout,
+            _data,
+            _visibility,
+            _offset);
     }
 
     void GraphicsContext::SetGraphicsDescriptorSets(
         CommandList _commandList,
+        PipelineLayoutHandle _layout,
         const eastl::span<DescriptorSetHandle>& _sets,
         const bool* _unchanged)
     {
-        m_implementation.SetGraphicsDescriptorSets(_commandList, _sets, _unchanged, m_frameId);
+        m_implementation.SetGraphicsDescriptorSets(
+            _commandList,
+            _layout,
+            _sets,
+            _unchanged,
+            m_frameId);
     }
 
     void GraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)

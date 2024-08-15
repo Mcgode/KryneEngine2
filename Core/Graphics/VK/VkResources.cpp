@@ -877,7 +877,7 @@ namespace KryneEngine
             nullptr,
             m_pipelines.Get(handle)));
 
-        return { GenPool::kInvalidHandle };
+        return { handle };
     }
 
     bool VkResources::DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline, VkDevice _device)

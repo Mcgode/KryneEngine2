@@ -994,11 +994,7 @@ namespace KryneEngine
     void Dx12GraphicsContext::SetGraphicsDescriptorSets(
         CommandList _commandList, const eastl::span<DescriptorSetHandle>& _sets, const bool* _unchanged, u32 _frameId)
     {
-        m_descriptorSetManager->SetGraphicsDescriptorSets(
-            _commandList,
-            _sets,
-            _unchanged,
-            _frameId % m_frameContextCount);
+        m_descriptorSetManager->SetGraphicsDescriptorSets(_commandList, GraphicsPipelineHandle(), _sets, _unchanged);
     }
 
     void Dx12GraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)

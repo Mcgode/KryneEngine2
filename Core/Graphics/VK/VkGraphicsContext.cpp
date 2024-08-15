@@ -1177,9 +1177,9 @@ namespace KryneEngine
     {
         const VkViewport viewport {
             .x = static_cast<float>(_viewport.m_topLeftX),
-            .y = static_cast<float>(_viewport.m_topLeftY),
+            .y = static_cast<float>(_viewport.m_height - _viewport.m_topLeftY),
             .width = static_cast<float>(_viewport.m_width),
-            .height = static_cast<float>(_viewport.m_height),
+            .height = -static_cast<float>(_viewport.m_height),
             .minDepth = _viewport.m_minDepth,
             .maxDepth = _viewport.m_maxDepth,
         };
@@ -1238,24 +1238,61 @@ namespace KryneEngine
 
     void VkGraphicsContext::SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline)
     {
-        KE_ERROR("Not yet implemented");
+        VkPipeline* pPipeline = m_resources.m_pipelines.Get(_graphicsPipeline.m_handle);
+        VERIFY_OR_RETURN_VOID(pPipeline != nullptr);
+
+        vkCmdBindPipeline(_commandList, VK_PIPELINE_BIND_POINT_GRAPHICS, *pPipeline);
     }
 
     void VkGraphicsContext::SetGraphicsPushConstant(
         CommandList _commandList,
-        u32 _index,
+        PipelineLayoutHandle _layout,
         const eastl::span<u32>& _data,
+        ShaderVisibility _visibility,
         u32 _offset)
     {
-        KE_ERROR("Not yet implemented");
+        VkPipelineLayout* pLayout = m_resources.m_pipelineLayouts.Get(_layout.m_handle);
+        VERIFY_OR_RETURN_VOID(pLayout != nullptr);
+
+        vkCmdPushConstants(
+            _commandList,
+            *pLayout,
+            VkHelperFunctions::ToVkShaderStageFlags(_visibility),
+            _offset,
+            _data.size() * sizeof(u32),
+            _data.data());
     }
+
     void VkGraphicsContext::SetGraphicsDescriptorSets(
         CommandList _commandList,
+        PipelineLayoutHandle _layout,
         const eastl::span<DescriptorSetHandle>& _sets,
         const bool* _unchanged,
         u32 _frameId)
     {
-        KE_ERROR("Not yet implemented");
+        const u8 frameIndex = _frameId % m_frameContextCount;
+
+        VkPipelineLayout* pLayout = m_resources.m_pipelineLayouts.Get(_layout.m_handle);
+        VERIFY_OR_RETURN_VOID(pLayout != nullptr);
+
+        for (auto i = 0; i < _sets.size(); i++)
+        {
+            if (_unchanged == nullptr || !_unchanged[i])
+            {
+                VERIFY_OR_RETURN_VOID(m_descriptorSetManager->m_descriptorSetPools.Get(_sets[i].m_handle) != nullptr);
+                const u64 offset = m_frameContextCount * _sets[i].m_handle.m_index + frameIndex;
+
+                vkCmdBindDescriptorSets(
+                    _commandList,
+                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    *pLayout,
+                    i,
+                    1,
+                    m_descriptorSetManager->m_descriptorSets.begin() + offset,
+                    0,
+                    nullptr);
+            }
+        }
     }
 
     void VkGraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)
