@@ -1204,7 +1204,7 @@ namespace KryneEngine
         const VkRect2D scissorRect {
             .offset = {
                 static_cast<s32>(_rect.m_left),
-                static_cast<s32>(_rect.m_left),
+                static_cast<s32>(_rect.m_top),
             },
             .extent = {
                 _rect.m_right - _rect.m_left,
