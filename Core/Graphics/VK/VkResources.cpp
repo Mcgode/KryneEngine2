@@ -909,7 +909,7 @@ namespace KryneEngine
             .image = _image,
             .viewType = _viewType,
             .format = _format,
-            .components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,  VK_COMPONENT_SWIZZLE_IDENTITY },
+            .components = _componentMapping,
             .subresourceRange = {
                 .aspectMask = _aspectFlags,
                 .baseMipLevel = _mipStart,
