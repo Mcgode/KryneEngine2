@@ -310,8 +310,13 @@ namespace KryneEngine
     {
         u32 m_index = 0;
         u16 m_arrayOffset = 0;
-        eastl::vector<GenPool::Handle> m_handles;
-        TextureLayout m_textureLayout = TextureLayout::Unknown;
+
+        struct DescriptorData
+        {
+            TextureLayout m_textureLayout = TextureLayout::Unknown;
+            GenPool::Handle m_handle = GenPool::kInvalidHandle;
+        };
+        eastl::vector<DescriptorData> m_handles;
     };
 
     struct PipelineLayoutDesc

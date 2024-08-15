@@ -174,12 +174,18 @@ namespace KryneEngine::Modules::ImGui
                 DescriptorSetWriteInfo writeInfo[2] = {
                     {
                         .m_index = m_setIndices[0],
-                        .m_handles = { m_fontTextureSrvHandle.m_handle },
-                        .m_textureLayout = TextureLayout::ShaderResource,
+                        .m_handles = {
+                            DescriptorSetWriteInfo::DescriptorData {
+                                .m_textureLayout = TextureLayout::ShaderResource,
+                                .m_handle = m_fontTextureSrvHandle.m_handle,
+                            }
+                        },
                     },
                     {
                         .m_index = m_setIndices[1],
-                        .m_handles = { m_fontSamplerHandle.m_handle },
+                        .m_handles = {
+                            DescriptorSetWriteInfo::DescriptorData { .m_handle = m_fontSamplerHandle.m_handle, },
+                        },
                     }
                 };
                 _graphicsContext.UpdateDescriptorSet(

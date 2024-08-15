@@ -187,7 +187,7 @@ namespace KryneEngine
         }
 #endif
 
-        m_descriptorSetManager->Init(m_frameContextCount);
+        m_descriptorSetManager->Init(m_frameContextCount, _frameId % m_frameContextCount);
     }
 
     VkGraphicsContext::~VkGraphicsContext()
@@ -276,12 +276,14 @@ namespace KryneEngine
         const u8 nextFrameContextIndex = nextFrameId % m_frameContextCount;
         if (nextFrameId >= m_frameContextCount)
         {
-            auto&nextFrameContext = m_frameContexts[nextFrameContextIndex];
+            auto& nextFrameContext = m_frameContexts[nextFrameContextIndex];
             nextFrameContext.WaitForFences(m_device, nextFrameId - m_frameContextCount);
             nextFrameContext.m_graphicsCommandPoolSet.Reset();
             nextFrameContext.m_computeCommandPoolSet.Reset();
             nextFrameContext.m_transferCommandPoolSet.Reset();
         }
+
+        m_descriptorSetManager->NextFrame(m_device, m_resources, nextFrameContextIndex);
 
         // Acquire next image
         if (m_swapChain != nullptr)
@@ -1167,7 +1169,8 @@ namespace KryneEngine
         const eastl::span<DescriptorSetWriteInfo>& _writes,
         u64 _frameId)
     {
-        KE_ERROR("Not yet implemented");
+        return m_descriptorSetManager->UpdateDescriptorSet(
+            _descriptorSet, _writes, m_device, m_resources, _frameId % m_frameContextCount);
     }
 
     void VkGraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)

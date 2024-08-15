@@ -68,7 +68,7 @@ namespace KryneEngine
         m_resources.InitHeaps(m_device.Get());
 
         m_descriptorSetManager = eastl::make_unique<Dx12DescriptorSetManager>();
-        m_descriptorSetManager->Init(m_device.Get(), m_frameContextCount, _currentFrameId % m_frameContextCount);
+        m_descriptorSetManager->Init(m_device.Get(), 0);
 
         m_frameContexts.Resize(m_frameContextCount);
         m_frameContexts.InitAll(m_device.Get(),
@@ -178,7 +178,7 @@ namespace KryneEngine
         WaitForFrame(m_frameContexts[nextFrameIndex].m_frameId);
 
         // Duplicate descriptor in multi-frame heaps
-        m_descriptorSetManager->NextFrame(m_device.Get(), m_resources, nextFrameIndex);
+        m_descriptorSetManager->NextFrame(nullptr, <#initializer #>, 0);
     }
 
     bool Dx12GraphicsContext::IsFrameExecuted(KryneEngine::u64 _frameId) const
@@ -902,11 +902,7 @@ namespace KryneEngine
         const eastl::span<DescriptorSetWriteInfo>& _writes,
         u64 _frameId)
     {
-        m_descriptorSetManager->UpdateDescriptorSet(
-            _descriptorSet,
-            m_resources, _writes,
-            m_device.Get(),
-            _frameId % m_frameContextCount);
+        m_descriptorSetManager->UpdateDescriptorSet(_descriptorSet, m_resources, _writes, nullptr, m_device.Get());
     }
 
     void Dx12GraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)
