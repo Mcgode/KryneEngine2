@@ -84,6 +84,11 @@ namespace KryneEngine::Modules::ImGui
         m_dynamicIndexBuffer.Destroy(_graphicsContext);
         m_dynamicVertexBuffer.Destroy(_graphicsContext);
 
+        if (m_fontSamplerHandle != GenPool::kInvalidHandle)
+        {
+            _graphicsContext.DestroySampler(m_fontSamplerHandle);
+        }
+
         if (m_fontTextureSrvHandle != GenPool::kInvalidHandle)
         {
             _graphicsContext.DestroyTextureSrv(m_fontTextureSrvHandle);
@@ -97,6 +102,15 @@ namespace KryneEngine::Modules::ImGui
         if (m_fontsStagingHandle != GenPool::kInvalidHandle)
         {
             _graphicsContext.DestroyBuffer(m_fontsStagingHandle);
+        }
+
+        {
+            _graphicsContext.DestroyGraphicsPipeline(m_pso);
+            _graphicsContext.DestroyPipelineLayout(m_pipelineLayout);
+            _graphicsContext.DestroyDescriptorSet(m_fontDescriptorSet);
+            _graphicsContext.DestroyDescriptorSetLayout(m_fontDescriptorSetLayout);
+            _graphicsContext.FreeShaderModule(m_fsModule);
+            _graphicsContext.FreeShaderModule(m_vsModule);
         }
 
         ::ImGui::DestroyContext(m_context);
