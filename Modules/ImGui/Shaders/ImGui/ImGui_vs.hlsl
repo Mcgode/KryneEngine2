@@ -12,8 +12,8 @@ ConstantBuffer<PushConstants> pushConstants: register(b0, space2);
 struct VsInput 
 {
     vkLocation(0) float2 position: POSITION0;
-    vkLocation(1) float4 color: COLOR0;
-    vkLocation(2) float2 uv: TEXCOORD0;
+    vkLocation(1) float2 uv: TEXCOORD0;
+    vkLocation(2) float4 color: COLOR0;
 };
 
 struct VsOutput
