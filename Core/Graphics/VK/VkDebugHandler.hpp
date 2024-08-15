@@ -15,21 +15,21 @@ namespace KryneEngine
     class VkDebugHandler
     {
     public:
-        static VkDebugHandler Initialize(VkDevice _device, const GraphicsCommon::ApplicationInfo &_appInfo, bool _debugUtilsEnabled, bool _debugMarkersEnabled)
+        static VkDebugHandler Initialize(VkDevice _device, bool _debugUtilsEnabled, bool _debugMarkersEnabled)
         {
             VkDebugHandler handler;
 
             if (_debugUtilsEnabled)
             {
-                handler.m_setObjectDebugNameFunc = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetDeviceProcAddr(_device, "vkSetDebugUtilsObjectNameEXT"));
+                handler.m_setObjectDebugNameFunc = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(
+                    vkGetDeviceProcAddr(_device, "vkSetDebugUtilsObjectNameEXT"));
             }
 
             if (_debugMarkersEnabled)
             {
-                handler.m_setObjectMarkerNameFunc = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(vkGetDeviceProcAddr(_device, "vkDebugMarkerSetObjectNameEXT"));
+                handler.m_setObjectMarkerNameFunc = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(
+                    vkGetDeviceProcAddr(_device, "vkDebugMarkerSetObjectNameEXT"));
             }
-
-            handler.m_applicationName = _appInfo.m_applicationName;
 
             return handler;
         }
@@ -38,7 +38,7 @@ namespace KryneEngine
         {
             VkResult result = VK_INCOMPLETE;
 
-            const eastl::string name = m_applicationName + "/" + _name.data();
+            const eastl::string name = _name.data();
 
             if (_objectHandle == (u64)VK_NULL_HANDLE)
             {
@@ -75,6 +75,5 @@ namespace KryneEngine
     private:
         PFN_vkSetDebugUtilsObjectNameEXT  m_setObjectDebugNameFunc = nullptr;
         PFN_vkDebugMarkerSetObjectNameEXT m_setObjectMarkerNameFunc = nullptr;
-        eastl::string m_applicationName;
     };
 }

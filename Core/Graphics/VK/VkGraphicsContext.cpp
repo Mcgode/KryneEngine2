@@ -147,7 +147,7 @@ namespace KryneEngine
 
 #if !defined(KE_FINAL)
         m_debugHandler = eastl::make_shared<VkDebugHandler>();
-        *m_debugHandler = VkDebugHandler::Initialize(m_device, m_appInfo, m_debugUtils, m_debugMarkers);
+        *m_debugHandler = VkDebugHandler::Initialize(m_device, m_debugUtils, m_debugMarkers);
         m_resources.m_debugHandler = m_debugHandler;
 #endif
 
