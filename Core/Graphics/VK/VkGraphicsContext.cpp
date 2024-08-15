@@ -1177,6 +1177,31 @@ namespace KryneEngine
         return m_resources.CreateGraphicsPipeline(_desc, m_device);
     }
 
+    bool VkGraphicsContext::DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline)
+    {
+        return m_resources.DestroyGraphicsPipeline(_pipeline, m_device);
+    }
+
+    bool VkGraphicsContext::DestroyPipelineLayout(PipelineLayoutHandle _layout)
+    {
+        return m_resources.DestroyPipelineLayout(_layout, m_device);
+    }
+
+    bool VkGraphicsContext::DestroyDescriptorSet(DescriptorSetHandle _set)
+    {
+        return m_descriptorSetManager->DestroyDescriptorSet(_set, m_device);
+    }
+
+    bool VkGraphicsContext::DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout)
+    {
+        return m_descriptorSetManager->DestroyDescriptorSetLayout(_layout, m_device);
+    }
+
+    bool VkGraphicsContext::FreeShaderModule(ShaderModuleHandle _module)
+    {
+        return m_resources.DestroyShaderModule(_module, m_device);
+    }
+
     void VkGraphicsContext::UpdateDescriptorSet(
         DescriptorSetHandle _descriptorSet,
         const eastl::span<DescriptorSetWriteInfo>& _writes,

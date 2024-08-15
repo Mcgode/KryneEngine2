@@ -112,6 +112,11 @@ namespace KryneEngine
         return { handle };
     }
 
+    bool Dx12DescriptorSetManager::DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout)
+    {
+        return m_descriptorSetLayout.Free(_layout.m_handle);
+    }
+
     DescriptorSetHandle Dx12DescriptorSetManager::CreateDescriptorSet(DescriptorSetLayoutHandle _layout)
     {
         VERIFY_OR_RETURN(_layout != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
@@ -151,6 +156,11 @@ namespace KryneEngine
         }
 
         return { handle };
+    }
+
+    bool Dx12DescriptorSetManager::DestroyDescriptorSet(DescriptorSetHandle _set)
+    {
+        return m_descriptorSets.Free(_set.m_handle);
     }
 
     void Dx12DescriptorSetManager::UpdateDescriptorSet(

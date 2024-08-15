@@ -62,11 +62,16 @@ namespace KryneEngine
         bool FreeRenderPass(RenderPassHandle _handle);
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
+        bool UnRegisterShaderModule(ShaderModuleHandle _shaderModule);
+
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(
             const PipelineLayoutDesc& _desc,
             Dx12DescriptorSetManager* _setManager,
             ID3D12Device* _device);
+        bool DestroyPipelineLayout(PipelineLayoutHandle _layout);
+
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc, ID3D12Device* _device);
+        bool DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline);
 
         struct RtvHotData
         {

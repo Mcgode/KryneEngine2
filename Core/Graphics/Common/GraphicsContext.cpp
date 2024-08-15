@@ -83,6 +83,31 @@ namespace KryneEngine
         return m_implementation.CreateGraphicsPipeline(_desc);
     }
 
+    bool GraphicsContext::DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline)
+    {
+        return m_implementation.DestroyGraphicsPipeline(_pipeline);
+    }
+
+    bool GraphicsContext::DestroyPipelineLayout(PipelineLayoutHandle _layout)
+    {
+        return m_implementation.DestroyPipelineLayout(_layout);
+    }
+
+    bool GraphicsContext::DestroyDescriptorSet(DescriptorSetHandle _set)
+    {
+        return m_implementation.DestroyDescriptorSet(_set);
+    }
+
+    bool GraphicsContext::DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout)
+    {
+        return m_implementation.DestroyDescriptorSetLayout(_layout);
+    }
+
+    bool GraphicsContext::FreeShaderModule(ShaderModuleHandle _module)
+    {
+        return m_implementation.FreeShaderModule(_module);
+    }
+
     void GraphicsContext::UpdateDescriptorSet(
         DescriptorSetHandle _descriptorSet,
         const eastl::span<DescriptorSetWriteInfo>& _writes)

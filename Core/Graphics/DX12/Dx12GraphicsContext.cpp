@@ -896,6 +896,31 @@ namespace KryneEngine
     {
         return m_resources.CreateGraphicsPipeline(_desc, m_device.Get());
     }
+    
+    bool Dx12GraphicsContext::DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline)
+    {
+        return m_resources.DestroyGraphicsPipeline(_pipeline);
+    }
+    
+    bool Dx12GraphicsContext::DestroyPipelineLayout(PipelineLayoutHandle _layout)
+    {
+        return m_resources.DestroyPipelineLayout(_layout);
+    }
+
+    bool Dx12GraphicsContext::DestroyDescriptorSet(DescriptorSetHandle _set)
+    {
+        return m_descriptorSetManager->DestroyDescriptorSet(_set);
+    }
+
+    bool Dx12GraphicsContext::DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout)
+    {
+        return m_descriptorSetManager->DestroyDescriptorSetLayout(_layout);
+    }
+
+    bool Dx12GraphicsContext::FreeShaderModule(ShaderModuleHandle _module)
+    {
+        return m_resources.UnRegisterShaderModule(_module);
+    }
 
     void Dx12GraphicsContext::UpdateDescriptorSet(
         DescriptorSetHandle _descriptorSet,

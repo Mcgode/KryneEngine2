@@ -230,6 +230,11 @@ namespace KryneEngine
         [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout);
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
+        bool DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline);
+        bool DestroyPipelineLayout(PipelineLayoutHandle _layout);
+        bool DestroyDescriptorSet(DescriptorSetHandle _set);
+        bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout);
+        bool FreeShaderModule(ShaderModuleHandle _module);
 
         void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,

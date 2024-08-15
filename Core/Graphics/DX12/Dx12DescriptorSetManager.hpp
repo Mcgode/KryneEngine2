@@ -25,7 +25,10 @@ namespace KryneEngine
         void Init(ID3D12Device* _device, u8 _frameContextCount, u8 _currentFrame);
 
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
+        bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout);
+
         [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout);
+        bool DestroyDescriptorSet(DescriptorSetHandle _set);
 
         void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,

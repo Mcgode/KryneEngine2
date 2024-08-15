@@ -510,6 +510,11 @@ namespace KryneEngine
         return { handle };
     }
 
+    bool Dx12Resources::UnRegisterShaderModule(ShaderModuleHandle _shaderModule)
+    {
+        return m_shaderBytecodes.Free(_shaderModule.m_handle);
+    }
+
     PipelineLayoutHandle Dx12Resources::CreatePipelineLayout(
         const PipelineLayoutDesc& _desc,
         Dx12DescriptorSetManager* _setManager,
@@ -656,6 +661,17 @@ namespace KryneEngine
         *m_rootSignatures.GetCold(handle) = rootConstantsStart;
 
         return { handle };
+    }
+
+    bool Dx12Resources::DestroyPipelineLayout(PipelineLayoutHandle _layout)
+    {
+        ID3D12RootSignature* rootSignature;
+        if (m_rootSignatures.Free(_layout.m_handle, &rootSignature))
+        {
+            SafeRelease(rootSignature);
+            return true;
+        }
+        return false;
     }
 
     GraphicsPipelineHandle Dx12Resources::CreateGraphicsPipeline(
@@ -921,5 +937,16 @@ namespace KryneEngine
         };
 
         return { handle };
+    }
+
+    bool Dx12Resources::DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline)
+    {
+        ID3D12PipelineState* pso;
+        if (m_pipelineStateObjects.Free(_pipeline.m_handle, &pso))
+        {
+            SafeRelease(pso);
+            return true;
+        }
+        return false;
     }
 } // KryneEngine
