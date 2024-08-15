@@ -841,6 +841,19 @@ namespace KryneEngine
         VkBuffer* stagingBuffer = m_resources.m_buffers.Get(_stagingBuffer.m_handle);
         VkImage* dstTexture = m_resources.m_textures.Get(_dstTexture.m_handle);
 
+        // Map data
+        {
+            BufferMapping mapping(
+                _stagingBuffer,
+                _footprint.m_lineByteAlignedSize * _footprint.m_height * _footprint.m_depth,
+                _footprint.m_offset,
+                true
+            );
+            MapBuffer(mapping);
+            memcpy(mapping.m_ptr, _data, mapping.m_size);
+            UnmapBuffer(mapping);
+        }
+
         VERIFY_OR_RETURN_VOID(stagingBuffer != nullptr);
         VERIFY_OR_RETURN_VOID(dstTexture != nullptr);
 
