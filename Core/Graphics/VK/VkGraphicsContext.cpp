@@ -1261,17 +1261,17 @@ namespace KryneEngine
         CommandList _commandList,
         PipelineLayoutHandle _layout,
         const eastl::span<u32>& _data,
-        ShaderVisibility _visibility,
+        u32 _index,
         u32 _offset)
     {
-        VkPipelineLayout* pLayout = m_resources.m_pipelineLayouts.Get(_layout.m_handle);
+        auto [pLayout, pColdData] = m_resources.m_pipelineLayouts.GetAll(_layout.m_handle);
         VERIFY_OR_RETURN_VOID(pLayout != nullptr);
 
         vkCmdPushConstants(
             _commandList,
             *pLayout,
-            VkHelperFunctions::ToVkShaderStageFlags(_visibility),
-            _offset,
+            VkHelperFunctions::ToVkShaderStageFlags(pColdData->m_pushConstants[_index].m_visibility),
+            (_offset + pColdData->m_pushConstants[_index].m_offset) * sizeof(u32),
             _data.size() * sizeof(u32),
             _data.data());
     }

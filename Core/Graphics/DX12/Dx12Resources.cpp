@@ -614,6 +614,7 @@ namespace KryneEngine
             rootParameters[i].DescriptorTable.pDescriptorRanges = ranges.data() + offsets[i];
         }
 
+        const u32 rootConstantsStart = rootParameters.size();
         for (const auto& pushConstant: _desc.m_pushConstants)
         {
             rootParameters.push_back(D3D12_ROOT_PARAMETER {
@@ -652,6 +653,7 @@ namespace KryneEngine
             serializedRootBlob->GetBufferPointer(),
             serializedRootBlob->GetBufferSize(),
             IID_PPV_ARGS(m_rootSignatures.Get(handle))));
+        *m_rootSignatures.GetCold(handle) = rootConstantsStart;
 
         return { handle };
     }

@@ -180,9 +180,15 @@ namespace KryneEngine
         void SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16);
         void SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews);
         void SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline);
-        void SetGraphicsPushConstant(CommandList _commandList, u32 _index, const eastl::span<u32>& _data, u32 _offset = 0);
+        void SetGraphicsPushConstant(
+            CommandList _commandList,
+            PipelineLayoutHandle _layout,
+            const eastl::span<u32>& _data,
+            u32 _index,
+            u32 _offset);
         void SetGraphicsDescriptorSets(
             CommandList _commandList,
+            PipelineLayoutHandle _layout,
             const eastl::span<DescriptorSetHandle>& _sets,
             const bool* _unchanged,
             u32 _frameId);

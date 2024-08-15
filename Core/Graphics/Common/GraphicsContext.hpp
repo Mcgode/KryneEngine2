@@ -244,7 +244,7 @@ namespace KryneEngine
             CommandList _commandList,
             PipelineLayoutHandle _layout,
             const eastl::span<u32>& _data,
-            ShaderVisibility _visibility,
+            u32 _index = 0,
             u32 _offset = 0);
         void SetGraphicsDescriptorSets(
             CommandList _commandList,

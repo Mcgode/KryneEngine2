@@ -71,7 +71,16 @@ namespace KryneEngine
 
         GenerationalPool<VkShaderModule> m_shaderModules;
 
-        GenerationalPool<VkPipelineLayout> m_pipelineLayouts;
+        struct LayoutColdData
+        {
+            struct PushConstantData
+            {
+                u8 m_offset;
+                ShaderVisibility m_visibility;
+            };
+            eastl::array<PushConstantData, 4> m_pushConstants;
+        };
+        GenerationalPool<VkPipelineLayout, LayoutColdData> m_pipelineLayouts;
 
         GenerationalPool<VkPipeline> m_pipelines;
 

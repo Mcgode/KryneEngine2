@@ -86,7 +86,7 @@ namespace KryneEngine
         GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_samplers;
         GenerationalPool<RtvHotData, DXGI_FORMAT> m_renderTargetViews;
         GenerationalPool<RenderPassDesc> m_renderPasses;
-        GenerationalPool<ID3D12RootSignature*> m_rootSignatures;
+        GenerationalPool<ID3D12RootSignature*, u32> m_rootSignatures;
         GenerationalPool<D3D12_SHADER_BYTECODE> m_shaderBytecodes;
         GenerationalPool<ID3D12PipelineState*, PsoColdData> m_pipelineStateObjects;
 

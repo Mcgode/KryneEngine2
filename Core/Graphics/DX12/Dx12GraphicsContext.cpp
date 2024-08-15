@@ -68,7 +68,7 @@ namespace KryneEngine
         m_resources.InitHeaps(m_device.Get());
 
         m_descriptorSetManager = eastl::make_unique<Dx12DescriptorSetManager>();
-        m_descriptorSetManager->Init(m_device.Get(), 0);
+        m_descriptorSetManager->Init(m_device.Get(), m_frameContextCount, _currentFrameId % m_frameContextCount);
 
         m_frameContexts.Resize(m_frameContextCount);
         m_frameContexts.InitAll(m_device.Get(),
@@ -178,7 +178,7 @@ namespace KryneEngine
         WaitForFrame(m_frameContexts[nextFrameIndex].m_frameId);
 
         // Duplicate descriptor in multi-frame heaps
-        m_descriptorSetManager->NextFrame(nullptr, <#initializer #>, 0);
+        m_descriptorSetManager->NextFrame(m_device.Get(), m_resources, nextFrameIndex);
     }
 
     bool Dx12GraphicsContext::IsFrameExecuted(KryneEngine::u64 _frameId) const
@@ -902,7 +902,11 @@ namespace KryneEngine
         const eastl::span<DescriptorSetWriteInfo>& _writes,
         u64 _frameId)
     {
-        m_descriptorSetManager->UpdateDescriptorSet(_descriptorSet, m_resources, _writes, nullptr, m_device.Get());
+        m_descriptorSetManager->UpdateDescriptorSet(
+            _descriptorSet,
+            m_resources, _writes,
+            m_device.Get(),
+            _frameId % m_frameContextCount);
     }
 
     void Dx12GraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)
@@ -980,21 +984,34 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::SetGraphicsPushConstant(
         CommandList _commandList,
-        u32 _index,
+        PipelineLayoutHandle _layout,
         const eastl::span<u32>& _data,
+        u32 _index,
         u32 _offset)
     {
+        u32* offset = m_resources.m_rootSignatures.GetCold(_layout.m_handle);
+        VERIFY_OR_RETURN_VOID(offset != nullptr);
+
+        const u32 index = _index + *offset;
         _commandList->SetGraphicsRoot32BitConstants(
-            _index,
+            index,
             _data.size(),
             _data.data(),
             _offset);
     }
 
     void Dx12GraphicsContext::SetGraphicsDescriptorSets(
-        CommandList _commandList, const eastl::span<DescriptorSetHandle>& _sets, const bool* _unchanged, u32 _frameId)
+        CommandList _commandList,
+        PipelineLayoutHandle,
+        const eastl::span<DescriptorSetHandle>& _sets,
+        const bool* _unchanged,
+        u32 _frameId)
     {
-        m_descriptorSetManager->SetGraphicsDescriptorSets(_commandList, GraphicsPipelineHandle(), _sets, _unchanged);
+        m_descriptorSetManager->SetGraphicsDescriptorSets(
+            _commandList,
+            _sets,
+            _unchanged,
+            _frameId % m_frameContextCount);
     }
 
     void Dx12GraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)

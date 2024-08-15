@@ -174,7 +174,7 @@ namespace KryneEngine::Modules::ImGui
                 DescriptorSetWriteInfo writeInfo[2] = {
                     {
                         .m_index = m_setIndices[0],
-                        .m_handles = {
+                        .m_descriptorData = {
                             DescriptorSetWriteInfo::DescriptorData {
                                 .m_textureLayout = TextureLayout::ShaderResource,
                                 .m_handle = m_fontTextureSrvHandle.m_handle,
@@ -183,7 +183,7 @@ namespace KryneEngine::Modules::ImGui
                     },
                     {
                         .m_index = m_setIndices[1],
-                        .m_handles = {
+                        .m_descriptorData = {
                             DescriptorSetWriteInfo::DescriptorData { .m_handle = m_fontSamplerHandle.m_handle, },
                         },
                     }
@@ -418,8 +418,7 @@ namespace KryneEngine::Modules::ImGui
                     _graphicsContext.SetGraphicsPushConstant(
                         _commandList,
                         m_pipelineLayout,
-                        { reinterpret_cast<u32*>(&pushConstants), 4 },
-                        ShaderVisibility::Vertex);
+                        { reinterpret_cast<u32*>(&pushConstants), 4 });
 
                     const DrawIndexedInstancedDesc desc {
                         .m_elementCount = drawCmd.ElemCount,

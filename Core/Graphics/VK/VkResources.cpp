@@ -613,21 +613,26 @@ namespace KryneEngine
     PipelineLayoutHandle VkResources::CreatePipelineLayout(
         const PipelineLayoutDesc& _desc, VkDevice _device, VkDescriptorSetManager* _setManager)
     {
+        const GenPool::Handle handle = m_pipelineLayouts.Allocate();
+        auto [pLayout, pColdData] = m_pipelineLayouts.GetAll(handle);
+
         DynamicArray<VkDescriptorSetLayout> setLayouts(_desc.m_descriptorSets.size());
         for (auto i = 0u; i < setLayouts.Size(); i++)
         {
             setLayouts[i] = _setManager->GetDescriptorSetLayout(_desc.m_descriptorSets[i]);
         }
 
+        *pColdData = LayoutColdData{};
         DynamicArray<VkPushConstantRange> pushConstants(_desc.m_pushConstants.size());
         for (auto i = 0u; i < pushConstants.Size(); i++)
         {
             const PushConstantDesc& pushConstant = _desc.m_pushConstants[i];
             pushConstants[i] = {
                 .stageFlags = VkHelperFunctions::ToVkShaderStageFlags(pushConstant.m_visibility),
-                .offset = pushConstant.m_offset,
+                .offset = static_cast<u32>(pushConstant.m_offset * sizeof(u32)),
                 .size = pushConstant.m_sizeInBytes,
             };
+            pColdData->m_pushConstants[i] = { pushConstant.m_offset, pushConstant.m_visibility };
         }
 
         const VkPipelineLayoutCreateInfo createInfo {
@@ -638,12 +643,11 @@ namespace KryneEngine
             .pPushConstantRanges = pushConstants.Data(),
         };
 
-        const GenPool::Handle handle = m_pipelineLayouts.Allocate();
         VkAssert(vkCreatePipelineLayout(
             _device,
             &createInfo,
             nullptr,
-            m_pipelineLayouts.Get(handle)));
+            pLayout));
 
         return { handle };
     }

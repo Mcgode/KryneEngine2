@@ -246,11 +246,11 @@ namespace KryneEngine
                 .dstSet = set,
                 .dstBinding = packedIndex.m_binding,
                 .dstArrayElement = writeOp.m_info.m_arrayOffset,
-                .descriptorCount = static_cast<u32>(writeOp.m_info.m_handles.size()),
+                .descriptorCount = static_cast<u32>(writeOp.m_info.m_descriptorData.size()),
                 .descriptorType = static_cast<VkDescriptorType>(packedIndex.m_type),
             });
 
-            for (const auto& descriptor : writeOp.m_info.m_handles)
+            for (const auto& descriptor : writeOp.m_info.m_descriptorData)
             {
                 auto& data = m_tmpDescriptorData.emplace_back();
 

@@ -316,7 +316,7 @@ namespace KryneEngine
             TextureLayout m_textureLayout = TextureLayout::Unknown;
             GenPool::Handle m_handle = GenPool::kInvalidHandle;
         };
-        eastl::vector<DescriptorData> m_handles;
+        eastl::vector<DescriptorData> m_descriptorData;
     };
 
     struct PipelineLayoutDesc

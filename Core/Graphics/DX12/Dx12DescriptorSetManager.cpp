@@ -162,11 +162,11 @@ namespace KryneEngine
     {
         for (const auto& writeDesc: _writes)
         {
-            for (auto i = 0u; i < writeDesc.m_handles.size(); i++)
+            for (auto i = 0u; i < writeDesc.m_descriptorData.size(); i++)
             {
                 TrackedData data {
                     .m_descriptorSet = _descriptorSet,
-                    .m_object = writeDesc.m_handles[i],
+                    .m_object = writeDesc.m_descriptorData[i].m_handle,
                     .m_packedIndex = writeDesc.m_index + (static_cast<u32>(writeDesc.m_arrayOffset + i) << 16),
                 };
                 _ProcessUpdate(_device, _resources, data, _frameIndex);
