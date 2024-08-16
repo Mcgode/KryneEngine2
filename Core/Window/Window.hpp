@@ -14,6 +14,7 @@
 namespace KryneEngine
 {
     class GraphicsContext;
+    class InputManager;
 
     class Window
     {
@@ -26,11 +27,13 @@ namespace KryneEngine
         [[nodiscard]] bool WaitForEvents() const;
         [[nodiscard]] GLFWwindow* GetGlfwWindow() const { return m_glfwWindow; }
         [[nodiscard]] GraphicsContext* GetGraphicsContext() const { return m_graphicsContext.get(); }
+        [[nodiscard]] InputManager* GetInputManager() const { return m_inputManager.get(); }
 
     private:
         GLFWwindow* m_glfwWindow;
 
         eastl::unique_ptr<GraphicsContext> m_graphicsContext;
+        eastl::unique_ptr<InputManager> m_inputManager;
     };
 }
 

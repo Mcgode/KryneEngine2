@@ -7,6 +7,7 @@
 #include "Window.hpp"
 
 #include <Graphics/Common/GraphicsContext.hpp>
+#include <Window/Input/InputManager.hpp>
 
 namespace KryneEngine
 {
@@ -28,6 +29,8 @@ namespace KryneEngine
                                         nullptr);
 
         m_graphicsContext = eastl::make_unique<GraphicsContext>(_appInfo, this);
+
+        m_inputManager = eastl::make_unique<InputManager>(this);
     }
 
     Window::~Window()
