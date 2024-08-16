@@ -5,6 +5,7 @@
  */
 
 #include "Context.hpp"
+#include "InputConverters.hpp"
 #include <Common/Utils/Alignment.hpp>
 #include <Graphics/Common/Drawing.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
@@ -76,6 +77,36 @@ namespace KryneEngine::Modules::ImGui
                 bufferCreateDesc,
                 graphicsContext->GetFrameContextCount());
         }
+
+        m_keyCallbackId = _window->GetInputManager()->RegisterKeyInputEventCallback(
+            [](const KeyInputEvent& _event){
+                ImGuiIO& io = ::ImGui::GetIO();
+
+                if (_event.m_action == InputActionType::StartPress)
+                {
+                    io.AddKeyEvent(InputConverters::ToImGuiKey(_event.m_physicalKey), true);
+                }
+                else if (_event.m_action == InputActionType::StopPress)
+                {
+                    io.AddKeyEvent(InputConverters::ToImGuiKey(_event.m_physicalKey), false);
+                }
+            });
+
+        m_mouseBtnCallbackId = _window->GetInputManager()->RegisterMouseInputEventCallback(
+            [](const MouseInputEvent& _event){
+                ImGuiIO& io = ::ImGui::GetIO();
+
+                ImGuiMouseButton button = InputConverters::ToImGuiMouseButton(_event.m_mouseButton);
+
+                if (_event.m_action == InputActionType::StartPress && button != ImGuiMouseButton_COUNT)
+                {
+                    io.AddMouseButtonEvent(button, true);
+                }
+                else if (_event.m_action == InputActionType::StopPress && button != ImGuiMouseButton_COUNT)
+                {
+                    io.AddMouseButtonEvent(button, false);
+                }
+            });
 
         _InitPso(graphicsContext, _renderPass);
     }

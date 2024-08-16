@@ -95,6 +95,9 @@ namespace KryneEngine::Modules::ImGui
         GraphicsUtils::DynamicBuffer m_dynamicVertexBuffer;
         GraphicsUtils::DynamicBuffer m_dynamicIndexBuffer;
 
+        u32 m_keyCallbackId;
+        u32 m_mouseBtnCallbackId;
+
         void _InitPso(GraphicsContext* _graphicsContext, RenderPassHandle _renderPass);
     };
 }// namespace KryneEngine
