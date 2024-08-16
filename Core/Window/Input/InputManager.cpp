@@ -28,6 +28,11 @@ namespace KryneEngine
         return id;
     }
 
+    void InputManager::UnregisterKeyInputEventCallback(u32 _id)
+    {
+        m_keyInputEventListeners.erase(_id);
+    }
+
     void InputManager::KeyCallback(GLFWwindow* _window, s32 _key, s32 _scancode, s32 _action, s32 _mods)
     {
         auto* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(_window));

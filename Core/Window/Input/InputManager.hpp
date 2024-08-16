@@ -22,6 +22,7 @@ namespace KryneEngine
         explicit InputManager(Window* _window);
 
         [[nodiscard]] u32 RegisterKeyInputEventCallback(eastl::function<void(const KeyInputEvent&)>&& _callback);
+        void UnregisterKeyInputEventCallback(u32 _id);
 
         [[nodiscard]] const float2& GetCursorPos() const { return m_cursorPos; }
 
