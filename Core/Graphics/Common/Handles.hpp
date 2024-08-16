@@ -10,23 +10,15 @@
 
 namespace KryneEngine
 {
-#define KE_GRAPHICS_DECLARE_HANDLE(HandleName) struct HandleName                                \
-    {                                                                                           \
-        GenPool::Handle m_handle = GenPool::kInvalidHandle;                                     \
-                                                                                                \
-        HandleName& operator=(GenPool::Handle _other) { m_handle = _other; return *this; }      \
-        bool operator==(GenPool::Handle _other) const { return m_handle == _other; }            \
-    }
-
-    KE_GRAPHICS_DECLARE_HANDLE(BufferHandle);
-    KE_GRAPHICS_DECLARE_HANDLE(TextureHandle);
-    KE_GRAPHICS_DECLARE_HANDLE(TextureSrvHandle);
-    KE_GRAPHICS_DECLARE_HANDLE(SamplerHandle);
-    KE_GRAPHICS_DECLARE_HANDLE(RenderTargetViewHandle);
-    KE_GRAPHICS_DECLARE_HANDLE(RenderPassHandle);
-    KE_GRAPHICS_DECLARE_HANDLE(ShaderModuleHandle);
-    KE_GRAPHICS_DECLARE_HANDLE(DescriptorSetLayoutHandle);
-    KE_GRAPHICS_DECLARE_HANDLE(DescriptorSetHandle);
-    KE_GRAPHICS_DECLARE_HANDLE(PipelineLayoutHandle);
-    KE_GRAPHICS_DECLARE_HANDLE(GraphicsPipelineHandle);
+    KE_GENPOOL_DECLARE_HANDLE(BufferHandle);
+    KE_GENPOOL_DECLARE_HANDLE(TextureHandle);
+    KE_GENPOOL_DECLARE_HANDLE(TextureSrvHandle);
+    KE_GENPOOL_DECLARE_HANDLE(SamplerHandle);
+    KE_GENPOOL_DECLARE_HANDLE(RenderTargetViewHandle);
+    KE_GENPOOL_DECLARE_HANDLE(RenderPassHandle);
+    KE_GENPOOL_DECLARE_HANDLE(ShaderModuleHandle);
+    KE_GENPOOL_DECLARE_HANDLE(DescriptorSetLayoutHandle);
+    KE_GENPOOL_DECLARE_HANDLE(DescriptorSetHandle);
+    KE_GENPOOL_DECLARE_HANDLE(PipelineLayoutHandle);
+    KE_GENPOOL_DECLARE_HANDLE(GraphicsPipelineHandle);
 }

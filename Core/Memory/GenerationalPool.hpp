@@ -41,6 +41,14 @@ namespace KryneEngine
         };
     }
 
+#define KE_GENPOOL_DECLARE_HANDLE(HandleName) struct HandleName                                 \
+    {                                                                                           \
+        GenPool::Handle m_handle = GenPool::kInvalidHandle;                                     \
+                                                                                                \
+        HandleName& operator=(GenPool::Handle _other) { m_handle = _other; return *this; }      \
+        bool operator==(GenPool::Handle _other) const { return m_handle == _other; }            \
+    }
+
     template <class HotDataStruct, class ColdDataStruct = void>
     class GenerationalPool
     {
