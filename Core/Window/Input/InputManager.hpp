@@ -31,6 +31,9 @@ namespace KryneEngine
         [[nodiscard]] u32 RegisterMouseInputEventCallback(eastl::function<void(const MouseInputEvent&)>&& _callback);
         void UnregisterMouseInputEventCallback(u32 _id);
 
+        [[nodiscard]] u32 RegisterScrollInputEventCallback(eastl::function<void(float, float)>&& _callback);
+        void UnregisterScrollInputEventCallback(u32 _id);
+
     protected:
         static void KeyCallback(GLFWwindow* _window, s32 _key, s32 _scancode, s32 _action, s32 _mods);
 
@@ -45,5 +48,9 @@ namespace KryneEngine
 
         eastl::vector_map<u32, eastl::function<void(const MouseInputEvent&)>> m_mouseInputEventListeners;
         u32 m_mouseInputEventCounter = 0;
+
+        static void ScrollCallback(GLFWwindow* _window, double _xScroll, double _yScroll);
+        eastl::vector_map<u32, eastl::function<void(float, float)>> m_scrollInputEventListeners;
+        u32 m_scrollInputEventCounter = 0;
     };
 } // namespace KryneEngine
