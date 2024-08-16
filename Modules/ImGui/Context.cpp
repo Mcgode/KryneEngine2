@@ -120,38 +120,47 @@ namespace KryneEngine::Modules::ImGui
 
     Context::~Context() { KE_ASSERT_MSG(m_context == nullptr, "ImGui module was not shut down"); }
 
-    void Context::Shutdown(GraphicsContext* _graphicsContext)
+    void Context::Shutdown(Window* _window)
     {
-        m_dynamicIndexBuffer.Destroy(_graphicsContext);
-        m_dynamicVertexBuffer.Destroy(_graphicsContext);
+        GraphicsContext* graphicsContext = _window->GetGraphicsContext();
+
+        m_dynamicIndexBuffer.Destroy(graphicsContext);
+        m_dynamicVertexBuffer.Destroy(graphicsContext);
 
         if (m_fontSamplerHandle != GenPool::kInvalidHandle)
         {
-            _graphicsContext->DestroySampler(m_fontSamplerHandle);
+            graphicsContext->DestroySampler(m_fontSamplerHandle);
         }
 
         if (m_fontTextureSrvHandle != GenPool::kInvalidHandle)
         {
-            _graphicsContext->DestroyTextureSrv(m_fontTextureSrvHandle);
+            graphicsContext->DestroyTextureSrv(m_fontTextureSrvHandle);
         }
 
         if (m_fontsTextureHandle != GenPool::kInvalidHandle)
         {
-            _graphicsContext->DestroyTexture(m_fontsTextureHandle);
+            graphicsContext->DestroyTexture(m_fontsTextureHandle);
         }
 
         if (m_fontsStagingHandle != GenPool::kInvalidHandle)
         {
-            _graphicsContext->DestroyBuffer(m_fontsStagingHandle);
+            graphicsContext->DestroyBuffer(m_fontsStagingHandle);
         }
 
         {
-            _graphicsContext->DestroyGraphicsPipeline(m_pso);
-            _graphicsContext->DestroyPipelineLayout(m_pipelineLayout);
-            _graphicsContext->DestroyDescriptorSet(m_fontDescriptorSet);
-            _graphicsContext->DestroyDescriptorSetLayout(m_fontDescriptorSetLayout);
-            _graphicsContext->FreeShaderModule(m_fsModule);
-            _graphicsContext->FreeShaderModule(m_vsModule);
+            graphicsContext->DestroyGraphicsPipeline(m_pso);
+            graphicsContext->DestroyPipelineLayout(m_pipelineLayout);
+            graphicsContext->DestroyDescriptorSet(m_fontDescriptorSet);
+            graphicsContext->DestroyDescriptorSetLayout(m_fontDescriptorSetLayout);
+            graphicsContext->FreeShaderModule(m_fsModule);
+            graphicsContext->FreeShaderModule(m_vsModule);
+        }
+
+        // Unregister input callbacks.
+        {
+            _window->GetInputManager()->UnregisterScrollInputEventCallback(m_scrollEventCallbackId);
+            _window->GetInputManager()->UnregisterMouseInputEventCallback(m_mouseBtnCallbackId);
+            _window->GetInputManager()->UnregisterKeyInputEventCallback(m_keyCallbackId);
         }
 
         ::ImGui::DestroyContext(m_context);

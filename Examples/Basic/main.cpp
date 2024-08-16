@@ -136,7 +136,7 @@ int main() {
 
         graphicsContext->WaitForLastFrame();
 
-        imGuiContext.Shutdown(graphicsContext);
+        imGuiContext.Shutdown(&mainWindow);
 
         for (auto handle: renderPassHandles)
         {

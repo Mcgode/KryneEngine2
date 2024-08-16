@@ -39,11 +39,15 @@ namespace KryneEngine::Modules::ImGui
         ~Context();
 
         /**
-         * @brief Shut down the context.
+         * @brief Shuts down the Context by releasing all allocated resources.
          *
-         * @param _graphicsContext The graphics context that owns the graphic resources.
+         * This function is responsible for releasing all allocated resources such as dynamic buffers,
+         * samplers, textures, descriptor sets, pipeline layout, graphics pipeline, shader modules, and the ImGui context.
+         * It also unregisters input event callbacks from the Window's InputManager.
+         *
+         * @param _window The Window object associated with this Context, which indirectly owns the objects.
          */
-        void Shutdown(GraphicsContext* _graphicsContext);
+        void Shutdown(Window* _window);
 
         /**
          * Sets up the ImGui context for a new frame.
