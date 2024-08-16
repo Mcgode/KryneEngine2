@@ -10,6 +10,7 @@
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Common/Texture.hpp>
+#include <Window/Input/InputManager.hpp>
 #include <Window/Window.hpp>
 #include <fstream>
 #include <imgui_internal.h>
@@ -124,6 +125,11 @@ namespace KryneEngine::Modules::ImGui
         ::ImGui::SetCurrentContext(m_context);
 
         ImGuiIO& io = ::ImGui::GetIO();
+
+        {
+            const float2 mousePos = _window->GetInputManager()->GetCursorPos();
+            io.AddMousePosEvent(mousePos.x, mousePos.y);
+        }
 
         {
             auto* window = _window->GetGlfwWindow();
