@@ -97,6 +97,7 @@ namespace KryneEngine::Modules::ImGui
 
         u32 m_keyCallbackId;
         u32 m_mouseBtnCallbackId;
+        u32 m_scrollEventCallbackId;
 
         void _InitPso(GraphicsContext* _graphicsContext, RenderPassHandle _renderPass);
     };

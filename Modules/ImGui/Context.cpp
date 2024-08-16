@@ -108,6 +108,13 @@ namespace KryneEngine::Modules::ImGui
                 }
             });
 
+        m_scrollEventCallbackId = _window->GetInputManager()->RegisterScrollInputEventCallback(
+            [](float _scrollX, float _scrollY)
+            {
+                ImGuiIO& io = ::ImGui::GetIO();
+                io.AddMouseWheelEvent(_scrollX, _scrollY);
+            });
+
         _InitPso(graphicsContext, _renderPass);
     }
 
