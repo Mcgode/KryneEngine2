@@ -27,7 +27,6 @@ set (DX12Files
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
-        Common/Window.cpp Common/Window.hpp
         Common/GraphicsCommon.hpp
         Common/Texture.hpp
         Common/Enums.hpp
@@ -42,11 +41,13 @@ set(CommonFiles
         Common/Drawing.hpp
 )
 
+file(GLOB WindowFiles Window/*.hpp, Window/*.cpp)
+
 if (GraphicsApi STREQUAL "VK")
-    set(SrcFiles ${CommonFiles} ${VkFiles})
+    set(SrcFiles ${CommonFiles} ${WindowFiles} ${VkFiles})
     set(PrecompileHeaders VK/VkHeaders.hpp)
 elseif(GraphicsApi STREQUAL "DX12")
-    set(SrcFiles ${CommonFiles} ${DX12Files})
+    set(SrcFiles ${CommonFiles} ${WindowFiles} ${DX12Files})
     set(PrecompileHeaders DX12/Dx12Headers.hpp)
 endif()
 

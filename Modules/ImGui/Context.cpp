@@ -10,7 +10,7 @@
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Common/Texture.hpp>
-#include <Graphics/Common/Window.hpp>
+#include <Graphics/Window/Window.hpp>
 #include <fstream>
 #include <imgui_internal.h>
 
