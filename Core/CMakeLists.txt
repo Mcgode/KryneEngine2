@@ -41,6 +41,11 @@ set(ThreadsSrc
 
 set(WindowSrc
         Window/Window.cpp Window/Window.hpp
+        Window/Input/InputManager.cpp Window/Input/InputManager.hpp
+        Window/Input/InputPhysicalKeys.hpp
+        Window/Input/KeyInputEvent.hpp
+        Window/GLFW/Input/KeyInputEvent.hpp
+        Window/GLFW/Input/KeyInputEvent.cpp
 )
 
 add_library(KryneEngineCore ${CommonSrc} ${FilesSrc} ${MemorySrc} ${ThreadsSrc} ${WindowSrc})
