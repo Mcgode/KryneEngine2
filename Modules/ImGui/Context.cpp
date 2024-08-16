@@ -92,6 +92,13 @@ namespace KryneEngine::Modules::ImGui
                 }
             });
 
+        m_cursorPosCallbackId = _window->GetInputManager()->RegisterCursorPosEventCallback(
+            [](float _posX, float _posY)
+            {
+                ImGuiIO& io = ::ImGui::GetIO();
+                io.AddMousePosEvent(_posX, _posY);
+            });
+
         m_mouseBtnCallbackId = _window->GetInputManager()->RegisterMouseInputEventCallback(
             [](const MouseInputEvent& _event){
                 ImGuiIO& io = ::ImGui::GetIO();
@@ -160,6 +167,7 @@ namespace KryneEngine::Modules::ImGui
         {
             _window->GetInputManager()->UnregisterScrollInputEventCallback(m_scrollEventCallbackId);
             _window->GetInputManager()->UnregisterMouseInputEventCallback(m_mouseBtnCallbackId);
+            _window->GetInputManager()->UnregisterCursorPosEventCallback(m_cursorPosCallbackId);
             _window->GetInputManager()->UnregisterKeyInputEventCallback(m_keyCallbackId);
         }
 
@@ -172,11 +180,6 @@ namespace KryneEngine::Modules::ImGui
         ::ImGui::SetCurrentContext(m_context);
 
         ImGuiIO& io = ::ImGui::GetIO();
-
-        {
-            const float2 mousePos = _window->GetInputManager()->GetCursorPos();
-            io.AddMousePosEvent(mousePos.x, mousePos.y);
-        }
 
         {
             auto* window = _window->GetGlfwWindow();

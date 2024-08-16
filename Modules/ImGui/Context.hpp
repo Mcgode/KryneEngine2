@@ -100,6 +100,7 @@ namespace KryneEngine::Modules::ImGui
         GraphicsUtils::DynamicBuffer m_dynamicIndexBuffer;
 
         u32 m_keyCallbackId;
+        u32 m_cursorPosCallbackId;
         u32 m_mouseBtnCallbackId;
         u32 m_scrollEventCallbackId;
 
