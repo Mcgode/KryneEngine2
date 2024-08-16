@@ -1,9 +1,8 @@
 #include <Graphics/Common/GraphicsContext.hpp>
 #include <Graphics/Common/RenderPass.hpp>
-#include <Graphics/Window/Window.hpp>
 #include <ImGui/Context.hpp>
 #include <Threads/FibersManager.hpp>
-#include <Threads/Semaphore.hpp>
+#include <Window/Window.hpp>
 #include <iostream>
 
 using namespace KryneEngine;

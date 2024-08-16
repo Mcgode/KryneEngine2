@@ -13,11 +13,11 @@
 #include <Common/StringHelpers.hpp>
 #include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/Drawing.hpp>
-#include <Graphics/Window/Window.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
 #include <Graphics/VK/VkSurface.hpp>
 #include <Graphics/VK/VkSwapChain.hpp>
 #include <GLFW/glfw3.h>
+#include <Window/Window.hpp>
 #include "VkDebugHandler.hpp"
 #include "VkDescriptorSetManager.hpp"
 

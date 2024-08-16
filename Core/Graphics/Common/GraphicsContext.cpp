@@ -6,7 +6,7 @@
 
 #include "GraphicsContext.hpp"
 
-#include <Graphics/Window/Window.hpp>
+#include <Window/Window.hpp>
 
 
 namespace KryneEngine

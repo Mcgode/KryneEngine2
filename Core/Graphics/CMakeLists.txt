@@ -41,13 +41,11 @@ set(CommonFiles
         Common/Drawing.hpp
 )
 
-file(GLOB WindowFiles Window/*.hpp, Window/*.cpp)
-
 if (GraphicsApi STREQUAL "VK")
-    set(SrcFiles ${CommonFiles} ${WindowFiles} ${VkFiles})
+    set(SrcFiles ${CommonFiles} ${VkFiles})
     set(PrecompileHeaders VK/VkHeaders.hpp)
 elseif(GraphicsApi STREQUAL "DX12")
-    set(SrcFiles ${CommonFiles} ${WindowFiles} ${DX12Files})
+    set(SrcFiles ${CommonFiles} ${DX12Files})
     set(PrecompileHeaders DX12/Dx12Headers.hpp)
 endif()
 
