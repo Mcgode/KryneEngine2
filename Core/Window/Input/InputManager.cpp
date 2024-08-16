@@ -18,6 +18,7 @@ namespace KryneEngine
         glfwSetWindowUserPointer(glfwWindow, this);
 
         glfwSetKeyCallback(glfwWindow, KeyCallback);
+        glfwSetCursorPosCallback(glfwWindow, CursorPosCallback);
     }
 
     u32 InputManager::RegisterKeyInputEventCallback(eastl::function<void(const KeyInputEvent&)>&& _callback)
@@ -42,5 +43,14 @@ namespace KryneEngine
         {
             pair.second(keyInputEvent);
         }
+    }
+
+    void InputManager::CursorPosCallback(GLFWwindow* _window, double _posX, double _posY)
+    {
+        auto* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(_window));
+        inputManager->m_cursorPos = {
+            _posX,
+            _posY
+        };
     }
 } // namespace KryneEngine
