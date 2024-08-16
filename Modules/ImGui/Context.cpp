@@ -371,16 +371,14 @@ namespace KryneEngine::Modules::ImGui
             }
 
             u32* indexBuffer = static_cast<u32*>(m_dynamicIndexBuffer.Map(_graphicsContext, frameIndex));
-            u32 offset = 0;
             for (auto i = 0u; i < drawData->CmdListsCount; i++)
             {
                 const ImDrawList* drawList = drawData->CmdLists[i];
                 for (auto j = 0; j < drawList->IdxBuffer.Size; j++)
                 {
-                    indexBuffer[j] = drawList->IdxBuffer[j] + offset;
+                    indexBuffer[j] = drawList->IdxBuffer[j];
                 }
                 indexBuffer += drawList->IdxBuffer.Size;
-                offset += drawList->VtxBuffer.Size;
             }
             m_dynamicIndexBuffer.Unmap(_graphicsContext);
 
