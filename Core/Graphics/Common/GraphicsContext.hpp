@@ -21,14 +21,9 @@ namespace KryneEngine
     class GraphicsContext
     {
     public:
-        explicit GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo);
+        explicit GraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo, Window* _window);
 
         ~GraphicsContext();
-
-        [[nodiscard]] inline Window* GetWindow() const
-        {
-            return m_implementation.GetWindow();
-        }
 
         [[nodiscard]] inline u64 GetFrameId() const
         {
@@ -68,6 +63,8 @@ namespace KryneEngine
         using UnderlyingGraphicsContext = Dx12GraphicsContext;
 #endif
         UnderlyingGraphicsContext m_implementation;
+
+        const Window* m_window;
 
         static constexpr u64 kInitialFrameId = 1;
         u64 m_frameId;

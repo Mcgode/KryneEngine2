@@ -29,9 +29,11 @@ namespace KryneEngine::Modules::ImGui
         float2 m_translate;
     };
 
-    Context::Context(GraphicsContext& _graphicsContext, RenderPassHandle _renderPass)
+    Context::Context(Window* _window, RenderPassHandle _renderPass)
     {
         m_context = ::ImGui::CreateContext();
+
+        GraphicsContext* graphicsContext = _window->GetGraphicsContext();
 
         ImGuiIO& io = ::ImGui::GetIO();
         io.BackendRendererUserData = nullptr;
@@ -51,9 +53,9 @@ namespace KryneEngine::Modules::ImGui
                            | MemoryUsage::TransferDstBuffer,
             };
             m_dynamicVertexBuffer.Init(
-                _graphicsContext,
+                graphicsContext,
                 bufferCreateDesc,
-                _graphicsContext.GetFrameContextCount());
+                graphicsContext->GetFrameContextCount());
         }
 
         {
@@ -69,62 +71,62 @@ namespace KryneEngine::Modules::ImGui
                            | MemoryUsage::TransferDstBuffer,
             };
             m_dynamicIndexBuffer.Init(
-                _graphicsContext,
+                graphicsContext,
                 bufferCreateDesc,
-                _graphicsContext.GetFrameContextCount());
+                graphicsContext->GetFrameContextCount());
         }
 
-        _InitPso(_graphicsContext, _renderPass);
+        _InitPso(graphicsContext, _renderPass);
     }
 
     Context::~Context() { KE_ASSERT_MSG(m_context == nullptr, "ImGui module was not shut down"); }
 
-    void Context::Shutdown(GraphicsContext& _graphicsContext)
+    void Context::Shutdown(GraphicsContext* _graphicsContext)
     {
         m_dynamicIndexBuffer.Destroy(_graphicsContext);
         m_dynamicVertexBuffer.Destroy(_graphicsContext);
 
         if (m_fontSamplerHandle != GenPool::kInvalidHandle)
         {
-            _graphicsContext.DestroySampler(m_fontSamplerHandle);
+            _graphicsContext->DestroySampler(m_fontSamplerHandle);
         }
 
         if (m_fontTextureSrvHandle != GenPool::kInvalidHandle)
         {
-            _graphicsContext.DestroyTextureSrv(m_fontTextureSrvHandle);
+            _graphicsContext->DestroyTextureSrv(m_fontTextureSrvHandle);
         }
 
         if (m_fontsTextureHandle != GenPool::kInvalidHandle)
         {
-            _graphicsContext.DestroyTexture(m_fontsTextureHandle);
+            _graphicsContext->DestroyTexture(m_fontsTextureHandle);
         }
 
         if (m_fontsStagingHandle != GenPool::kInvalidHandle)
         {
-            _graphicsContext.DestroyBuffer(m_fontsStagingHandle);
+            _graphicsContext->DestroyBuffer(m_fontsStagingHandle);
         }
 
         {
-            _graphicsContext.DestroyGraphicsPipeline(m_pso);
-            _graphicsContext.DestroyPipelineLayout(m_pipelineLayout);
-            _graphicsContext.DestroyDescriptorSet(m_fontDescriptorSet);
-            _graphicsContext.DestroyDescriptorSetLayout(m_fontDescriptorSetLayout);
-            _graphicsContext.FreeShaderModule(m_fsModule);
-            _graphicsContext.FreeShaderModule(m_vsModule);
+            _graphicsContext->DestroyGraphicsPipeline(m_pso);
+            _graphicsContext->DestroyPipelineLayout(m_pipelineLayout);
+            _graphicsContext->DestroyDescriptorSet(m_fontDescriptorSet);
+            _graphicsContext->DestroyDescriptorSetLayout(m_fontDescriptorSetLayout);
+            _graphicsContext->FreeShaderModule(m_fsModule);
+            _graphicsContext->FreeShaderModule(m_vsModule);
         }
 
         ::ImGui::DestroyContext(m_context);
         m_context = nullptr;
     }
 
-    void Context::NewFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
+    void Context::NewFrame(Window* _window, CommandList _commandList)
     {
         ::ImGui::SetCurrentContext(m_context);
 
         ImGuiIO& io = ::ImGui::GetIO();
 
         {
-            auto* window = _graphicsContext.GetWindow()->GetGlfwWindow();
+            auto* window = _window->GetGlfwWindow();
 
             int x, y;
             glfwGetWindowSize(window, &x, &y);
@@ -138,6 +140,8 @@ namespace KryneEngine::Modules::ImGui
                     ImVec2(float(displayW) / io.DisplaySize.x, float(displayH) / io.DisplaySize.y);
             }
         }
+
+        GraphicsContext* graphicsContext = _window->GetGraphicsContext();
 
         if (m_fontsTextureHandle == GenPool::kInvalidHandle)
         {
@@ -158,13 +162,15 @@ namespace KryneEngine::Modules::ImGui
 
             const TextureCreateDesc textureCreateDesc {
                 .m_desc = fontsTextureDesc,
-                .m_footprintPerSubResource = _graphicsContext.FetchTextureSubResourcesMemoryFootprints(fontsTextureDesc),
+                .m_footprintPerSubResource = graphicsContext->FetchTextureSubResourcesMemoryFootprints(fontsTextureDesc),
                 .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::TransferDstImage | MemoryUsage::SampledImage,
             };
 
-            m_stagingFrame = _graphicsContext.GetFrameId();
-            m_fontsStagingHandle = _graphicsContext.CreateStagingBuffer(fontsTextureDesc, textureCreateDesc.m_footprintPerSubResource);
-            m_fontsTextureHandle = _graphicsContext.CreateTexture(textureCreateDesc);
+            m_stagingFrame = graphicsContext->GetFrameId();
+            m_fontsStagingHandle = graphicsContext->CreateStagingBuffer(
+                fontsTextureDesc,
+                textureCreateDesc.m_footprintPerSubResource);
+            m_fontsTextureHandle = graphicsContext->CreateTexture(textureCreateDesc);
 
             {
                 // Set up font srv
@@ -178,11 +184,11 @@ namespace KryneEngine::Modules::ImGui
                     },
                     .m_format = textureCreateDesc.m_desc.m_format,
                 };
-                m_fontTextureSrvHandle = _graphicsContext.CreateTextureSrv(srvDesc);
+                m_fontTextureSrvHandle = graphicsContext->CreateTextureSrv(srvDesc);
 
                 // Set up font sampler
                 const SamplerDesc samplerDesc {}; // Default sampler works great for us
-                m_fontSamplerHandle = _graphicsContext.CreateSampler(samplerDesc);
+                m_fontSamplerHandle = graphicsContext->CreateSampler(samplerDesc);
 
                 // Set font descriptor set values
                 DescriptorSetWriteInfo writeInfo[2] = {
@@ -202,7 +208,7 @@ namespace KryneEngine::Modules::ImGui
                         },
                     }
                 };
-                _graphicsContext.UpdateDescriptorSet(
+                graphicsContext->UpdateDescriptorSet(
                     m_fontDescriptorSet,
                     writeInfo);
             }
@@ -230,14 +236,14 @@ namespace KryneEngine::Modules::ImGui
                     .m_layoutDst = TextureLayout::TransferDst,
                 };
 
-                _graphicsContext.PlaceMemoryBarriers(
+                graphicsContext->PlaceMemoryBarriers(
                     _commandList,
                     {},
                     { &stagingBufferBarrier, 1 },
                     { &textureMemoryBarrier, 1 });
             }
 
-            _graphicsContext.SetTextureData(
+            graphicsContext->SetTextureData(
                 _commandList,
                 m_fontsStagingHandle,
                 m_fontsTextureHandle,
@@ -258,7 +264,7 @@ namespace KryneEngine::Modules::ImGui
                     .m_layoutDst = TextureLayout::ShaderResource,
                 };
 
-                _graphicsContext.PlaceMemoryBarriers(
+                graphicsContext->PlaceMemoryBarriers(
                     _commandList,
                     {},
                     {},
@@ -266,22 +272,22 @@ namespace KryneEngine::Modules::ImGui
             }
         }
 
-        if (m_fontsStagingHandle != GenPool::kInvalidHandle && _graphicsContext.IsFrameExecuted(m_stagingFrame))
+        if (m_fontsStagingHandle != GenPool::kInvalidHandle && graphicsContext->IsFrameExecuted(m_stagingFrame))
         {
-            _graphicsContext.DestroyBuffer(m_fontsStagingHandle);
+            graphicsContext->DestroyBuffer(m_fontsStagingHandle);
             m_fontsStagingHandle = GenPool::kInvalidHandle;
         }
 
         ::ImGui::NewFrame();
     }
 
-    void Context::PrepareToRenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
+    void Context::PrepareToRenderFrame(GraphicsContext* _graphicsContext, CommandList _commandList)
     {
         ::ImGui::Render();
 
         ImDrawData* drawData = ::ImGui::GetDrawData();
 
-        const u8 frameIndex = _graphicsContext.GetCurrentFrameContextIndex();
+        const u8 frameIndex = _graphicsContext->GetCurrentFrameContextIndex();
 
         {
             const u64 vertexCount = drawData->TotalVtxCount;
@@ -349,7 +355,7 @@ namespace KryneEngine::Modules::ImGui
         }
     }
 
-    void Context::RenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList)
+    void Context::RenderFrame(GraphicsContext* _graphicsContext, CommandList _commandList)
     {
         ImDrawData* drawData = ::ImGui::GetDrawData();
 
@@ -359,10 +365,10 @@ namespace KryneEngine::Modules::ImGui
                 .m_width = static_cast<s32>(drawData->DisplaySize.x),
                 .m_height = static_cast<s32>(drawData->DisplaySize.y),
             };
-            _graphicsContext.SetViewport(_commandList, viewport);
+            _graphicsContext->SetViewport(_commandList, viewport);
         }
 
-        const u8 frameIndex = _graphicsContext.GetCurrentFrameContextIndex();
+        const u8 frameIndex = _graphicsContext->GetCurrentFrameContextIndex();
 
         // Set index buffer
         {
@@ -370,7 +376,7 @@ namespace KryneEngine::Modules::ImGui
                 .m_size = m_dynamicIndexBuffer.GetSize(frameIndex),
                 .m_buffer = m_dynamicIndexBuffer.GetBuffer(frameIndex),
             };
-            _graphicsContext.SetIndexBuffer(_commandList, bufferView, false);
+            _graphicsContext->SetIndexBuffer(_commandList, bufferView, false);
         }
 
         // Set vertex buffer
@@ -380,7 +386,7 @@ namespace KryneEngine::Modules::ImGui
                 .m_stride = sizeof(VertexEntry),
                 .m_buffer = m_dynamicVertexBuffer.GetBuffer(frameIndex),
             };
-            _graphicsContext.SetVertexBuffers(_commandList, {&bufferView,1});
+            _graphicsContext->SetVertexBuffers(_commandList, {&bufferView,1});
         }
 
         u64 vertexOffset = 0;
@@ -411,14 +417,14 @@ namespace KryneEngine::Modules::ImGui
                         .m_right = static_cast<u32>(clipMax.x),
                         .m_bottom = static_cast<u32>(clipMax.y),
                     };
-                    _graphicsContext.SetScissorsRect(_commandList, rect);
+                    _graphicsContext->SetScissorsRect(_commandList, rect);
                 }
 
                 // Draw
                 {
-                    _graphicsContext.SetGraphicsPipeline(_commandList, m_pso);
+                    _graphicsContext->SetGraphicsPipeline(_commandList, m_pso);
 
-                    _graphicsContext.SetGraphicsDescriptorSets(_commandList, m_pipelineLayout, { &m_fontDescriptorSet, 1 });
+                    _graphicsContext->SetGraphicsDescriptorSets(_commandList, m_pipelineLayout, { &m_fontDescriptorSet, 1 });
 
                     PushConstants pushConstants {};
                     pushConstants.m_scale = {
@@ -429,7 +435,7 @@ namespace KryneEngine::Modules::ImGui
                         -1.0f - drawData->DisplayPos.x * pushConstants.m_scale.x,
                         1.0f - drawData->DisplayPos.y * pushConstants.m_scale.y,
                     };
-                    _graphicsContext.SetGraphicsPushConstant(
+                    _graphicsContext->SetGraphicsPushConstant(
                         _commandList,
                         m_pipelineLayout,
                         { reinterpret_cast<u32*>(&pushConstants), 4 });
@@ -439,7 +445,7 @@ namespace KryneEngine::Modules::ImGui
                         .m_indexOffset = static_cast<u32>(indexOffset + drawCmd.IdxOffset),
                         .m_vertexOffset = static_cast<u32>(vertexOffset + drawCmd.VtxOffset),
                     };
-                    _graphicsContext.DrawIndexedInstanced(_commandList, desc);
+                    _graphicsContext->DrawIndexedInstanced(_commandList, desc);
                 }
             }
 
@@ -448,7 +454,7 @@ namespace KryneEngine::Modules::ImGui
         }
     }
 
-    void Context::_InitPso(GraphicsContext& _graphicsContext, RenderPassHandle _renderPass)
+    void Context::_InitPso(GraphicsContext* _graphicsContext, RenderPassHandle _renderPass)
     {
         // Read shader files
         {
@@ -471,8 +477,8 @@ namespace KryneEngine::Modules::ImGui
                 eastl::string("Shaders/ImGui/ImGui_ps_MainPS.") + GraphicsContext::GetShaderFileExtension(),
                 m_fsBytecode);
 
-            m_vsModule = _graphicsContext.RegisterShaderModule(m_vsBytecode.data(), m_vsBytecode.size());
-            m_fsModule = _graphicsContext.RegisterShaderModule(m_fsBytecode.data(), m_fsBytecode.size());
+            m_vsModule = _graphicsContext->RegisterShaderModule(m_vsBytecode.data(), m_vsBytecode.size());
+            m_fsModule = _graphicsContext->RegisterShaderModule(m_fsBytecode.data(), m_fsBytecode.size());
         }
 
         // Set up descriptor set layout
@@ -490,14 +496,14 @@ namespace KryneEngine::Modules::ImGui
                 }
             };
             m_setIndices.resize(descriptorSetDesc.m_bindings.size());
-            m_fontDescriptorSetLayout = _graphicsContext.CreateDescriptorSetLayout(
+            m_fontDescriptorSetLayout = _graphicsContext->CreateDescriptorSetLayout(
                 descriptorSetDesc,
                 m_setIndices.data());
         }
 
         // Set up descriptor set
         {
-            m_fontDescriptorSet = _graphicsContext.CreateDescriptorSet(m_fontDescriptorSetLayout);
+            m_fontDescriptorSet = _graphicsContext->CreateDescriptorSet(m_fontDescriptorSetLayout);
         }
 
         // Pipeline layout creation
@@ -512,7 +518,7 @@ namespace KryneEngine::Modules::ImGui
                 .m_visibility = ShaderVisibility::Vertex,
             });
 
-            m_pipelineLayout = _graphicsContext.CreatePipelineLayout(pipelineLayoutDesc);
+            m_pipelineLayout = _graphicsContext->CreatePipelineLayout(pipelineLayoutDesc);
         }
 
         // PSO creation
@@ -582,7 +588,7 @@ namespace KryneEngine::Modules::ImGui
                 },
             };
 
-            m_pso = _graphicsContext.CreateGraphicsPipeline(desc);
+            m_pso = _graphicsContext->CreateGraphicsPipeline(desc);
         }
     }
 } // namespace KryneEngine

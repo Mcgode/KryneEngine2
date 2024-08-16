@@ -19,8 +19,9 @@
 namespace KryneEngine
 {
     Dx12GraphicsContext::Dx12GraphicsContext(
-            const GraphicsCommon::ApplicationInfo &_appInfo,
-            u64 _currentFrameId)
+        const GraphicsCommon::ApplicationInfo& _appInfo,
+        Window* _window,
+        u64 _currentFrameId)
         : m_appInfo(_appInfo)
     {
         KE_ASSERT(m_appInfo.IsDirectX12Api());
@@ -49,9 +50,8 @@ namespace KryneEngine
 
         if (m_appInfo.m_features.m_present)
         {
-            m_window = eastl::make_unique<Window>(m_appInfo);
             m_swapChain = eastl::make_unique<Dx12SwapChain>(m_appInfo,
-                                                            m_window.get(),
+                                                            _window,
                                                             factory4.Get(),
                                                             m_device.Get(),
                                                             m_directQueue.Get(),
@@ -118,11 +118,6 @@ namespace KryneEngine
             Dx12Assert(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debugDev)));
             Dx12Assert(debugDev->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL));
         }
-    }
-
-    Window *Dx12GraphicsContext::GetWindow() const
-    {
-        return m_window.get();
     }
 
     void Dx12GraphicsContext::EndFrame(u64 _frameId)

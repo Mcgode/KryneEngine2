@@ -13,7 +13,7 @@
 #include <Common/StringHelpers.hpp>
 #include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/Drawing.hpp>
-#include <Graphics/Common/Window.hpp>
+#include <Graphics/Window/Window.hpp>
 #include <Graphics/VK/HelperFunctions.hpp>
 #include <Graphics/VK/VkSurface.hpp>
 #include <Graphics/VK/VkSwapChain.hpp>
@@ -77,13 +77,9 @@ namespace KryneEngine
         }
     }
 
-    VkGraphicsContext::VkGraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo, u64 _frameId)
+    VkGraphicsContext::VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo, Window* _window, u64 _frameId)
         : m_appInfo(_appInfo)
     {
-        if (m_appInfo.m_features.m_present)
-        {
-            m_window = eastl::make_unique<Window>(m_appInfo);
-        }
 
         const VkApplicationInfo applicationInfo {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -131,7 +127,7 @@ namespace KryneEngine
 
         if (m_appInfo.m_features.m_present)
         {
-            m_surface = eastl::make_unique<VkSurface>(m_instance, m_window->GetGlfwWindow());
+            m_surface = eastl::make_unique<VkSurface>(m_instance, _window->GetGlfwWindow());
         }
 
         _SelectPhysicalDevice();
@@ -160,7 +156,7 @@ namespace KryneEngine
                     m_device,
                     *m_surface,
                     m_resources,
-                    m_window->GetGlfwWindow(),
+                    _window->GetGlfwWindow(),
                     m_queueIndices,
                     _frameId,
                     nullptr);

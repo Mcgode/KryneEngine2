@@ -6,6 +6,8 @@
 
 #include "Window.hpp"
 
+#include <Graphics/Common/GraphicsContext.hpp>
+
 namespace KryneEngine
 {
     Window::Window(const GraphicsCommon::ApplicationInfo &_appInfo)
@@ -24,10 +26,14 @@ namespace KryneEngine
                                         _appInfo.m_applicationName.c_str(),
                                         nullptr,
                                         nullptr);
+
+        m_graphicsContext = eastl::make_unique<GraphicsContext>(_appInfo, this);
     }
 
     Window::~Window()
     {
+        m_graphicsContext.reset();
+
         glfwDestroyWindow(m_glfwWindow);
         glfwTerminate();
     }

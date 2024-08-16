@@ -32,11 +32,9 @@ namespace KryneEngine
     class VkGraphicsContext
     {
     public:
-        explicit VkGraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo, u64 _frameId);
+        explicit VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo, Window* _window, u64 _frameId);
 
         virtual ~VkGraphicsContext();
-
-        [[nodiscard]] Window* GetWindow() const { return m_window.get(); }
 
         [[nodiscard]] u8 GetFrameContextCount() const { return m_frameContextCount; }
 
@@ -50,8 +48,6 @@ namespace KryneEngine
 
     private:
         const GraphicsCommon::ApplicationInfo m_appInfo;
-
-        eastl::unique_ptr<Window> m_window;
 
         VkInstance m_instance;
         VkDebugUtilsMessengerEXT m_debugMessenger;

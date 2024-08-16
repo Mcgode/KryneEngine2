@@ -10,20 +10,26 @@
 #include <Graphics/Common/GraphicsContext.hpp>
 #include <GraphicsUtils/DynamicBuffer.hpp>
 
+namespace KryneEngine
+{
+    class Window;
+}
+
 namespace KryneEngine::Modules::ImGui
 {
+
     class Context
     {
     public:
-        explicit Context(GraphicsContext& _graphicsContext, RenderPassHandle _renderPass);
+        explicit Context(Window* _window, RenderPassHandle _renderPass);
         ~Context();
 
-        void Shutdown(GraphicsContext& _graphicsContext);
+        void Shutdown(GraphicsContext* _graphicsContext);
 
-        void NewFrame(GraphicsContext& _graphicsContext, CommandList _commandList);
+        void NewFrame(Window* _window, CommandList _commandList);
 
-        void PrepareToRenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList);
-        void RenderFrame(GraphicsContext& _graphicsContext, CommandList _commandList);
+        void PrepareToRenderFrame(GraphicsContext* _graphicsContext, CommandList _commandList);
+        void RenderFrame(GraphicsContext* _graphicsContext, CommandList _commandList);
 
     private:
         ImGuiContext* m_context;
@@ -48,6 +54,6 @@ namespace KryneEngine::Modules::ImGui
         GraphicsUtils::DynamicBuffer m_dynamicVertexBuffer;
         GraphicsUtils::DynamicBuffer m_dynamicIndexBuffer;
 
-        void _InitPso(GraphicsContext& _graphicsContext, RenderPassHandle _renderPass);
+        void _InitPso(GraphicsContext* _graphicsContext, RenderPassHandle _renderPass);
     };
 }// namespace KryneEngine

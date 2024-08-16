@@ -15,12 +15,12 @@ namespace KryneEngine::Modules::GraphicsUtils
     class DynamicBuffer
     {
     public:
-        void Init(GraphicsContext& _graphicsContext, const BufferCreateDesc& _bufferDesc, u8 _frameCount);
+        void Init(GraphicsContext* _graphicsContext, const BufferCreateDesc& _bufferDesc, u8 _frameCount);
         void RequestResize(u64 _size);
-        void* Map(GraphicsContext& _graphicsContext, u8 _frameIndex);
-        void Unmap(GraphicsContext& _graphicsContext);
+        void* Map(GraphicsContext* _graphicsContext, u8 _frameIndex);
+        void Unmap(GraphicsContext* _graphicsContext);
         void PrepareBuffers(
-            GraphicsContext& _graphicsContext,
+            GraphicsContext* _graphicsContext,
             CommandList _commandLine,
             KryneEngine::BarrierAccessFlags _accessFlags,
             u8 _frameIndex);
@@ -32,7 +32,7 @@ namespace KryneEngine::Modules::GraphicsUtils
 
         BufferHandle GetBuffer(u8 _frameIndex);
 
-        void Destroy(GraphicsContext& _graphicsContext);
+        void Destroy(GraphicsContext* _graphicsContext);
 
     private:
         BufferCreateDesc m_mappableRecreateDesc;

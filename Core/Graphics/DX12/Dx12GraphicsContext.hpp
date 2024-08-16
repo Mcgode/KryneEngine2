@@ -29,11 +29,12 @@ namespace KryneEngine
     class Dx12GraphicsContext
     {
     public:
-        explicit Dx12GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo, u64 _currentFrameId);
+        explicit Dx12GraphicsContext(
+            const GraphicsCommon::ApplicationInfo& _appInfo,
+            Window* _window,
+            u64 _currentFrameId);
 
         ~Dx12GraphicsContext();
-
-        [[nodiscard]] Window* GetWindow() const;
 
         [[nodiscard]] u8 GetFrameContextCount() const { return m_frameContextCount; }
 
@@ -47,8 +48,6 @@ namespace KryneEngine
 
     private:
         GraphicsCommon::ApplicationInfo m_appInfo;
-
-        eastl::unique_ptr<Window> m_window;
 
         ComPtr<ID3D12Device> m_device;
 

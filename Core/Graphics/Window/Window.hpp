@@ -6,12 +6,15 @@
 
 #pragma once
 
-#include <GLFW/glfw3.h>
 #include <Common/Types.hpp>
+#include <EASTL/unique_ptr.h>
+#include <GLFW/glfw3.h>
 #include <Graphics/Common/GraphicsCommon.hpp>
 
 namespace KryneEngine
 {
+    class GraphicsContext;
+
     class Window
     {
     public:
@@ -22,9 +25,12 @@ namespace KryneEngine
 
         [[nodiscard]] bool WaitForEvents() const;
         [[nodiscard]] GLFWwindow* GetGlfwWindow() const { return m_glfwWindow; }
+        [[nodiscard]] GraphicsContext* GetGraphicsContext() const { return m_graphicsContext.get(); }
 
     private:
         GLFWwindow* m_glfwWindow;
+
+        eastl::unique_ptr<GraphicsContext> m_graphicsContext;
     };
 }
 

@@ -16,11 +16,11 @@
 namespace KryneEngine
 {
     Dx12SwapChain::Dx12SwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
-                                 Window *_processWindow,
+        const Window* _processWindow,
                                  IDXGIFactory4 *_factory,
                                  ID3D12Device *_device,
                                  ID3D12CommandQueue *_directQueue,
-                                 Dx12Resources &_resources)
+        KryneEngine::Dx12Resources& _resources)
     {
         const auto& displayInfo = _appInfo.m_displayOptions;
 

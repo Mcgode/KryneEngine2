@@ -19,9 +19,13 @@ namespace KryneEngine
         friend class Dx12GraphicsContext;
 
     public:
-        Dx12SwapChain(const GraphicsCommon::ApplicationInfo &_appInfo, Window *_processWindow,
-                      IDXGIFactory4 *_factory, ID3D12Device *_device, ID3D12CommandQueue *_directQueue,
-                      KryneEngine::Dx12Resources &_resources);
+        Dx12SwapChain(
+            const GraphicsCommon::ApplicationInfo &_appInfo,
+            const Window* _processWindow,
+            IDXGIFactory4 *_factory,
+            ID3D12Device *_device,
+            ID3D12CommandQueue *_directQueue,
+            KryneEngine::Dx12Resources& _resources);
 
         ~Dx12SwapChain();
 

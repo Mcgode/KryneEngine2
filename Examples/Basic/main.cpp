@@ -1,5 +1,6 @@
 #include <Graphics/Common/GraphicsContext.hpp>
 #include <Graphics/Common/RenderPass.hpp>
+#include <Graphics/Window/Window.hpp>
 #include <ImGui/Context.hpp>
 #include <Threads/FibersManager.hpp>
 #include <Threads/Semaphore.hpp>
@@ -86,10 +87,11 @@ int main() {
         appInfo.m_api = KryneEngine::GraphicsCommon::Api::DirectX12_1;
         appInfo.m_applicationName += " - DirectX 12";
 #endif
-        GraphicsContext graphicsContext(appInfo);
+        Window mainWindow(appInfo);
+        GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
         DynamicArray<RenderPassHandle> renderPassHandles;
-        renderPassHandles.Resize(graphicsContext.GetFrameContextCount());
+        renderPassHandles.Resize(graphicsContext->GetFrameContextCount());
         for (auto i = 0u; i < renderPassHandles.Size(); i++)
         {
             RenderPassDesc desc;
@@ -98,22 +100,22 @@ int main() {
                 KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store,
                 TextureLayout::Unknown,
                 TextureLayout::Present,
-                graphicsContext.GetPresentRenderTargetView(i),
+                graphicsContext->GetPresentRenderTargetView(i),
                 float4(0, 1, 1, 1)
             });
 #if !defined(KE_FINAL)
             desc.m_debugName.sprintf("PresentRenderPass[%d]", i);
 #endif
-            renderPassHandles[i] = graphicsContext.CreateRenderPass(desc);
+            renderPassHandles[i] = graphicsContext->CreateRenderPass(desc);
         }
 
-        KEModules::ImGui::Context imGuiContext{graphicsContext, renderPassHandles[0]};
+        KEModules::ImGui::Context imGuiContext{&mainWindow, renderPassHandles[0]};
 
         do
         {
-            CommandList commandList = graphicsContext.BeginGraphicsCommandList();
+            CommandList commandList = graphicsContext->BeginGraphicsCommandList();
 
-            imGuiContext.NewFrame(graphicsContext, commandList);
+            imGuiContext.NewFrame(&mainWindow, commandList);
 
             {
                 static bool open;
@@ -122,24 +124,24 @@ int main() {
 
             imGuiContext.PrepareToRenderFrame(graphicsContext, commandList);
 
-            const u8 index = graphicsContext.GetCurrentPresentImageIndex();
-            graphicsContext.BeginRenderPass(commandList, renderPassHandles[index]);
+            const u8 index = graphicsContext->GetCurrentPresentImageIndex();
+            graphicsContext->BeginRenderPass(commandList, renderPassHandles[index]);
 
             imGuiContext.RenderFrame(graphicsContext, commandList);
 
-            graphicsContext.EndRenderPass(commandList);
+            graphicsContext->EndRenderPass(commandList);
 
-            graphicsContext.EndGraphicsCommandList();
+            graphicsContext->EndGraphicsCommandList();
         }
-        while (graphicsContext.EndFrame());
+        while (graphicsContext->EndFrame());
 
-        graphicsContext.WaitForLastFrame();
+        graphicsContext->WaitForLastFrame();
 
         imGuiContext.Shutdown(graphicsContext);
 
         for (auto handle: renderPassHandles)
         {
-            graphicsContext.DestroyRenderPass(handle);
+            graphicsContext->DestroyRenderPass(handle);
         }
     }
 

@@ -11,9 +11,10 @@
 
 namespace KryneEngine
 {
-    GraphicsContext::GraphicsContext(const GraphicsCommon::ApplicationInfo &_appInfo)
+    GraphicsContext::GraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo, Window* _window)
         : m_frameId(kInitialFrameId)
-        , m_implementation(_appInfo, kInitialFrameId)
+        , m_implementation(_appInfo, _window, kInitialFrameId)
+        , m_window(_window)
     {
     }
 
@@ -26,7 +27,7 @@ namespace KryneEngine
     {
         m_implementation.EndFrame(m_frameId);
         m_frameId++;
-        return GetWindow()->WaitForEvents();
+        return m_window->WaitForEvents();
     }
 
     void GraphicsContext::WaitForLastFrame() const
