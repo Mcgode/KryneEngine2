@@ -35,6 +35,18 @@ namespace KryneEngine
         m_keyInputEventListeners.erase(_id);
     }
 
+    u32 InputManager::RegisterCursorPosEventCallback(eastl::function<void(float, float)>&& _callback)
+    {
+        const u32 id = m_cursorPosEventCounter++;
+        m_cursorPosEventListeners.emplace(id, _callback);
+        return id;
+    }
+
+    void InputManager::UnregisterCursorPosEventCallback(u32 _id)
+    {
+        m_cursorPosEventListeners.erase(_id);
+    }
+
     u32 InputManager::RegisterMouseInputEventCallback(eastl::function<void(const MouseInputEvent&)>&& _callback)
     {
         const u32 id = m_mouseInputEventCounter++;
@@ -83,6 +95,11 @@ namespace KryneEngine
             _posX,
             _posY
         };
+
+        for (const auto& pair : inputManager->m_cursorPosEventListeners)
+        {
+            pair.second(static_cast<float>(_posX), static_cast<float>(_posY));
+        }
     }
 
     void InputManager::MouseButtonInputCallback(GLFWwindow* _window, s32 _button, s32 _action, s32 _mods)
