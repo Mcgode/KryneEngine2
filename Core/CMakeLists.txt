@@ -46,6 +46,8 @@ set(WindowSrc
         Window/Input/KeyInputEvent.hpp
         Window/GLFW/Input/KeyInputEvent.hpp
         Window/GLFW/Input/KeyInputEvent.cpp
+        Window/Input/MouseInputEvent.hpp
+        Window/Input/InputEnums.hpp
 )
 
 add_library(KryneEngineCore ${CommonSrc} ${FilesSrc} ${MemorySrc} ${ThreadsSrc} ${WindowSrc})

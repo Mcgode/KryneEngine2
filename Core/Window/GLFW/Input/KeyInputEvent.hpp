@@ -6,11 +6,13 @@
 
 #pragma once
 
-#include <Window/Input/KeyInputEvent.hpp>
+#include <Window/Input/InputEnums.hpp>
+#include <Window/Input/InputPhysicalKeys.hpp>
 
 namespace KryneEngine::GLFW
 {
     [[nodiscard]] InputPhysicalKeys ToInputPhysicalKeys(s32 _glfwKey);
-    [[nodiscard]] KeyInputEvent::Action ToKeyInputEventAction(s32 _glfwAction);
-    [[nodiscard]] KeyInputEvent::Modifiers ToKeyInputEventModifiers(s32 _glfwMods);
+    [[nodiscard]] InputActionType ToInputEventAction(s32 _glfwAction);
+    [[nodiscard]] KeyInputModifiers ToInputEventModifiers(s32 _glfwMods);
+    [[nodiscard]] MouseInputButton ToMouseInputButton(s32 _glfwMouse);
 }

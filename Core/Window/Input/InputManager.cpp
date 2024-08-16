@@ -33,6 +33,18 @@ namespace KryneEngine
         m_keyInputEventListeners.erase(_id);
     }
 
+    u32 InputManager::RegisterMouseInputEventCallback(eastl::function<void(const MouseInputEvent&)>&& _callback)
+    {
+        const u32 id = m_mouseInputEventCounter++;
+        m_mouseInputEventListeners.emplace(id, _callback);
+        return id;
+    }
+
+    void InputManager::UnregisterMouseInputEventCallback(u32 _id)
+    {
+        m_mouseInputEventListeners.erase(_id);
+    }
+
     void InputManager::KeyCallback(GLFWwindow* _window, s32 _key, s32 _scancode, s32 _action, s32 _mods)
     {
         auto* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(_window));
@@ -40,8 +52,8 @@ namespace KryneEngine
         const KeyInputEvent keyInputEvent {
             .m_physicalKey = GLFW::ToInputPhysicalKeys(_key),
             .m_customCode = _scancode,
-            .m_action = GLFW::ToKeyInputEventAction(_action),
-            .m_modifiers = GLFW::ToKeyInputEventModifiers(_mods),
+            .m_action = GLFW::ToInputEventAction(_action),
+            .m_modifiers = GLFW::ToInputEventModifiers(_mods),
         };
 
         for (const auto& pair : inputManager->m_keyInputEventListeners)
@@ -57,5 +69,21 @@ namespace KryneEngine
             _posX,
             _posY
         };
+    }
+
+    void InputManager::MouseButtonInputCallback(GLFWwindow* _window, s32 _button, s32 _action, s32 _mods)
+    {
+        auto* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(_window));
+
+        const MouseInputEvent mouseInputEvent{
+            .m_mouseButton = GLFW::ToMouseInputButton(_button),
+            .m_action = GLFW::ToInputEventAction(_action),
+            .m_modifiers = GLFW::ToInputEventModifiers(_mods),
+        };
+
+        for (const auto& pair : inputManager->m_mouseInputEventListeners)
+        {
+            pair.second(mouseInputEvent);
+        }
     }
 } // namespace KryneEngine

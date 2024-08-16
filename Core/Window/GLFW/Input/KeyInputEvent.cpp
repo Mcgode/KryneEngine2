@@ -125,49 +125,75 @@ namespace KryneEngine::GLFW
 #undef  MAP
     }
 
-    KeyInputEvent::Action ToKeyInputEventAction(s32 _glfwAction)
+    InputActionType ToInputEventAction(s32 _glfwAction)
     {
         switch (_glfwAction)
         {
         case GLFW_PRESS:
-            return KeyInputEvent::Action::StartPress;
+            return InputActionType::StartPress;
         case GLFW_REPEAT:
-            return KeyInputEvent::Action::KeepPressing;
+            return InputActionType::KeepPressing;
         case GLFW_RELEASE:
-            return KeyInputEvent::Action::StopPress;
+            return InputActionType::StopPress;
         default:
             KE_ERROR("Unknown action %d", _glfwAction);
-            return KeyInputEvent::Action::Unknown;
+            return InputActionType::Unknown;
         }
     }
 
-    KeyInputEvent::Modifiers ToKeyInputEventModifiers(s32 _glfwMods)
+    KeyInputModifiers ToInputEventModifiers(s32 _glfwMods)
     {
-        KeyInputEvent::Modifiers modifiers = KeyInputEvent::Modifiers::None;
+        KeyInputModifiers modifiers = KeyInputModifiers::None;
         if (_glfwMods & GLFW_MOD_SHIFT)
         {
-            modifiers = KeyInputEvent::Modifiers::Shift;
+            modifiers = KeyInputModifiers::Shift;
         }
         if (_glfwMods & GLFW_MOD_CONTROL)
         {
-            modifiers = KeyInputEvent::Modifiers::Ctrl;
+            modifiers = KeyInputModifiers::Ctrl;
         }
         if (_glfwMods & GLFW_MOD_ALT)
         {
-            modifiers = KeyInputEvent::Modifiers::Alt;
+            modifiers = KeyInputModifiers::Alt;
         }
         if (_glfwMods & GLFW_MOD_SUPER)
         {
-            modifiers = KeyInputEvent::Modifiers::Super;
+            modifiers = KeyInputModifiers::Super;
         }
         if (_glfwMods & GLFW_MOD_CAPS_LOCK)
         {
-            modifiers = KeyInputEvent::Modifiers::CapsLock;
+            modifiers = KeyInputModifiers::CapsLock;
         }
         if (_glfwMods & GLFW_MOD_NUM_LOCK)
         {
-            modifiers = KeyInputEvent::Modifiers::NumLock;
+            modifiers = KeyInputModifiers::NumLock;
         }
         return modifiers;
+    }
+
+    MouseInputButton ToMouseInputButton(s32 _glfwMouse)
+    {
+        switch (_glfwMouse)
+        {
+        case GLFW_MOUSE_BUTTON_1:
+            return MouseInputButton::Button1;
+        case GLFW_MOUSE_BUTTON_2:
+            return MouseInputButton::Button2;
+        case GLFW_MOUSE_BUTTON_3:
+            return MouseInputButton::Button3;
+        case GLFW_MOUSE_BUTTON_4:
+            return MouseInputButton::Button4;
+        case GLFW_MOUSE_BUTTON_5:
+            return MouseInputButton::Button5;
+        case GLFW_MOUSE_BUTTON_6:
+            return MouseInputButton::Button6;
+        case GLFW_MOUSE_BUTTON_7:
+            return MouseInputButton::Button7;
+        case GLFW_MOUSE_BUTTON_8:
+            return MouseInputButton::Button8;
+        default:
+            KE_ERROR("Unknown mouse button %d", _glfwMouse);
+            return MouseInputButton::Unknown;
+        }
     }
 }

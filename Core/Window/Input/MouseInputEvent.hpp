@@ -7,14 +7,12 @@
 #pragma once
 
 #include "InputEnums.hpp"
-#include "InputPhysicalKeys.hpp"
 
 namespace KryneEngine
 {
-    struct KeyInputEvent
+    struct MouseInputEvent
     {
-        InputPhysicalKeys m_physicalKey;
-        s32 m_customCode;
+        MouseInputButton m_mouseButton;
         InputActionType m_action;
         KeyInputModifiers m_modifiers;
     };
