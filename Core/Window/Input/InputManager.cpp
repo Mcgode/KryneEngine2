@@ -33,6 +33,7 @@ namespace KryneEngine
 
     void InputManager::UnregisterKeyInputEventCallback(u32 _id)
     {
+        const auto lock = m_mutex.AutoLock();
         m_keyInputEventListeners.erase(_id);
     }
 
@@ -47,6 +48,7 @@ namespace KryneEngine
 
     void InputManager::UnregisterTextInputEventCallback(u32 _id)
     {
+        const auto lock = m_mutex.AutoLock();
         m_textInputEventListeners.erase(_id);
     }
 
@@ -61,6 +63,7 @@ namespace KryneEngine
 
     void InputManager::UnregisterCursorPosEventCallback(u32 _id)
     {
+        const auto lock = m_mutex.AutoLock();
         m_cursorPosEventListeners.erase(_id);
     }
 
@@ -75,6 +78,7 @@ namespace KryneEngine
 
     void InputManager::UnregisterMouseInputEventCallback(u32 _id)
     {
+        const auto lock = m_mutex.AutoLock();
         m_mouseInputEventListeners.erase(_id);
     }
 
@@ -89,6 +93,7 @@ namespace KryneEngine
 
     void InputManager::UnregisterScrollInputEventCallback(u32 _id)
     {
+        const auto lock = m_mutex.AutoLock();
         m_scrollInputEventListeners.erase(_id);
     }
 
