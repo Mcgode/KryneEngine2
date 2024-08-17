@@ -13,7 +13,12 @@ namespace KryneEngine
 {
     Window::Window(const GraphicsCommon::ApplicationInfo &_appInfo)
     {
-        glfwInit();
+        ZoneScopedN("Window init");
+
+        {
+            ZoneScopedN("GLFW init");
+            glfwInit();
+        }
 
 #if defined(KE_GRAPHICS_API_VK)
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -22,18 +27,26 @@ namespace KryneEngine
 
         glfwWindowHint(GLFW_RESIZABLE, displayInfo.m_resizableWindow);
 
-        m_glfwWindow = glfwCreateWindow(displayInfo.m_width,
-                                        displayInfo.m_height,
-                                        _appInfo.m_applicationName.c_str(),
-                                        nullptr,
-                                        nullptr);
+        {
+            ZoneScopedN("GLFW window creation");
+
+            m_glfwWindow = glfwCreateWindow(displayInfo.m_width,
+                                            displayInfo.m_height,
+                                            _appInfo.m_applicationName.c_str(),
+                                            nullptr,
+                                            nullptr);
+        }
         glfwSetWindowUserPointer(m_glfwWindow, this);
 
         m_graphicsContext = eastl::make_unique<GraphicsContext>(_appInfo, this);
 
-        m_inputManager = eastl::make_unique<InputManager>(this);
+        {
+            ZoneScopedN("Input management init");
 
-        glfwSetWindowFocusCallback(m_glfwWindow, WindowFocusCallback);
+            m_inputManager = eastl::make_unique<InputManager>(this);
+
+            glfwSetWindowFocusCallback(m_glfwWindow, WindowFocusCallback);
+        }
     }
 
     Window::~Window()
@@ -46,6 +59,8 @@ namespace KryneEngine
 
     bool Window::WaitForEvents() const
     {
+        ZoneScopedN("Window poll events");
+
         glfwPollEvents();
 
         return !glfwWindowShouldClose(m_glfwWindow);
