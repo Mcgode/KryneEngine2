@@ -6,13 +6,14 @@
 
 #include "VkSurface.hpp"
 
-#include <Graphics/VK/HelperFunctions.hpp>
 #include <GLFW/glfw3.h>
+#include <Graphics/VK/HelperFunctions.hpp>
 
 namespace KryneEngine
 {
     VkSurface::VkSurface(VkInstance _instance, GLFWwindow *_window)
     {
+        ZoneScopedN("VkSurface creation");
         VkAssert(glfwCreateWindowSurface(_instance,
                                          _window,
                                          nullptr,
@@ -31,6 +32,8 @@ namespace KryneEngine
 
     void VkSurface::UpdateCapabilities(const VkPhysicalDevice& _physicalDevice)
     {
+        ZoneScopedN("VkSurface capabilities fetch");
+
         VkAssert(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physicalDevice, m_surface, &m_capabilities.m_surfaceCapabilities));
 
         VkHelperFunctions::VkArrayFetch(m_capabilities.m_formats, vkGetPhysicalDeviceSurfaceFormatsKHR, _physicalDevice, m_surface);

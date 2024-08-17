@@ -6,9 +6,10 @@
 
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include <Common/Types.hpp>
 #include <Common/Arrays.hpp>
 #include <Common/Assert.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <Memory/GenerationalPool.hpp>
+#include <tracy/Tracy.hpp>
+#include <vulkan/vulkan.h>

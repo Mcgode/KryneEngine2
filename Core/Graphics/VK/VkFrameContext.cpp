@@ -16,6 +16,8 @@ namespace KryneEngine
                 const VkCommonStructures::QueueIndices::Pair& _pair,
                 CommandPoolSet& _commandPoolSet)
         {
+            ZoneScopedN("VkFrameContext::CreateCommandPool");
+
             if (!_pair.IsInvalid())
             {
                 // Create command pool
@@ -85,6 +87,8 @@ namespace KryneEngine
 
     void VkFrameContext::WaitForFences(VkDevice _device, u64 _frameId) const
     {
+        ZoneScopedN("VkFrameContext::WaitForFrame");
+
         // If fences have already been reset to a later frame, then previous fence was signaled, no need to wait.
         if (m_frameId > _frameId)
         {
@@ -96,10 +100,14 @@ namespace KryneEngine
 
     VkCommandBuffer VkFrameContext::CommandPoolSet::BeginCommandBuffer(VkDevice _device)
     {
+        ZoneScopedN("VkFrameContext::CommandPoolSet::BeginCommandBuffer");
+
         m_mutex.ManualLock();
 
         if (m_availableCommandBuffers.empty())
         {
+            ZoneScopedN("Allocate new command buffer");
+
             const VkCommandBufferAllocateInfo allocateInfo {
                     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
                     .commandPool = m_commandPool,
@@ -113,7 +121,8 @@ namespace KryneEngine
             {
                 eastl::string name;
                 name.sprintf("%s/CommandBuffer[%zu]", m_baseDebugString.c_str(), m_usedCommandBuffers.size() - 1);
-                m_debugHandler->SetName(_device, VK_OBJECT_TYPE_COMMAND_BUFFER, (u64)(VkCommandBuffer)m_usedCommandBuffers.back(), name);
+                ZoneText(name.c_str(), name.size());
+                m_debugHandler->SetName(_device, VK_OBJECT_TYPE_COMMAND_BUFFER, (u64)m_usedCommandBuffers.back(), name);
             }
 #endif
         }
@@ -136,6 +145,8 @@ namespace KryneEngine
 
     void VkFrameContext::CommandPoolSet::EndCommandBuffer()
     {
+        ZoneScopedN("VkFrameContext::CommandPoolSet::EndCommandBuffer");
+
         vkEndCommandBuffer(m_usedCommandBuffers.back());
 
         m_mutex.ManualUnlock();
@@ -143,6 +154,8 @@ namespace KryneEngine
 
     void VkFrameContext::CommandPoolSet::Reset()
     {
+        ZoneScopedN("VkFrameContext::CommandPoolSet::Reset");
+
         const auto lock = m_mutex.AutoLock();
 
         for (auto commandBuffer: m_usedCommandBuffers)

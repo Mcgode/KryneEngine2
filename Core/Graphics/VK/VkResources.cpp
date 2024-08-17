@@ -27,6 +27,8 @@ namespace KryneEngine
         VkPhysicalDevice _physicalDevice,
         VkInstance _instance)
     {
+        ZoneScopedN("VkResources VMA init");
+
         const VmaAllocatorCreateInfo createInfo {
             .flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT,
             .physicalDevice = _physicalDevice,
@@ -45,6 +47,8 @@ namespace KryneEngine
 
     BufferHandle VkResources::CreateBuffer(const BufferCreateDesc& _desc, VkDevice _device)
     {
+        ZoneScopedN("VkResources::CreateBuffer");
+
         using namespace VkHelperFunctions;
 
         const VkBufferCreateInfo createInfo {
@@ -99,6 +103,7 @@ namespace KryneEngine
             VK_OBJECT_TYPE_BUFFER,
             reinterpret_cast<u64>(*buffer),
             _desc.m_desc.m_debugName);
+        ZoneText(_desc.m_desc.m_debugName.c_str(), _desc.m_desc.m_debugName.size());
 #endif
 
         return { handle };
@@ -109,6 +114,8 @@ namespace KryneEngine
         const eastl::vector<TextureMemoryFootprint>& _footprints,
         VkDevice _device)
     {
+        ZoneScopedN("VkResources::CreateStagingBuffer");
+
         const u64 bufferWidth = _footprints.back().m_offset + _footprints.back().m_lineByteAlignedSize
             * _footprints.back().m_height
             * _footprints.back().m_depth;
@@ -144,6 +151,7 @@ namespace KryneEngine
             VK_OBJECT_TYPE_BUFFER,
             reinterpret_cast<u64>(buffer),
             (_createDesc.m_debugName + "_Staging").c_str());
+        ZoneTextF("%s_Staging", _createDesc.m_debugName.c_str());
 #endif
 
         *m_buffers.Get(handle) = buffer;
@@ -154,6 +162,8 @@ namespace KryneEngine
 
     bool VkResources::DestroyBuffer(BufferHandle _buffer)
     {
+        ZoneScopedN("VkResources::DestroyBuffer");
+
         VkBuffer buffer;
         BufferColdData coldData {};
 
@@ -168,6 +178,8 @@ namespace KryneEngine
 
     TextureHandle VkResources::RegisterTexture(VkImage _image, const uint3& _dimensions)
     {
+        ZoneScopedN("VkResources::RegisterTexture");
+
         const auto handle = m_textures.Allocate();
         *m_textures.Get(handle) = _image;
         *m_textures.GetCold(handle) = { nullptr, _dimensions };
@@ -176,6 +188,8 @@ namespace KryneEngine
 
     TextureHandle VkResources::CreateTexture(const TextureCreateDesc& _desc, VkDevice _device)
     {
+        ZoneScopedN("VkResources::CreateTexture");
+
         using namespace VkHelperFunctions;
 
         const VkImageCreateInfo imageCreateInfo{
@@ -220,6 +234,7 @@ namespace KryneEngine
             VK_OBJECT_TYPE_IMAGE,
             reinterpret_cast<u64>(image),
             _desc.m_desc.m_debugName.c_str());
+        ZoneText(_desc.m_desc.m_debugName.c_str(), _desc.m_desc.m_debugName.size());
 #endif
 
         return { handle };
@@ -227,6 +242,8 @@ namespace KryneEngine
 
     bool VkResources::ReleaseTexture(TextureHandle _texture, VkDevice _device, bool _free)
     {
+        ZoneScopedN("VkResources::ReleaseTexture");
+
         VkImage image;
         TextureColdData coldData;
         if (m_textures.Free(_texture.m_handle, &image, &coldData))
@@ -242,6 +259,8 @@ namespace KryneEngine
 
     TextureSrvHandle VkResources::CreateTextureSrv(const TextureSrvDesc& _srvDesc, VkDevice _device)
     {
+        ZoneScopedN("VkResources::CreateTextureSrv");
+
         auto* image = m_textures.Get(_srvDesc.m_texture.m_handle);
         if (image == nullptr)
         {
@@ -266,6 +285,7 @@ namespace KryneEngine
         {
             const u64 handle = reinterpret_cast<u64>(imageView);
             m_debugHandler->SetName(_device, VK_OBJECT_TYPE_IMAGE_VIEW, handle, _srvDesc.m_debugName.c_str());
+            ZoneText(_srvDesc.m_debugName.c_str(), _srvDesc.m_debugName.size());
         }
 #endif
 
@@ -276,6 +296,8 @@ namespace KryneEngine
 
     bool VkResources::DestroyTextureSrv(TextureSrvHandle _textureSrv, VkDevice _device)
     {
+        ZoneScopedN("VkResources::DestroyTextureSrv");
+
         VkImageView imageView;
 
         if (m_imageViews.Free(_textureSrv.m_handle, &imageView))
@@ -288,6 +310,8 @@ namespace KryneEngine
 
     SamplerHandle VkResources::CreateSampler(const SamplerDesc& _samplerDesc, VkDevice _device)
     {
+        ZoneScopedN("VkResources::CreateSampler");
+
         VkSamplerCreateInfo createInfo {
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
             .magFilter = _samplerDesc.m_magFilter == SamplerDesc::Filter::Linear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
@@ -326,6 +350,8 @@ namespace KryneEngine
 
     bool VkResources::DestroySampler(SamplerHandle _sampler, VkDevice _device)
     {
+        ZoneScopedN("VkResources::DestroySampler");
+
         VkSampler sampler;
         if (m_samplers.Free(_sampler.m_handle, &sampler))
         {
@@ -339,6 +365,8 @@ namespace KryneEngine
             const RenderTargetViewDesc &_desc,
             VkDevice &_device)
     {
+        ZoneScopedN("VkResources::CreateRenderTargetView");
+
         auto* image = m_textures.Get(_desc.m_texture.m_handle);
         if (image == nullptr)
         {
@@ -365,6 +393,7 @@ namespace KryneEngine
         {
             const u64 handle = (u64)static_cast<VkImageView>(imageView);
             m_debugHandler->SetName(_device, VK_OBJECT_TYPE_IMAGE_VIEW, handle, _desc.m_debugName.data());
+            ZoneText(_desc.m_debugName.c_str(), _desc.m_debugName.size());
         }
 #endif
 
@@ -382,6 +411,8 @@ namespace KryneEngine
 
     bool VkResources::FreeRenderTargetView(RenderTargetViewHandle _rtv, VkDevice _device)
     {
+        ZoneScopedN("VkResources::FreeRenderTargetView");
+
         VkImageView imageView;
         if (m_renderTargetViews.Free(_rtv.m_handle, &imageView))
         {
@@ -393,6 +424,8 @@ namespace KryneEngine
 
     RenderPassHandle VkResources::CreateRenderPass(const RenderPassDesc &_desc, VkDevice _device)
     {
+        ZoneScopedN("VkResources::CreateRenderPass");
+
         constexpr auto convertLoadOp = [](RenderPassDesc::Attachment::LoadOperation _op)
         {
             switch (_op)
@@ -564,6 +597,7 @@ namespace KryneEngine
             const eastl::string name = _desc.m_debugName + "/Framebuffer";
             m_debugHandler->SetName(_device, VK_OBJECT_TYPE_FRAMEBUFFER, objectHandle, name.c_str());
         }
+        ZoneTextF("%s/RenderPass + %s/Framebuffer", _desc.m_debugName.c_str(), _desc.m_debugName.c_str());
 #endif
 
         return { handle };
@@ -571,6 +605,8 @@ namespace KryneEngine
 
     bool VkResources::DestroyRenderPass(RenderPassHandle _renderPass, VkDevice _device)
     {
+        ZoneScopedN("VkResources::DestroyRenderPass");
+
         RenderPassData data;
         if (!m_renderPasses.Free(_renderPass.m_handle, &data))
         {
@@ -586,6 +622,8 @@ namespace KryneEngine
 
     ShaderModuleHandle VkResources::CreateShaderModule(void* _bytecodeData, u64 _bytecodeSize, VkDevice _device)
     {
+        ZoneScopedN("VkResources::CreateShaderModule");
+
         VERIFY_OR_RETURN(Alignment::IsAligned<u64>(_bytecodeSize, 4u), { GenPool::kInvalidHandle });
 
         const VkShaderModuleCreateInfo createInfo {
@@ -601,6 +639,8 @@ namespace KryneEngine
 
     bool VkResources::DestroyShaderModule(ShaderModuleHandle _shaderModule, VkDevice _device)
     {
+        ZoneScopedN("VkResources::DestroyShaderModule");
+
         VkShaderModule module;
         if (m_shaderModules.Free(_shaderModule.m_handle, &module))
         {
@@ -613,6 +653,8 @@ namespace KryneEngine
     PipelineLayoutHandle VkResources::CreatePipelineLayout(
         const PipelineLayoutDesc& _desc, VkDevice _device, VkDescriptorSetManager* _setManager)
     {
+        ZoneScopedN("VkResources::CreatePipelineLayout");
+
         const GenPool::Handle handle = m_pipelineLayouts.Allocate();
         auto [pLayout, pColdData] = m_pipelineLayouts.GetAll(handle);
 
@@ -654,6 +696,8 @@ namespace KryneEngine
 
     bool VkResources::DestroyPipelineLayout(PipelineLayoutHandle _pipeline, VkDevice _device)
     {
+        ZoneScopedN("VkResources::DestroyPipelineLayout");
+
         VkPipelineLayout layout;
         if (m_pipelineLayouts.Free(_pipeline.m_handle, &layout))
         {
@@ -665,6 +709,8 @@ namespace KryneEngine
 
     GraphicsPipelineHandle VkResources::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc, VkDevice _device)
     {
+        ZoneScopedN("VkResources::CreateGraphicsPipeline");
+
         // Shader stages
 
         DynamicArray<VkPipelineShaderStageCreateInfo> shaderStages(_desc.m_stages.size());
@@ -886,6 +932,8 @@ namespace KryneEngine
 
     bool VkResources::DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline, VkDevice _device)
     {
+        ZoneScopedN("VkResources::DestroyGraphicsPipeline");
+
         VkPipeline pipeline;
         if (m_pipelines.Free(_pipeline.m_handle, &pipeline))
         {
@@ -907,6 +955,8 @@ namespace KryneEngine
         u32 _arrayStart,
         u32 _arraySize)
     {
+        ZoneScopedN("VkResources::CreateImageView");
+
         VkImageViewCreateInfo imageViewCreateInfo {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .flags = 0,
