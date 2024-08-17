@@ -65,10 +65,18 @@ namespace KryneEngine::Modules::ImGui
                 ImGuiIO& io = ::ImGui::GetIO();
                 io.AddMouseWheelEvent(_scrollX, _scrollY);
             });
+
+        m_windowFocusCallbackId = _window->RegisterWindowFocusEventCallback(
+            [](bool _focused)
+            {
+                ImGuiIO& io = ::ImGui::GetIO();
+                io.AddFocusEvent(_focused);
+            });
     }
 
     void Input::Shutdown(Window* _window) const
     {
+        _window->UnregisterWindowFocusEventCallback(m_windowFocusCallbackId);
         _window->GetInputManager()->UnregisterScrollInputEventCallback(m_scrollEventCallbackId);
         _window->GetInputManager()->UnregisterMouseInputEventCallback(m_mouseBtnCallbackId);
         _window->GetInputManager()->UnregisterCursorPosEventCallback(m_cursorPosCallbackId);
