@@ -6,9 +6,8 @@
 
 #pragma once
 
+#include <Window/Input/Enums.hpp>
 #include <imgui.h>
-#include <Window/Input/InputEnums.hpp>
-#include <Window/Input/InputPhysicalKeys.hpp>
 
 namespace KryneEngine
 {
@@ -33,7 +32,7 @@ namespace KryneEngine::Modules::ImGui
 
         static void ApplyModifiers(KeyInputModifiers _modifiers);
 
-        [[nodiscard]] static ImGuiKey ToImGuiKey(InputPhysicalKeys _key);
+        [[nodiscard]] static ImGuiKey ToImGuiKey(InputKeys _key);
         [[nodiscard]] static ImGuiMouseButton ToImGuiMouseButton(MouseInputButton _mouseButton);
     };
 } // namespace KryneEngine

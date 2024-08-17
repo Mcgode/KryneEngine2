@@ -6,14 +6,13 @@
 
 #pragma once
 
-#include "InputEnums.hpp"
-#include "InputPhysicalKeys.hpp"
+#include "Enums.hpp"
 
 namespace KryneEngine
 {
     struct KeyInputEvent
     {
-        InputPhysicalKeys m_physicalKey;
+        InputKeys m_physicalKey;
         s32 m_customCode;
         InputActionType m_action;
         KeyInputModifiers m_modifiers;

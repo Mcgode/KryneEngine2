@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "InputEnums.hpp"
+#include "Enums.hpp"
 
 namespace KryneEngine
 {

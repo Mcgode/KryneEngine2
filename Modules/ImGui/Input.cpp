@@ -94,9 +94,9 @@ namespace KryneEngine::Modules::ImGui
             BitUtils::EnumHasAny(_modifiers, KeyInputModifiers::Super));
     }
 
-    ImGuiKey Input::ToImGuiKey(InputPhysicalKeys _key)
+    ImGuiKey Input::ToImGuiKey(InputKeys _key)
     {
-#define MAP(keyName, imguiKey) case InputPhysicalKeys::keyName: return imguiKey
+#define MAP(keyName, imguiKey) case InputKeys::keyName: return imguiKey
 
         switch (_key)
         {

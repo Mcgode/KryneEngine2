@@ -10,9 +10,9 @@
 
 namespace KryneEngine::GLFW
 {
-    InputPhysicalKeys ToInputPhysicalKeys(s32 _glfwKey)
+    InputKeys ToInputPhysicalKeys(s32 _glfwKey)
     {
-#       define MAP(glfwName, keKey) case glfwName: return InputPhysicalKeys::keKey
+#       define MAP(glfwName, keKey) case glfwName: return InputKeys::keKey
 
         switch (_glfwKey)
         {
@@ -119,7 +119,7 @@ namespace KryneEngine::GLFW
             MAP(GLFW_KEY_MENU, Menu);
         default:
             KE_ERROR("Unknown key %d", _glfwKey);
-            return InputPhysicalKeys::Unknown;
+            return InputKeys::Unknown;
         }
 
 #undef  MAP
