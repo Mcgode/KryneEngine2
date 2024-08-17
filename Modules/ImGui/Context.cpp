@@ -5,7 +5,7 @@
  */
 
 #include "Context.hpp"
-#include "InputConverters.hpp"
+#include "Input.hpp"
 #include <Common/Utils/Alignment.hpp>
 #include <Graphics/Common/Drawing.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
@@ -78,49 +78,7 @@ namespace KryneEngine::Modules::ImGui
                 graphicsContext->GetFrameContextCount());
         }
 
-        m_keyCallbackId = _window->GetInputManager()->RegisterKeyInputEventCallback(
-            [](const KeyInputEvent& _event){
-                ImGuiIO& io = ::ImGui::GetIO();
-
-                if (_event.m_action == InputActionType::StartPress)
-                {
-                    io.AddKeyEvent(InputConverters::ToImGuiKey(_event.m_physicalKey), true);
-                }
-                else if (_event.m_action == InputActionType::StopPress)
-                {
-                    io.AddKeyEvent(InputConverters::ToImGuiKey(_event.m_physicalKey), false);
-                }
-            });
-
-        m_cursorPosCallbackId = _window->GetInputManager()->RegisterCursorPosEventCallback(
-            [](float _posX, float _posY)
-            {
-                ImGuiIO& io = ::ImGui::GetIO();
-                io.AddMousePosEvent(_posX, _posY);
-            });
-
-        m_mouseBtnCallbackId = _window->GetInputManager()->RegisterMouseInputEventCallback(
-            [](const MouseInputEvent& _event){
-                ImGuiIO& io = ::ImGui::GetIO();
-
-                ImGuiMouseButton button = InputConverters::ToImGuiMouseButton(_event.m_mouseButton);
-
-                if (_event.m_action == InputActionType::StartPress && button != ImGuiMouseButton_COUNT)
-                {
-                    io.AddMouseButtonEvent(button, true);
-                }
-                else if (_event.m_action == InputActionType::StopPress && button != ImGuiMouseButton_COUNT)
-                {
-                    io.AddMouseButtonEvent(button, false);
-                }
-            });
-
-        m_scrollEventCallbackId = _window->GetInputManager()->RegisterScrollInputEventCallback(
-            [](float _scrollX, float _scrollY)
-            {
-                ImGuiIO& io = ::ImGui::GetIO();
-                io.AddMouseWheelEvent(_scrollX, _scrollY);
-            });
+        m_input = eastl::make_unique<Input>(_window);
 
         _InitPso(graphicsContext, _renderPass);
     }
@@ -164,12 +122,7 @@ namespace KryneEngine::Modules::ImGui
         }
 
         // Unregister input callbacks.
-        {
-            _window->GetInputManager()->UnregisterScrollInputEventCallback(m_scrollEventCallbackId);
-            _window->GetInputManager()->UnregisterMouseInputEventCallback(m_mouseBtnCallbackId);
-            _window->GetInputManager()->UnregisterCursorPosEventCallback(m_cursorPosCallbackId);
-            _window->GetInputManager()->UnregisterKeyInputEventCallback(m_keyCallbackId);
-        }
+        m_input->Shutdown(_window);
 
         ::ImGui::DestroyContext(m_context);
         m_context = nullptr;
