@@ -35,6 +35,18 @@ namespace KryneEngine
         m_keyInputEventListeners.erase(_id);
     }
 
+    u32 InputManager::RegisterTextInputEventCallback(eastl::function<void(u32)>&& _callback)
+    {
+        const u32 id = m_textInputEventCounter++;
+        m_textInputEventListeners.emplace(id, _callback);
+        return id;
+    }
+
+    void InputManager::UnregisterTextInputEventCallback(u32 _id)
+    {
+        m_textInputEventListeners.erase(_id);
+    }
+
     u32 InputManager::RegisterCursorPosEventCallback(eastl::function<void(float, float)>&& _callback)
     {
         const u32 id = m_cursorPosEventCounter++;
@@ -85,6 +97,16 @@ namespace KryneEngine
         for (const auto& pair : inputManager->m_keyInputEventListeners)
         {
             pair.second(keyInputEvent);
+        }
+    }
+
+    void InputManager::TextCallback(GLFWwindow* _window, u32 _char)
+    {
+        auto* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(_window));
+
+        for (const auto& pair: inputManager->m_textInputEventListeners)
+        {
+            pair.second(_char);
         }
     }
 

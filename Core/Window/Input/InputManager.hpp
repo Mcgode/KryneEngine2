@@ -26,6 +26,9 @@ namespace KryneEngine
         [[nodiscard]] u32 RegisterKeyInputEventCallback(eastl::function<void(const KeyInputEvent&)>&& _callback);
         void UnregisterKeyInputEventCallback(u32 _id);
 
+        [[nodiscard]] u32 RegisterTextInputEventCallback(eastl::function<void(u32)>&& _callback);
+        void UnregisterTextInputEventCallback(u32 _id);
+
         [[nodiscard]] u32 RegisterCursorPosEventCallback(eastl::function<void(float, float)>&& _callback);
         void UnregisterCursorPosEventCallback(u32 _id);
         [[nodiscard]] const float2& GetCursorPos() const { return m_cursorPos; }
@@ -40,6 +43,10 @@ namespace KryneEngine
         static void KeyCallback(GLFWwindow* _window, s32 _key, s32 _scancode, s32 _action, s32 _mods);
         eastl::vector_map<u32, eastl::function<void(const KeyInputEvent&)>> m_keyInputEventListeners;
         u32 m_keyInputEventCounter { 0 };
+
+        static void TextCallback(GLFWwindow* _window, u32 _char);
+        eastl::vector_map<u32, eastl::function<void(u32)>> m_textInputEventListeners;
+        u32 m_textInputEventCounter { 0 };
 
         static void CursorPosCallback(GLFWwindow* _window, double _posX, double _posY);
         eastl::vector_map<u32, eastl::function<void(float, float)>> m_cursorPosEventListeners;
