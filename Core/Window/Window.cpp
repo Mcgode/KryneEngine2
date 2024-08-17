@@ -27,6 +27,7 @@ namespace KryneEngine
                                         _appInfo.m_applicationName.c_str(),
                                         nullptr,
                                         nullptr);
+        glfwSetWindowUserPointer(m_glfwWindow, this);
 
         m_graphicsContext = eastl::make_unique<GraphicsContext>(_appInfo, this);
 

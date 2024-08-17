@@ -15,8 +15,6 @@ namespace KryneEngine
     {
         GLFWwindow* glfwWindow = _window->GetGlfwWindow();
 
-        glfwSetWindowUserPointer(glfwWindow, this);
-
         glfwSetKeyCallback(glfwWindow, KeyCallback);
         glfwSetCharCallback(glfwWindow, TextCallback);
         glfwSetCursorPosCallback(glfwWindow, CursorPosCallback);
@@ -96,7 +94,7 @@ namespace KryneEngine
 
     void InputManager::KeyCallback(GLFWwindow* _window, s32 _key, s32 _scancode, s32 _action, s32 _mods)
     {
-        auto* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(_window));
+        InputManager* inputManager = (static_cast<Window*>(glfwGetWindowUserPointer(_window)))->GetInputManager();
 
         const KeyInputEvent keyInputEvent {
             .m_physicalKey = GLFW::ToInputPhysicalKeys(_key),
@@ -115,7 +113,7 @@ namespace KryneEngine
 
     void InputManager::TextCallback(GLFWwindow* _window, u32 _char)
     {
-        auto* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(_window));
+        InputManager* inputManager = (static_cast<Window*>(glfwGetWindowUserPointer(_window)))->GetInputManager();
 
         const auto lock = inputManager->m_mutex.AutoLock();
 
@@ -127,7 +125,7 @@ namespace KryneEngine
 
     void InputManager::CursorPosCallback(GLFWwindow* _window, double _posX, double _posY)
     {
-        auto* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(_window));
+        InputManager* inputManager = (static_cast<Window*>(glfwGetWindowUserPointer(_window)))->GetInputManager();
         inputManager->m_cursorPos = {
             _posX,
             _posY
@@ -143,7 +141,7 @@ namespace KryneEngine
 
     void InputManager::MouseButtonInputCallback(GLFWwindow* _window, s32 _button, s32 _action, s32 _mods)
     {
-        auto* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(_window));
+        InputManager* inputManager = (static_cast<Window*>(glfwGetWindowUserPointer(_window)))->GetInputManager();
 
         const MouseInputEvent mouseInputEvent{
             .m_mouseButton = GLFW::ToMouseInputButton(_button),
@@ -161,7 +159,7 @@ namespace KryneEngine
 
     void InputManager::ScrollCallback(GLFWwindow* _window, double _xScroll, double _yScroll)
     {
-        auto* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(_window));
+        InputManager* inputManager = (static_cast<Window*>(glfwGetWindowUserPointer(_window)))->GetInputManager();
 
         const auto lock = inputManager->m_mutex.AutoLock();
 
