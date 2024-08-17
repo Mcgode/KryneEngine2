@@ -50,8 +50,9 @@ elseif(GraphicsApi STREQUAL "DX12")
 endif()
 
 add_library(KryneEngineGraphics STATIC ${SrcFiles})
-target_link_libraries(KryneEngineGraphics EASTL glfw glm)
+target_link_libraries(KryneEngineGraphics EASTL glfw glm Tracy::TracyClient)
 target_include_directories(KryneEngineGraphics PUBLIC ${RootDir})
+target_compile_definitions(KryneEngineGraphics PUBLIC -DTRACY_ENABLE=1)
 
 if (GraphicsApi STREQUAL "VK")
     message(STATUS "Finding and linking Vulkan lib")
