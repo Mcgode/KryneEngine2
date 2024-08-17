@@ -26,6 +26,8 @@ namespace KryneEngine
 
     u32 InputManager::RegisterKeyInputEventCallback(eastl::function<void(const KeyInputEvent&)>&& _callback)
     {
+        const auto lock = m_mutex.AutoLock();
+
         const u32 id = m_keyInputEventCounter++;
         m_keyInputEventListeners.emplace(id, _callback);
         return id;
@@ -38,6 +40,8 @@ namespace KryneEngine
 
     u32 InputManager::RegisterTextInputEventCallback(eastl::function<void(u32)>&& _callback)
     {
+        const auto lock = m_mutex.AutoLock();
+
         const u32 id = m_textInputEventCounter++;
         m_textInputEventListeners.emplace(id, _callback);
         return id;
@@ -50,6 +54,8 @@ namespace KryneEngine
 
     u32 InputManager::RegisterCursorPosEventCallback(eastl::function<void(float, float)>&& _callback)
     {
+        const auto lock = m_mutex.AutoLock();
+
         const u32 id = m_cursorPosEventCounter++;
         m_cursorPosEventListeners.emplace(id, _callback);
         return id;
@@ -62,6 +68,8 @@ namespace KryneEngine
 
     u32 InputManager::RegisterMouseInputEventCallback(eastl::function<void(const MouseInputEvent&)>&& _callback)
     {
+        const auto lock = m_mutex.AutoLock();
+
         const u32 id = m_mouseInputEventCounter++;
         m_mouseInputEventListeners.emplace(id, _callback);
         return id;
@@ -74,6 +82,8 @@ namespace KryneEngine
 
     u32 InputManager::RegisterScrollInputEventCallback(eastl::function<void(float, float)>&& _callback)
     {
+        const auto lock = m_mutex.AutoLock();
+
         const u32 id = m_scrollInputEventCounter++;
         m_scrollInputEventListeners.emplace(id, _callback);
         return id;
@@ -95,6 +105,8 @@ namespace KryneEngine
             .m_modifiers = GLFW::ToInputEventModifiers(_mods),
         };
 
+        const auto lock = inputManager->m_mutex.AutoLock();
+
         for (const auto& pair : inputManager->m_keyInputEventListeners)
         {
             pair.second(keyInputEvent);
@@ -104,6 +116,8 @@ namespace KryneEngine
     void InputManager::TextCallback(GLFWwindow* _window, u32 _char)
     {
         auto* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(_window));
+
+        const auto lock = inputManager->m_mutex.AutoLock();
 
         for (const auto& pair: inputManager->m_textInputEventListeners)
         {
@@ -118,6 +132,8 @@ namespace KryneEngine
             _posX,
             _posY
         };
+
+        const auto lock = inputManager->m_mutex.AutoLock();
 
         for (const auto& pair : inputManager->m_cursorPosEventListeners)
         {
@@ -135,6 +151,8 @@ namespace KryneEngine
             .m_modifiers = GLFW::ToInputEventModifiers(_mods),
         };
 
+        const auto lock = inputManager->m_mutex.AutoLock();
+
         for (const auto& pair : inputManager->m_mouseInputEventListeners)
         {
             pair.second(mouseInputEvent);
@@ -144,6 +162,8 @@ namespace KryneEngine
     void InputManager::ScrollCallback(GLFWwindow* _window, double _xScroll, double _yScroll)
     {
         auto* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(_window));
+
+        const auto lock = inputManager->m_mutex.AutoLock();
 
         for (const auto& pair : inputManager->m_scrollInputEventListeners)
         {

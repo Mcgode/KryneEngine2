@@ -11,6 +11,7 @@
 
 #include <EASTL/functional.h>
 #include <EASTL/vector_map.h>
+#include <Threads/LightweightMutex.hpp>
 
 struct GLFWwindow;
 
@@ -40,6 +41,8 @@ namespace KryneEngine
         void UnregisterScrollInputEventCallback(u32 _id);
 
     protected:
+        LightweightMutex m_mutex;
+
         static void KeyCallback(GLFWwindow* _window, s32 _key, s32 _scancode, s32 _action, s32 _mods);
         eastl::vector_map<u32, eastl::function<void(const KeyInputEvent&)>> m_keyInputEventListeners;
         u32 m_keyInputEventCounter { 0 };
