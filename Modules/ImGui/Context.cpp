@@ -81,6 +81,8 @@ namespace KryneEngine::Modules::ImGui
         m_input = eastl::make_unique<Input>(_window);
 
         _InitPso(graphicsContext, _renderPass);
+
+        m_timePoint = std::chrono::steady_clock::now();
     }
 
     Context::~Context() { KE_ASSERT_MSG(m_context == nullptr, "ImGui module was not shut down"); }
@@ -286,6 +288,12 @@ namespace KryneEngine::Modules::ImGui
             graphicsContext->DestroyBuffer(m_fontsStagingHandle);
             m_fontsStagingHandle = GenPool::kInvalidHandle;
         }
+
+        const auto currentTimePoint =  std::chrono::steady_clock::now();
+        const std::chrono::duration<double> interval = currentTimePoint - m_timePoint;
+        m_timePoint = currentTimePoint;
+
+        io.DeltaTime = static_cast<float>(interval.count());
 
         ::ImGui::NewFrame();
     }

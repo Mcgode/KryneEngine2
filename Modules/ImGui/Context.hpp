@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <imgui.h>
 #include <Graphics/Common/GraphicsContext.hpp>
 #include <GraphicsUtils/DynamicBuffer.hpp>
@@ -100,6 +101,8 @@ namespace KryneEngine::Modules::ImGui
         static constexpr u64 kInitialSize = 1024;
         GraphicsUtils::DynamicBuffer m_dynamicVertexBuffer;
         GraphicsUtils::DynamicBuffer m_dynamicIndexBuffer;
+
+        std::chrono::time_point<std::chrono::steady_clock> m_timePoint;
 
         eastl::unique_ptr<Input> m_input;
 
