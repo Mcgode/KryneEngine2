@@ -14,7 +14,8 @@ namespace KryneEngine::Modules::ImGui
     Input::Input(Window* _window)
     {
         m_keyCallbackId = _window->GetInputManager()->RegisterKeyInputEventCallback(
-            [](const KeyInputEvent& _event){
+            [](const KeyInputEvent& _event)
+            {
                 ImGuiIO& io = ::ImGui::GetIO();
 
                 if (_event.m_action == InputActionType::KeepPressing)
@@ -25,6 +26,14 @@ namespace KryneEngine::Modules::ImGui
                 bool pressed = _event.m_action == InputActionType::StartPress;
                 ApplyModifiers(_event.m_modifiers);
                 io.AddKeyEvent(ToImGuiKey(_event.m_physicalKey), pressed);
+            });
+
+        m_textCallbackId = _window->GetInputManager()->RegisterTextInputEventCallback(
+            [](u32 _char)
+            {
+                ImGuiIO& io = ::ImGui::GetIO();
+
+                io.AddInputCharacter(_char);
             });
 
         m_cursorPosCallbackId = _window->GetInputManager()->RegisterCursorPosEventCallback(
@@ -58,11 +67,12 @@ namespace KryneEngine::Modules::ImGui
             });
     }
 
-    void Input::Shutdown(Window* _window)
+    void Input::Shutdown(Window* _window) const
     {
         _window->GetInputManager()->UnregisterScrollInputEventCallback(m_scrollEventCallbackId);
         _window->GetInputManager()->UnregisterMouseInputEventCallback(m_mouseBtnCallbackId);
         _window->GetInputManager()->UnregisterCursorPosEventCallback(m_cursorPosCallbackId);
+        _window->GetInputManager()->UnregisterTextInputEventCallback(m_textCallbackId);
         _window->GetInputManager()->UnregisterKeyInputEventCallback(m_keyCallbackId);
     }
 

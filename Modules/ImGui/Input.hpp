@@ -22,10 +22,11 @@ namespace KryneEngine::Modules::ImGui
     public:
         explicit Input(Window* _window);
 
-        void Shutdown(Window* _window);
+        void Shutdown(Window* _window) const;
 
     private:
         u32 m_keyCallbackId;
+        u32 m_textCallbackId;
         u32 m_cursorPosCallbackId;
         u32 m_mouseBtnCallbackId;
         u32 m_scrollEventCallbackId;
