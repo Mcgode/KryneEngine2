@@ -30,6 +30,8 @@ namespace KryneEngine::Modules::ImGui
         u32 m_mouseBtnCallbackId;
         u32 m_scrollEventCallbackId;
 
+        static void ApplyModifiers(KeyInputModifiers _modifiers);
+
         [[nodiscard]] static ImGuiKey ToImGuiKey(InputPhysicalKeys _key);
         [[nodiscard]] static ImGuiMouseButton ToImGuiMouseButton(MouseInputButton _mouseButton);
     };

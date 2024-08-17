@@ -17,14 +17,14 @@ namespace KryneEngine::Modules::ImGui
             [](const KeyInputEvent& _event){
                 ImGuiIO& io = ::ImGui::GetIO();
 
-                if (_event.m_action == InputActionType::StartPress)
+                if (_event.m_action == InputActionType::KeepPressing)
                 {
-                    io.AddKeyEvent(ToImGuiKey(_event.m_physicalKey), true);
+                    return;
                 }
-                else if (_event.m_action == InputActionType::StopPress)
-                {
-                    io.AddKeyEvent(ToImGuiKey(_event.m_physicalKey), false);
-                }
+
+                bool pressed = _event.m_action == InputActionType::StartPress;
+                ApplyModifiers(_event.m_modifiers);
+                io.AddKeyEvent(ToImGuiKey(_event.m_physicalKey), pressed);
             });
 
         m_cursorPosCallbackId = _window->GetInputManager()->RegisterCursorPosEventCallback(
@@ -40,14 +40,14 @@ namespace KryneEngine::Modules::ImGui
 
                 ImGuiMouseButton button = ToImGuiMouseButton(_event.m_mouseButton);
 
-                if (_event.m_action == InputActionType::StartPress && button != ImGuiMouseButton_COUNT)
+                if (_event.m_action == InputActionType::KeepPressing || button == ImGuiMouseButton_COUNT)
                 {
-                    io.AddMouseButtonEvent(button, true);
+                    return;
                 }
-                else if (_event.m_action == InputActionType::StopPress && button != ImGuiMouseButton_COUNT)
-                {
-                    io.AddMouseButtonEvent(button, false);
-                }
+
+                bool pressed = _event.m_action == InputActionType::StartPress;
+                ApplyModifiers(_event.m_modifiers);
+                io.AddMouseButtonEvent(button, pressed);
             });
 
         m_scrollEventCallbackId = _window->GetInputManager()->RegisterScrollInputEventCallback(
@@ -64,6 +64,24 @@ namespace KryneEngine::Modules::ImGui
         _window->GetInputManager()->UnregisterMouseInputEventCallback(m_mouseBtnCallbackId);
         _window->GetInputManager()->UnregisterCursorPosEventCallback(m_cursorPosCallbackId);
         _window->GetInputManager()->UnregisterKeyInputEventCallback(m_keyCallbackId);
+    }
+
+    void Input::ApplyModifiers(KeyInputModifiers _modifiers)
+    {
+        ImGuiIO& io = ::ImGui::GetIO();
+
+        io.AddKeyEvent(
+            ImGuiKey_ModShift,
+            BitUtils::EnumHasAny(_modifiers, KeyInputModifiers::Shift));
+        io.AddKeyEvent(
+            ImGuiKey_ModCtrl,
+            BitUtils::EnumHasAny(_modifiers, KeyInputModifiers::Ctrl));
+        io.AddKeyEvent(
+            ImGuiKey_ModAlt,
+            BitUtils::EnumHasAny(_modifiers, KeyInputModifiers::Alt));
+        io.AddKeyEvent(
+            ImGuiKey_ModSuper,
+            BitUtils::EnumHasAny(_modifiers, KeyInputModifiers::Super));
     }
 
     ImGuiKey Input::ToImGuiKey(InputPhysicalKeys _key)
