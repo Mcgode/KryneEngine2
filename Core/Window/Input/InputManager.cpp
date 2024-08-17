@@ -18,6 +18,7 @@ namespace KryneEngine
         glfwSetWindowUserPointer(glfwWindow, this);
 
         glfwSetKeyCallback(glfwWindow, KeyCallback);
+        glfwSetCharCallback(glfwWindow, TextCallback);
         glfwSetCursorPosCallback(glfwWindow, CursorPosCallback);
         glfwSetMouseButtonCallback(glfwWindow, MouseButtonInputCallback);
         glfwSetScrollCallback(glfwWindow, ScrollCallback);
