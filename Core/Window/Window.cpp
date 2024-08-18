@@ -13,10 +13,10 @@ namespace KryneEngine
 {
     Window::Window(const GraphicsCommon::ApplicationInfo &_appInfo)
     {
-        ZoneScopedN("Window init");
+        KE_ZoneScopedFunction("Window init");
 
         {
-            ZoneScopedN("GLFW init");
+            KE_ZoneScoped("GLFW init");
             glfwInit();
         }
 
@@ -28,7 +28,7 @@ namespace KryneEngine
         glfwWindowHint(GLFW_RESIZABLE, displayInfo.m_resizableWindow);
 
         {
-            ZoneScopedN("GLFW window creation");
+            KE_ZoneScoped("GLFW window creation");
 
             m_glfwWindow = glfwCreateWindow(displayInfo.m_width,
                                             displayInfo.m_height,
@@ -41,7 +41,7 @@ namespace KryneEngine
         m_graphicsContext = eastl::make_unique<GraphicsContext>(_appInfo, this);
 
         {
-            ZoneScopedN("Input management init");
+            KE_ZoneScoped("Input management init");
 
             m_inputManager = eastl::make_unique<InputManager>(this);
 
@@ -59,7 +59,7 @@ namespace KryneEngine
 
     bool Window::WaitForEvents() const
     {
-        ZoneScopedN("Window poll events");
+        KE_ZoneScopedFunction("Window::WaitForEvents");
 
         glfwPollEvents();
 

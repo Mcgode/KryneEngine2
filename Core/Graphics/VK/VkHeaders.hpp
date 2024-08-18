@@ -11,5 +11,5 @@
 #include <Common/Assert.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <Memory/GenerationalPool.hpp>
-#include <tracy/Tracy.hpp>
+#include <Profiling/TracyHeader.hpp>
 #include <vulkan/vulkan.h>

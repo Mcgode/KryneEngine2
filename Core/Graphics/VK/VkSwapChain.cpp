@@ -25,7 +25,7 @@ namespace KryneEngine
             u64 _currentFrameIndex,
             VkSwapChain *_oldSwapChain)
     {
-        ZoneScopedN("VkSwapChain init");
+        KE_ZoneScopedFunction("VkSwapChain::VkSwapChain");
 
         const auto& capabilities = _surface.GetCapabilities();
         KE_ASSERT(!capabilities.m_formats.Empty() && !capabilities.m_presentModes.Empty());
@@ -188,7 +188,7 @@ namespace KryneEngine
 
     void VkSwapChain::AcquireNextImage(VkDevice _device, u8 _frameIndex)
     {
-        ZoneScopedN("VkSwapChain::AcquireNextImage");
+        KE_ZoneScopedFunction("VkSwapChain::AcquireNextImage");
 
         VkAssert(vkAcquireNextImageKHR(
                 _device,
@@ -201,7 +201,7 @@ namespace KryneEngine
 
     void VkSwapChain::Present(VkQueue _presentQueue, const eastl::span<VkSemaphore> &_semaphores)
     {
-        ZoneScopedN("VkSwapChain::Present");
+        KE_ZoneScopedFunction("VkSwapChain::Present");
 
 	    const VkPresentInfoKHR presentInfo = {
                 .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,

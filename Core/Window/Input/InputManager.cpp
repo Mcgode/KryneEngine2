@@ -99,7 +99,7 @@ namespace KryneEngine
 
     void InputManager::KeyCallback(GLFWwindow* _window, s32 _key, s32 _scancode, s32 _action, s32 _mods)
     {
-        ZoneScopedN("InputManager::KeyCallback");
+        KE_ZoneScopedFunction("InputManager::KeyCallback");
 
         InputManager* inputManager = (static_cast<Window*>(glfwGetWindowUserPointer(_window)))->GetInputManager();
 
@@ -120,7 +120,7 @@ namespace KryneEngine
 
     void InputManager::TextCallback(GLFWwindow* _window, u32 _char)
     {
-        ZoneScopedN("InputManager::TextCallback");
+        KE_ZoneScopedFunction("InputManager::TextCallback");
 
         InputManager* inputManager = (static_cast<Window*>(glfwGetWindowUserPointer(_window)))->GetInputManager();
 
@@ -134,7 +134,7 @@ namespace KryneEngine
 
     void InputManager::CursorPosCallback(GLFWwindow* _window, double _posX, double _posY)
     {
-        ZoneScopedN("InputManager::CursorPosCallback");
+        KE_ZoneScopedFunction("InputManager::CursorPosCallback");
 
         InputManager* inputManager = (static_cast<Window*>(glfwGetWindowUserPointer(_window)))->GetInputManager();
         inputManager->m_cursorPos = {
@@ -152,7 +152,7 @@ namespace KryneEngine
 
     void InputManager::MouseButtonInputCallback(GLFWwindow* _window, s32 _button, s32 _action, s32 _mods)
     {
-        ZoneScopedN("InputManager::MouseButtonInputCallback");
+        KE_ZoneScopedFunction("InputManager::MouseButtonInputCallback");
 
         InputManager* inputManager = (static_cast<Window*>(glfwGetWindowUserPointer(_window)))->GetInputManager();
 
@@ -172,7 +172,7 @@ namespace KryneEngine
 
     void InputManager::ScrollCallback(GLFWwindow* _window, double _xScroll, double _yScroll)
     {
-        ZoneScopedN("InputManager::ScrollCallback");
+        KE_ZoneScopedFunction("InputManager::ScrollCallback");
 
         InputManager* inputManager = (static_cast<Window*>(glfwGetWindowUserPointer(_window)))->GetInputManager();
 

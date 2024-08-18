@@ -13,7 +13,7 @@ namespace KryneEngine
 {
     VkSurface::VkSurface(VkInstance _instance, GLFWwindow *_window)
     {
-        ZoneScopedN("VkSurface creation");
+        KE_ZoneScopedFunction("VkSurface::VkSurface");
         VkAssert(glfwCreateWindowSurface(_instance,
                                          _window,
                                          nullptr,
@@ -32,7 +32,7 @@ namespace KryneEngine
 
     void VkSurface::UpdateCapabilities(const VkPhysicalDevice& _physicalDevice)
     {
-        ZoneScopedN("VkSurface capabilities fetch");
+        KE_ZoneScopedFunction("VkSurface::UpdateCapabilities");
 
         VkAssert(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physicalDevice, m_surface, &m_capabilities.m_surfaceCapabilities));
 

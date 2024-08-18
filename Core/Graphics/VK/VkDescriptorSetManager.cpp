@@ -29,7 +29,7 @@ namespace KryneEngine
 
     void VkDescriptorSetManager::Init(u8 _frameCount, u8 _frameIndex)
     {
-        ZoneScopedN("VkDescriptorSetManager::Init");
+        KE_ZoneScopedFunction("VkDescriptorSetManager::Init");
         m_frameCount = _frameCount;
         m_multiFrameTracker.Init(_frameCount, _frameIndex);
     }
@@ -39,7 +39,7 @@ namespace KryneEngine
         u32* _bindingIndices,
         VkDevice _device)
     {
-        ZoneScopedN("VkDescriptorSetManager::CreateDescriptorSetLayout");
+        KE_ZoneScopedFunction("VkDescriptorSetManager::CreateDescriptorSetLayout");
 
         eastl::vector<VkDescriptorSetLayoutBinding> bindings;
         bindings.reserve(_desc.m_bindings.size());
@@ -95,7 +95,7 @@ namespace KryneEngine
 
     bool VkDescriptorSetManager::DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout, VkDevice _device)
     {
-        ZoneScopedN("VkDescriptorSetManager::DestroyDescriptorSetLayout");
+        KE_ZoneScopedFunction("VkDescriptorSetManager::DestroyDescriptorSetLayout");
 
         LayoutData data;
         if (m_descriptorSetLayouts.Free(_layout.m_handle, &data))
@@ -115,7 +115,7 @@ namespace KryneEngine
 
     DescriptorSetHandle VkDescriptorSetManager::CreateDescriptorSet(DescriptorSetLayoutHandle _layout, VkDevice _device)
     {
-        ZoneScopedN("VkDescriptorSetManager::CreateDescriptorSet");
+        KE_ZoneScopedFunction("VkDescriptorSetManager::CreateDescriptorSet");
 
         VERIFY_OR_RETURN(_layout != GenPool::kInvalidHandle, {GenPool::kInvalidHandle });
         LayoutData* pLayoutData = m_descriptorSetLayouts.Get(_layout.m_handle);
@@ -170,7 +170,7 @@ namespace KryneEngine
 
     bool VkDescriptorSetManager::DestroyDescriptorSet(DescriptorSetHandle _descriptorSet, VkDevice _device)
     {
-        ZoneScopedN("VkDescriptorSetManager::DestroyDescriptorSet");
+        KE_ZoneScopedFunction("VkDescriptorSetManager::DestroyDescriptorSet");
 
         VkDescriptorPool pool;
         if (m_descriptorSetPools.Free(_descriptorSet.m_handle, &pool))
@@ -189,7 +189,7 @@ namespace KryneEngine
         const VkResources& _resources,
         u8 _frameIndex)
     {
-        ZoneScopedN("VkDescriptorSetManager::UpdateDescriptorSet");
+        KE_ZoneScopedFunction("VkDescriptorSetManager::UpdateDescriptorSet");
 
         m_tmpWriteOps.clear();
 
@@ -206,7 +206,7 @@ namespace KryneEngine
 
     void VkDescriptorSetManager::NextFrame(VkDevice _device, const VkResources& _resources, u8 _frameIndex)
     {
-        ZoneScopedN("VkDescriptorSetManager::NextFrame");
+        KE_ZoneScopedFunction("VkDescriptorSetManager::NextFrame");
 
         m_multiFrameTracker.AdvanceToNextFrame();
 
@@ -221,7 +221,7 @@ namespace KryneEngine
         const VkResources& _resources,
         u8 _frameIndex)
     {
-        ZoneScopedN("VkDescriptorSetManager::_ProcessUpdates");
+        KE_ZoneScopedFunction("VkDescriptorSetManager::_ProcessUpdates");
 
         m_tmpWrites.clear();
         m_tmpWrites.reserve(_writes.size());

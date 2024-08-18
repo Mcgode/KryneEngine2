@@ -16,7 +16,7 @@ namespace KryneEngine
                 const VkCommonStructures::QueueIndices::Pair& _pair,
                 CommandPoolSet& _commandPoolSet)
         {
-            ZoneScopedN("VkFrameContext::CreateCommandPool");
+            KE_ZoneScopedFunction("VkFrameContext::CreateCommandPool");
 
             if (!_pair.IsInvalid())
             {
@@ -87,7 +87,7 @@ namespace KryneEngine
 
     void VkFrameContext::WaitForFences(VkDevice _device, u64 _frameId) const
     {
-        ZoneScopedN("VkFrameContext::WaitForFrame");
+        KE_ZoneScopedFunction("VkFrameContext::WaitForFrame");
 
         // If fences have already been reset to a later frame, then previous fence was signaled, no need to wait.
         if (m_frameId > _frameId)
@@ -100,13 +100,13 @@ namespace KryneEngine
 
     VkCommandBuffer VkFrameContext::CommandPoolSet::BeginCommandBuffer(VkDevice _device)
     {
-        ZoneScopedN("VkFrameContext::CommandPoolSet::BeginCommandBuffer");
+        KE_ZoneScopedFunction("VkFrameContext::CommandPoolSet::BeginCommandBuffer");
 
         m_mutex.ManualLock();
 
         if (m_availableCommandBuffers.empty())
         {
-            ZoneScopedN("Allocate new command buffer");
+            KE_ZoneScoped("Allocate new command buffer");
 
             const VkCommandBufferAllocateInfo allocateInfo {
                     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -145,7 +145,7 @@ namespace KryneEngine
 
     void VkFrameContext::CommandPoolSet::EndCommandBuffer()
     {
-        ZoneScopedN("VkFrameContext::CommandPoolSet::EndCommandBuffer");
+        KE_ZoneScopedFunction("VkFrameContext::CommandPoolSet::EndCommandBuffer");
 
         vkEndCommandBuffer(m_usedCommandBuffers.back());
 
@@ -154,7 +154,7 @@ namespace KryneEngine
 
     void VkFrameContext::CommandPoolSet::Reset()
     {
-        ZoneScopedN("VkFrameContext::CommandPoolSet::Reset");
+        KE_ZoneScopedFunction("VkFrameContext::CommandPoolSet::Reset");
 
         const auto lock = m_mutex.AutoLock();
 

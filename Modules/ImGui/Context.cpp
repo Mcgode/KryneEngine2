@@ -11,6 +11,7 @@
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Common/Texture.hpp>
+#include <tracy/Tracy.hpp>
 #include <Window/Input/InputManager.hpp>
 #include <Window/Window.hpp>
 #include <fstream>
@@ -33,6 +34,8 @@ namespace KryneEngine::Modules::ImGui
 
     Context::Context(Window* _window, RenderPassHandle _renderPass)
     {
+        KE_ZoneScopedFunction("Modules::ImGui::ContextContext");
+
         m_context = ::ImGui::CreateContext();
 
         GraphicsContext* graphicsContext = _window->GetGraphicsContext();
@@ -89,6 +92,8 @@ namespace KryneEngine::Modules::ImGui
 
     void Context::Shutdown(Window* _window)
     {
+        KE_ZoneScopedFunction("Modules::ImGui::ContextShutdown");
+
         GraphicsContext* graphicsContext = _window->GetGraphicsContext();
 
         m_dynamicIndexBuffer.Destroy(graphicsContext);
@@ -132,6 +137,8 @@ namespace KryneEngine::Modules::ImGui
 
     void Context::NewFrame(Window* _window, CommandList _commandList)
     {
+        KE_ZoneScopedFunction("Modules::ImGui::ContextNewFrame");
+
         ::ImGui::SetCurrentContext(m_context);
 
         ImGuiIO& io = ::ImGui::GetIO();
@@ -300,6 +307,8 @@ namespace KryneEngine::Modules::ImGui
 
     void Context::PrepareToRenderFrame(GraphicsContext* _graphicsContext, CommandList _commandList)
     {
+        KE_ZoneScopedFunction("Modules::ImGui::ContextPrepareToRenderFrame");
+
         ::ImGui::Render();
 
         ImDrawData* drawData = ::ImGui::GetDrawData();
@@ -372,6 +381,8 @@ namespace KryneEngine::Modules::ImGui
 
     void Context::RenderFrame(GraphicsContext* _graphicsContext, CommandList _commandList)
     {
+        KE_ZoneScopedFunction("Modules::ImGui::ContextRenderFrame");
+
         ImDrawData* drawData = ::ImGui::GetDrawData();
 
         // Set viewport
@@ -471,6 +482,8 @@ namespace KryneEngine::Modules::ImGui
 
     void Context::_InitPso(GraphicsContext* _graphicsContext, RenderPassHandle _renderPass)
     {
+        KE_ZoneScopedFunction("Modules::ImGui::Context_InitPso");
+
         // Read shader files
         {
             constexpr auto readShaderFile = [](const auto& _path, auto& _vec)

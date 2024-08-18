@@ -80,10 +80,10 @@ namespace KryneEngine
     VkGraphicsContext::VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo, Window* _window, u64 _frameId)
         : m_appInfo(_appInfo)
     {
-        ZoneScopedN("VkGraphicsContext init");
+        KE_ZoneScopedFunction("VkGraphicsContext::VkGraphicsContext");
 
         {
-            ZoneScopedN("VkInstance creation");
+            KE_ZoneScoped("VkInstance creation");
 
             const VkApplicationInfo applicationInfo{
                 .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -178,7 +178,7 @@ namespace KryneEngine
         }
 
         {
-            ZoneScopedN("Frame contexts init");
+            KE_ZoneScoped("Frame contexts init");
 
             m_frameContexts.Resize(m_frameContextCount);
             m_frameContexts.InitAll(m_device, m_queueIndices);
@@ -223,7 +223,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::EndFrame(u64 _frameId)
     {
-        ZoneScopedN("VkGraphicsContext::EndFrame");
+        KE_ZoneScopedFunction("VkGraphicsContext::EndFrame");
 
         const u8 frameIndex = _frameId % m_frameContextCount;
         auto& frameContext = m_frameContexts[frameIndex];
@@ -237,7 +237,7 @@ namespace KryneEngine
 
         // Submit command buffers
 	    {
-            ZoneScopedN("Submit non-present queues");
+            KE_ZoneScoped("Submit non-present queues");
 
             const auto submitQueue = [&](VkQueue _queue, VkFrameContext::CommandPoolSet& _commandPoolSet)
             {
@@ -310,7 +310,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::WaitForFrame(u64 _frameId) const
     {
-        ZoneScopedN("VkGraphicsContext::WaitForFrame");
+        KE_ZoneScopedFunction("VkGraphicsContext::WaitForFrame");
 
         const u8 frameIndex = _frameId % m_frameContextCount;
         m_frameContexts[frameIndex].WaitForFences(m_device, _frameId);
@@ -431,7 +431,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::_SelectPhysicalDevice()
     {
-        ZoneScopedN("VkPhysicalDevice selection");
+        KE_ZoneScopedFunction("VkPhysicalDevice::_SelectPhysicalDevice");
 
         DynamicArray<VkPhysicalDevice> availablePhysicalDevices;
         VkHelperFunctions::VkArrayFetch(availablePhysicalDevices, vkEnumeratePhysicalDevices, m_instance);
@@ -487,7 +487,7 @@ namespace KryneEngine
                                      const VkSurfaceKHR &_surface,
                                      QueueIndices &_indices)
     {
-        ZoneScopedN("VkGraphicsContext::_SelectQueues");
+        KE_ZoneScopedFunction("VkGraphicsContext::_SelectQueues");
 
         DynamicArray<VkQueueFamilyProperties> familyProperties;
         VkHelperFunctions::VkArrayFetch(familyProperties, vkGetPhysicalDeviceQueueFamilyProperties, _physicalDevice);
@@ -614,7 +614,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::_CreateDevice()
     {
-        ZoneScopedN("VkGraphicsContext::_CreateDevice");
+        KE_ZoneScopedFunction("VkGraphicsContext::_CreateDevice");
 
         eastl::vector<VkDeviceQueueCreateInfo> queueCreateInfo;
         eastl::vector<eastl::vector<float>> queuePriorities;
@@ -728,7 +728,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::_RetrieveQueues(const QueueIndices &_queueIndices)
     {
-        ZoneScopedN("VkGraphicsContext::_RetrieveQueues");
+        KE_ZoneScopedFunction("VkGraphicsContext::_RetrieveQueues");
 
         const auto RetrieveQueue = [this](QueueIndices::Pair _queueIndex, VkQueue& destQueue_)
         {
@@ -760,7 +760,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass)
     {
-        ZoneScopedN("VkGraphicsContext::BeginRenderPass");
+        KE_ZoneScopedFunction("VkGraphicsContext::BeginRenderPass");
 
         auto* renderPassData = m_resources.m_renderPasses.Get(_renderPass.m_handle);
         VERIFY_OR_RETURN_VOID(renderPassData != nullptr);
@@ -782,7 +782,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::EndRenderPass(CommandList _commandList)
     {
-        ZoneScopedN("VkGraphicsContext::EndRenderPass");
+        KE_ZoneScopedFunction("VkGraphicsContext::EndRenderPass");
 
         vkCmdEndRenderPass(_commandList);
     }
@@ -790,7 +790,7 @@ namespace KryneEngine
     eastl::vector<TextureMemoryFootprint> VkGraphicsContext::FetchTextureSubResourcesMemoryFootprints(
         const TextureDesc& _desc)
     {
-        ZoneScopedN("VkGraphicsContext::FetchTextureSubResourcesMemoryFootprints");
+        KE_ZoneScopedFunction("VkGraphicsContext::FetchTextureSubResourcesMemoryFootprints");
 
         eastl::vector<TextureMemoryFootprint> footprints;
 
@@ -821,7 +821,7 @@ namespace KryneEngine
 
     bool VkGraphicsContext::NeedsStagingBuffer(BufferHandle _buffer)
     {
-        ZoneScopedN("VkGraphicsContext::NeedsStagingBuffer");
+        KE_ZoneScopedFunction("VkGraphicsContext::NeedsStagingBuffer");
 
         VkResources::BufferColdData* coldData = m_resources.m_buffers.GetCold(_buffer.m_handle);
         VERIFY_OR_RETURN(coldData != nullptr, false);
@@ -866,7 +866,7 @@ namespace KryneEngine
         const SubResourceIndexing& _subResourceIndex,
         void* _data)
     {
-        ZoneScopedN("VkGraphicsContext::SetTextureData");
+        KE_ZoneScopedFunction("VkGraphicsContext::SetTextureData");
 
         VkBuffer* stagingBuffer = m_resources.m_buffers.Get(_stagingBuffer.m_handle);
         VkImage* dstTexture = m_resources.m_textures.Get(_dstTexture.m_handle);
@@ -912,7 +912,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::MapBuffer(BufferMapping& _mapping)
     {
-        ZoneScopedN("VkGraphicsContext::MapBuffer");
+        KE_ZoneScopedFunction("VkGraphicsContext::MapBuffer");
 
         VkResources::BufferColdData* coldData = m_resources.m_buffers.GetCold(_mapping.m_buffer.m_handle);
         VERIFY_OR_RETURN_VOID(coldData != nullptr);
@@ -936,7 +936,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::UnmapBuffer(BufferMapping& _mapping)
     {
-        ZoneScopedN("VkGraphicsContext::UnmapBuffer");
+        KE_ZoneScopedFunction("VkGraphicsContext::UnmapBuffer");
 
         VkResources::BufferColdData* coldData = m_resources.m_buffers.GetCold(_mapping.m_buffer.m_handle);
         VERIFY_OR_RETURN_VOID(coldData != nullptr);
@@ -959,7 +959,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params)
     {
-        ZoneScopedN("VkGraphicsContext::CopyBuffer");
+        KE_ZoneScopedFunction("VkGraphicsContext::CopyBuffer");
 
         VkBuffer* bufferSrc = m_resources.m_buffers.Get(_params.m_bufferSrc.m_handle);
         VkBuffer* bufferDst = m_resources.m_buffers.Get(_params.m_bufferDst.m_handle);
@@ -980,7 +980,7 @@ namespace KryneEngine
         const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
         const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers)
     {
-        ZoneScopedN("VkGraphicsContext::PlaceMemoryBarriers");
+        KE_ZoneScopedFunction("VkGraphicsContext::PlaceMemoryBarriers");
 
         using namespace VkHelperFunctions;
 
@@ -1251,7 +1251,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)
     {
-        ZoneScopedN("VkGraphicsContext::SetViewport");
+        KE_ZoneScopedFunction("VkGraphicsContext::SetViewport");
 
         const VkViewport viewport {
             .x = static_cast<float>(_viewport.m_topLeftX),
@@ -1266,7 +1266,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::SetScissorsRect(CommandList _commandList, const Rect& _rect)
     {
-        ZoneScopedN("VkGraphicsContext::SetScissorsRect");
+        KE_ZoneScopedFunction("VkGraphicsContext::SetScissorsRect");
 
         const VkRect2D scissorRect {
             .offset = {
@@ -1283,7 +1283,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16)
     {
-        ZoneScopedN("VkGraphicsContext::SetIndexBuffer");
+        KE_ZoneScopedFunction("VkGraphicsContext::SetIndexBuffer");
 
         VkBuffer* pBuffer = m_resources.m_buffers.Get(_indexBufferView.m_buffer.m_handle);
         VERIFY_OR_RETURN_VOID(pBuffer != nullptr);
@@ -1296,7 +1296,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews)
     {
-        ZoneScopedN("VkGraphicsContext::SetVertexBuffers");
+        KE_ZoneScopedFunction("VkGraphicsContext::SetVertexBuffers");
 
         eastl::fixed_vector<VkBuffer, 4> buffers;
         eastl::fixed_vector<u64, 4> offsets;
@@ -1322,7 +1322,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline)
     {
-        ZoneScopedN("VkGraphicsContext::SetGraphicsPipeline");
+        KE_ZoneScopedFunction("VkGraphicsContext::SetGraphicsPipeline");
 
         VkPipeline* pPipeline = m_resources.m_pipelines.Get(_graphicsPipeline.m_handle);
         VERIFY_OR_RETURN_VOID(pPipeline != nullptr);
@@ -1337,7 +1337,7 @@ namespace KryneEngine
         u32 _index,
         u32 _offset)
     {
-        ZoneScopedN("VkGraphicsContext::SetGraphicsPushConstant");
+        KE_ZoneScopedFunction("VkGraphicsContext::SetGraphicsPushConstant");
 
         auto [pLayout, pColdData] = m_resources.m_pipelineLayouts.GetAll(_layout.m_handle);
         VERIFY_OR_RETURN_VOID(pLayout != nullptr);
@@ -1358,7 +1358,7 @@ namespace KryneEngine
         const bool* _unchanged,
         u32 _frameId)
     {
-        ZoneScopedN("VkGraphicsContext::SetGraphicsDescriptorSets");
+        KE_ZoneScopedFunction("VkGraphicsContext::SetGraphicsDescriptorSets");
 
         const u8 frameIndex = _frameId % m_frameContextCount;
 
@@ -1387,7 +1387,7 @@ namespace KryneEngine
 
     void VkGraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)
     {
-        ZoneScopedN("VkGraphicsContext::DrawIndexedInstanced");
+        KE_ZoneScopedFunction("VkGraphicsContext::DrawIndexedInstanced");
 
         vkCmdDrawIndexed(
             _commandList,

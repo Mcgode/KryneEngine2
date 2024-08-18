@@ -7,8 +7,7 @@
 #pragma once
 
 #include "HelperFunctions.hpp"
-#include <Common/Types.hpp>
-#include <vulkan/vulkan.h>
+#include "VkHeaders.hpp"
 
 namespace KryneEngine
 {
@@ -17,7 +16,7 @@ namespace KryneEngine
     public:
         static VkDebugHandler Initialize(VkDevice _device, bool _debugUtilsEnabled, bool _debugMarkersEnabled)
         {
-            ZoneScopedN("VkDebugHandler init");
+            KE_ZoneScopedFunction("VkDebugHandler::Initialize");
 
             VkDebugHandler handler;
 
