@@ -16,6 +16,8 @@ namespace KryneEngine
 
 namespace KryneEngine::Modules::RpsRuntime
 {
+#define KE_RPS_ASSERT(result) KE_ASSERT(RPS_SUCCEEDED(result))
+
     struct RuntimeDeviceCreateInfo
     {
         /// Pointer to general RPS device creation parameters. Passing NULL uses default parameters instead.
