@@ -10,10 +10,12 @@
 
 namespace KryneEngine::Modules::RpsRuntime
 {
+    class Device;
+
     class Backend: public rps::RuntimeBackend
     {
     public:
-        explicit Backend(rps::RenderGraph& _renderGraph);
+        explicit Backend(Device& _device, rps::RenderGraph& _renderGraph);
 
         RpsResult CreateHeaps(
             const rps::RenderGraphUpdateContext& _context,
@@ -24,5 +26,8 @@ namespace KryneEngine::Modules::RpsRuntime
             const RpsRenderGraphRecordCommandInfo& _recordInfo) const final;
 
         void DestroyRuntimeResourceDeferred(rps::ResourceInstance& resource) final;
+
+    private:
+        Device& m_device;
     };
 } // namespace KryneEngine::Modules::RpsRuntime

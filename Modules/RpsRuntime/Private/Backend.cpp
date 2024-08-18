@@ -6,10 +6,13 @@
 
 #include "Backend.hpp"
 
+#include "Device.hpp"
+
 namespace KryneEngine::Modules::RpsRuntime
 {
-    Backend::Backend(rps::RenderGraph& _renderGraph)
-        : RuntimeBackend(_renderGraph)
+    Backend::Backend(Device& _device, rps::RenderGraph& _renderGraph)
+        : rps::RuntimeBackend(_renderGraph)
+        , m_device(_device)
     {}
 
     RpsResult Backend::CreateHeaps(const rps::RenderGraphUpdateContext& _context, rps::ArrayRef<rps::HeapInfo> _heaps)
@@ -20,7 +23,7 @@ namespace KryneEngine::Modules::RpsRuntime
     RpsResult Backend::RecordCommands(
         const rps::RenderGraph& _renderGraph, const RpsRenderGraphRecordCommandInfo& _recordInfo) const
     {
-        return RPS_ERROR_UNKNOWN_NODE;
+        return RPS_ERROR_NOT_IMPLEMENTED;
     }
 
     void Backend::DestroyRuntimeResourceDeferred(rps::ResourceInstance& resource)
