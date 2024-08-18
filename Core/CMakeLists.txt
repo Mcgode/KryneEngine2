@@ -41,7 +41,8 @@ set(ThreadsSrc
         Threads/LightweightMutex.hpp Threads/SpinLock.hpp
         Threads/RwMutex.hpp
         Threads/Semaphore.hpp
-        )
+        Threads/LightweightMutex.cpp
+)
 
 set(WindowSrc
         Window/Window.cpp Window/Window.hpp
