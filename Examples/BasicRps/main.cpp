@@ -10,6 +10,8 @@
 using namespace KryneEngine;
 namespace KEModules = KryneEngine::Modules;
 
+RPS_DECLARE_RPSL_ENTRY(hello_triangle, main);
+
 int main()
 {
     auto appInfo = GraphicsCommon::ApplicationInfo();
@@ -33,4 +35,22 @@ int main()
 
         KEModules::RpsRuntime::rpsRuntimeDeviceCreate(&createInfo, &device);
     }
+
+    RpsRenderGraph renderGraph;
+    {
+        RpsQueueFlags queueFlags[] = { RPS_QUEUE_FLAG_GRAPHICS };
+        const RpsRenderGraphCreateInfo createInfo {
+            .scheduleInfo = {
+                .numQueues = 1,
+                .pQueueInfos = queueFlags,
+            },
+            .mainEntryCreateInfo = {
+                .hRpslEntryPoint = RPS_ENTRY_REF(hello_triangle, main),
+            },
+        };
+
+        KE_RPS_ASSERT(rpsRenderGraphCreate(device, &createInfo, &renderGraph));
+    }
+
+    return 0;
 }
