@@ -8,16 +8,24 @@
 
 namespace KryneEngine
 {
+    static constexpr tracy::SourceLocationData lightweightMutexSourceLocationData {
+        "LightweightMutex",
+        nullptr,
+        __FILE__,
+        __LINE__,
+        0
+    };
 
     LightweightMutex::LightweightMutex(u32 _threadYieldThreshold, u32 _systemMutexThreshold)
         : m_lock(false)
         , m_threadYieldThreshold(_threadYieldThreshold)
         , m_systemMutexThreshold(_systemMutexThreshold)
+        , m_ctx(&lightweightMutexSourceLocationData)
     {}
 
     void LightweightMutex::ManualLock()
     {
-
+        m_ctx.BeforeLock();
 
         u32 i = 0;
         for (;;)
@@ -30,7 +38,7 @@ namespace KryneEngine
                     m_systemMutex.lock();
                     systemMutexLocked = true;
                 }
-                return;
+                break;
             }
 
             // Wait for lock to be released without generating cache misses
@@ -53,6 +61,8 @@ namespace KryneEngine
             }
             while (m_lock.load(std::memory_order_relaxed));
         }
+
+        m_ctx.AfterLock();
     }
 
     void LightweightMutex::ManualUnlock()
@@ -63,5 +73,7 @@ namespace KryneEngine
             m_systemMutex.unlock();
         }
         m_lock.store(false, std::memory_order_release);
+
+        m_ctx.AfterUnlock();
     }
 }
