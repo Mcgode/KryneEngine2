@@ -25,6 +25,10 @@ set(MemorySrc
         Memory/GenerationalPool.inl Memory/GenerationalPool.hpp
 )
 
+set(ProfilingSrc
+        Profiling/TracyHeader.hpp
+)
+
 set(ThreadsSrc
         Threads/FibersManager.cpp Threads/FibersManager.hpp
         Threads/FiberThread.cpp Threads/FiberThread.hpp
@@ -49,5 +53,5 @@ set(WindowSrc
         Window/Input/Enums.hpp
 )
 
-add_library(KryneEngineCore ${CommonSrc} ${FilesSrc} ${MemorySrc} ${ThreadsSrc} ${WindowSrc})
+add_library(KryneEngineCore ${CommonSrc} ${FilesSrc} ${MemorySrc} ${ProfilingSrc} ${ThreadsSrc} ${WindowSrc})
 target_link_libraries(KryneEngineCore KryneEngineGraphics moodycamel)
