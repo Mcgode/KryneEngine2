@@ -112,6 +112,8 @@ int main() {
 
         do
         {
+            KE_ZoneScoped("Main loop");
+
             CommandList commandList = graphicsContext->BeginGraphicsCommandList();
 
             imGuiContext.NewFrame(&mainWindow, commandList);
