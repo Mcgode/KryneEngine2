@@ -24,6 +24,8 @@ namespace KryneEngine
         u64 _currentFrameId)
         : m_appInfo(_appInfo)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::Dx12GraphicsContext");
+
         KE_ASSERT(m_appInfo.IsDirectX12Api());
 
         ComPtr<IDXGIFactory4> factory4;
@@ -122,6 +124,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::EndFrame(u64 _frameId)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::EndFrame");
+
         const u8 frameIndex = _frameId % m_frameContextCount;
 
         auto& frameContext = m_frameContexts[frameIndex];
@@ -129,8 +133,12 @@ namespace KryneEngine
         // Execute the command lists
         ID3D12CommandQueue* queue = nullptr;
         {
+            KE_ZoneScopedFunction("Execute queues");
+
             const auto executeCommands = [&](ID3D12CommandQueue* _queue, Dx12FrameContext::CommandAllocationSet& _allocationSet)
             {
+                KE_ZoneScoped("Execute command lists queue");
+
                 if (_queue != nullptr && !_allocationSet.m_usedCommandLists.empty())
                 {
                     queue = _queue;
@@ -166,6 +174,8 @@ namespace KryneEngine
         frameContext.m_computeCommandAllocationSet.Reset();
         frameContext.m_copyCommandAllocationSet.Reset();
 
+        FrameMark;
+
         // Retrieve next frame index
         const u8 nextFrameIndex = (_frameId + 1) % m_frameContextCount;
 
@@ -183,6 +193,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::WaitForFrame(u64 _frameId) const
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::WaitForFrame");
+
         if (m_frameFence->GetCompletedValue() < _frameId)
         {
             Dx12Assert(m_frameFence->SetEventOnCompletion(_frameId, m_frameFenceEvent));
@@ -192,6 +204,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::_CreateDevice(IDXGIFactory4* _factory4)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::_CreateDevice");
+
         ComPtr<IDXGIAdapter1> hardwareAdapter;
         _FindAdapter(_factory4, &hardwareAdapter);
 
@@ -228,6 +242,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::_FindAdapter(IDXGIFactory4 *_factory, IDXGIAdapter1 **_adapter)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::_FindAdapter");
+
         *_adapter = nullptr;
 
         ComPtr<IDXGIAdapter1> adapter;
@@ -265,6 +281,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::_CreateCommandQueues()
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::_CreateCommandQueue");
+
         const auto& features = m_appInfo.m_features;
 
         if (features.m_graphics)
@@ -328,6 +346,8 @@ namespace KryneEngine
 
     CommandList Dx12GraphicsContext::BeginGraphicsCommandList(u64 _frameId)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::BeginGraphicsCommand");
+
         const u8 frameIndex = _frameId % m_frameContextCount;
         CommandList list = m_frameContexts[frameIndex].BeginDirectCommandList();
         m_descriptorSetManager->OnBeginGraphicsCommandList(list, frameIndex);
@@ -336,11 +356,15 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::EndGraphicsCommandList(u64 _frameId)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::EndGraphicsCommand");
+
         m_frameContexts[_frameId % m_frameContextCount].EndDirectCommandList();
     }
 
     void Dx12GraphicsContext::BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::BeginRenderPass");
+
         const auto* desc = m_resources.m_renderPasses.Get(_renderPass.m_handle);
         VERIFY_OR_RETURN_VOID(desc != nullptr);
 
@@ -466,6 +490,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::EndRenderPass(CommandList _commandList)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::EndRenderPass");
+
         const auto* desc = m_resources.m_renderPasses.Get(m_currentRenderPass.m_handle);
         VERIFY_OR_RETURN_VOID(desc != nullptr);
 
@@ -526,6 +552,8 @@ namespace KryneEngine
         const SubResourceIndexing& _subResourceIndex,
         void* _data)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::SetTextureData");
+
         ID3D12Resource** stagingTexture = m_resources.m_buffers.Get(_stagingBuffer.m_handle);
         ID3D12Resource** dstTexture = m_resources.m_textures.Get(_dstTexture.m_handle);
 
@@ -583,6 +611,8 @@ namespace KryneEngine
 
     eastl::vector<TextureMemoryFootprint> Dx12GraphicsContext::FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::FetchTextureSubResourcesMemoryFootprints");
+
         D3D12_RESOURCE_DESC resourceDesc {
             .Dimension = Dx12Converters::GetTextureResourceDimension(_desc.m_type),
             .Alignment = 0,
@@ -630,6 +660,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::MapBuffer(BufferMapping& _mapping)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::MapBuffer");
+
         D3D12MA::Allocation** pAllocation = m_resources.m_buffers.GetCold(_mapping.m_buffer.m_handle);
         VERIFY_OR_RETURN_VOID(pAllocation != nullptr);
         D3D12MA::Allocation* allocation = *pAllocation;
@@ -652,6 +684,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::UnmapBuffer(BufferMapping& _mapping)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::UnmapBuffer");
+
         ID3D12Resource** pBuffer = m_resources.m_buffers.Get(_mapping.m_buffer.m_handle);
         VERIFY_OR_RETURN_VOID(pBuffer != nullptr);
         KE_ASSERT_MSG(_mapping.m_ptr != nullptr, "Structure holds no mapping");
@@ -663,6 +697,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::CopyBuffer");
+
         ID3D12Resource** bufferSrc = m_resources.m_buffers.Get(_params.m_bufferSrc.m_handle);
         ID3D12Resource** bufferDst = m_resources.m_buffers.Get(_params.m_bufferDst.m_handle);
         VERIFY_OR_RETURN_VOID(bufferSrc != nullptr && bufferDst != nullptr);
@@ -681,6 +717,8 @@ namespace KryneEngine
         const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
         const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::PlaceMemoryBarriers");
+
         using namespace Dx12Converters;
 
         if (m_enhancedBarriersEnabled)
@@ -931,6 +969,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::SetViewport");
+
         const D3D12_VIEWPORT viewport {
             .TopLeftX = static_cast<float>(_viewport.m_topLeftX),
             .TopLeftY = static_cast<float>(_viewport.m_topLeftY),
@@ -944,6 +984,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::SetScissorsRect(CommandList _commandList, const Rect& _rect)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::SetScissorsRect");
+
         const D3D12_RECT scissorRect = {
             .left = static_cast<LONG>(_rect.m_left),
             .top = static_cast<LONG>(_rect.m_top),
@@ -955,6 +997,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::SetIndexBuffer");
+
         VERIFY_OR_RETURN_VOID(_indexBufferView.m_buffer != GenPool::kInvalidHandle);
         ID3D12Resource** pIndexBuffer = m_resources.m_buffers.Get(_indexBufferView.m_buffer.m_handle);
         VERIFY_OR_RETURN_VOID(pIndexBuffer != nullptr);
@@ -970,6 +1014,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::SetVertexBuffers");
+
         eastl::fixed_vector<D3D12_VERTEX_BUFFER_VIEW, 4> bufferViews;
         bufferViews.reserve(_bufferViews.size());
 
@@ -991,6 +1037,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::SetGraphicsPipeline");
+
         VERIFY_OR_RETURN_VOID(_graphicsPipeline != GenPool::kInvalidHandle);
         ID3D12PipelineState** pPso = m_resources.m_pipelineStateObjects.Get(_graphicsPipeline.m_handle);
         VERIFY_OR_RETURN_VOID(pPso != nullptr);
@@ -1009,6 +1057,8 @@ namespace KryneEngine
         u32 _index,
         u32 _offset)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::SetGraphicsPushConstant");
+
         u32* offset = m_resources.m_rootSignatures.GetCold(_layout.m_handle);
         VERIFY_OR_RETURN_VOID(offset != nullptr);
 
@@ -1036,6 +1086,8 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)
     {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::DrawIndexedInstanced");
+
         _commandList->DrawIndexedInstanced(
             _desc.m_elementCount,
             _desc.m_instanceCount,

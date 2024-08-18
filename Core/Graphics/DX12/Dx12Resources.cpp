@@ -21,6 +21,8 @@ namespace KryneEngine
 
     void Dx12Resources::InitAllocator(ID3D12Device* _device, IDXGIAdapter* _adapter)
     {
+        KE_ZoneScopedFunction("Dx12Resources::InitAllocator");
+
         D3D12MA::ALLOCATOR_DESC allocatorDesc {
             .pDevice = _device,
             .pAdapter = _adapter,
@@ -31,6 +33,8 @@ namespace KryneEngine
 
     void Dx12Resources::InitHeaps(ID3D12Device* _device)
     {
+        KE_ZoneScopedFunction("Dx12Resources::InitHeaps");
+
         {
             const D3D12_DESCRIPTOR_HEAP_DESC heapDesc{
                 .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
@@ -46,6 +50,8 @@ namespace KryneEngine
 
     BufferHandle Dx12Resources::CreateBuffer(const BufferCreateDesc& _desc)
     {
+        KE_ZoneScopedFunction("Dx12Resources::CreateBuffer");
+
         D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_desc.m_desc.m_size);
 
         if (BitUtils::EnumHasAny(_desc.m_usage, MemoryUsage::WriteBuffer))
@@ -90,6 +96,8 @@ namespace KryneEngine
         const TextureDesc& _desc,
         const eastl::vector<TextureMemoryFootprint>& _footprints)
     {
+        KE_ZoneScopedFunction("Dx12Resources::CreateStagingBuffer");
+
         const TextureMemoryFootprint lastSubResourceFootPrint = _footprints.back();
         const u64 bufferWidth = lastSubResourceFootPrint.m_offset + lastSubResourceFootPrint.m_lineByteAlignedSize
                                                                         * lastSubResourceFootPrint.m_height
@@ -124,6 +132,8 @@ namespace KryneEngine
 
     bool Dx12Resources::DestroyBuffer(BufferHandle _buffer)
     {
+        KE_ZoneScopedFunction("Dx12Resources::DestroyBuffer");
+
         ID3D12Resource* resource;
         D3D12MA::Allocation* allocation;
 
@@ -140,6 +150,8 @@ namespace KryneEngine
 
     TextureHandle Dx12Resources::CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device)
     {
+        KE_ZoneScopedFunction("Dx12Resources::CreateTexture");
+
         D3D12_RESOURCE_DESC resourceDesc {
             .Dimension = Dx12Converters::GetTextureResourceDimension(_createDesc.m_desc.m_type),
             .Alignment = 0,
@@ -185,6 +197,8 @@ namespace KryneEngine
 
     bool Dx12Resources::ReleaseTexture(TextureHandle _texture, bool _free)
     {
+        KE_ZoneScopedFunction("Dx12Resources::ReleaseTexture");
+
         ID3D12Resource* texture = nullptr;
         D3D12MA::Allocation* allocation = nullptr;
         if (m_textures.Free(_texture.m_handle, _free ? &texture : nullptr, &allocation))
@@ -208,6 +222,8 @@ namespace KryneEngine
 
     SamplerHandle Dx12Resources::CreateSampler(const SamplerDesc& _samplerDesc, ID3D12Device* _device)
     {
+        KE_ZoneScopedFunction("Dx12Resources::CreateSampler");
+
         if (m_samplerStorageHeap == nullptr)
         {
             const D3D12_DESCRIPTOR_HEAP_DESC heapDesc {
@@ -294,6 +310,8 @@ namespace KryneEngine
     RenderTargetViewHandle
     Dx12Resources::CreateRenderTargetView(const RenderTargetViewDesc &_desc, ID3D12Device *_device)
     {
+        KE_ZoneScopedFunction("Dx12Resources::CreateRenderTargetView");
+
         auto* texture = m_textures.Get(_desc.m_texture.m_handle);
         if (texture == nullptr)
         {
@@ -396,6 +414,8 @@ namespace KryneEngine
 
     TextureSrvHandle Dx12Resources::CreateTextureSrv(const TextureSrvDesc& _srvDesc, ID3D12Device* _device)
     {
+        KE_ZoneScopedFunction("Dx12Resources::CreateTextureSrv");
+
         auto* texturePtr = m_textures.Get(_srvDesc.m_texture.m_handle);
         VERIFY_OR_RETURN(texturePtr != nullptr, { GenPool::kInvalidHandle });
         ID3D12Resource* texture = *texturePtr;
@@ -502,6 +522,8 @@ namespace KryneEngine
 
     ShaderModuleHandle Dx12Resources::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
     {
+        KE_ZoneScopedFunction("Dx12Resources::RegisterShaderModule");
+
         GenPool::Handle handle = m_shaderBytecodes.Allocate();
         *m_shaderBytecodes.Get(handle) = {
             .pShaderBytecode = _bytecodeData,
@@ -520,6 +542,8 @@ namespace KryneEngine
         Dx12DescriptorSetManager* _setManager,
         ID3D12Device* _device)
     {
+        KE_ZoneScopedFunction("Dx12Resources::CreatePipelineLayout");
+
         eastl::vector<D3D12_ROOT_PARAMETER> rootParameters;
 
         eastl::vector<D3D12_DESCRIPTOR_RANGE> ranges {};
@@ -665,6 +689,8 @@ namespace KryneEngine
 
     bool Dx12Resources::DestroyPipelineLayout(PipelineLayoutHandle _layout)
     {
+        KE_ZoneScopedFunction("Dx12Resources::DestroyPipelineLayout");
+
         ID3D12RootSignature* rootSignature;
         if (m_rootSignatures.Free(_layout.m_handle, &rootSignature))
         {
@@ -678,6 +704,8 @@ namespace KryneEngine
         const GraphicsPipelineDesc& _desc,
         ID3D12Device* _device)
     {
+        KE_ZoneScopedFunction("Dx12Resources::CreateGraphicsPipeline");
+
         D3D12_GRAPHICS_PIPELINE_STATE_DESC desc {};
 
         VERIFY_OR_RETURN(_desc.m_renderPass != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
@@ -941,6 +969,8 @@ namespace KryneEngine
 
     bool Dx12Resources::DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline)
     {
+        KE_ZoneScopedFunction("Dx12Resources::DestroyGraphicsPipeline");
+
         ID3D12PipelineState* pso;
         if (m_pipelineStateObjects.Free(_pipeline.m_handle, &pso))
         {

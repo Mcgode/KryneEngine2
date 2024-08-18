@@ -22,6 +22,8 @@ namespace KryneEngine
                                  ID3D12CommandQueue *_directQueue,
         KryneEngine::Dx12Resources& _resources)
     {
+        KE_ZoneScopedFunction("Dx12SwapChain::Dx12SwapChain");
+
         const auto& displayInfo = _appInfo.m_displayOptions;
 
         u32 imageCount = 2;
@@ -95,11 +97,15 @@ namespace KryneEngine
 
     void Dx12SwapChain::Present() const
     {
+        KE_ZoneScopedFunction("Dx12SwapChain::Present");
+
         Dx12Assert(m_swapChain->Present(0, 0));
     }
 
     void Dx12SwapChain::Destroy(Dx12Resources &_resources)
     {
+        KE_ZoneScopedFunction("Dx12SwapChain::Destroy");
+
         for (const auto handle: m_renderTargetViews)
         {
             KE_ASSERT_MSG(_resources.FreeRenderTargetView(handle), "Handle was invalid. It shouldn't. Something went wrong with the lifecycle.");

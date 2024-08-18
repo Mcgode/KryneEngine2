@@ -20,9 +20,10 @@ namespace KryneEngine
         u32 m_packed;
     };
 
-
     void Dx12DescriptorSetManager::Init(ID3D12Device* _device, u8 _frameContextCount, u8 _currentFrame)
     {
+        KE_ZoneScopedFunction("Dx12DescriptorSetManager::Init");
+
         m_cbvSrvUavGpuDescriptorHeaps.Resize(_frameContextCount);
         m_cbvSrvUavGpuDescriptorHeaps.InitAll(nullptr);
         m_samplerGpuDescriptorHeaps.Resize(_frameContextCount);
@@ -64,6 +65,8 @@ namespace KryneEngine
         const DescriptorSetDesc& _desc,
         u32* _bindingIndices)
     {
+        KE_ZoneScopedFunction("Dx12DescriptorSetManager::CreateDescriptorSetLayout");
+
         VERIFY_OR_RETURN(_bindingIndices != nullptr, { GenPool::kInvalidHandle });
 
         eastl::array<ShaderVisibility, kRangeTypesCount> visibilities {
@@ -119,6 +122,8 @@ namespace KryneEngine
 
     DescriptorSetHandle Dx12DescriptorSetManager::CreateDescriptorSet(DescriptorSetLayoutHandle _layout)
     {
+        KE_ZoneScopedFunction("Dx12DescriptorSetManager::CreateDescriptorSet");
+
         VERIFY_OR_RETURN(_layout != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
         LayoutData* pData = m_descriptorSetLayout.Get(_layout.m_handle);
         VERIFY_OR_RETURN(pData != nullptr, { GenPool::kInvalidHandle });
@@ -170,6 +175,8 @@ namespace KryneEngine
         ID3D12Device* _device,
         u8 _frameIndex)
     {
+        KE_ZoneScopedFunction("Dx12DescriptorSetManager::UpdateDescriptorSet");
+
         for (const auto& writeDesc: _writes)
         {
             for (auto i = 0u; i < writeDesc.m_descriptorData.size(); i++)
@@ -191,6 +198,8 @@ namespace KryneEngine
         const bool* _unchanged,
         u8 _currentFrame)
     {
+        KE_ZoneScopedFunction("Dx12DescriptorSetManager::SetGraphicsDescriptorSets");
+
         constexpr u32 samplerIndex = static_cast<u32>(RangeType::Sampler);
 
         u32 tableIndex = 0;
@@ -244,6 +253,8 @@ namespace KryneEngine
 
     void Dx12DescriptorSetManager::NextFrame(ID3D12Device* _device, const Dx12Resources& _resources, u8 _frameIndex)
     {
+        KE_ZoneScopedFunction("Dx12DescriptorSetManager::NextFrame");
+
         m_multiFrameUpdateTracker.AdvanceToNextFrame();
 
         for (const auto& data : m_multiFrameUpdateTracker.GetData())
@@ -266,6 +277,8 @@ namespace KryneEngine
         const Dx12DescriptorSetManager::TrackedData& _data,
         u8 _currentFrame)
     {
+        KE_ZoneScopedFunction("Dx12DescriptorSetManager::_ProcessUpdate");
+
         const auto type = static_cast<RangeType>(_data.m_packedIndex & BitUtils::BitMask<u32>(16));
         const bool isSampler = type == RangeType::Sampler;
 

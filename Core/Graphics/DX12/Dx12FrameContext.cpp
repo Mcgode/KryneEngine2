@@ -12,6 +12,8 @@ namespace KryneEngine
 {
     Dx12FrameContext::Dx12FrameContext(ID3D12Device *_device, bool _directAllocator, bool _computeAllocator, bool _copyAllocator)
     {
+        KE_ZoneScopedFunction("Dx12FrameContext::Dx12FrameContext");
+
         m_device = _device;
 
         const auto initAllocator = [this] (bool _alloc,CommandAllocationSet& _set, D3D12_COMMAND_LIST_TYPE _type, const wchar_t* _name)
@@ -41,12 +43,16 @@ namespace KryneEngine
     ID3D12GraphicsCommandList7 * Dx12FrameContext::CommandAllocationSet::BeginCommandList(ID3D12Device *_device,
                                                                                           D3D12_COMMAND_LIST_TYPE _commandType)
     {
+        KE_ZoneScopedFunction("Dx12FrameContext::CommandAllocationSet::BeginCommandList");
+
         VERIFY_OR_RETURN(m_commandAllocator != nullptr, nullptr);
 
         m_mutex.ManualLock();
 
         if (m_availableCommandLists.empty())
         {
+            KE_ZoneScoped("Allocate new command list");
+
             Dx12Assert(_device->CreateCommandList(0,
                                                   _commandType,
                                                   m_commandAllocator.Get(),
@@ -65,6 +71,8 @@ namespace KryneEngine
 
     void Dx12FrameContext::CommandAllocationSet::EndCommandList()
     {
+        KE_ZoneScopedFunction("Dx12FrameContext::CommandAllocationSet::EndCommandList");
+
         VERIFY_OR_RETURN_VOID(m_commandAllocator != nullptr);
 
         Dx12Assert(m_usedCommandLists.back()->Close());
@@ -74,6 +82,8 @@ namespace KryneEngine
 
     void Dx12FrameContext::CommandAllocationSet::Destroy()
     {
+        KE_ZoneScopedFunction("Dx12FrameContext::CommandAllocationSet::Destroy");
+
         if (!m_usedCommandLists.empty())
         {
             Reset();
@@ -98,6 +108,8 @@ namespace KryneEngine
 
     void Dx12FrameContext::CommandAllocationSet::Reset()
     {
+        KE_ZoneScopedFunction("Dx12FrameContext::CommandAllocationSet::Reset");
+
         const auto lock = m_mutex.AutoLock();
 
         m_availableCommandLists.insert(
