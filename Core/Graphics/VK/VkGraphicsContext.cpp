@@ -17,6 +17,7 @@
 #include <Graphics/VK/VkSurface.hpp>
 #include <Graphics/VK/VkSwapChain.hpp>
 #include <GLFW/glfw3.h>
+#include <Memory/GenerationalPool.inl>
 #include <Window/Window.hpp>
 #include "VkDebugHandler.hpp"
 #include "VkDescriptorSetManager.hpp"
