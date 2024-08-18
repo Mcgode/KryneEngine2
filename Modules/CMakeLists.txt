@@ -4,9 +4,10 @@ target_include_directories(KEModuleIncludes INTERFACE ${CMAKE_CURRENT_SOURCE_DIR
 add_subdirectory(ShaderLib)
 add_subdirectory(GraphicsUtils)
 add_subdirectory(ImGui)
+add_subdirectory(RpsRuntime)
 
 add_library(KryneEngineModules INTERFACE)
-target_link_libraries(KryneEngineModules INTERFACE GraphicsUtilsModule ImGuiModule)
+target_link_libraries(KryneEngineModules INTERFACE GraphicsUtilsModule ImGuiModule RpsRuntimeModule)
 target_include_directories(KryneEngineModules INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(KryneEngine INTERFACE)
