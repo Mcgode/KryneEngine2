@@ -41,3 +41,4 @@ using Microsoft::WRL::ComPtr;
 #include <Common/Types.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <Memory/GenerationalPool.hpp>
+#include <Profiling/TracyHeader.hpp>

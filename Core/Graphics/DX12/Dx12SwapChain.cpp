@@ -7,7 +7,7 @@
 #include "Dx12SwapChain.hpp"
 #include "Dx12GraphicsContext.hpp"
 #include "HelperFunctions.hpp"
-#include <Graphics/Window/Window.hpp>
+#include <Window/Window.hpp>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>

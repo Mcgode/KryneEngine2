@@ -12,7 +12,7 @@
 #include <D3D12MemAlloc.h>
 #include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/Drawing.hpp>
-#include <Graphics/Window/Window.hpp>
+#include <Window/Window.hpp>
 #include <Memory/GenerationalPool.inl>
 #include <dxgidebug.h>
 
