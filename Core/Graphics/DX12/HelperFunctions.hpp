@@ -49,8 +49,15 @@ namespace KryneEngine
     {
         eastl::wstring name;
         name.sprintf(_format, _args...);
-        name = L"[App] " + name;
         Dx12Assert(_object->SetPrivateData(WKPDID_D3DDebugObjectNameW, name.size() * sizeof(wchar_t), name.c_str()));
+    }
+
+    template <class DxObject, class... Args>
+    void Dx12SetName(DxObject* _object, const char* _format, Args... _args)
+    {
+        eastl::string name;
+        name.sprintf(_format, _args...);
+        Dx12Assert(_object->SetPrivateData(WKPDID_D3DDebugObjectName, name.size() * sizeof(char), name.c_str()));
     }
 
     namespace Dx12Converters

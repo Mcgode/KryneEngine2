@@ -82,7 +82,7 @@ namespace KryneEngine
             IID_PPV_ARGS(&buffer)));
 
 #if !defined(KE_FINAL)
-        Dx12SetName(buffer, L"%s", _desc.m_desc.m_debugName.c_str());
+        Dx12SetName(buffer, _desc.m_desc.m_debugName.c_str());
 #endif
 
         const GenPool::Handle handle = m_buffers.Allocate();
@@ -124,7 +124,7 @@ namespace KryneEngine
 
 
 #if !defined(KE_FINAL)
-        Dx12SetName(*m_buffers.Get(handle), L"%s staging buffer", _desc.m_debugName.c_str());
+        Dx12SetName(*m_buffers.Get(handle), "%s staging buffer", _desc.m_debugName.c_str());
 #endif
 
         return { handle };
@@ -181,7 +181,7 @@ namespace KryneEngine
             IID_PPV_ARGS(&texture)));
 
 #if !defined(KE_FINAL)
-   Dx12SetName(texture, L"%s", _createDesc.m_desc.m_debugName.c_str());
+   Dx12SetName(texture, _createDesc.m_desc.m_debugName.c_str());
 #endif
 
         return RegisterTexture(texture, allocation);
@@ -956,7 +956,7 @@ namespace KryneEngine
         Dx12Assert(_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(m_pipelineStateObjects.Get(handle))));
 
 #if !defined(KE_FINAL)
-        Dx12SetName(*m_pipelineStateObjects.Get(handle), L"%s", _desc.m_debugName.c_str());
+        Dx12SetName(*m_pipelineStateObjects.Get(handle), _desc.m_debugName.c_str());
 #endif
 
         *m_pipelineStateObjects.GetCold(handle) = {
