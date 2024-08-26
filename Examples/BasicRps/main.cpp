@@ -4,6 +4,7 @@
  * @date 18/08/2024.
  */
 
+#include <Graphics/Common/GraphicsContext.hpp>
 #include <RpsRuntime/Public/RpsRuntime.hpp>
 #include <Window/Window.hpp>
 
@@ -11,6 +12,11 @@ using namespace KryneEngine;
 namespace KEModules = KryneEngine::Modules;
 
 RPS_DECLARE_RPSL_ENTRY(hello_triangle, main);
+
+void DrawTriangleCallback(const RpsCmdCallbackContext* _context)
+{
+    KE_VERIFY(_context != nullptr);
+}
 
 int main()
 {
@@ -24,6 +30,7 @@ int main()
 #endif
 
     Window window(appInfo);
+    GraphicsContext* graphicsContext = window.GetGraphicsContext();
 
     RpsDevice device;
     {
@@ -51,6 +58,38 @@ int main()
 
         KE_RPS_ASSERT(rpsRenderGraphCreate(device, &createInfo, &renderGraph));
     }
+
+    KE_RPS_ASSERT(rpsProgramBindNode(
+        rpsRenderGraphGetMainEntry(renderGraph),
+        "Triangle",
+        DrawTriangleCallback));
+
+    do
+    {
+        {
+            const u64 frameIndex = graphicsContext->GetFrameId();
+
+            const RpsRenderGraphUpdateInfo updateInfo {
+                .frameIndex = graphicsContext->GetFrameId(),
+                .gpuCompletedFrameIndex = (frameIndex > graphicsContext->GetFrameContextCount())
+                    ? frameIndex - graphicsContext->GetFrameContextCount()
+                    : RPS_GPU_COMPLETED_FRAME_INDEX_NONE,
+            };
+
+            KE_RPS_ASSERT(rpsRenderGraphUpdate(renderGraph, &updateInfo));
+        }
+
+        // RPS render pass
+        {
+            RpsRenderGraphBatchLayout batchLayout{};
+            KE_RPS_ASSERT(rpsRenderGraphGetBatchLayout(renderGraph, &batchLayout));
+
+            KE_ASSERT_MSG(
+                batchLayout.numCmdBatches == 1, "In a single-queue app, we expect there to be a single cmd batch.");
+            KE_ASSERT_MSG(batchLayout.numFenceSignals == 0, "In a single queue app, we don't expect any fence signal");
+        }
+    }
+    while (window.GetGraphicsContext()->EndFrame());
 
     return 0;
 }
