@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include <Graphics/Common/Enums.hpp>
+#include <rps/runtime/common/rps_format.h>
+
 namespace KryneEngine::Modules::RpsRuntime
 {
     template <class KeHandle, class RpsHandle>
@@ -13,4 +16,6 @@ namespace KryneEngine::Modules::RpsRuntime
 
     template <class KeHandle, class RpsHandle>
     RpsHandle ToRpsHandle(KeHandle _handle);
+
+    TexturePlane GetAspectMaskFromFormat(RpsFormat _format);
 }

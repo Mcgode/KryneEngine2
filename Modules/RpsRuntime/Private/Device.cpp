@@ -8,9 +8,10 @@
 
 #include "../Public/RpsRuntime.hpp"
 #include "Backend.hpp"
+#include "Helpers.hpp"
 
-#include <core/rps_util.hpp>
 #include <core/rps_device.hpp>
+#include <core/rps_util.hpp>
 
 #include <runtime/common/rps_runtime_device.hpp>
 #include <runtime/common/rps_runtime_util.hpp>
@@ -55,7 +56,45 @@ namespace KryneEngine::Modules::RpsRuntime
 
     RpsResult Device::InitializeSubresourceInfos(rps::ArrayRef<rps::ResourceInstance> _resInstances)
     {
-        return RPS_ERROR_NOT_IMPLEMENTED;
+        for (auto& resourceInstance: _resInstances)
+        {
+            {
+                u32 aspectMask = 0;
+                if (resourceInstance.desc.IsImage())
+                {
+                    aspectMask = static_cast<u32>(GetAspectMaskFromFormat(resourceInstance.desc.image.format));
+                }
+
+                rps::GetFullSubresourceRange(
+                    resourceInstance.fullSubresourceRange,
+                    resourceInstance.desc,
+                    aspectMask);
+            }
+
+            if (resourceInstance.desc.IsBuffer())
+            {
+                resourceInstance.numSubResources = 1;
+            }
+            else
+            {
+                const auto& imageInfo = resourceInstance.desc.image;
+
+                resourceInstance.numSubResources = imageInfo.mipLevels;
+
+                if (resourceInstance.desc.type != RPS_RESOURCE_TYPE_IMAGE_3D)
+                {
+                    resourceInstance.numSubResources *= imageInfo.arrayLayers;
+                }
+
+                // Two planes for depth-stencil resources
+                if (imageInfo.format == RPS_FORMAT_D24_UNORM_S8_UINT || imageInfo.format == RPS_FORMAT_D32_FLOAT_S8X24_UINT)
+                {
+                    resourceInstance.numSubResources *= 2;
+                }
+            }
+        }
+
+        return RPS_OK;
     }
 
     RpsResult Device::InitializeResourceAllocInfos(rps::ArrayRef<rps::ResourceInstance> _resInstances)
