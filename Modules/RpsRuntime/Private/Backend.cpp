@@ -7,6 +7,9 @@
 #include "Backend.hpp"
 
 #include "Device.hpp"
+#include "Helpers.hpp"
+
+#include <Graphics/Common/GraphicsContext.hpp>
 
 namespace KryneEngine::Modules::RpsRuntime
 {
@@ -64,8 +67,22 @@ namespace KryneEngine::Modules::RpsRuntime
 
     void Backend::DestroyResources(rps::ArrayRef<rps::ResourceInstance> resources)
     {
-        KE_ERROR("Not implemented");
-        RuntimeBackend::DestroyResources(resources);
+        for (auto& resInfo: resources)
+        {
+            if (resInfo.hRuntimeResource.ptr != nullptr && !resInfo.isExternal)
+            {
+                GraphicsContext* graphicsContext = m_device.GetGraphicsContext();
+
+                if (resInfo.desc.IsImage())
+                {
+                    graphicsContext->DestroyTexture(ToKeHandle<TextureHandle>(resInfo.hRuntimeResource));
+                }
+                else if (resInfo.desc.IsBuffer())
+                {
+                    graphicsContext->DestroyBuffer(ToKeHandle<BufferHandle>(resInfo.hRuntimeResource));
+                }
+            }
+        }
     }
 
     RpsResult Backend::CreateCommandResources(const rps::RenderGraphUpdateContext& context)
