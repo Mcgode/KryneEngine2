@@ -33,6 +33,13 @@ namespace KryneEngine
                 static_assert(sizeof(Handle) == sizeof(u32));
                 return *reinterpret_cast<const u32*>(this);
             }
+
+            static Handle FromU32(u32 _rawHandle)
+            {
+                Handle handle {};
+                *reinterpret_cast<u32*>(&handle) = _rawHandle;
+                return handle;
+            }
         };
 
         static constexpr Handle kInvalidHandle = {
