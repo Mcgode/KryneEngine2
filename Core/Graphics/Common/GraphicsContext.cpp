@@ -57,6 +57,11 @@ namespace KryneEngine
         return m_implementation.DestroySampler(_sampler);
     }
 
+    TextureHandle GraphicsContext::GetPresentTexture(u8 _swapChainIndex)
+    {
+        return m_implementation.GetPresentTexture(_swapChainIndex);
+    }
+
     ShaderModuleHandle GraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
     {
         return m_implementation.RegisterShaderModule(_bytecodeData, _bytecodeSize);

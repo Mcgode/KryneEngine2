@@ -344,6 +344,13 @@ namespace KryneEngine
         return m_swapChain->m_renderTargetViews[_index];
     }
 
+    TextureHandle Dx12GraphicsContext::GetPresentTexture(u8 _swapChainIndex)
+    {
+        return (m_swapChain != nullptr)
+                   ? m_swapChain->m_renderTargetTextures[_swapChainIndex]
+                   : TextureHandle { GenPool::kInvalidHandle };
+    }
+
     CommandList Dx12GraphicsContext::BeginGraphicsCommandList(u64 _frameId)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::BeginGraphicsCommand");

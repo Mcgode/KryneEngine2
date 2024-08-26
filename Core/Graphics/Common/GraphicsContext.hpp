@@ -142,6 +142,8 @@ namespace KryneEngine
             return m_implementation.GetPresentRenderTargetView(_swapChainIndex);
         }
 
+        [[nodiscard]] TextureHandle GetPresentTexture(u8 _swapChainIndex);
+
         [[nodiscard]] inline u32 GetCurrentPresentImageIndex() const
         {
             return m_implementation.GetCurrentPresentImageIndex();

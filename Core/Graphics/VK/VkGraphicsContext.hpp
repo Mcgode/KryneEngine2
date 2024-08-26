@@ -153,7 +153,8 @@ namespace KryneEngine
             return m_resources.FreeRenderTargetView(_handle, m_device);
         }
 
-        RenderTargetViewHandle GetPresentRenderTargetView(u8 _index);
+        [[nodiscard]] RenderTargetViewHandle GetPresentRenderTargetView(u8 _index);
+        [[nodiscard]] TextureHandle GetPresentTexture(u8 _swapChainIndex);
         [[nodiscard]] u32 GetCurrentPresentImageIndex() const;
 
         [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc)

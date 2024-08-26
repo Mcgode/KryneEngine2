@@ -852,6 +852,13 @@ namespace KryneEngine
                 : RenderTargetViewHandle { GenPool::kInvalidHandle };
     }
 
+    TextureHandle VkGraphicsContext::GetPresentTexture(u8 _swapChainIndex)
+    {
+        return (m_swapChain != nullptr)
+            ? m_swapChain->m_renderTargetTextures[_swapChainIndex]
+            : TextureHandle { GenPool::kInvalidHandle };
+    }
+
     u32 VkGraphicsContext::GetCurrentPresentImageIndex() const
     {
         return (m_swapChain != nullptr)

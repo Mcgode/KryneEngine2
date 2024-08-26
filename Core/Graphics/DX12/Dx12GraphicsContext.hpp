@@ -127,6 +127,7 @@ namespace KryneEngine
         }
 
         [[nodiscard]] RenderTargetViewHandle GetPresentRenderTargetView(u8 _index);
+        [[nodiscard]] TextureHandle GetPresentTexture(u8 _swapChainIndex);
         [[nodiscard]] u32 GetCurrentPresentImageIndex() const;
 
         RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc)
