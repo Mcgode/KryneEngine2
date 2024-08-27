@@ -5,6 +5,7 @@
  */
 
 #include <Graphics/Common/GraphicsContext.hpp>
+#include <RpsRuntime/Private/Helpers.hpp>
 #include <RpsRuntime/Public/RpsRuntime.hpp>
 #include <Window/Window.hpp>
 
@@ -67,6 +68,28 @@ int main()
     do
     {
         {
+            eastl::vector<RpsRuntimeResource> presentResources { graphicsContext->GetFrameContextCount() };
+            for (auto i = 0u; i < graphicsContext->GetFrameContextCount(); i++)
+            {
+                presentResources.push_back(KEModules::RpsRuntime::ToRpsHandle<TextureHandle, RpsRuntimeResource>(
+                    graphicsContext->GetPresentTexture(i)));
+            }
+            const RpsResourceDesc resourceDesc {
+                .type = RPS_RESOURCE_TYPE_IMAGE_2D,
+                .temporalLayers = static_cast<u32>(presentResources.size()),
+                .image = {
+                    .width = appInfo.m_displayOptions.m_width,
+                    .height = appInfo.m_displayOptions.m_height,
+                    .arrayLayers = 1,
+                    .mipLevels = 1,
+                    .format = RPS_FORMAT_R8G8B8A8_UNORM,
+                    .sampleCount = 1,
+                },
+            };
+
+            RpsConstant argData[] = { &resourceDesc };
+            const RpsRuntimeResource* argResources[] = { presentResources.data() };
+
             const u64 frameIndex = graphicsContext->GetFrameId();
 
             const RpsRenderGraphUpdateInfo updateInfo {
@@ -74,6 +97,9 @@ int main()
                 .gpuCompletedFrameIndex = (frameIndex > graphicsContext->GetFrameContextCount())
                     ? frameIndex - graphicsContext->GetFrameContextCount()
                     : RPS_GPU_COMPLETED_FRAME_INDEX_NONE,
+                .numArgs = 1,
+                .ppArgs = argData,
+                .ppArgResources = argResources,
             };
 
             KE_RPS_ASSERT(rpsRenderGraphUpdate(renderGraph, &updateInfo));
