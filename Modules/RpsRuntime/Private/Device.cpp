@@ -99,7 +99,16 @@ namespace KryneEngine::Modules::RpsRuntime
 
     RpsResult Device::InitializeResourceAllocInfos(rps::ArrayRef<rps::ResourceInstance> _resInstances)
     {
-        return RPS_ERROR_NOT_IMPLEMENTED;
+        for (auto& resourceInfo : _resInstances)
+        {
+            if (!resourceInfo.isPendingCreate)
+            {
+                continue;
+            }
+
+            return RPS_ERROR_NOT_IMPLEMENTED;
+        }
+        return RPS_OK;
     }
 
     RpsResult Device::GetSubresourceRangeFromImageView(
