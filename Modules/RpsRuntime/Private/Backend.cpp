@@ -66,7 +66,75 @@ namespace KryneEngine::Modules::RpsRuntime
 
     RpsResult Backend::CreateResources(const rps::RenderGraphUpdateContext& context, rps::ArrayRef<rps::ResourceInstance> resources)
     {
-        return RPS_ERROR_NOT_IMPLEMENTED;
+        rps::ConstArrayRef<rps::ResourceDecl, u32> resourceDeclarations = GetRenderGraph().GetBuilder().GetResourceDecls();
+
+        const bool enableDebugNames = BitUtils::EnumHasAny(
+            static_cast<RpsDiagnosticFlagBits>(context.pUpdateInfo->diagnosticFlags),
+            RPS_DIAGNOSTIC_ENABLE_RUNTIME_DEBUG_NAMES);
+
+        for (auto& resourceInstance: resources)
+        {
+            if (resourceInstance.isPendingCreate)
+            {
+                const char* name = enableDebugNames
+                    ? resourceDeclarations[resourceInstance.resourceDeclId].name.str
+                    : "";
+
+                if (resourceInstance.desc.IsBuffer())
+                {
+                    BufferCreateDesc createDesc {
+                        .m_desc = {
+                            .m_size = resourceInstance.desc.GetBufferSize(),
+#if !defined(KE_FINAL)
+                            .m_debugName = name,
+#endif
+                        },
+                        .m_usage = ToKeBufferMemoryUsage(resourceInstance.allAccesses.accessFlags)
+                                   & ToKeHeapMemoryType(resourceInstance),
+                    };
+                    const BufferHandle handle = m_device.GetGraphicsContext()->CreateBuffer(createDesc);
+                    resourceInstance.hRuntimeResource = ToRpsHandle<BufferHandle, RpsRuntimeResource>(handle);
+                }
+                else
+                {
+                    const u32 depth = resourceInstance.desc.type == RPS_RESOURCE_TYPE_IMAGE_3D
+                                          ? resourceInstance.desc.image.depth : 1;
+
+                    TextureDesc textureDesc {
+                        .m_dimensions = {
+                            resourceInstance.desc.image.width,
+                            resourceInstance.desc.image.height,
+                            depth
+                        },
+                        .m_format = ToKeTextureFormat(resourceInstance.desc.GetFormat()),
+                        .m_arraySize = static_cast<u16>(resourceInstance.desc.type != RPS_RESOURCE_TYPE_IMAGE_3D
+                            ? resourceInstance.desc.image.arrayLayers : 1u),
+                        .m_type = TextureTypes::Single2D,
+                        .m_mipCount = static_cast<u8>(resourceInstance.desc.image.mipLevels),
+                        .m_planes = GetAspectMaskFromFormat(resourceInstance.desc.GetFormat()),
+#if !defined(KE_FINAL)
+                        .m_debugName = name,
+#endif
+                    };
+
+                    const TextureCreateDesc createDesc {
+                        .m_desc = textureDesc,
+                        .m_footprintPerSubResource =
+                            m_device.GetGraphicsContext()->FetchTextureSubResourcesMemoryFootprints(textureDesc),
+                        .m_memoryUsage = ToKeTextureMemoryUsage(resourceInstance.allAccesses.accessFlags)
+                                         & ToKeHeapMemoryType(resourceInstance),
+                    };
+
+                    const TextureHandle handle = m_device.GetGraphicsContext()->CreateTexture(createDesc);
+                    resourceInstance.hRuntimeResource = ToRpsHandle<TextureHandle, RpsRuntimeResource>(handle);
+                }
+            }
+            else if (!resourceInstance.isExternal)
+            {
+                resourceInstance.isPendingInit = resourceInstance.isAliased;
+            }
+        }
+        return RPS_OK;
     }
 
     void Backend::DestroyResources(rps::ArrayRef<rps::ResourceInstance> resources)
