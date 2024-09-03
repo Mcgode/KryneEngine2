@@ -9,6 +9,7 @@
 #include "Device.hpp"
 #include "Helpers.hpp"
 
+#include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/GraphicsContext.hpp>
 
 namespace KryneEngine::Modules::RpsRuntime
@@ -46,18 +47,21 @@ namespace KryneEngine::Modules::RpsRuntime
 
     RpsResult Backend::UpdateFrame(const rps::RenderGraphUpdateContext& context)
     {
-        return RPS_ERROR_NOT_IMPLEMENTED;
+        // Handle frame data here
+        // There are none so far
+
+        return RPS_OK;
     }
 
     RpsResult Backend::CreateHeaps(const rps::RenderGraphUpdateContext& context, rps::ArrayRef<rps::HeapInfo> heaps)
     {
-        return RPS_ERROR_NOT_IMPLEMENTED;
+        // Heaps not handled for now
+        return RPS_OK;
     }
 
     void Backend::DestroyHeaps(rps::ArrayRef<rps::HeapInfo> heaps)
     {
-        KE_ERROR("Not implemented");
-        RuntimeBackend::DestroyHeaps(heaps);
+        // Heaps not implemented for now
     }
 
     RpsResult Backend::CreateResources(const rps::RenderGraphUpdateContext& context, rps::ArrayRef<rps::ResourceInstance> resources)
