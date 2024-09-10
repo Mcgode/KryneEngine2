@@ -6,6 +6,7 @@
 
 #include "FibersManager.hpp"
 #include <Common/Assert.hpp>
+#include <Profiling/TracyHeader.hpp>
 #include <Threads/FiberTls.inl>
 
 namespace KryneEngine
@@ -14,6 +15,8 @@ namespace KryneEngine
 
     FibersManager::FibersManager(u16 _fiberThreadCount)
     {
+        KE_ZoneScopedFunction("FibersManager::FibersManager()");
+
         KE_ASSERT_MSG(_fiberThreadCount > 0, "You need at least one fiber thread");
 
         // Resize array first!
@@ -43,6 +46,11 @@ namespace KryneEngine
             m_currentJobs.Init(this, nullptr);
             m_nextJob.Init(this, nullptr);
             m_baseContexts.Init(this, {});
+
+            for (u32 i = 0; i < _fiberThreadCount; i++)
+            {
+                m_baseContexts.Load(i).m_name.sprintf("Base fiber %d", i);
+            }
         }
 
         for (u16 i = 0; i < _fiberThreadCount; i++)

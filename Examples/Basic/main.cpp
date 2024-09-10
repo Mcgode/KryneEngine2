@@ -10,18 +10,21 @@ namespace KEModules = KryneEngine::Modules;
 
 void Job0(void* _counterPtr)
 {
+    ZoneScoped;
     (*static_cast<std::atomic<u32>*>(_counterPtr))++;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
 }
 
 void Job1(void*)
 {
+    ZoneScoped;
     std::atomic<u32> counter = 0;
 
     std::cout << "Counter value: " << counter << std::endl;
 
     auto* fibersManager = FibersManager::GetInstance();
 
-    static constexpr u32 kCount = 100;
+    static constexpr u32 kCount = 1'000;
     FiberJob counterJobs[kCount];
 
     const auto syncCounter = fibersManager->InitAndBatchJobs(counterJobs, Job0, &counter, kCount);
@@ -71,10 +74,10 @@ int main() {
     {
         auto fibersManager = FibersManager(6);
 
-//        FiberJob initJob;
-//        const auto syncCounter = fibersManager.InitAndBatchJobs(&initJob, Job1, nullptr);
-//
-//        fibersManager.ResetCounter(syncCounter);
+        FiberJob initJob;
+        const auto syncCounter = fibersManager.InitAndBatchJobs(&initJob, Job1, nullptr);
+
+        fibersManager.ResetCounter(syncCounter);
 
         auto appInfo = GraphicsCommon::ApplicationInfo();
 //        appInfo.m_features.m_validationLayers = false;

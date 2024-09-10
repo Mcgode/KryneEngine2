@@ -13,7 +13,7 @@ namespace KryneEngine
     inline void FiberTls<T>::Init(const FibersManager *_fibersManager, const T &_value)
     {
         m_array.Resize(_fibersManager->GetFiberThreadCount());
-        m_array.SetAll(_value);
+        m_array.InitAll(_value);
     }
 
     template<class T>

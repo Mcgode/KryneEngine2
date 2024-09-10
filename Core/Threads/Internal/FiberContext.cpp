@@ -126,6 +126,7 @@ namespace KryneEngine
 {
     void FiberContext::SwapContext(FiberContext *_new)
     {
+        TracyFiberLeave;
 #if CONTEXT_SWITCH_WINDOWS_FIBERS
         KE_ASSERT(m_winFiber == GetCurrentFiber());
 
@@ -133,6 +134,7 @@ namespace KryneEngine
 #else
         _SwapContext(_current, _new);
 #endif
+        TracyFiberEnter(m_name.c_str());
     }
 
     [[noreturn]] void FiberContext::RunFiber(void *)
@@ -143,6 +145,8 @@ namespace KryneEngine
         while (true)
         {
             auto* job = fibersManager->GetCurrentJob();
+
+            TracyFiberEnter(job->m_context->m_name.c_str());
 
             if (KE_VERIFY(job->m_status == FiberJob::Status::PendingStart))
             {
@@ -181,6 +185,8 @@ namespace KryneEngine
                 {
                     context.m_winFiber = CreateFiber(kBigStackSize, FiberContext::RunFiber, nullptr);
                 }
+
+                context.m_name.sprintf("Fiber %d", i);
             }
 
 #elif CONTEXT_SWITCH_ABI_WINDOWS || CONTEXT_SWITCH_ABI_SYS_V

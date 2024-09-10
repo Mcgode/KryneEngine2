@@ -52,7 +52,6 @@ endif()
 add_library(KryneEngineGraphics STATIC ${SrcFiles})
 target_link_libraries(KryneEngineGraphics EASTL glfw glm Tracy::TracyClient)
 target_include_directories(KryneEngineGraphics PUBLIC ${RootDir})
-target_compile_definitions(KryneEngineGraphics PUBLIC -DTRACY_ENABLE=1)
 target_compile_definitions(KryneEngineGraphics PRIVATE
         -DKE_TRACY_COLOR=0x671316
         -DKE_TRACY_FUNC_COLOR=0x9F1D21

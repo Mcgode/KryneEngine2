@@ -43,6 +43,8 @@ namespace KryneEngine
         void *rbx, *rbp, *r12, *r13, *r14, *r15;
 #endif
 
+        eastl::string m_name;
+
         void SwapContext(FiberContext *_new);
 
     private:

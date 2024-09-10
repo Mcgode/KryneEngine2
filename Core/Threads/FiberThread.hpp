@@ -33,6 +33,7 @@ namespace KryneEngine
     private:
         bool m_shouldStop = false;
         std::thread m_thread;
+        eastl::string m_name;
 
         static constexpr u32 kRetrieveSpinCountBeforeThreadWait = 50;
 

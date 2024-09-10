@@ -6,6 +6,7 @@
 
 #include "FiberThread.hpp"
 
+#include <Profiling/TracyHeader.hpp>
 #include <Threads/FibersManager.hpp>
 #include <Threads/HelperFunctions.hpp>
 
@@ -16,23 +17,35 @@ namespace KryneEngine
 
     FiberThread::FiberThread(FibersManager *_fiberManager, u16 _threadIndex)
     {
+        m_name.sprintf("Fiber thread %d", _threadIndex);
+
         m_thread = std::thread([this, _fiberManager, _threadIndex]()
         {
-        	KE_ASSERT(Threads::DisableThreadSignals());
+            tracy::SetThreadName(m_name.c_str());
 
-            FibersManager::s_manager = _fiberManager;
-            sThreadIndex = _threadIndex;
-            sIsThread = true;
+            {
+                auto& context = _fiberManager->m_baseContexts.Load(_threadIndex);
+                TracyFiberEnter(context.m_name.c_str());
+
+                KE_ZoneScoped("Fiber thread Init");
+
+                KE_ASSERT(Threads::DisableThreadSignals());
+
+                FibersManager::s_manager = _fiberManager;
+                sThreadIndex = _threadIndex;
+                sIsThread = true;
 
 #if CONTEXT_SWITCH_WINDOWS_FIBERS
-            auto& context = _fiberManager->m_baseContexts.Load(_threadIndex);
-            context.m_winFiber = ConvertThreadToFiber(nullptr);
+                context.m_winFiber = ConvertThreadToFiber(nullptr);
 #endif
+            }
 
             while (!m_shouldStop)
             {
                 SwitchToNextJob(_fiberManager, nullptr);
             }
+
+            TracyFiberLeave;
         });
 
         KE_ASSERT(Threads::SetThreadHardwareAffinity(m_thread, _threadIndex));
@@ -77,7 +90,9 @@ namespace KryneEngine
                 ? &_manager->m_baseContexts.Load(fiberIndex)
                 : _nextJob->m_context;
         KE_ASSERT(nextContext != nullptr);
+
         currentContext->SwapContext(nextContext);
+
         _manager->_OnContextSwitched();
     }
 
