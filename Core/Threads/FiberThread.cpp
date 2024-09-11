@@ -31,8 +31,6 @@ namespace KryneEngine
                 auto& context = _fiberManager->m_baseContexts.Load(_threadIndex);
                 TracyFiberEnter(context.m_name.c_str());
 
-                KE_ZoneScoped("Fiber thread Init");
-
                 KE_ASSERT(Threads::DisableThreadSignals());
 
                 FibersManager::s_manager = _fiberManager;
