@@ -7,8 +7,8 @@
 #include "HelperFunctions.hpp"
 
 #if defined(_WIN32) || defined(WIN32)
-    #define WINDOWS_THREADS
-    #include <windows.h>
+#   define WINDOWS_THREADS
+#   include <Platform/Windows.h>
 #elif defined(__unix__) || defined(__APPLE__)
     #define PTHREADS
     #include <pthread.h>

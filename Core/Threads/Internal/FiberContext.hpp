@@ -14,10 +14,6 @@
 #error Unsupported ABI
 #endif
 
-#if CONTEXT_SWITCH_WINDOWS_FIBERS
-    #include <windows.h>
-#endif
-
 #if CONTEXT_SWITCH_ABI_WINDOWS
     #include <emmintrin.h>
 #endif

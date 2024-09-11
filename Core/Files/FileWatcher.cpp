@@ -7,7 +7,7 @@
 #include "FileWatcher.hpp"
 
 #if defined(_WIN32)
-    #include <windows.h>
+#	include <Platform/Windows.h>
 #endif
 
 #include <Common/Assert.hpp>

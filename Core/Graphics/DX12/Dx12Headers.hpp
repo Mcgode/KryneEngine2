@@ -6,8 +6,7 @@
 
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include <Platform/Windows.h>
 
 // The min/max macros conflict with like-named member functions.
 // Only use std::min and std::max defined in <algorithm>.

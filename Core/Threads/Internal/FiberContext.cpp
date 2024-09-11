@@ -4,9 +4,14 @@
  * @date 02/07/2022.
  */
 
+#include "FiberContext.hpp"
+
+#if CONTEXT_SWITCH_WINDOWS_FIBERS
+#	include <Platform/Windows.h>
+#endif
+
 #include <Common/Assert.hpp>
 #include <Threads/FibersManager.hpp>
-#include "FiberContext.hpp"
 
 namespace
 {

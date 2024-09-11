@@ -10,6 +10,10 @@
 #include <Threads/FibersManager.hpp>
 #include <Threads/HelperFunctions.hpp>
 
+#if CONTEXT_SWITCH_WINDOWS_FIBERS
+#	include <Platform/Windows.h>
+#endif
+
 namespace KryneEngine
 {
     thread_local FiberThread::ThreadIndex FiberThread::sThreadIndex = 0;
