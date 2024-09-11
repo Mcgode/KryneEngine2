@@ -25,7 +25,7 @@ namespace KryneEngine
     public:
         using JobType = FiberJob*;
 
-        explicit FibersManager(u16 _fiberThreadCount);
+        explicit FibersManager(s32 _requestedThreadCount);
 
         ~FibersManager();
 

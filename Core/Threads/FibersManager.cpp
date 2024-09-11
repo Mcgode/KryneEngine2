@@ -13,15 +13,32 @@ namespace KryneEngine
 {
     thread_local FibersManager* FibersManager::s_manager = nullptr;
 
-    FibersManager::FibersManager(u16 _fiberThreadCount)
+    FibersManager::FibersManager(s32 _requestedThreadCount)
     {
         KE_ZoneScopedFunction("FibersManager::FibersManager()");
 
-        KE_ASSERT_MSG(_fiberThreadCount > 0, "You need at least one fiber thread");
+        u16 fiberThreadCount;
+        if (_requestedThreadCount <= 0)
+        {
+            // Always at least 1 thread, the current thread
+            fiberThreadCount = eastl::max<u16>(std::thread::hardware_concurrency(), 1);
+
+            if (_requestedThreadCount < 0)
+            {
+                // Make sure we can't go below 1
+                fiberThreadCount -= eastl::min<u16>(abs(_requestedThreadCount), _requestedThreadCount - 1);
+            }
+        }
+        else
+        {
+            fiberThreadCount = _requestedThreadCount;
+        };
+
+        KE_ASSERT_MSG(fiberThreadCount > 0, "You need at least one fiber thread");
 
         // Resize array first!
         // This size is used to init the FiberTls objects,
-        m_fiberThreads.Resize(_fiberThreadCount);
+        m_fiberThreads.Resize(fiberThreadCount);
 
         // Init FiberTls objects before initializing the threads, to avoid racing conditions.
         {
@@ -47,13 +64,13 @@ namespace KryneEngine
             m_nextJob.Init(this, nullptr);
             m_baseContexts.Init(this, {});
 
-            for (u32 i = 0; i < _fiberThreadCount; i++)
+            for (u32 i = 0; i < fiberThreadCount; i++)
             {
                 m_baseContexts.Load(i).m_name.sprintf("Base fiber %d", i);
             }
         }
 
-        for (u16 i = 0; i < _fiberThreadCount; i++)
+        for (u16 i = 0; i < fiberThreadCount; i++)
         {
             m_fiberThreads.Init(i, this, i);
         }
