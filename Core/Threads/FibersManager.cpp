@@ -217,13 +217,42 @@ namespace KryneEngine
 
     void FibersManager::WaitForCounter(SyncCounterId _syncCounter)
     {
-        auto* currentJob = GetCurrentJob();
-        m_syncCounterPool.AddWaitingJob(_syncCounter, currentJob);
+        if (FiberThread::IsFiberThread())
+        {
+            auto* currentJob = GetCurrentJob();
+            m_syncCounterPool.AddWaitingJob(_syncCounter, currentJob);
 
-        // Manually pause here, to avoid auto re-queueing when yielding.
-        currentJob->m_status = FiberJob::Status::Paused;
+            // Manually pause here, to avoid auto re-queueing when yielding.
+            currentJob->m_status = FiberJob::Status::Paused;
 
-        YieldJob();
+            YieldJob();
+        }
+        else
+        {
+            KE_ZoneScopedFunction("FibersManager::WaitForCounter");
+
+            TracyLockable(std::mutex, waitMutex);
+            struct Data {
+                std::condition_variable_any m_waitVariable {};
+                SyncCounterId m_syncCounterId;
+            } data;
+
+            data.m_syncCounterId = _syncCounter;
+
+            constexpr auto jobFunction = [](void* _dataPtr)
+            {
+                auto* data = static_cast<Data*>(_dataPtr);
+                FibersManager::GetInstance()->WaitForCounter(data->m_syncCounterId);
+                data->m_waitVariable.notify_one();
+            };
+            FiberJob waitAndWakeJob;
+            SyncCounterId id = InitAndBatchJobs(&waitAndWakeJob, jobFunction, &data);
+
+            std::unique_lock<LockableBase(std::mutex)> lock(waitMutex);
+            data.m_waitVariable.wait(lock);
+
+            ResetCounter(id);
+        }
     }
 
     void FibersManager::ResetCounter(SyncCounterId _syncCounter)
