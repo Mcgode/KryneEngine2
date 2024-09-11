@@ -34,6 +34,78 @@ void Job1(void*)
     std::cout << "Counter value: " << counter << std::endl;
 }
 
+void MainFunc(void* _fibersManagerPtr)
+{
+    auto appInfo = GraphicsCommon::ApplicationInfo();
+    //        appInfo.m_features.m_validationLayers = false;
+    appInfo.m_applicationName = "Basic Example - Kryne Engine 2";
+#if defined(KE_GRAPHICS_API_VK)
+    appInfo.m_api = GraphicsCommon::Api::Vulkan_1_3;
+    appInfo.m_applicationName += " - Vulkan";
+#elif defined(KE_GRAPHICS_API_DX12)
+    appInfo.m_api = KryneEngine::GraphicsCommon::Api::DirectX12_1;
+    appInfo.m_applicationName += " - DirectX 12";
+#endif
+    Window mainWindow(appInfo);
+    GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
+
+    DynamicArray<RenderPassHandle> renderPassHandles;
+    renderPassHandles.Resize(graphicsContext->GetFrameContextCount());
+    for (auto i = 0u; i < renderPassHandles.Size(); i++)
+    {
+        RenderPassDesc desc;
+        desc.m_colorAttachments.push_back(RenderPassDesc::Attachment {
+            KryneEngine::RenderPassDesc::Attachment::LoadOperation::Clear,
+            KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store,
+            TextureLayout::Unknown,
+            TextureLayout::Present,
+            graphicsContext->GetPresentRenderTargetView(i),
+            float4(0, 1, 1, 1)
+        });
+#if !defined(KE_FINAL)
+        desc.m_debugName.sprintf("PresentRenderPass[%d]", i);
+#endif
+        renderPassHandles[i] = graphicsContext->CreateRenderPass(desc);
+    }
+
+    KEModules::ImGui::Context imGuiContext{&mainWindow, renderPassHandles[0]};
+
+    do
+    {
+        KE_ZoneScoped("Main loop");
+
+        CommandList commandList = graphicsContext->BeginGraphicsCommandList();
+
+        imGuiContext.NewFrame(&mainWindow, commandList);
+
+        {
+            static bool open;
+            ImGui::ShowDemoWindow(&open);
+        }
+
+        imGuiContext.PrepareToRenderFrame(graphicsContext, commandList);
+
+        const u8 index = graphicsContext->GetCurrentPresentImageIndex();
+        graphicsContext->BeginRenderPass(commandList, renderPassHandles[index]);
+
+        imGuiContext.RenderFrame(graphicsContext, commandList);
+
+        graphicsContext->EndRenderPass(commandList);
+
+        graphicsContext->EndGraphicsCommandList();
+    }
+    while (graphicsContext->EndFrame());
+
+    graphicsContext->WaitForLastFrame();
+
+    imGuiContext.Shutdown(&mainWindow);
+
+    for (auto handle: renderPassHandles)
+    {
+        graphicsContext->DestroyRenderPass(handle);
+    }
+}
+
 int main() {
     std::cout << "Hello, World!" << std::endl;
 
@@ -72,81 +144,22 @@ int main() {
 //    }
 
     {
-        auto fibersManager = FibersManager(6);
+        auto fibersManager = FibersManager(0);
 
-        FiberJob initJob;
-        const auto syncCounter = fibersManager.InitAndBatchJobs(&initJob, Job1, nullptr);
+        FiberJob testJob;
+        const auto syncCounter = fibersManager.InitAndBatchJobs(&testJob, Job1, nullptr);
 
-        fibersManager.ResetCounter(syncCounter);
+        FiberJob mainJob;
+        const auto mainCounter = fibersManager.InitAndBatchJobs(
+            &mainJob,
+            MainFunc,
+            &fibersManager,
+            1,
+            KryneEngine::FiberJob::Priority::High,
+            true);
 
-        auto appInfo = GraphicsCommon::ApplicationInfo();
-//        appInfo.m_features.m_validationLayers = false;
-        appInfo.m_applicationName = "Basic Example - Kryne Engine 2";
-#if defined(KE_GRAPHICS_API_VK)
-        appInfo.m_api = GraphicsCommon::Api::Vulkan_1_3;
-        appInfo.m_applicationName += " - Vulkan";
-#elif defined(KE_GRAPHICS_API_DX12)
-        appInfo.m_api = KryneEngine::GraphicsCommon::Api::DirectX12_1;
-        appInfo.m_applicationName += " - DirectX 12";
-#endif
-        Window mainWindow(appInfo);
-        GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
-
-        DynamicArray<RenderPassHandle> renderPassHandles;
-        renderPassHandles.Resize(graphicsContext->GetFrameContextCount());
-        for (auto i = 0u; i < renderPassHandles.Size(); i++)
-        {
-            RenderPassDesc desc;
-            desc.m_colorAttachments.push_back(RenderPassDesc::Attachment {
-                KryneEngine::RenderPassDesc::Attachment::LoadOperation::Clear,
-                KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store,
-                TextureLayout::Unknown,
-                TextureLayout::Present,
-                graphicsContext->GetPresentRenderTargetView(i),
-                float4(0, 1, 1, 1)
-            });
-#if !defined(KE_FINAL)
-            desc.m_debugName.sprintf("PresentRenderPass[%d]", i);
-#endif
-            renderPassHandles[i] = graphicsContext->CreateRenderPass(desc);
-        }
-
-        KEModules::ImGui::Context imGuiContext{&mainWindow, renderPassHandles[0]};
-
-        do
-        {
-            KE_ZoneScoped("Main loop");
-
-            CommandList commandList = graphicsContext->BeginGraphicsCommandList();
-
-            imGuiContext.NewFrame(&mainWindow, commandList);
-
-            {
-                static bool open;
-                ImGui::ShowDemoWindow(&open);
-            }
-
-            imGuiContext.PrepareToRenderFrame(graphicsContext, commandList);
-
-            const u8 index = graphicsContext->GetCurrentPresentImageIndex();
-            graphicsContext->BeginRenderPass(commandList, renderPassHandles[index]);
-
-            imGuiContext.RenderFrame(graphicsContext, commandList);
-
-            graphicsContext->EndRenderPass(commandList);
-
-            graphicsContext->EndGraphicsCommandList();
-        }
-        while (graphicsContext->EndFrame());
-
-        graphicsContext->WaitForLastFrame();
-
-        imGuiContext.Shutdown(&mainWindow);
-
-        for (auto handle: renderPassHandles)
-        {
-            graphicsContext->DestroyRenderPass(handle);
-        }
+        fibersManager.WaitForCounter(syncCounter);
+        fibersManager.WaitForCounter(mainCounter);
     }
 
     return 0;
