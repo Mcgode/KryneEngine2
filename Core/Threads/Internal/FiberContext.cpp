@@ -185,13 +185,13 @@ namespace KryneEngine
                 if (i < kSmallStackCount)
                 {
                     context.m_winFiber = CreateFiber(kSmallStackSize, FiberContext::RunFiber, nullptr);
+                    context.m_name.sprintf("Fiber %d", i);
                 }
                 else
                 {
                     context.m_winFiber = CreateFiber(kBigStackSize, FiberContext::RunFiber, nullptr);
+                    context.m_name.sprintf("Big Fiber %d", i - kSmallStackCount);
                 }
-
-                context.m_name.sprintf("Fiber %d", i);
             }
 
 #elif CONTEXT_SWITCH_ABI_WINDOWS || CONTEXT_SWITCH_ABI_SYS_V
