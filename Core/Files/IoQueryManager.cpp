@@ -73,14 +73,14 @@ namespace KryneEngine
             }
 
             fseek(_query->m_file, 0, SEEK_END);
-            fileSize = ftell(_query->m_file);
+            fileSize = _ftelli64(_query->m_file);
             _query->m_fileSize = fileSize;
         }
 
         // Read/write data
         if (_query->m_size > 0)
         {
-            fseek(_query->m_file, offset, SEEK_SET);
+            _fseeki64(_query->m_file, offset, SEEK_SET);
 
             if (_query->m_type == Query::Type::Read)
             {
