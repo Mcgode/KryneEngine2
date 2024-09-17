@@ -19,8 +19,9 @@
 #endif
 
 #include <Common/Types.hpp>
-#include <moodycamel/concurrentqueue.h>
 #include <EASTL/array.h>
+#include <EASTL/priority_queue.h>
+#include <moodycamel/concurrentqueue.h>
 
 namespace KryneEngine
 {
@@ -64,7 +65,17 @@ namespace KryneEngine
         static constexpr u64 kBigStackSize = 512 * 1024; // 512 KiB
         static constexpr u16 kBigStackCount = 32;
 
-        using StackIdQueue = moodycamel::ConcurrentQueue<u16>;
+//        using StackIdQueue = moodycamel::ConcurrentQueue<u16>;
+        struct StackIdQueue
+        {
+            struct Comparator
+            {
+                constexpr bool operator()(const u16 _a, const u16 _b) const { return _a > _b; }
+            };
+
+            eastl::priority_queue<u16, eastl::vector<u16>, Comparator> m_priorityQueue;
+            SpinLock m_spinLock;
+        };
         StackIdQueue m_availableSmallContextsIds;
         StackIdQueue m_availableBigContextsIds;
 

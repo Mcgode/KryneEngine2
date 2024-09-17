@@ -167,14 +167,18 @@ namespace KryneEngine
     FiberContextAllocator::FiberContextAllocator()
     {
         {
+
+            const auto smallLock = m_availableSmallContextsIds.m_spinLock.AutoLock();
+            const auto bigLock = m_availableBigContextsIds.m_spinLock.AutoLock();
+
             for (u16 i = 0; i < kSmallStackCount; i++)
             {
-                m_availableSmallContextsIds.enqueue(i);
+                m_availableSmallContextsIds.m_priorityQueue.push(i);
             }
 
             for (u16 i = 0; i < kBigStackCount; i++)
             {
-                m_availableBigContextsIds.enqueue(kSmallStackCount + i);
+                m_availableBigContextsIds.m_priorityQueue.push(i + kSmallStackCount);
             }
 
 #if CONTEXT_SWITCH_WINDOWS_FIBERS
@@ -209,10 +213,12 @@ namespace KryneEngine
                 ? m_availableBigContextsIds
                 : m_availableSmallContextsIds;
 
-        IF_NOT_VERIFY_MSG(queue.try_dequeue(id_), "Out of Fiber stacks!")
+        const auto lock = queue.m_spinLock.AutoLock();
+        IF_NOT_VERIFY_MSG(!queue.m_priorityQueue.empty(), "Out of Fiber stacks!")
         {
             return false;
         }
+        queue.m_priorityQueue.pop(id_);
         return true;
     }
 
@@ -222,11 +228,13 @@ namespace KryneEngine
 
         if (_id < kSmallStackCount)
         {
-            m_availableSmallContextsIds.enqueue(_id);
+            const auto lock = m_availableSmallContextsIds.m_spinLock.AutoLock();
+            m_availableSmallContextsIds.m_priorityQueue.push(_id);
         }
         else
         {
-            m_availableBigContextsIds.enqueue(_id);
+            const auto lock = m_availableBigContextsIds.m_spinLock.AutoLock();
+            m_availableBigContextsIds.m_priorityQueue.push(_id);
         }
     }
 
