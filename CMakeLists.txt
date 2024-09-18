@@ -10,3 +10,6 @@ add_subdirectory(External)
 add_subdirectory(Core)
 add_subdirectory(Modules)
 add_subdirectory(Examples)
+
+enable_testing()
+add_subdirectory(Tests)

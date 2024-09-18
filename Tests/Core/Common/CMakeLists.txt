@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.20)
+
+add_executable(Core_Common_UnitTests Assert_UnitTests.cpp)
+
+target_link_libraries(Core_Common_UnitTests KryneEngineCore gtest gtest_main)
+
+add_test(NAME Core_Common_UnitTests COMMAND Core_Common_UnitTests)
