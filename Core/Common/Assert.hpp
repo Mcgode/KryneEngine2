@@ -8,7 +8,11 @@
 
 namespace KryneEngine::Assertion
 {
-	bool Error(const char* _function, u32 _line, const char* _file, const char* _formatMessage, ...);
+    using AssertionCallback = bool (*)(const char*, u32, const char*, const char*);
+
+    bool Error(const char* _function, u32 _line, const char* _file, const char* _formatMessage, ...);
+
+    AssertionCallback SetAssertionCallback(AssertionCallback _userCallback);
 }
 
 #define KE_ASSERT_MSG(condition, ...) do \
