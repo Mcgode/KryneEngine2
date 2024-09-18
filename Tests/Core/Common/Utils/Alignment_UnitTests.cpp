@@ -7,7 +7,6 @@
 #include <gtest/gtest.h>
 
 #include <Common/Utils/Alignment.hpp>
-#include <Utils/AssertUtils.hpp>
 
 namespace KryneEngine::Tests
 {
