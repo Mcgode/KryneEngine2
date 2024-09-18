@@ -11,7 +11,7 @@
 
 namespace KryneEngine::Assertion
 {
-    static AssertionCallback assertionCallback = nullptr;
+    static AssertionCallback g_assertionCallback = nullptr;
     static eastl::vector_set<u64> g_ignoredIds;
 	static LightweightMutex g_mutex;
 
@@ -64,13 +64,20 @@ namespace KryneEngine::Assertion
         message.sprintf_va_list(_formatMessage, arguments);
         va_end(arguments);
 
-		if (assertionCallback != nullptr)
+		if (g_assertionCallback != nullptr)
         {
-            return assertionCallback(_function, _line, _file, message.c_str());
+            return g_assertionCallback(_function, _line, _file, message.c_str());
         }
         else
         {
             return DefaultAssertCallback(_function, _line, _file, message.c_str());
         }
 	}
+
+    AssertionCallback SetAssertionCallback(AssertionCallback _userCallback)
+    {
+        AssertionCallback previous = g_assertionCallback;
+        g_assertionCallback = _userCallback;
+        return previous;
+    }
 }
