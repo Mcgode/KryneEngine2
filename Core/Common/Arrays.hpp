@@ -46,13 +46,13 @@ namespace KryneEngine
         DynamicArray(const DynamicArray& _other)
         {
             Resize(_other.m_count);
-            memcpy(m_array, _other.m_array, sizeof(T) * m_count);
+            for (u64 i = 0; i < m_count; i++) { m_array[i] = _other.m_array[i]; }
         }
 
         DynamicArray& operator=(const DynamicArray& _other)
         {
             Resize(_other.m_count);
-            memcpy(m_array, _other.m_array, sizeof(T) * m_count);
+            for (u64 i = 0; i < m_count; i++) { m_array[i] = _other.m_array[i]; }
             return *this;
         }
 
