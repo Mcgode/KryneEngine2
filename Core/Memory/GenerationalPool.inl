@@ -69,7 +69,7 @@ namespace KryneEngine
     template<class HotDataStruct, class ColdDataStruct>
     inline HotDataStruct *GenerationalPool<HotDataStruct, ColdDataStruct>::Get(GenPool::Handle _handle)
     {
-        KE_ASSERT(_handle.m_index < m_size);
+        VERIFY_OR_RETURN(_handle.m_index < m_size, nullptr);
 
         HotData& hotData = m_hotDataArray[_handle.m_index];
         if (hotData.m_generation != _handle.m_generation)
