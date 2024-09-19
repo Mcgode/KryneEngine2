@@ -67,7 +67,7 @@ namespace KryneEngine
     }
 
     template<class HotDataStruct, class ColdDataStruct>
-    inline HotDataStruct *GenerationalPool<HotDataStruct, ColdDataStruct>::Get(const GenPool::Handle &_handle)
+    inline HotDataStruct *GenerationalPool<HotDataStruct, ColdDataStruct>::Get(GenPool::Handle _handle)
     {
         KE_ASSERT(_handle.m_index < m_size);
 
@@ -80,18 +80,25 @@ namespace KryneEngine
     }
 
     template<class HotDataStruct, class ColdDataStruct>
-    inline eastl::pair<HotDataStruct *, ColdDataStruct *> GenerationalPool<HotDataStruct, ColdDataStruct>::GetAll(const GenPool::Handle &_handle)
+    inline eastl::pair<HotDataStruct *, ColdDataStruct *> GenerationalPool<HotDataStruct, ColdDataStruct>::GetAll(GenPool::Handle _handle)
     {
         auto* hotData = Get(_handle);
         if (hotData == nullptr)
         {
             return eastl::pair<HotDataStruct *, ColdDataStruct *>(nullptr, nullptr);
         }
-        return eastl::pair<HotDataStruct *, ColdDataStruct *>(hotData, &m_coldDataArray[_handle.m_index]);
+        if constexpr (kHasColdData)
+        {
+            return eastl::pair<HotDataStruct*, ColdDataStruct*>(hotData, &m_coldDataArray[_handle.m_index]);
+        }
+        else
+        {
+            return { hotData, nullptr };
+        }
     }
 
     template <class HotDataStruct, class ColdDataStruct>
-    const HotDataStruct* GenerationalPool<HotDataStruct, ColdDataStruct>::Get(const GenPool::Handle& _handle) const
+    const HotDataStruct* GenerationalPool<HotDataStruct, ColdDataStruct>::Get(GenPool::Handle _handle) const
     {
         KE_ASSERT(_handle.m_index < m_size);
 
@@ -111,7 +118,14 @@ namespace KryneEngine
         {
             return eastl::pair<const HotDataStruct *, const ColdDataStruct *>(nullptr, nullptr);
         }
-        return eastl::pair<const HotDataStruct *, const ColdDataStruct *>(hotData, &m_coldDataArray[_handle.m_index]);
+        if constexpr (kHasColdData)
+        {
+            return eastl::pair<const HotDataStruct*, const ColdDataStruct*>(hotData, &m_coldDataArray[_handle.m_index]);
+        }
+        else
+        {
+            return eastl::pair<const HotDataStruct*, const ColdDataStruct*>{ hotData, nullptr };
+        }
     }
 
     template<class HotDataStruct, class ColdDataStruct>

@@ -83,14 +83,14 @@ namespace KryneEngine
 
         ~GenerationalPool();
 
-        HotDataStruct* Get(const GenPool::Handle& _handle);
-        eastl::pair<HotDataStruct*, ColdDataStruct*> GetAll(const GenPool::Handle& _handle);
-        inline ColdDataStruct* GetCold(const GenPool::Handle& _handle)
+        HotDataStruct* Get(GenPool::Handle _handle);
+        eastl::pair<HotDataStruct*, ColdDataStruct*> GetAll(GenPool::Handle _handle);
+        inline ColdDataStruct* GetCold(GenPool::Handle _handle)
         {
             return GetAll(_handle).second;
         }
 
-        const HotDataStruct* Get(const GenPool::Handle& _handle) const;
+        const HotDataStruct* Get(GenPool::Handle _handle) const;
         eastl::pair<const HotDataStruct*, const ColdDataStruct*> GetAll(GenPool::Handle _handle) const;
         inline const ColdDataStruct* GetCold(const GenPool::Handle& _handle) const
         {
@@ -101,6 +101,8 @@ namespace KryneEngine
         bool Free(const GenPool::Handle &_handle,
                   HotDataStruct *_hotCopy = nullptr,
                   ColdDataStruct *_coldCopy = nullptr);
+
+        [[nodiscard]] size_t GetSize() const { return m_size; }
     };
 
 } // KryneEngine
