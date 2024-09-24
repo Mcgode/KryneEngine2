@@ -59,7 +59,7 @@ namespace KryneEngine
             m_coldDataArray = newColdArray;
         }
 
-        for (GenPool::IndexType i = _toSize; i > m_size; i--)
+        for (u64 i = _toSize; i > m_size; i--)
         {
             m_availableIndices.push_back(i - 1);
         }
@@ -133,6 +133,7 @@ namespace KryneEngine
     {
         if (m_availableIndices.empty())
         {
+            VERIFY_OR_RETURN(m_size < kMaxSize, GenPool::kInvalidHandle);
             _Grow(m_size * 2);
         }
 
