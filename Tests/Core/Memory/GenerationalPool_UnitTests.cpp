@@ -71,4 +71,53 @@ namespace KryneEngine::Tests
         // Out of bounds should trigger assert
         EXPECT_EQ(catcher.GetCaughtMessages().size(), expectedCaughtCount);
     }
+
+    TEST(GenerationalPool, Allocate)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+        u32 expectedAssertCount = 0;
+
+        GenerationalPool<u32, u32> pool;
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        const GenPool::Handle firstHandle = pool.Allocate();
+        EXPECT_NE(firstHandle, GenPool::kInvalidHandle);
+        EXPECT_EQ(firstHandle.m_index, 0);
+        EXPECT_EQ(firstHandle.m_generation, 0);
+
+        for (u32 i = 1; i < pool.GetSize(); i++)
+        {
+            const GenPool::Handle handle = pool.Allocate();
+            EXPECT_EQ(handle.m_index, i);
+            EXPECT_EQ(handle.m_generation, 0);
+        }
+
+        EXPECT_EQ(catcher.GetCaughtMessages().size(), expectedAssertCount);
+
+        // Fill to max size
+
+        for (u32 i = pool.GetSize(); i < (1 << 16); i++)
+        {
+            const GenPool::Handle handle = pool.Allocate();
+            EXPECT_EQ(handle.m_index, i);
+            EXPECT_EQ(handle.m_generation, 0);
+        }
+
+        EXPECT_EQ(catcher.GetCaughtMessages().size(), expectedAssertCount);
+
+        // Any additional allocation triggers an assert and returns an invalid handle
+        {
+            const GenPool::Handle handle = pool.Allocate();
+            expectedAssertCount++;
+            EXPECT_EQ(handle, GenPool::kInvalidHandle);
+            EXPECT_EQ(catcher.GetCaughtMessages().size(), expectedAssertCount);
+        }
+    }
 }
