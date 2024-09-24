@@ -162,6 +162,44 @@ namespace KryneEngine::Tests
         ASSERT_TRUE(catcher.GetCaughtMessages().empty());
     }
 
+    TEST(DynamicArray, Init)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+
+        static std::atomic<u32> count = 0;
+        struct RefCounted
+        {
+            RefCounted() { count++; }
+        };
+        ASSERT_EQ(count, 0) << "Did not reset test properly";
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        DynamicArray<RefCounted> array(10);
+
+        EXPECT_EQ(count, 0);
+
+        for (u32 i = 0; i < array.Size(); i++)
+        {
+            array.Init(i);
+            EXPECT_EQ(count, i + 1);
+        }
+
+        array.InitAll();
+        EXPECT_EQ(count, 20);
+
+        EXPECT_EQ(catcher.GetCaughtMessages().size(), 0);
+        array.Init(10);
+        EXPECT_EQ(count, 20);
+        EXPECT_EQ(catcher.GetCaughtMessages().size(), 1);
+    }
+
     TEST(DynamicArray, Clear_Vs_ResetLooseMemory)
     {
         // -----------------------------------------------------------------------
@@ -183,9 +221,6 @@ namespace KryneEngine::Tests
         // -----------------------------------------------------------------------
 
         DynamicArray<RefCounted> array(10);
-
-        EXPECT_EQ(count, 0);
-
         array.InitAll();
 
         EXPECT_EQ(count, 10);
