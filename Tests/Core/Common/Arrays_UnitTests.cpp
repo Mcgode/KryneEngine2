@@ -23,7 +23,7 @@ namespace KryneEngine::Tests
         DynamicArray<T> dynamicArray;
 
         // -----------------------------------------------------------------------
-        // Setup
+        // Execute
         // -----------------------------------------------------------------------
 
         EXPECT_TRUE(dynamicArray.Empty());
@@ -65,7 +65,7 @@ namespace KryneEngine::Tests
         dynamicArray.Resize(10);
 
         // -----------------------------------------------------------------------
-        // Setup
+        // Execute
         // -----------------------------------------------------------------------
 
         T* ptr = dynamicArray.Data();
@@ -97,7 +97,7 @@ namespace KryneEngine::Tests
         dynamicArray.Resize(10);
 
         // -----------------------------------------------------------------------
-        // Setup
+        // Execute
         // -----------------------------------------------------------------------
 
         for (u32 i = 0; i < dynamicArray.Size(); i++)
