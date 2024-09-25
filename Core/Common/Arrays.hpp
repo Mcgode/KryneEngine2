@@ -110,9 +110,10 @@ namespace KryneEngine
         template<class... Args>
         Ptr Init(u64 _index, Args... args)
         {
-            KE_ASSERT_MSG(_index < m_count, "Beyond max index!");
+            IF_NOT_VERIFY_MSG(_index < m_count, "Beyond max index!")
+                return nullptr;
             Ptr memSpace = m_array + _index;
-            return new ((void*)memSpace) T(args...);
+            return new (memSpace) T(args...);
         }
 
         template<class... Args>
@@ -120,7 +121,7 @@ namespace KryneEngine
         {
             for (Ptr valuePtr = begin(); valuePtr != end(); valuePtr++)
             {
-                new ((void*)valuePtr) T(args...);
+                new (valuePtr) T(args...);
             }
         }
 
