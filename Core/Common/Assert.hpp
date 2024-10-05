@@ -8,7 +8,14 @@
 
 namespace KryneEngine::Assertion
 {
-    using AssertionCallback = bool (*)(const char*, u32, const char*, const char*);
+    enum class CallbackResponse
+    {
+        Break,
+        Continue,
+        Ignore,
+    };
+
+    using AssertionCallback = CallbackResponse (*)(const char*, u32, const char*, const char*);
 
     bool Error(const char* _function, u32 _line, const char* _file, const char* _formatMessage, ...);
 

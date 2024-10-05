@@ -30,7 +30,7 @@ namespace KryneEngine::Tests
         s_currentCatcher = m_previousCatcher;
     }
 
-    bool ScopedAssertCatcher::Callback(const char* _function, uint32_t _line, const char* _file, const char* _message)
+    Assertion::CallbackResponse ScopedAssertCatcher::Callback(const char* _function, uint32_t _line, const char* _file, const char* _message)
     {
         EXPECT_NE(s_currentCatcher, nullptr);
         s_currentCatcher->m_caughtMessages.push_back({
@@ -39,6 +39,6 @@ namespace KryneEngine::Tests
             .m_fileName = _file,
             .m_lineIndex = _line,
         });
-        return false; // Don't trigger debug break
+        return Assertion::CallbackResponse::Continue; // Don't trigger debug break
     }
 }

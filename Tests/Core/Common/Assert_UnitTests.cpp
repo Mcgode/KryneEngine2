@@ -21,19 +21,19 @@ namespace KryneEngine::Tests
         constexpr auto callback0 = [](const char*, u32, const char*, const char* message)
         {
             EXPECT_STREQ(message, "Callback 0");
-            return true;
+            return Assertion::CallbackResponse::Break;
         };
 
         constexpr auto callback1 = [](const char*, u32, const char*, const char* message)
         {
             EXPECT_STREQ(message, "Callback 1");
-            return true;
+            return Assertion::CallbackResponse::Break;
         };
 
         constexpr auto callback2 = [](const char*, u32, const char*, const char* message)
         {
             EXPECT_STREQ(message, "Callback 2");
-            return false;
+            return Assertion::CallbackResponse::Continue;
         };
 
 
@@ -81,7 +81,7 @@ namespace KryneEngine::Tests
 
         constexpr auto customCallback = [](const char*, u32, const char*, const char*)
         {
-            return true;
+            return Assertion::CallbackResponse::Continue;
         };
 
         // -----------------------------------------------------------------------
@@ -152,7 +152,7 @@ namespace KryneEngine::Tests
             "Message 4",
         };
 
-        const auto checkValidMessage = [&](const ScopedAssertCatcher::Messages& _message, u32 _index)
+        const auto checkValidMessage = [&](const ScopedAssertCatcher::Message& _message, u32 _index)
         {
             EXPECT_STREQ(_message.m_fileName.c_str(), file);
             EXPECT_STREQ(_message.m_functionName.c_str(), function);
@@ -208,7 +208,7 @@ namespace KryneEngine::Tests
 
         const auto checkValidMessage = [&](const char* _msg)
         {
-            const ScopedAssertCatcher::Messages& message = catcher.GetLastCaughtMessages();
+            const ScopedAssertCatcher::Message& message = catcher.GetLastCaughtMessages();
             EXPECT_STREQ(message.m_fileName.c_str(), file);
             EXPECT_STREQ(message.m_functionName.c_str(), function);
             EXPECT_STREQ(message.m_message.c_str(), _msg);

@@ -15,7 +15,7 @@ namespace KryneEngine::Tests
         friend class AssertUtils_ProperScoping_Test;
 
     public:
-        struct Messages
+        struct Message
         {
             eastl::string m_message;
             eastl::string m_functionName;
@@ -27,16 +27,16 @@ namespace KryneEngine::Tests
 
         ~ScopedAssertCatcher();
 
-        [[nodiscard]] eastl::span<const Messages> GetCaughtMessages() const { return m_caughtMessages; }
-        [[nodiscard]] const Messages& GetLastCaughtMessages() const { return m_caughtMessages.back(); }
+        [[nodiscard]] eastl::span<const Message> GetCaughtMessages() const { return m_caughtMessages; }
+        [[nodiscard]] const Message& GetLastCaughtMessages() const { return m_caughtMessages.back(); }
 
     private:
-        static bool Callback(const char* _function, uint32_t _line, const char* _file, const char* _message);
+        static Assertion::CallbackResponse Callback(const char* _function, uint32_t _line, const char* _file, const char* _message);
 
         KryneEngine::Assertion::AssertionCallback m_previousCallback = nullptr;
         ScopedAssertCatcher* m_previousCatcher = nullptr;
 
         static ScopedAssertCatcher* s_currentCatcher;
-        eastl::vector<Messages> m_caughtMessages;
+        eastl::vector<Message> m_caughtMessages;
     };
 }

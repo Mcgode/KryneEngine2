@@ -15,24 +15,11 @@ namespace KryneEngine::Assertion
     static eastl::vector_set<u64> g_ignoredIds;
 	static LightweightMutex g_mutex;
 
-    bool DefaultAssertCallback(const char* _function, u32 _line, const char* _file, const char* _message)
+    CallbackResponse DefaultAssertCallback(const char* _function, u32 _line, const char* _file, const char* _message)
     {
 #if defined(_WIN32)
-        eastl::string location;
-        location.sprintf("%s:%d", _file, _line);
-
-        const u64 id = StringHash::Hash64(location);
-
-        {
-            const auto lock = g_mutex.AutoLock();
-            if (g_ignoredIds.find(id) != g_ignoredIds.end())
-            {
-                return false;
-            }
-        }
-
         eastl::string message;
-        message.sprintf("Assertion failed in %s (at %s):\n\n\t%s", _function, location.c_str(), _message);
+        message.sprintf("Assertion failed in %s (at %s:%d):\n\n\t%s", _function, _file, _line, _message);
 
         const auto messageBoxId = MessageBoxA(
             nullptr,
@@ -44,16 +31,13 @@ namespace KryneEngine::Assertion
         switch (messageBoxId)
         {
         case IDCANCEL:
-        {
-            const auto lock = g_mutex.AutoLock();
-            g_ignoredIds.emplace(id);
-        }
-            [[fallthrough]];
+            return CallbackResponse::Ignore;
         case IDNO:
-            return false;
+            return CallbackResponse::Continue;
+        default:
+            return CallbackResponse::Break;
         }
 #endif
-        return true;
     }
 
 	bool Error(const char* _function, u32 _line, const char* _file, const char* _formatMessage, ...)
@@ -64,13 +48,33 @@ namespace KryneEngine::Assertion
         message.sprintf_va_list(_formatMessage, arguments);
         va_end(arguments);
 
-		if (g_assertionCallback != nullptr)
+        eastl::string location;
+        location.sprintf("%s:%d", _file, _line);
+
+        const u64 id = StringHash::Hash64(location);
         {
-            return g_assertionCallback(_function, _line, _file, message.c_str());
+            const auto lock = g_mutex.AutoLock();
+            if (g_ignoredIds.find(id) != g_ignoredIds.end())
+            {
+                return false;
+            }
         }
-        else
+
+        const AssertionCallback callback = g_assertionCallback != nullptr ? g_assertionCallback : DefaultAssertCallback;
+        const CallbackResponse response = callback(_function, _line, _file, message.c_str());
+
+        switch (response)
         {
-            return DefaultAssertCallback(_function, _line, _file, message.c_str());
+        case CallbackResponse::Ignore:
+            {
+                const auto lock = g_mutex.AutoLock();
+                g_ignoredIds.emplace(id);
+            }
+            [[fallthrough]];
+        case CallbackResponse::Continue:
+            return false;
+        default:
+            return true;
         }
 	}
 
