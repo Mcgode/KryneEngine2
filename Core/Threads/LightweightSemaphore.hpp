@@ -25,7 +25,7 @@ namespace KryneEngine
 
         inline void SignalOnce() noexcept { Signal(1); }
 
-        bool TryWait() noexcept;
+        [[nodiscard]] bool TryWait() noexcept;
 
         void Wait() noexcept;
 
@@ -34,6 +34,35 @@ namespace KryneEngine
         u32 m_yieldSpinCount;
 
         using LockGuardT = Threads::SyncLockGuard<LightweightSemaphore, &LightweightSemaphore::Wait, &LightweightSemaphore::SignalOnce>;
+
+    public:
+        [[nodiscard]] LockGuardT AutoLock()
+        {
+            return LockGuardT(this);
+        }
+    };
+
+    class LightweightBinarySemaphore
+    {
+    public:
+        explicit LightweightBinarySemaphore(u32 _spinCount = 1'024);
+
+        inline void Signal() noexcept { m_spinLock.Unlock(); }
+
+        [[nodiscard]] inline bool IsLocked() const noexcept { return m_spinLock.IsLocked(); }
+
+        [[nodiscard]] inline bool TryWait() noexcept { return m_spinLock.TryLock(); }
+
+        void Wait() noexcept;
+
+    private:
+        SpinLock m_spinLock;
+        u32 m_yieldSpinCount;
+
+        using LockGuardT = Threads::SyncLockGuard<
+            LightweightBinarySemaphore,
+            &LightweightBinarySemaphore::Wait,
+            &LightweightBinarySemaphore::Signal>;
 
     public:
         [[nodiscard]] LockGuardT AutoLock()

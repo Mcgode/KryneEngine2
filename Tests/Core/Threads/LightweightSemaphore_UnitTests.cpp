@@ -188,4 +188,167 @@ namespace KryneEngine::Tests
         signalThread1.join();
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
+
+    TEST(LightweightBinarySemaphore, TryLock)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        LightweightBinarySemaphore semaphore;
+
+        EXPECT_TRUE(semaphore.TryWait());
+        EXPECT_FALSE(semaphore.TryWait());
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        EXPECT_TRUE(catcher.GetCaughtMessages().empty());
+    }
+
+    TEST(LightweightBinarySemaphore, IsLocked)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+        LightweightBinarySemaphore semaphore;
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        EXPECT_FALSE(semaphore.IsLocked());
+
+        EXPECT_TRUE(semaphore.TryWait());
+        EXPECT_TRUE(semaphore.IsLocked());
+
+        EXPECT_FALSE(semaphore.TryWait());
+        EXPECT_TRUE(semaphore.IsLocked());
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        EXPECT_TRUE(catcher.GetCaughtMessages().empty());
+    }
+
+    TEST(LightweightBinarySemaphore, Signal)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+        LightweightBinarySemaphore semaphore;
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        EXPECT_FALSE(semaphore.IsLocked());
+
+        EXPECT_TRUE(semaphore.TryWait());
+        EXPECT_TRUE(semaphore.IsLocked());
+
+        EXPECT_FALSE(semaphore.TryWait());
+        EXPECT_TRUE(semaphore.IsLocked());
+
+        semaphore.Signal();
+        EXPECT_FALSE(semaphore.IsLocked());
+
+        EXPECT_TRUE(semaphore.TryWait());
+        EXPECT_TRUE(semaphore.IsLocked());
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        EXPECT_TRUE(catcher.GetCaughtMessages().empty());
+    }
+
+    TEST(LightweightBinarySemaphore, Wait)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+        LightweightBinarySemaphore semaphore;
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        EXPECT_FALSE(semaphore.IsLocked());
+
+        EXPECT_TRUE(semaphore.TryWait());
+        EXPECT_TRUE(semaphore.IsLocked());
+
+        // Even if thread creation is instant or blocking, the thread will wait for at least 1ms before unlocking the
+        // spinlock, making sure the parallel operations are executed in the correct order.
+        std::thread unlockThread([&](){
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            semaphore.Signal();
+        });
+
+        semaphore.Wait();
+        EXPECT_TRUE(unlockThread.joinable());
+        EXPECT_TRUE(semaphore.IsLocked());
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        unlockThread.join();
+        EXPECT_TRUE(catcher.GetCaughtMessages().empty());
+    }
+
+    TEST(LightweightBinarySemaphore, AutoLock)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+        LightweightBinarySemaphore semaphore;
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        EXPECT_FALSE(semaphore.IsLocked());
+
+        EXPECT_TRUE(semaphore.TryWait());
+        EXPECT_TRUE(semaphore.IsLocked());
+
+        // Even if thread creation is instant or blocking, the thread will wait for at least 1ms before unlocking the
+        // spinlock, making sure the parallel operations are executed in the correct order.
+        std::thread unlockThread([&](){
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            semaphore.Signal();
+        });
+
+        {
+            const auto lock = semaphore.AutoLock();
+            EXPECT_TRUE(unlockThread.joinable());
+            EXPECT_TRUE(semaphore.IsLocked());
+        }
+        EXPECT_FALSE(semaphore.IsLocked());
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        unlockThread.join();
+        EXPECT_TRUE(catcher.GetCaughtMessages().empty());
+    }
 }

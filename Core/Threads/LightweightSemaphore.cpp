@@ -62,4 +62,17 @@ namespace KryneEngine
             }
         }
     }
+
+    LightweightBinarySemaphore::LightweightBinarySemaphore(u32 _spinCount)
+        : m_yieldSpinCount(_spinCount)
+    {
+    }
+
+    void LightweightBinarySemaphore::Wait() noexcept
+    {
+        while (!m_spinLock.TryLock(m_yieldSpinCount))
+        {
+            std::this_thread::yield();
+        }
+    }
 }
