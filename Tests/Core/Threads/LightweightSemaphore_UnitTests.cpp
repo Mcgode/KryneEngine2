@@ -6,12 +6,12 @@
 
 #include <gtest/gtest.h>
 
-#include <Threads/Semaphore.hpp>
+#include <Threads/LightweightSemaphore.hpp>
 #include <Utils/AssertUtils.hpp>
 
 namespace KryneEngine::Tests
 {
-    TEST(BusySpinSemaphore, TryWait)
+    TEST(LightweightSemaphore, TryWait)
     {
         // -----------------------------------------------------------------------
         // Setup
@@ -25,7 +25,7 @@ namespace KryneEngine::Tests
 
         // TryWait binary semaphore
         {
-            BusySpinSemaphore semaphore(1);
+            LightweightSemaphore semaphore(1);
 
             EXPECT_TRUE(semaphore.TryWait());
             EXPECT_FALSE(semaphore.TryWait());
@@ -34,7 +34,7 @@ namespace KryneEngine::Tests
         // TryWait non-binary semaphore
         {
             constexpr u32 count = 16;
-            BusySpinSemaphore semaphore(count);
+            LightweightSemaphore semaphore(count);
 
             for (u32 i = 0; i < count; i++)
             {
@@ -50,14 +50,14 @@ namespace KryneEngine::Tests
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 
-    TEST(BusySpinSemaphore, Signal)
+    TEST(LightweightSemaphore, Signal)
     {
         // -----------------------------------------------------------------------
         // Setup
         // -----------------------------------------------------------------------
 
         ScopedAssertCatcher catcher;
-        BusySpinSemaphore semaphore(1);
+        LightweightSemaphore semaphore(1);
 
         // -----------------------------------------------------------------------
         // Execute
@@ -89,14 +89,14 @@ namespace KryneEngine::Tests
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 
-    TEST(BusySpinSemaphore, Wait)
+    TEST(LightweightSemaphore, Wait)
     {
         // -----------------------------------------------------------------------
         // Setup
         // -----------------------------------------------------------------------
 
         ScopedAssertCatcher catcher;
-        BusySpinSemaphore semaphore(1);
+        LightweightSemaphore semaphore(1);
 
         // -----------------------------------------------------------------------
         // Execute
@@ -135,14 +135,14 @@ namespace KryneEngine::Tests
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 
-    TEST(BusySpinSemaphore, AutoLock)
+    TEST(LightweightSemaphore, AutoLock)
     {
         // -----------------------------------------------------------------------
         // Setup
         // -----------------------------------------------------------------------
 
         ScopedAssertCatcher catcher;
-        BusySpinSemaphore semaphore(1);
+        LightweightSemaphore semaphore(1);
 
         // -----------------------------------------------------------------------
         // Execute

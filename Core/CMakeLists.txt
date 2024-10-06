@@ -37,11 +37,10 @@ set(ThreadsSrc
         Threads/FiberJob.cpp Threads/FiberJob.hpp
         Threads/Internal/FiberContext.cpp Threads/Internal/FiberContext.hpp
         Threads/SyncCounterPool.cpp Threads/SyncCounterPool.hpp
-        Threads/LightweightBinarySemaphore.hpp
-        Threads/LightweightMutex.hpp Threads/SpinLock.hpp
+        Threads/LightweightMutex.cpp Threads/LightweightMutex.hpp
+        Threads/SpinLock.hpp
         Threads/RwMutex.hpp
-        Threads/Semaphore.hpp
-        Threads/LightweightMutex.cpp
+        Threads/LightweightSemaphore.hpp Threads/LightweightSemaphore.cpp
 )
 
 set(WindowSrc
