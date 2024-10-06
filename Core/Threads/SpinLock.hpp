@@ -20,6 +20,7 @@ namespace KryneEngine
         void Unlock() noexcept;
 
         [[nodiscard]] bool TryLock() noexcept;
+        [[nodiscard]] bool TryLock(u32 _spinCount) noexcept;
 
         [[nodiscard]] bool IsLocked() const noexcept;
 

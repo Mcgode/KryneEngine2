@@ -46,6 +46,12 @@ namespace KryneEngine::Tests
             EXPECT_TRUE(spinLock2.TryLock());
         }
 
+        {
+            SpinLock spinLock;
+            EXPECT_TRUE(spinLock.TryLock(1'024));
+            EXPECT_FALSE(spinLock.TryLock(1'024));
+        }
+
         // -----------------------------------------------------------------------
         // Teardown
         // -----------------------------------------------------------------------

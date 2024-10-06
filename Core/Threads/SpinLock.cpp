@@ -41,6 +41,31 @@ namespace KryneEngine
                !m_lock.exchange(true, std::memory_order_acquire);
     }
 
+    bool SpinLock::TryLock(u32 _spinCount) noexcept
+    {
+        VERIFY_OR_RETURN(_spinCount > 0, false);
+        VERIFY_OR_RETURN(_spinCount > 1, TryLock());
+
+        u32 i = 0;
+        while (i < _spinCount)
+        {
+            if (!m_lock.exchange(true, std::memory_order_acquire))
+            {
+                return true;
+            }
+            i++;
+
+            do
+            {
+                Threads::CpuYield();
+                i++;
+            }
+            while (m_lock.load(std::memory_order_relaxed) && i < _spinCount);
+        }
+
+        return false;
+    }
+
     bool SpinLock::IsLocked() const noexcept
     {
         return m_lock.load(std::memory_order_relaxed);
