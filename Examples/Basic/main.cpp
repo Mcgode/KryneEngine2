@@ -109,40 +109,6 @@ void MainFunc(void* _fibersManagerPtr)
 int main() {
     std::cout << "Hello, World!" << std::endl;
 
-//    {
-//	    BusySpinSemaphore semaphore(2);
-//	    SpinLock lock;
-//
-//        lock.Lock();
-//
-//        std::thread j0([&]() {
-//            {
-//                auto sLock = semaphore.AutoLock();
-//            }
-//            std::cout << "J 0 semaphore go" << std::endl;
-//            lock.Lock();
-//            semaphore.SignalOnce();
-//            lock.Unlock();
-//        });
-//        std::thread j1([&]() {
-//            semaphore.Wait();
-//            std::cout << "J 1 semaphore go" << std::endl;
-//            lock.Lock();
-//            semaphore.SignalOnce();
-//            lock.Unlock();
-//        });
-//        std::thread j2([&]() {
-//            semaphore.Wait();
-//            std::cout << "J 2 semaphore go" << std::endl;
-//            lock.Unlock();
-//            semaphore.SignalOnce();
-//        });
-//
-//        j0.join();
-//        j1.join();
-//        j2.join();
-//    }
-
     {
         auto fibersManager = FibersManager(0);
 
