@@ -27,14 +27,16 @@ namespace KryneEngine::Tests
         constexpr auto callback1 = [](const char*, u32, const char*, const char* message)
         {
             EXPECT_STREQ(message, "Callback 1");
-            return Assertion::CallbackResponse::Break;
+            return Assertion::CallbackResponse::Continue;
         };
 
         constexpr auto callback2 = [](const char*, u32, const char*, const char* message)
         {
             EXPECT_STREQ(message, "Callback 2");
-            return Assertion::CallbackResponse::Continue;
+            return Assertion::CallbackResponse::Ignore;
         };
+
+        const u64 line = __LINE__;
 
 
         // -----------------------------------------------------------------------
@@ -44,20 +46,29 @@ namespace KryneEngine::Tests
         Assertion::AssertionCallback previousCallback = Assertion::SetAssertionCallback(callback0);
         EXPECT_EQ(previousCallback, nullptr); // Should be nullptr, aka default callback
 
-        bool result = Assertion::Error("", 0, "", "Callback 0");
+        bool result = Assertion::Error("", line, __FILE__, "Callback 0");
         EXPECT_TRUE(result);
 
         previousCallback = Assertion::SetAssertionCallback(callback1);
         EXPECT_EQ(previousCallback, callback0);
 
-        result = Assertion::Error("", 0, "", "Callback 1");
-        EXPECT_TRUE(result);
+        result = Assertion::Error("", line, __FILE__, "Callback 1");
+        EXPECT_FALSE(result);
 
         previousCallback = Assertion::SetAssertionCallback(callback2);
         EXPECT_EQ(previousCallback, callback1);
 
-        result = Assertion::Error("", 0, "", "Callback 2");
+        result = Assertion::Error("", line, __FILE__, "Callback 2");
         EXPECT_FALSE(result);
+
+        previousCallback = Assertion::SetAssertionCallback(callback0);
+        EXPECT_EQ(previousCallback, callback2);
+        result = Assertion::Error("", line, __FILE__, "Callback 0");
+        EXPECT_FALSE(result);
+        result = Assertion::Error("", line + 1, __FILE__, "Callback 0");
+        EXPECT_TRUE(result);
+        result = Assertion::Error("", line, __FILE__ "p", "Callback 0");
+        EXPECT_TRUE(result);
 
         // -----------------------------------------------------------------------
         // Teardown

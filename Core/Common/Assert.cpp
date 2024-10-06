@@ -38,6 +38,7 @@ namespace KryneEngine::Assertion
             return CallbackResponse::Break;
         }
 #endif
+        return CallbackResponse::Break;
     }
 
 	bool Error(const char* _function, u32 _line, const char* _file, const char* _formatMessage, ...)
