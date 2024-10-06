@@ -38,9 +38,9 @@ set(ThreadsSrc
         Threads/Internal/FiberContext.cpp Threads/Internal/FiberContext.hpp
         Threads/SyncCounterPool.cpp Threads/SyncCounterPool.hpp
         Threads/LightweightMutex.cpp Threads/LightweightMutex.hpp
-        Threads/SpinLock.hpp
         Threads/RwMutex.hpp
         Threads/LightweightSemaphore.hpp Threads/LightweightSemaphore.cpp
+        Threads/SpinLock.cpp Threads/SpinLock.hpp
 )
 
 set(WindowSrc

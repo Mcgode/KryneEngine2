@@ -15,43 +15,13 @@ namespace KryneEngine
     struct SpinLock
     {
     public:
-        inline void Lock() noexcept
-        {
-            for (;;)
-            {
-                // Optimistically assume the lock is free on the first try
-                if (!m_lock.exchange(true, std::memory_order_acquire))
-                {
-                    return;
-                }
+        void Lock() noexcept;
 
-                // Wait for lock to be released without generating cache misses
-                while (m_lock.load(std::memory_order_relaxed))
-                {
-                    // Issue X86 PAUSE or ARM YIELD instruction to reduce contention between
-                    // hyper-threads
-                    Threads::CpuYield();
-                }
-            }
-        }
+        void Unlock() noexcept;
 
-        inline void Unlock() noexcept
-        {
-            m_lock.store(false, std::memory_order_release);
-        }
+        [[nodiscard]] bool TryLock() noexcept;
 
-        [[nodiscard]] inline bool TryLock() noexcept
-        {
-            // First do a relaxed load to check if lock is free in order to prevent
-            // unnecessary cache misses if someone does while(!try_lock())
-            return !m_lock.load(std::memory_order_relaxed) &&
-                   !m_lock.exchange(true, std::memory_order_acquire);
-        }
-
-        [[nodiscard]] inline bool IsLocked() const noexcept
-        {
-            return m_lock.load(std::memory_order_relaxed);
-        }
+        [[nodiscard]] bool IsLocked() const noexcept;
 
     private:
         std::atomic<bool> m_lock = false;
