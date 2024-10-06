@@ -33,3 +33,9 @@ if (TypeName STREQUAL "Release")
 endif()
 
 message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
+
+function(AddCoverage TargetName)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        target_compile_options(${TargetName} PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+    endif()
+endfunction()

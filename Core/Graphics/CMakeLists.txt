@@ -81,3 +81,5 @@ if (PrecompileHeaders)
     message(STATUS "Precompiling indicated headers: ${PrecompileHeaders}")
     target_precompile_headers(KryneEngineGraphics PUBLIC ${PrecompileHeaders})
 endif()
+
+AddCoverage(KryneEngineGraphics)
