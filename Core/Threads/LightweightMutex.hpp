@@ -16,7 +16,7 @@ namespace KryneEngine
     struct LightweightMutex
     {
     public:
-        explicit LightweightMutex(u32 _threadYieldThreshold = 1'000, u32 _systemMutexThreshold = 0);
+        explicit LightweightMutex(u32 _spinCount = 4'096);
 
         void ManualLock();
 
@@ -30,11 +30,9 @@ namespace KryneEngine
         }
 
     private:
-        std::atomic<bool> m_lock ;
-        u32 m_threadYieldThreshold;
-        u32 m_systemMutexThreshold;
+        SpinLock m_spinLock;
+        u32 m_spinCount;
         std::mutex m_systemMutex;
-        bool systemMutexLocked = false;
         tracy::LockableCtx m_ctx;
 
     public:
