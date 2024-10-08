@@ -27,7 +27,13 @@ namespace KryneEngine
 
         while (!m_spinLock.TryLock(m_spinCount))
         {
-            m_systemMutex.lock();
+            const auto lock = m_internalStatusSpinLock.AutoLock();
+
+            if (!m_spinLock.TryLock())
+            {
+                m_lockedSystemMutex = true;
+                m_systemMutex.lock();
+            }
         }
 
         m_ctx.AfterLock();
@@ -35,9 +41,15 @@ namespace KryneEngine
 
     void LightweightMutex::ManualUnlock()
     {
-        m_systemMutex.try_lock(); // Cannot unlock a mutex which hasn't been acquired. Makes sure the mutex is locked
-        m_systemMutex.unlock();
-        m_spinLock.Unlock();
+        {
+            const auto lock = m_internalStatusSpinLock.AutoLock();
+            if (m_lockedSystemMutex)
+            {
+                m_systemMutex.unlock();
+                m_lockedSystemMutex = false;
+            }
+            m_spinLock.Unlock();
+        }
 
         m_ctx.AfterUnlock();
     }
