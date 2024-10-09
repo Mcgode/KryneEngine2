@@ -33,8 +33,7 @@ namespace KryneEngine
 
     private:
         SpinLock m_spinLock;
-        SpinLock m_internalStatusSpinLock;
-        bool m_lockedSystemMutex = false;
+        bool m_acquiredSpinLock = false;
         u32 m_spinCount;
         std::mutex m_systemMutex;
         tracy::LockableCtx m_ctx;

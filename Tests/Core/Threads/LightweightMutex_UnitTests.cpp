@@ -76,23 +76,27 @@ namespace KryneEngine::Tests
         // -----------------------------------------------------------------------
 
         LightweightMutex mutex;
+        SpinLock syncLock;
 
-        EXPECT_TRUE(mutex.TryLock());
-        EXPECT_FALSE(mutex.TryLock());
+        syncLock.Lock();
 
         bool finished = false;
-        // Even if thread creation is instant or blocking, the thread will wait for at least 1ms before unlocking the
-        // spinlock, making sure the parallel operations are executed in the correct order.
         std::thread unlockThread([&](){
+            EXPECT_TRUE(mutex.TryLock());
+            syncLock.Unlock();
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            mutex.ManualUnlock();
             finished = true;
+            mutex.ManualUnlock();
         });
 
+        syncLock.Lock();
+
         mutex.ManualLock();
-        EXPECT_TRUE(unlockThread.joinable());
+
         EXPECT_TRUE(finished);
+        EXPECT_TRUE(unlockThread.joinable());
         EXPECT_FALSE(mutex.TryLock());
+        EXPECT_TRUE(syncLock.IsLocked());
 
         // -----------------------------------------------------------------------
         // Teardown
@@ -115,19 +119,19 @@ namespace KryneEngine::Tests
         // -----------------------------------------------------------------------
 
         LightweightMutex mutex;
+        SpinLock syncLock;
 
-        EXPECT_TRUE(mutex.TryLock());
-        EXPECT_FALSE(mutex.TryLock());
+        syncLock.Lock();
 
         bool finished = false;
-        // Even if thread creation is instant or blocking, the thread will wait for at least 1ms before unlocking the
-        // spinlock, making sure the parallel operations are executed in the correct order.
         std::thread unlockThread([&](){
+            const auto lock = mutex.AutoLock();
+            syncLock.Unlock();
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            mutex.ManualUnlock();
             finished = true;
         });
 
+        syncLock.Lock();
         {
             const auto lock = mutex.AutoLock();
             EXPECT_TRUE(unlockThread.joinable());
@@ -137,6 +141,7 @@ namespace KryneEngine::Tests
 
         EXPECT_TRUE(mutex.TryLock());
         EXPECT_FALSE(mutex.TryLock());
+        EXPECT_TRUE(syncLock.IsLocked());
 
         // -----------------------------------------------------------------------
         // Teardown
