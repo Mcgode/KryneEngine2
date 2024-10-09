@@ -20,6 +20,8 @@ namespace KryneEngine
 
         void ManualLock();
 
+        bool TryLock();
+
         void ManualUnlock();
 
         inline void Mark(const tracy::SourceLocationData* _srcLocation) { m_ctx.Mark(_srcLocation); }

@@ -39,6 +39,11 @@ namespace KryneEngine
         m_ctx.AfterLock();
     }
 
+    bool LightweightMutex::TryLock()
+    {
+        return m_spinLock.TryLock();
+    }
+
     void LightweightMutex::ManualUnlock()
     {
         {
