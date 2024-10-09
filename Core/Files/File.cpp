@@ -7,7 +7,8 @@
 #include "File.hpp"
 
 #include <Threads/FibersManager.hpp>
-#include "IoQueryManager.hpp"
+#include <Threads/FiberThread.hpp>
+#include <Files/IoQueryManager.hpp>
 
 namespace KryneEngine
 {

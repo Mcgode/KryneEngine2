@@ -5,8 +5,10 @@
  */
 
 #include "FibersManager.hpp"
+
 #include <Common/Assert.hpp>
 #include <Profiling/TracyHeader.hpp>
+#include <Threads/FiberThread.hpp>
 #include <Threads/FiberTls.inl>
 
 namespace KryneEngine
@@ -76,7 +78,7 @@ namespace KryneEngine
         }
     }
 
-    void FibersManager::QueueJob(FibersManager::JobType _job)
+    void FibersManager::QueueJob(FibersManager::Job _job)
     {
         VERIFY_OR_RETURN_VOID(_job != nullptr && _job->m_associatedCounterId != kInvalidSyncCounterId);
 
@@ -95,7 +97,7 @@ namespace KryneEngine
         m_waitVariable.notify_one();
     }
 
-    bool FibersManager::_RetrieveNextJob(JobType &job_, u16 _fiberIndex)
+    bool FibersManager::_RetrieveNextJob(Job&job_, u16 _fiberIndex)
     {
         auto& consumerTokens = m_jobConsumerTokens.Load(_fiberIndex);
         for (s64 i = 0; i < (s64)kJobQueuesCount; i++)
@@ -146,7 +148,7 @@ namespace KryneEngine
         return m_currentJobs.Load();
     }
 
-    void FibersManager::YieldJob(JobType _nextJob)
+    void FibersManager::YieldJob(Job _nextJob)
     {
         const auto fiberIndex = FiberThread::GetCurrentFiberThreadIndex();
         auto* currentJob = m_currentJobs.Load(fiberIndex);

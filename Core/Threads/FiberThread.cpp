@@ -107,7 +107,7 @@ namespace KryneEngine
 
     FiberJob *FiberThread::_TryRetrieveNextJob(FibersManager *_manager, u16 _threadIndex, bool _busyWait)
     {
-        FibersManager::JobType job = nullptr;
+        FibersManager::Job job = nullptr;
 
         u32 i = 0;
         do

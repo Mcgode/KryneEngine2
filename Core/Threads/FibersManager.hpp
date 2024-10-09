@@ -7,23 +7,23 @@
 #pragma once
 
 #include <EASTL/array.h>
-#include <Threads/FiberThread.hpp>
 #include <Threads/FiberJob.hpp>
 #include <Threads/FiberTls.hpp>
 #include <Threads/SyncCounterPool.hpp>
 
 namespace KryneEngine
 {
+    class FiberThread;
     class IoQueryManager;
 
     class FibersManager
     {
         friend FiberThread;
-        friend FiberContext;
         friend IoQueryManager;
+        friend FiberContext;
 
     public:
-        using JobType = FiberJob*;
+        using Job = FiberJob*;
 
         explicit FibersManager(s32 _requestedThreadCount);
 
@@ -54,7 +54,7 @@ namespace KryneEngine
 
         [[nodiscard]] SyncCounterPool::AutoSyncCounter AcquireAutoSyncCounter(u32 _count = 1);
 
-        void QueueJob(JobType _job);
+        void QueueJob(Job _job);
 
         void WaitForCounter(SyncCounterId _syncCounter);
         void ResetCounter(SyncCounterId _syncCounter);
@@ -65,20 +65,20 @@ namespace KryneEngine
             ResetCounter(_syncCounter);
         }
 
-        void YieldJob(JobType _nextJob = nullptr);
+        void YieldJob(Job _nextJob = nullptr);
 
         [[nodiscard]] IoQueryManager* GetIoQueryManager() const { return m_ioManager; }
 
     protected:
 
-        bool _RetrieveNextJob(JobType &job_, u16 _fiberIndex);
+        bool _RetrieveNextJob(Job&job_, u16 _fiberIndex);
 
         void _OnContextSwitched();
 
         void _ThreadWaitForJob();
 
     private:
-        using JobQueue = moodycamel::ConcurrentQueue<JobType>;
+        using JobQueue = moodycamel::ConcurrentQueue<Job>;
         static constexpr u8 kJobQueuesCount = FiberJob::PriorityType::kJobPriorityTypes;
         eastl::array<JobQueue, kJobQueuesCount> m_jobQueues;
 
@@ -90,8 +90,8 @@ namespace KryneEngine
 
         DynamicArray<FiberThread> m_fiberThreads;
 
-        FiberTls<JobType> m_currentJobs;
-        FiberTls<JobType> m_nextJob;
+        FiberTls<Job> m_currentJobs;
+        FiberTls<Job> m_nextJob;
         FiberTls<FiberContext> m_baseContexts;
 
         FiberContextAllocator m_contextAllocator;
