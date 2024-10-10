@@ -45,7 +45,7 @@ namespace KryneEngine
         void SwapContext(FiberContext *_new);
 
     private:
-        [[noreturn]] static void RunFiber(void*);
+        static void RunFiber(void*);
     };
 
     struct FiberContextAllocator
@@ -53,19 +53,21 @@ namespace KryneEngine
     public:
         FiberContextAllocator();
 
+        ~FiberContextAllocator();
+
         bool Allocate(bool _bigStack, u16 &id_);
 
         void Free(u16 _id);
 
         FiberContext* GetContext(u16 _id);
 
-    private:
-        static constexpr u64 kSmallStackSize = 64 * 1024; // 64 KiB
         static constexpr u16 kSmallStackCount = 128;
-        static constexpr u64 kBigStackSize = 512 * 1024; // 512 KiB
         static constexpr u16 kBigStackCount = 32;
 
-//        using StackIdQueue = moodycamel::ConcurrentQueue<u16>;
+    private:
+        static constexpr u64 kSmallStackSize = 64 * 1024; // 64 KiB
+        static constexpr u64 kBigStackSize = 512 * 1024; // 512 KiB
+
         struct StackIdQueue
         {
             struct Comparator

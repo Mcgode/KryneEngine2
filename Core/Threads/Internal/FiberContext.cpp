@@ -142,9 +142,10 @@ namespace KryneEngine
         TracyFiberEnter(m_name.c_str());
     }
 
-    [[noreturn]] void FiberContext::RunFiber(void *)
+    void FiberContext::RunFiber(void *)
     {
         const auto fibersManager = FibersManager::GetInstance();
+        VERIFY_OR_RETURN_VOID(fibersManager != nullptr);
         fibersManager->_OnContextSwitched();
 
         while (true)
@@ -189,11 +190,13 @@ namespace KryneEngine
                 if (i < kSmallStackCount)
                 {
                     context.m_winFiber = CreateFiber(kSmallStackSize, FiberContext::RunFiber, nullptr);
+                    KE_ASSERT_FATAL(context.m_winFiber != nullptr);
                     context.m_name.sprintf("Fiber %d", i);
                 }
                 else
                 {
                     context.m_winFiber = CreateFiber(kBigStackSize, FiberContext::RunFiber, nullptr);
+                    KE_ASSERT_FATAL(context.m_winFiber != nullptr);
                     context.m_name.sprintf("Big Fiber %d", i - kSmallStackCount);
                 }
             }
@@ -203,6 +206,16 @@ namespace KryneEngine
             m_smallStacks = new u8[kSmallStackSize * (u64) kSmallStackCount];
             m_bigStacks = new u8[kBigStackSize * (u64) kBigStackCount];
 
+#endif
+        }
+    }
+
+    FiberContextAllocator::~FiberContextAllocator()
+    {
+        for (FiberContext& context: m_contexts)
+        {
+#if CONTEXT_SWITCH_WINDOWS_FIBERS
+            DeleteFiber(context.m_winFiber);
 #endif
         }
     }
