@@ -41,4 +41,42 @@ namespace KryneEngine::Tests
         });
         return Assertion::CallbackResponse::Continue; // Don't trigger debug break
     }
+
+    void ScopedAssertCatcher::ExpectMessageCount(u32 count)
+    {
+        EXPECT_EQ(m_caughtMessages.size(), count);
+        if (m_caughtMessages.size() == count)
+        {
+            return;
+        }
+
+        constexpr u32 maxPrintMessageCount = 5;
+        const u32 printMessageCount = eastl::min<u32>(maxPrintMessageCount, m_caughtMessages.size());
+
+        if (printMessageCount == 0)
+        {
+            std::cerr << "Did not catch any assertion message" << std::endl;
+        }
+        else
+        {
+            std::cerr << "Printing last " << printMessageCount << " caught assert messages:" << std::endl;
+
+            for (u32 i = 1; i <= printMessageCount; i++)
+            {
+                const Message& message = m_caughtMessages[m_caughtMessages.size() - i];
+
+                std::cerr
+                    << " - \""
+                    << message.m_message.c_str()
+                    << "\" in "
+                    << message.m_functionName.c_str()
+                    << " ("
+                    << message.m_fileName.c_str()
+                    << ":"
+                    << message.m_lineIndex
+                    << ")"
+                    << std::endl;
+            }
+        }
+    }
 }

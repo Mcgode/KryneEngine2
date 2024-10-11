@@ -30,6 +30,9 @@ namespace KryneEngine::Tests
         [[nodiscard]] eastl::span<const Message> GetCaughtMessages() const { return m_caughtMessages; }
         [[nodiscard]] const Message& GetLastCaughtMessages() const { return m_caughtMessages.back(); }
 
+        void ExpectMessageCount(u32 count);
+        inline void ExpectNoMessage() { ExpectMessageCount(0); }
+
     private:
         static Assertion::CallbackResponse Callback(const char* _function, uint32_t _line, const char* _file, const char* _message);
 
