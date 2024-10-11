@@ -105,8 +105,11 @@ namespace KryneEngine
 
         m_frameContexts.Clear();
 
-        m_swapChain->Destroy(m_resources);
-        m_swapChain.release();
+        if (m_swapChain != nullptr)
+        {
+            m_swapChain->Destroy(m_resources);
+            m_swapChain.release();
+        }
 
         SafeRelease(m_copyQueue);
         SafeRelease(m_computeQueue);
