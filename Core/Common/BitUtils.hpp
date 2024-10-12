@@ -126,14 +126,14 @@ namespace KryneEngine::BitUtils
     };
 
     template<class EnumType>
-    inline bool EnumHasAny(const EnumType _source, const EnumType _flags)
+    inline constexpr bool EnumHasAny(const EnumType _source, const EnumType _flags)
     {
         using UnderlyingType = std::underlying_type_t<EnumType>;
         return static_cast<UnderlyingType>(_source & _flags) != 0;
     }
 
     template<class EnumType>
-    inline bool EnumHasAll(const EnumType _source, const EnumType _flags)
+    inline constexpr bool EnumHasAll(const EnumType _source, const EnumType _flags)
     {
         using UnderlyingType = std::underlying_type_t<EnumType>;
         return static_cast<UnderlyingType>(_source & _flags) == static_cast<UnderlyingType>(_flags);

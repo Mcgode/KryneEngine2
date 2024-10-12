@@ -8,6 +8,7 @@
 
 #include <EASTL/array.h>
 #include <Threads/FiberJob.hpp>
+#include <Threads/FiberThread.hpp>
 #include <Threads/FiberTls.hpp>
 #include <Threads/SyncCounterPool.hpp>
 
