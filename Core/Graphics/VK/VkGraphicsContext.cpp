@@ -203,11 +203,13 @@ namespace KryneEngine
         }
         m_frameContexts.Clear();
 
-        m_swapChain->Destroy(m_device, m_resources);
-        m_swapChain.reset();
-
-        m_surface->Destroy(m_instance);
-        m_surface.reset();
+        if (m_swapChain != nullptr)
+        {
+            m_swapChain->Destroy(m_device, m_resources);
+            m_swapChain.reset();
+            m_surface->Destroy(m_instance);
+            m_surface.reset();
+        }
 
         m_resources.DestroyAllocator();
 
