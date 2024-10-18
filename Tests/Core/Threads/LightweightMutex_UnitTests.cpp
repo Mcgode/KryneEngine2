@@ -33,6 +33,7 @@ namespace KryneEngine::Tests
         // -----------------------------------------------------------------------
 
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
+        mutex.ManualUnlock(); // Not tested yet, but needed to avoid destroying busy mutex
     }
 
     TEST(LightweightMutex, ManualUnlock)
@@ -60,6 +61,7 @@ namespace KryneEngine::Tests
         // Teardown
         // -----------------------------------------------------------------------
 
+        mutex.ManualUnlock();
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 
@@ -103,6 +105,7 @@ namespace KryneEngine::Tests
         // -----------------------------------------------------------------------
 
         unlockThread.join();
+        mutex.ManualUnlock();
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 
@@ -148,6 +151,7 @@ namespace KryneEngine::Tests
         // -----------------------------------------------------------------------
 
         unlockThread.join();
+        mutex.ManualUnlock();
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 }
