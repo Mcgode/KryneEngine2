@@ -6,6 +6,10 @@
 
 #include <gtest/gtest.h>
 
+#if defined(_WIN32)
+#   include <Platform/Windows.h>
+#endif
+
 #include <Threads/Internal/FiberContext.hpp>
 #include <Utils/AssertUtils.hpp>
 
