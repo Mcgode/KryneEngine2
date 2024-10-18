@@ -55,17 +55,17 @@ namespace KryneEngine::Tests
 
         if (printMessageCount == 0)
         {
-            std::cerr << "Did not catch any assertion message" << std::endl;
+            std::cout << "Did not catch any assertion message" << std::endl;
         }
         else
         {
-            std::cerr << "Printing last " << printMessageCount << " caught assert messages:" << std::endl;
+            std::cout << "Printing last " << printMessageCount << " caught assert messages:" << std::endl;
 
             for (u32 i = 1; i <= printMessageCount; i++)
             {
                 const Message& message = m_caughtMessages[m_caughtMessages.size() - i];
 
-                std::cerr
+                std::cout
                     << " - \""
                     << message.m_message.c_str()
                     << "\" in "
