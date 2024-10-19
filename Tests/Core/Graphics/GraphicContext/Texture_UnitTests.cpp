@@ -241,7 +241,7 @@ namespace KryneEngine::Tests::Graphics
 
             {
                 TextureCreateDesc desc = defaultTextureCreateDesc;
-                desc.m_desc.m_format = TextureFormat::D24;
+                desc.m_desc.m_format = TextureFormat::D32F;
                 desc.m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::DepthStencilTargetImage;
                 textures.push_back(graphicsContext->CreateTexture(desc));
             }
@@ -309,7 +309,7 @@ namespace KryneEngine::Tests::Graphics
 
             {
                 TextureCreateDesc desc = defaultTextureCreateDesc;
-                desc.m_desc.m_format = TextureFormat::D24;
+                desc.m_desc.m_format = TextureFormat::D32F;
                 desc.m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::DepthStencilTargetImage | MemoryUsage::SampledImage;
                 textures.push_back(graphicsContext->CreateTexture(desc));
             }
@@ -318,7 +318,7 @@ namespace KryneEngine::Tests::Graphics
 
             {
                 TextureCreateDesc desc = defaultTextureCreateDesc;
-                desc.m_desc.m_format = TextureFormat::D24;
+                desc.m_desc.m_format = TextureFormat::D32F;
                 desc.m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::DepthStencilTargetImage | MemoryUsage::ReadImage;
                 textures.push_back(graphicsContext->CreateTexture(desc));
             }
@@ -327,7 +327,7 @@ namespace KryneEngine::Tests::Graphics
 
             {
                 TextureCreateDesc desc = defaultTextureCreateDesc;
-                desc.m_desc.m_format = TextureFormat::D24;
+                desc.m_desc.m_format = TextureFormat::D32F;
                 desc.m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::DepthStencilTargetImage | MemoryUsage::SampledImage | MemoryUsage::ReadImage;
                 textures.push_back(graphicsContext->CreateTexture(desc));
             }
@@ -379,7 +379,7 @@ namespace KryneEngine::Tests::Graphics
 
             {
                 TextureCreateDesc desc = defaultTextureCreateDesc;
-                desc.m_desc.m_format = TextureFormat::D24;
+                desc.m_desc.m_format = TextureFormat::D32F;
                 desc.m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::SampledImage;
                 textures.push_back(graphicsContext->CreateTexture(desc));
             }
