@@ -105,4 +105,202 @@ namespace KryneEngine::Tests::Graphics
         graphicsContext.reset();
         catcher.ExpectNoMessage();
     }
+
+    TEST(Buffer, CreateBufferOptions)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+        const GraphicsCommon::ApplicationInfo appInfo = DefaultAppInfo();
+        auto graphicsContext = eastl::make_unique<GraphicsContext>(appInfo, nullptr);
+        eastl::vector<BufferHandle> buffers;
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        u32 errorCount = 0;
+        u16 index = 0;
+
+        // Erroneous buffers
+        {
+            // Buffer with size 0 is invalid
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 0, .m_debugName = "Unit test buffer 0"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::TransferDstBuffer,
+            }));
+            errorCount++;
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back(), GenPool::kInvalidHandle);
+
+            // Buffer without correct usage is invalid
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 1"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType,
+            }));
+            errorCount++;
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back(), GenPool::kInvalidHandle);
+        }
+
+        // Valid buffers with only 1 usage
+        {
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 2"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::TransferSrcBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 3"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::TransferDstBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 4"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ConstantBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 5"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ReadBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 6"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::WriteBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 7"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::IndexBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 8"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::VertexBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 9"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::IndirectBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            // Raytracing support currently not tracked
+            const bool raytracingSupported = false;
+            if (raytracingSupported)
+            {
+                buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                    .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 10"},
+                    .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::AccelerationStruct,
+                }));
+                catcher.ExpectMessageCount(errorCount);
+                EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+            }
+        }
+
+        // Some multi-usage buffers
+        {
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 11"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ReadWriteBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 12"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::IndexBuffer | MemoryUsage::VertexBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 13"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::IndirectBuffer | MemoryUsage::WriteBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 14"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::IndirectBuffer | MemoryUsage::ReadWriteBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 15"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ConstantBuffer | MemoryUsage::TransferDstBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 16"},
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::TransferSrcBuffer | MemoryUsage::ReadWriteBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+        }
+
+        // Non GPU-only buffers
+        {
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 17"},
+                .m_usage = MemoryUsage::StageOnce_UsageType | MemoryUsage::TransferSrcBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 18"},
+                .m_usage = MemoryUsage::StageEveryFrame_UsageType | MemoryUsage::TransferSrcBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 19"},
+                .m_usage = MemoryUsage::StageEveryFrame_UsageType | MemoryUsage::ConstantBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+
+            buffers.push_back(graphicsContext->CreateBuffer(BufferCreateDesc{
+                .m_desc = {.m_size = 16, .m_debugName = "Unit test buffer 20"},
+                .m_usage = MemoryUsage::Readback_UsageType | MemoryUsage::TransferDstBuffer,
+            }));
+            catcher.ExpectMessageCount(errorCount);
+            EXPECT_EQ(buffers.back().m_handle, (GenPool::Handle{index++}));
+        }
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        for (const BufferHandle& handle: buffers)
+        {
+            graphicsContext->DestroyBuffer(handle);
+        }
+        graphicsContext.reset();
+        catcher.ExpectMessageCount(errorCount);
+    }
 }
