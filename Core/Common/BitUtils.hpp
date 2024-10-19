@@ -48,8 +48,12 @@ inline EnumType& operator^=(EnumType& _a, EnumType _b)                          
 {                                                                                                                     \
     _a = _a ^ _b;                                                                                                     \
     return _a;                                                                                                        \
+}                                                                                                                     \
+                                                                                                                      \
+inline constexpr EnumType operator~(EnumType _value)                                                                  \
+{                                                                                                                     \
+    return static_cast<EnumType>(~static_cast<std::underlying_type_t<EnumType>>(_value));                             \
 }
-
 
 namespace KryneEngine::BitUtils
 {
