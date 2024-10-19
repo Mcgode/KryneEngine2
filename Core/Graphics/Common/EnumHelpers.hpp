@@ -12,4 +12,6 @@
 namespace KryneEngine::GraphicsEnumHelpers
 {
     u8 GetTextureFormatComponentCount(TextureFormat _format);
+
+    bool IsDepthOrStencilFormat(TextureFormat _format);
 }

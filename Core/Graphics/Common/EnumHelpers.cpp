@@ -61,4 +61,19 @@ namespace KryneEngine
         KE_ERROR("Format component count not set");
         return 0;
     }
+
+    bool GraphicsEnumHelpers::IsDepthOrStencilFormat(TextureFormat _format)
+    {
+        switch (_format)
+        {
+        case TextureFormat::D16:
+        case TextureFormat::D24:
+        case TextureFormat::D24S8:
+        case TextureFormat::D32F:
+        case TextureFormat::D32FS8:
+            return true;
+        default:
+            return false;
+        }
+    }
 }
