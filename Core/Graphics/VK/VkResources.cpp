@@ -49,6 +49,9 @@ namespace KryneEngine
     {
         KE_ZoneScopedFunction("VkResources::CreateBuffer");
 
+        VERIFY_OR_RETURN(_desc.m_desc.m_size > 0, { GenPool::kInvalidHandle });
+        VERIFY_OR_RETURN(BitUtils::EnumHasAny(_desc.m_usage, ~MemoryUsage::USAGE_TYPE_MASK), { GenPool::kInvalidHandle });
+
         using namespace VkHelperFunctions;
 
         const VkBufferCreateInfo createInfo {

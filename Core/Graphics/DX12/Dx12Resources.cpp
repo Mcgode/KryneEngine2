@@ -52,6 +52,9 @@ namespace KryneEngine
     {
         KE_ZoneScopedFunction("Dx12Resources::CreateBuffer");
 
+        VERIFY_OR_RETURN(_desc.m_desc.m_size > 0, { GenPool::kInvalidHandle });
+        VERIFY_OR_RETURN(BitUtils::EnumHasAny(_desc.m_usage, ~MemoryUsage::USAGE_TYPE_MASK), { GenPool::kInvalidHandle });
+
         D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_desc.m_desc.m_size);
 
         if (BitUtils::EnumHasAny(_desc.m_usage, MemoryUsage::WriteBuffer))
