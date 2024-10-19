@@ -97,17 +97,7 @@ namespace KryneEngine
             return m_implementation.DestroyBuffer(_bufferHandle);
         }
 
-        [[nodiscard]] inline TextureHandle CreateTexture(const TextureCreateDesc& _createDesc)
-        {
-            if (!KE_VERIFY_MSG(
-                    BitUtils::EnumHasAll(_createDesc.m_memoryUsage, MemoryUsage::GpuOnly_UsageType),
-                    "The engine is designed around having buffers representing textures on the CPU")) [[unlikely]]
-            {
-                return { GenPool::kInvalidHandle };
-            }
-
-            return m_implementation.CreateTexture(_createDesc);
-        }
+        [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _createDesc);
 
         inline bool DestroyTexture(TextureHandle _handle)
         {

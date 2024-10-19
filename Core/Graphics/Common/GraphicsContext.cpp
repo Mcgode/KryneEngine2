@@ -5,6 +5,7 @@
  */
 
 #include "GraphicsContext.hpp"
+#include "EnumHelpers.hpp"
 
 #include <Window/Window.hpp>
 
@@ -45,6 +46,34 @@ namespace KryneEngine
         static_assert("Not yet implemented");
         return nullptr;
 #endif
+    }
+
+    TextureHandle GraphicsContext::CreateTexture(const TextureCreateDesc& _createDesc)
+    {
+        if (!KE_VERIFY_MSG(
+                (_createDesc.m_memoryUsage & MemoryUsage::USAGE_TYPE_MASK) == MemoryUsage::GpuOnly_UsageType,
+                "The engine is designed around having buffers representing textures on the CPU")) [[unlikely]]
+        {
+            return { GenPool::kInvalidHandle };
+        }
+
+        VERIFY_OR_RETURN(
+            _createDesc.m_desc.m_dimensions.x != 0
+                && _createDesc.m_desc.m_dimensions.y != 0
+                && _createDesc.m_desc.m_dimensions.z != 0
+                && _createDesc.m_desc.m_arraySize != 0
+                && _createDesc.m_desc.m_mipCount != 0,
+            { GenPool::kInvalidHandle });
+
+        VERIFY_OR_RETURN(BitUtils::EnumHasAny(_createDesc.m_memoryUsage, ~MemoryUsage::USAGE_TYPE_MASK),
+                         { GenPool::kInvalidHandle });
+
+        VERIFY_OR_RETURN(
+            !(BitUtils::EnumHasAny(_createDesc.m_memoryUsage, MemoryUsage::DepthStencilTargetImage)
+                ^ GraphicsEnumHelpers::IsDepthOrStencilFormat(_createDesc.m_desc.m_format)),
+            { GenPool::kInvalidHandle });
+
+        return m_implementation.CreateTexture(_createDesc);
     }
 
     SamplerHandle GraphicsContext::CreateSampler(const SamplerDesc& _samplerDesc)
