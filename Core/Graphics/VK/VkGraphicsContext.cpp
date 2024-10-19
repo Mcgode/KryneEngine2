@@ -103,11 +103,6 @@ namespace KryneEngine
 
             DynamicArray<VkExtensionProperties> availableExtensions;
             VkHelperFunctions::VkArrayFetch(availableExtensions, vkEnumerateInstanceExtensionProperties, nullptr);
-            std::cout << "Available extensions:" << std::endl;
-            for (const auto& extension : availableExtensions)
-            {
-                std::cout << "\t" << extension.extensionName << std::endl;
-            }
 
             VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo;
             if (m_appInfo.m_features.m_validationLayers)
