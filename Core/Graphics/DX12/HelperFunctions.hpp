@@ -222,7 +222,8 @@ namespace KryneEngine
             {
                 result |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
             }
-            if (!BitUtils::EnumHasAny(_usage, MemoryUsage::ReadImage | MemoryUsage::SampledImage))
+            if (!BitUtils::EnumHasAny(_usage, MemoryUsage::ReadImage | MemoryUsage::SampledImage)
+                && BitUtils::EnumHasAny(_usage, MemoryUsage::DepthStencilTargetImage))
             {
                 result |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
             }
