@@ -19,8 +19,8 @@ namespace KryneEngine::Threads
     {
 #if defined(__x86_64__) || defined(__i386__) || defined(_WIN32)
         _mm_pause();
-#elif defined(__arm__)
-        __yield()
+#elif defined(__arm__) || defined(__aarch64__)
+        __asm volatile("yield");
 #else
 #warning No CPU pause/yield instruction
 #endif
