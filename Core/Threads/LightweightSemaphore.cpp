@@ -21,7 +21,7 @@ namespace KryneEngine
         // Can be costly is there's a lot of contention, but ensures that the counter never goes below 0
         while ((count = m_count.load(std::memory_order::relaxed)) > 0)
         {
-            if (m_count.compare_exchange_strong(count, count - 1, std::memory_order::memory_order_acquire))
+            if (m_count.compare_exchange_strong(count, count - 1, std::memory_order_acquire))
             {
                 return true;
             }
