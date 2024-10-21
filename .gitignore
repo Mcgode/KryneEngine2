@@ -3,4 +3,6 @@ cmake-build**
 out**
 .vs**
 
+.DS_Store
+
 Doc
