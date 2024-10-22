@@ -95,7 +95,12 @@ namespace KryneEngine
 
 #elif CONTEXT_SWITCH_UCONTEXT
 
-            m_smallStacks = new u8[kSmallStackSize * static_cast<u64>(kSmallStackCount)];
+            m_smallStacks = static_cast<u8*>(std::aligned_alloc(
+                kStackAlignment,
+                kSmallStackSize * static_cast<size_t>(kSmallStackCount)));
+            m_bigStacks = static_cast<u8*>(std::aligned_alloc(
+                kStackAlignment,
+                kBigStackSize * static_cast<size_t>(kBigStackCount)));
             m_bigStacks = new u8[kBigStackSize * static_cast<u64>(kBigStackCount)];
 
             for (u32 i = 0; i < m_contexts.size(); i++)
@@ -139,8 +144,8 @@ namespace KryneEngine
         }
 
 #if CONTEXT_SWITCH_UCONTEXT
-        delete[] m_smallStacks;
-        delete[] m_bigStacks;
+        std::free(m_smallStacks);
+        std::free(m_bigStacks);
 #endif
     }
 

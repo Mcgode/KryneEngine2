@@ -26,9 +26,9 @@
 #endif
 
 #include <Common/Types.hpp>
+#include <Common/Utils/Alignment.hpp>
 #include <EASTL/array.h>
 #include <EASTL/priority_queue.h>
-#include <moodycamel/concurrentqueue.h>
 
 namespace KryneEngine
 {
@@ -75,8 +75,12 @@ namespace KryneEngine
         static constexpr u16 kBigStackCount = 32;
 
     private:
-        static constexpr u64 kSmallStackSize = 64 * 1024; // 64 KiB
-        static constexpr u64 kBigStackSize = 512 * 1024; // 512 KiB
+        static constexpr size_t kSmallStackSize = 64 * 1024; // 64 KiB
+        static constexpr size_t kBigStackSize = 512 * 1024; // 512 KiB
+        static constexpr size_t kStackAlignment = 16;
+
+        static_assert(Alignment::IsAligned(kSmallStackSize, kStackAlignment));
+        static_assert(Alignment::IsAligned(kBigStackSize, kStackAlignment));
 
         struct StackIdQueue
         {

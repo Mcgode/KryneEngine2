@@ -11,19 +11,19 @@
 namespace KryneEngine::Alignment
 {
     template <class T>
-    inline bool IsAligned(T _value, T _alignment)
+    inline constexpr bool IsAligned(T _value, T _alignment)
     {
         return (_alignment != 0) && (_value % _alignment) == 0;
     }
 
     template <class T>
-    inline T AlignUp(T _value, T _alignment)
+    inline constexpr T AlignUp(T _value, T _alignment)
     {
         return (_alignment != 0) ? ((_value + _alignment - 1) / _alignment) * _alignment : 0;
     }
 
     template <class T>
-    inline T AlignUpPot(T _value, u8 _pot)
+    inline constexpr T AlignUpPot(T _value, u8 _pot)
     {
         return ((_value + BitUtils::BitMask<T>(_pot)) >> _pot) << _pot;
     }
