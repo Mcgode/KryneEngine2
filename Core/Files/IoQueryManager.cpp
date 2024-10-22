@@ -7,6 +7,7 @@
 #include "IoQueryManager.hpp"
 #include "FileSystemHelper.hpp"
 #include <Threads/FibersManager.hpp>
+#include <cstdio>
 
 namespace KryneEngine
 {
@@ -66,21 +67,29 @@ namespace KryneEngine
                 return;
             }
 
-            auto error = fopen_s(&_query->m_file, _query->m_path, _query->m_destroyOnOpen ? "wb+" : "rb+");
-            IF_NOT_VERIFY_MSG(error == 0, "Error while opening file")
+            _query->m_file = fopen(_query->m_path, _query->m_destroyOnOpen ? "wb+" : "rb+");
+            IF_NOT_VERIFY_MSG(_query->m_file != nullptr, "Error while opening file")
             {
                 return;
             }
 
             fseek(_query->m_file, 0, SEEK_END);
+#if defined(_WIN32)
             fileSize = _ftelli64(_query->m_file);
+#else
+            fileSize = ftello(_query->m_file);
+#endif
             _query->m_fileSize = fileSize;
         }
 
         // Read/write data
         if (_query->m_size > 0)
         {
+#if defined(_WIN32)
             _fseeki64(_query->m_file, offset, SEEK_SET);
+#else
+            fseeko(_query->m_file, offset, SEEK_SET);
+#endif
 
             if (_query->m_type == Query::Type::Read)
             {

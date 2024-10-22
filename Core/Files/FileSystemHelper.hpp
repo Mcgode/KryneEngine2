@@ -7,7 +7,7 @@
 #pragma once
 
 #include <Common/Types.hpp>
-#include <chrono>
+#include <filesystem>
 
 namespace KryneEngine::FileSystemHelper
 {
@@ -15,7 +15,7 @@ namespace KryneEngine::FileSystemHelper
 
     [[nodiscard]] bool IsDirectory(const eastl::string_view& _path);
 
-    [[nodiscard]] u64 SystemTimeToMillisecondsFromEpoch(const std::chrono::time_point<std::filesystem::_File_time_clock>& _timePoint);
+    [[nodiscard]] u64 SystemTimeToMillisecondsFromEpoch(const std::filesystem::file_time_type& _timePoint);
 
     [[nodiscard]] u64 GetLastWriteTime(const eastl::string_view& _path);
 }

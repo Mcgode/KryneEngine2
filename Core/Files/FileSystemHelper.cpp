@@ -20,7 +20,7 @@ namespace KryneEngine::FileSystemHelper
         return std::filesystem::exists(_path.data());
     }
 
-    u64 SystemTimeToMillisecondsFromEpoch(const std::chrono::time_point<std::filesystem::_File_time_clock> &_timePoint)
+    u64 SystemTimeToMillisecondsFromEpoch(const std::filesystem::file_time_type &_timePoint)
     {
         const auto duration = _timePoint.time_since_epoch();
         return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
