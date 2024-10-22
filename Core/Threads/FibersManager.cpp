@@ -8,6 +8,7 @@
 
 #include <Common/Assert.hpp>
 #include <Profiling/TracyHeader.hpp>
+#include <Threads/Internal/FiberContext.hpp>
 #include <Threads/FiberThread.hpp>
 #include <Threads/FiberTls.inl>
 
@@ -18,6 +19,8 @@ namespace KryneEngine
     FibersManager::FibersManager(s32 _requestedThreadCount)
     {
         KE_ZoneScopedFunction("FibersManager::FibersManager()");
+
+        m_contextAllocator = eastl::make_unique<FiberContextAllocator>();
 
         u16 fiberThreadCount;
         if (_requestedThreadCount <= 0)
@@ -109,9 +112,9 @@ namespace KryneEngine
                     KE_ASSERT(job_->GetStatus() == FiberJob::Status::PendingStart);
 
                     u16 id;
-                    if (m_contextAllocator.Allocate(job_->m_bigStack, id))
+                    if (m_contextAllocator->Allocate(job_->m_bigStack, id))
                     {
-                        job_->_SetContext(id, m_contextAllocator.GetContext(id));
+                        job_->_SetContext(id, m_contextAllocator->GetContext(id));
                     }
                 }
                 else if (!job_->CanRun())
@@ -179,7 +182,7 @@ namespace KryneEngine
             // Decrement counter
             m_syncCounterPool.DecrementCounterValue(oldJob->m_associatedCounterId);
 
-            m_contextAllocator.Free(oldJob->m_contextId);
+            m_contextAllocator->Free(oldJob->m_contextId);
             oldJob->_ResetContext();
         }
 

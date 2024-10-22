@@ -7,6 +7,7 @@
 #pragma once
 
 #include <EASTL/array.h>
+#include <EASTL/unique_ptr.h>
 #include <Threads/FiberJob.hpp>
 #include <Threads/FiberThread.hpp>
 #include <Threads/FiberTls.hpp>
@@ -14,6 +15,7 @@
 
 namespace KryneEngine
 {
+    struct FiberContextAllocator;
     class FiberThread;
     class IoQueryManager;
 
@@ -95,7 +97,7 @@ namespace KryneEngine
         FiberTls<Job> m_nextJob;
         FiberTls<FiberContext> m_baseContexts;
 
-        FiberContextAllocator m_contextAllocator;
+        eastl::unique_ptr<FiberContextAllocator> m_contextAllocator;
 
         SyncCounterPool m_syncCounterPool {};
 

@@ -5,7 +5,6 @@
  */
 
 #include "FiberJob.hpp"
-#include <Threads/FibersManager.hpp>
 
 namespace KryneEngine
 {

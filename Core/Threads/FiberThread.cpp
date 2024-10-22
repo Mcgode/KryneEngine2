@@ -9,6 +9,7 @@
 #include <Profiling/TracyHeader.hpp>
 #include <Threads/FibersManager.hpp>
 #include <Threads/HelperFunctions.hpp>
+#include <Threads/Internal/FiberContext.hpp>
 
 #if CONTEXT_SWITCH_WINDOWS_FIBERS
 #	include <Platform/Windows.h>

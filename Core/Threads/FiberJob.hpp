@@ -8,11 +8,12 @@
 
 #include <Common/Types.hpp>
 #include <Common/Assert.hpp>
-#include <Threads/Internal/FiberContext.hpp>
 #include <Threads/SyncCounterPool.hpp>
 
 namespace KryneEngine
 {
+    class FiberContext;
+
     class FiberJob
     {
     public:
