@@ -8,6 +8,8 @@
 
 #if defined(_WIN32)
     #define CONTEXT_SWITCH_WINDOWS_FIBERS 1
+#elif defined(__APPLE__)
+#   define CONTEXT_SWITCH_UCONTEXT 1
 #elif __linux__ || defined(__APPLE__) || __unix__
     #define CONTEXT_SWITCH_ABI_SYS_V 1
 #else
@@ -16,6 +18,11 @@
 
 #if CONTEXT_SWITCH_ABI_WINDOWS
     #include <emmintrin.h>
+#endif
+
+#if defined(CONTEXT_SWITCH_UCONTEXT)
+#   define _XOPEN_SOURCE
+#   include <ucontext.h>
 #endif
 
 #include <Common/Types.hpp>
@@ -31,6 +38,8 @@ namespace KryneEngine
 
 #if CONTEXT_SWITCH_WINDOWS_FIBERS
         void* m_winFiber;
+#elif CONTEXT_SWITCH_UCONTEXT
+        ucontext_t m_uContext;
 #elif CONTEXT_SWITCH_ABI_WINDOWS
         void *rip, *rsp;
         void *rbx, *rbp, *r12, *r13, *r14, *r15, *rdi, *rsi;
@@ -45,6 +54,7 @@ namespace KryneEngine
         void SwapContext(FiberContext *_new);
 
     private:
+        static void RunFiber();
         static void RunFiber(void*);
     };
 
@@ -83,9 +93,9 @@ namespace KryneEngine
 
         eastl::array<FiberContext, kSmallStackCount + kBigStackCount> m_contexts {};
 
-#if CONTEXT_SWITCH_ABI_WINDOWS || CONTEXT_SWITCH_ABI_SYS_V
-        void* m_smallStacks = nullptr;
-        void* m_bigStacks = nullptr;
+#if CONTEXT_SWITCH_UCONTEXT ||  CONTEXT_SWITCH_ABI_WINDOWS || CONTEXT_SWITCH_ABI_SYS_V
+        u8* m_smallStacks = nullptr;
+        u8* m_bigStacks = nullptr;
 #endif
     };
 }
