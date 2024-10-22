@@ -14,10 +14,6 @@
     #include <pthread.h>
 #elif defined(__APPLE__)
 #   define MACOS_THREADS
-#   include <mach/mach.h>
-#   include <mach/thread_policy.h>
-#   include <pthread.h>
-#   include <sched.h>
 #endif
 
 #include <Common/Assert.hpp>
@@ -42,16 +38,8 @@ namespace KryneEngine::Threads
         s32 result = pthread_setaffinity_np(_thread.native_handle(), 1, &coreSet);
         return result == 0;
 #elif defined(MACOS_THREADS)
-        const pthread_t thread = _thread.native_handle();
-        thread_t threadPort = pthread_mach_thread_np(thread);
-        thread_affinity_policy_data_t policy;
-        policy.affinity_tag = static_cast<s32>(_coreIndex);
-        const s32 result = thread_policy_set(
-            threadPort,
-            THREAD_AFFINITY_POLICY,
-            reinterpret_cast<thread_policy_t>(&policy),
-            1);
-        return result == 0;
+        // macOS doesn't allow us to assign a thread to a specific cpu core sadly
+        return true;
 #else
         #error No supported thread API
         return false;
