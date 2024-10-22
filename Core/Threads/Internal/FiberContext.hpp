@@ -25,6 +25,7 @@
 #   include <ucontext.h>
 #endif
 
+#include <boost/context/detail/fcontext.hpp>
 #include <Common/Types.hpp>
 #include <Common/Utils/Alignment.hpp>
 #include <EASTL/array.h>
@@ -36,26 +37,13 @@ namespace KryneEngine
     {
         friend struct FiberContextAllocator;
 
-#if CONTEXT_SWITCH_WINDOWS_FIBERS
-        void* m_winFiber;
-#elif CONTEXT_SWITCH_UCONTEXT
-        ucontext_t m_uContext;
-#elif CONTEXT_SWITCH_ABI_WINDOWS
-        void *rip, *rsp;
-        void *rbx, *rbp, *r12, *r13, *r14, *r15, *rdi, *rsi;
-        __m128i xmm6, xmm7, xmm8, xmm9, xmm10, xmm11, xmm12, xmm13, xmm14, xmm15;
-#elif CONTEXT_SWITCH_ABI_SYS_V
-        void *rip, *rsp;
-        void *rbx, *rbp, *r12, *r13, *r14, *r15;
-#endif
-
+        boost::context::detail::fcontext_t m_context;
         eastl::string m_name;
 
         void SwapContext(FiberContext *_new);
 
     private:
-        static void RunFiber();
-        static void RunFiber(void*);
+        static void RunFiber(boost::context::detail::transfer_t _transfer);
     };
 
     struct FiberContextAllocator
@@ -97,9 +85,10 @@ namespace KryneEngine
 
         eastl::array<FiberContext, kSmallStackCount + kBigStackCount> m_contexts {};
 
-#if CONTEXT_SWITCH_UCONTEXT ||  CONTEXT_SWITCH_ABI_WINDOWS || CONTEXT_SWITCH_ABI_SYS_V
-        u8* m_smallStacks = nullptr;
-        u8* m_bigStacks = nullptr;
-#endif
+        using SmallStack = u8[kSmallStackSize];
+        SmallStack* m_smallStacks = nullptr;
+
+        using BigStack = u8[kBigStackSize];
+        BigStack* m_bigStacks = nullptr;
     };
 }

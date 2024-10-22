@@ -24,22 +24,43 @@ namespace KryneEngine
 
         SwitchToFiber((LPVOID*)_new->m_winFiber);
 #else
-        swapcontext(&m_uContext, &_new->m_uContext);
+        //swapcontext(&m_uContext, &_new->m_uContext);
 #endif
+
+        printf("About to switch from context %s to %s\n", m_name.c_str(), _new->m_name.c_str());
+
+        const boost::context::detail::transfer_t t = boost::context::detail::jump_fcontext(
+            _new->m_context,
+            m_context == nullptr ? this : nullptr);
+
+        printf("Resumed context %s\n", m_name.c_str());
+
+        if (t.data != nullptr)
+        {
+            static_cast<FiberContext*>(t.data)->m_context = t.fctx;
+        }
+
         TracyFiberEnter(m_name.c_str());
     }
 
-    void FiberContext::RunFiber()
+    void FiberContext::RunFiber(boost::context::detail::transfer_t _transfer)
     {
         const auto fibersManager = FibersManager::GetInstance();
         VERIFY_OR_RETURN_VOID(fibersManager != nullptr);
         fibersManager->_OnContextSwitched();
+
+        if (_transfer.data != nullptr)
+        {
+            static_cast<FiberContext*>(_transfer.data)->m_context = _transfer.fctx;
+        }
 
         while (true)
         {
             auto* job = fibersManager->GetCurrentJob();
 
             TracyFiberEnter(job->m_context->m_name.c_str());
+
+            printf("Entered context %s\n", job->m_context->m_name.c_str());
 
             if (KE_VERIFY(job->m_status == FiberJob::Status::PendingStart))
             {
@@ -50,11 +71,6 @@ namespace KryneEngine
 
             fibersManager->YieldJob();
         }
-    }
-
-    void FiberContext::RunFiber(void *)
-    {
-        RunFiber();
     }
 
     FiberContextAllocator::FiberContextAllocator()
@@ -72,6 +88,36 @@ namespace KryneEngine
             for (u16 i = 0; i < kBigStackCount; i++)
             {
                 m_availableBigContextsIds.m_priorityQueue.push(i + kSmallStackCount);
+            }
+
+            m_smallStacks = static_cast<SmallStack*>(std::aligned_alloc(
+                kStackAlignment,
+                sizeof(SmallStack) * static_cast<size_t>(kSmallStackCount)));
+            m_bigStacks = static_cast<BigStack*>(std::aligned_alloc(
+                kStackAlignment,
+                sizeof(BigStack) * static_cast<size_t>(kBigStackCount)));
+
+            for (u32 i = 0; i < m_contexts.size(); i++)
+            {
+                auto& context = m_contexts[i];
+
+                if (i < kSmallStackCount)
+                {
+                    context.m_context = make_fcontext(
+                        m_smallStacks + i + 1, // Do a +1, because stack begins from the end
+                        sizeof(SmallStack),
+                        FiberContext::RunFiber);
+                    context.m_name.sprintf("Fiber %d", i);
+                }
+                else
+                {
+                    const u16 index = i - kSmallStackCount;
+                    context.m_context = make_fcontext(
+                        m_bigStacks + index + 1, // Do a +1, because stack begins from the end
+                        sizeof(BigStack),
+                        FiberContext::RunFiber);
+                    context.m_name.sprintf("Big Fiber %d", index);
+                }
             }
 
 #if CONTEXT_SWITCH_WINDOWS_FIBERS
@@ -93,7 +139,7 @@ namespace KryneEngine
                 }
             }
 
-#elif CONTEXT_SWITCH_UCONTEXT
+#elif CONTEXT_SWITCH_UCONTEXT && 0
 
             m_smallStacks = static_cast<u8*>(std::aligned_alloc(
                 kStackAlignment,

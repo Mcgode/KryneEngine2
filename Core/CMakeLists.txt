@@ -54,6 +54,6 @@ set(WindowSrc
 )
 
 add_library(KryneEngineCore ${CommonSrc} ${FilesSrc} ${MemorySrc} ${ProfilingSrc} ${ThreadsSrc} ${WindowSrc})
-target_link_libraries(KryneEngineCore KryneEngineGraphics moodycamel)
+target_link_libraries(KryneEngineCore KryneEngineGraphics moodycamel Boost::context)
 
 AddCoverage(KryneEngineCore)
