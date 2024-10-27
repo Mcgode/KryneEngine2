@@ -115,17 +115,24 @@ int main() {
         FiberJob testJob;
         const auto syncCounter = fibersManager.InitAndBatchJobs(&testJob, Job1, nullptr);
 
+#if !defined(__APPLE__)
         FiberJob mainJob;
         const auto mainCounter = fibersManager.InitAndBatchJobs(
             &mainJob,
             MainFunc,
             &fibersManager,
             1,
-            KryneEngine::FiberJob::Priority::High,
+            FiberJob::Priority::High,
             true);
+#endif
 
         fibersManager.WaitForCounter(syncCounter);
+
+#if !defined(__APPLE__)
         fibersManager.WaitForCounter(mainCounter);
+#else
+        MainFunc(&fibersManager);
+#endif
     }
 
     return 0;
