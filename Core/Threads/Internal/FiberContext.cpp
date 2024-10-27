@@ -27,13 +27,9 @@ namespace KryneEngine
         //swapcontext(&m_uContext, &_new->m_uContext);
 #endif
 
-        printf("About to switch from context %s to %s\n", m_name.c_str(), _new->m_name.c_str());
-
         const boost::context::detail::transfer_t t = boost::context::detail::jump_fcontext(
             _new->m_context,
             this);
-
-        printf("Resumed context %s\n", m_name.c_str());
 
         if (KE_VERIFY(t.data != nullptr))
         {
@@ -49,7 +45,7 @@ namespace KryneEngine
         VERIFY_OR_RETURN_VOID(fibersManager != nullptr);
         fibersManager->_OnContextSwitched();
 
-        if (_transfer.data != nullptr)
+        if (KE_VERIFY(_transfer.data != nullptr))
         {
             static_cast<FiberContext*>(_transfer.data)->m_context = _transfer.fctx;
         }
@@ -59,8 +55,6 @@ namespace KryneEngine
             auto* job = fibersManager->GetCurrentJob();
 
             TracyFiberEnter(job->m_context->m_name.c_str());
-
-            printf("Entered context %s\n", job->m_context->m_name.c_str());
 
             if (KE_VERIFY(job->m_status == FiberJob::Status::PendingStart))
             {
