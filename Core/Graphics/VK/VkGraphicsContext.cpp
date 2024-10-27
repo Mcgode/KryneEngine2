@@ -22,6 +22,31 @@
 #include "VkDebugHandler.hpp"
 #include "VkDescriptorSetManager.hpp"
 
+#if !VK_KHR_portability_subset
+#   define VK_KHR_portability_subset 1
+#   define VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME "VK_KHR_portability_subset"
+typedef struct VkPhysicalDevicePortabilitySubsetFeaturesKHR
+{
+    VkStructureType    sType;
+    void*              pNext;
+    VkBool32           constantAlphaColorBlendFactors;
+    VkBool32           events;
+    VkBool32           imageViewFormatReinterpretation;
+    VkBool32           imageViewFormatSwizzle;
+    VkBool32           imageView2DOn3DImage;
+    VkBool32           multisampleArrayImage;
+    VkBool32           mutableComparisonSamplers;
+    VkBool32           pointPolygons;
+    VkBool32           samplerMipLodBias;
+    VkBool32           separateStencilMaskRef;
+    VkBool32           shaderSampleRateInterpolationFunctions;
+    VkBool32           tessellationIsolines;
+    VkBool32           tessellationPointMode;
+    VkBool32           triangleFans;
+    VkBool32           vertexAttributeAccessBeyondStride;
+} VkPhysicalDevicePortabilitySubsetFeaturesKHR;
+#endif
+
 namespace KryneEngine
 {
     using namespace VkHelperFunctions;
@@ -96,7 +121,11 @@ namespace KryneEngine
 
             VkInstanceCreateInfo instanceCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+#if defined(__APPLE__)
+                .flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR,
+#else
                 .flags = 0,
+#endif
                 .pApplicationInfo = &applicationInfo,
                 .enabledLayerCount = 0,
             };
@@ -356,6 +385,12 @@ namespace KryneEngine
             m_debugUtils = true;
         }
 
+#if defined(__APPLE__)
+        {
+            result.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+        }
+#endif
+
         if (_appInfo.m_features.m_debugTags == GraphicsCommon::SoftEnable::ForceEnabled)
         {
             result.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
@@ -538,7 +573,7 @@ namespace KryneEngine
                 const auto flags = familyProperties[i].queueFlags;
                 if (flags & VK_QUEUE_TRANSFER_BIT && GetIndexOfFamily(i) < familyProperties[i].queueCount)
                 {
-                    u8 score = 0;
+                    u8 score = 1;
                     score += flags & VK_QUEUE_GRAPHICS_BIT ? 0 : 4;
                     score += flags & VK_QUEUE_COMPUTE_BIT ? 0 : 3;
 
@@ -670,6 +705,7 @@ namespace KryneEngine
         void* next = nullptr;
 
         VkPhysicalDeviceSynchronization2FeaturesKHR synchronization2Features{};
+        VkPhysicalDevicePortabilitySubsetFeaturesKHR portabilitySubsetFeatures{};
         {
             DynamicArray<VkExtensionProperties> availableExtensions;
             VkHelperFunctions::VkArrayFetch(availableExtensions, vkEnumerateDeviceExtensionProperties, m_physicalDevice, nullptr);
@@ -698,6 +734,18 @@ namespace KryneEngine
                     .synchronization2 = true,
                 };
                 next = &synchronization2Features;
+            }
+
+            if (find("VK_KHR_portability_subset"))
+            {
+                requiredExtensions.push_back("VK_KHR_portability_subset");
+
+                portabilitySubsetFeatures = {
+                    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR,
+                    .pNext = next,
+                    .imageViewFormatSwizzle = true,
+                };
+                next = &portabilitySubsetFeatures;
             }
         }
 

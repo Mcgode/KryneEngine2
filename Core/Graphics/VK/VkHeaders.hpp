@@ -12,4 +12,6 @@
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <Memory/GenerationalPool.hpp>
 #include <Profiling/TracyHeader.hpp>
+
+#define VK_ENABLE_BETA_EXTENSIONS
 #include <vulkan/vulkan.h>
