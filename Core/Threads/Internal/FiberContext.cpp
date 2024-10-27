@@ -31,11 +31,11 @@ namespace KryneEngine
 
         const boost::context::detail::transfer_t t = boost::context::detail::jump_fcontext(
             _new->m_context,
-            m_context == nullptr ? this : nullptr);
+            this);
 
         printf("Resumed context %s\n", m_name.c_str());
 
-        if (t.data != nullptr)
+        if (KE_VERIFY(t.data != nullptr))
         {
             static_cast<FiberContext*>(t.data)->m_context = t.fctx;
         }
