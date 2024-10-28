@@ -28,7 +28,9 @@ set (DX12Files
 set (MetalFiles
         Metal/MetalCppImplementation.cpp
         Metal/MetalHeaders.hpp
-        Metal/MetalGraphicsContext.hpp)
+        Metal/MetalGraphicsContext.hpp
+        Metal/MetalGraphicsContext.cpp
+        Metal/MetalGraphicsContextInit.mm)
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
@@ -58,6 +60,7 @@ elseif (GraphicsApi STREQUAL "MTL")
 endif()
 
 add_library(KryneEngineGraphics STATIC ${SrcFiles})
+message(STATUS "Source files: c${SrcFiles}")
 target_link_libraries(KryneEngineGraphics EASTL glfw glm Tracy::TracyClient)
 target_include_directories(KryneEngineGraphics PUBLIC ${RootDir})
 target_compile_definitions(KryneEngineGraphics PRIVATE
@@ -78,8 +81,12 @@ elseif(GraphicsApi STREQUAL "DX12")
     message(STATUS "Linking DirectX12 libs")
     target_link_libraries(KryneEngineGraphics d3d12 dxgi d3dcompiler dxguid DirectX-Headers D3D12MemoryAllocator)
 elseif(GraphicsApi STREQUAL "MTL")
+    find_library(METAL_FRAMEWORK Metal)
+    find_library(METALKIT_FRAMEWORK MetalKit)
+    find_library(QUARTZCORE_FRAMEWORK QuartzCore)
+
     message(STATUS "Linking Metal libs")
-    target_link_libraries(KryneEngineGraphics MetalCpp)
+    target_link_libraries(KryneEngineGraphics MetalCpp ${METAL_FRAMEWORK} ${METALKIT_FRAMEWORK} ${QUARTZCORE_FRAMEWORK})
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

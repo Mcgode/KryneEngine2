@@ -33,18 +33,23 @@ namespace KryneEngine
         MetalGraphicsContext(
             const GraphicsCommon::ApplicationInfo& _appInfo,
             const Window* _window,
-            u64 _initialFrameId) { KE_ERROR("NYI"); }
+            u64 _initialFrameId);
+
+        ~MetalGraphicsContext();
 
         [[nodiscard]] u8 GetFrameContextCount() const { KE_ERROR("NYI"); return 0; }
 
-        void EndFrame(u64 _frameId) { KE_ERROR("NYI"); }
-
-        void WaitForFrame(u64 _frameId) const { KE_ERROR("NYI"); }
-
+        void EndFrame(u64 _frameId);
+        void WaitForFrame(u64 _frameId) const;
         [[nodiscard]] bool IsFrameExecuted(u64 _frameId) const { KE_ERROR("NYI"); return false; }
 
-        [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { KE_ERROR("NYI"); return {}; }
+        [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_applicationInfo; }
 
+    private:
+        const GraphicsCommon::ApplicationInfo m_applicationInfo;
+        MTL::Device* m_device;
+
+    public:
         [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc) { KE_ERROR("NYI"); return {}; }
 
         [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc) { KE_ERROR("NYI"); return {}; }

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(KryneEngine2)
+project(KryneEngine2 LANGUAGES C CXX OBJC OBJCXX)
 
 set(CMAKE_CXX_STANDARD 23)
 
