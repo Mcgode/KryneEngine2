@@ -12,6 +12,7 @@
 
 #include <Common/Assert.hpp>
 #include <Threads/FibersManager.hpp>
+#include <Profiling/TracyHeader.hpp>
 
 
 namespace KryneEngine

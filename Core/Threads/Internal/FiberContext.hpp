@@ -30,6 +30,7 @@
 #include <Common/Utils/Alignment.hpp>
 #include <EASTL/array.h>
 #include <EASTL/priority_queue.h>
+#include <Threads/SpinLock.hpp>
 
 namespace KryneEngine
 {

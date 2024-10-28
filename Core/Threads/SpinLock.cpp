@@ -6,6 +6,8 @@
 
 #include "SpinLock.hpp"
 
+#include <Common/Assert.hpp>
+
 namespace KryneEngine
 {
     void SpinLock::Lock() noexcept

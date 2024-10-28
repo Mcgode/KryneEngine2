@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <Common/Types.hpp>
+
 namespace KryneEngine::Assertion
 {
     enum class CallbackResponse

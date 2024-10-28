@@ -6,6 +6,7 @@
 
 #include "InputManager.hpp"
 
+#include <Profiling/TracyHeader.hpp>
 #include <Window/GLFW/Input/KeyInputEvent.hpp>
 #include <Window/Window.hpp>
 

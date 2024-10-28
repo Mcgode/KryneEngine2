@@ -7,9 +7,9 @@
 #pragma once
 
 #include <atomic>
-#include <Common/Assert.hpp>
 #include <Common/Types.hpp>
 #include <Threads/HelperFunctions.hpp>
+#include <Threads/SpinLock.hpp>
 
 namespace KryneEngine
 {

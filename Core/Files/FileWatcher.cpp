@@ -17,6 +17,7 @@
 
 
 #include <Common/Assert.hpp>
+#include <Common/Arrays.hpp>
 
 namespace KryneEngine
 {
