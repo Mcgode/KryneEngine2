@@ -21,9 +21,7 @@ namespace KryneEngine
             glfwInit();
         }
 
-#if defined(KE_GRAPHICS_API_VK)
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-#endif
         glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
         const auto& displayInfo = _appInfo.m_displayOptions;
 
