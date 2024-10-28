@@ -25,6 +25,11 @@ set (DX12Files
         DX12/Dx12DescriptorSetManager.cpp DX12/Dx12DescriptorSetManager.hpp
 )
 
+set (MetalFiles
+        Metal/MetalCppImplementation.cpp
+        Metal/MetalHeaders.hpp
+        Metal/MetalGraphicsContext.hpp)
+
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
         Common/GraphicsCommon.hpp
@@ -47,6 +52,9 @@ if (GraphicsApi STREQUAL "VK")
 elseif(GraphicsApi STREQUAL "DX12")
     set(SrcFiles ${CommonFiles} ${DX12Files})
     set(PrecompileHeaders DX12/Dx12Headers.hpp)
+elseif (GraphicsApi STREQUAL "MTL")
+    set(SrcFiles ${CommonFiles} ${MetalFiles})
+    set(PrecompiledHeaders Metal/MetalHeaders.hpp)
 endif()
 
 add_library(KryneEngineGraphics STATIC ${SrcFiles})
@@ -69,6 +77,9 @@ if (GraphicsApi STREQUAL "VK")
 elseif(GraphicsApi STREQUAL "DX12")
     message(STATUS "Linking DirectX12 libs")
     target_link_libraries(KryneEngineGraphics d3d12 dxgi d3dcompiler dxguid DirectX-Headers D3D12MemoryAllocator)
+elseif(GraphicsApi STREQUAL "MTL")
+    message(STATUS "Linking Metal libs")
+    target_link_libraries(KryneEngineGraphics MetalCpp)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

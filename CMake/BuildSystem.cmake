@@ -16,6 +16,10 @@ if (${TOTAL_BUILD_ARGS_LENGTH} GREATER_EQUAL 2)
     if (Arg STREQUAL "DX12")
         set(GraphicsApi "DX12")
     endif()
+
+    if (Arg STREQUAL "MTL")
+        set(GraphicsApi "MTL")
+    endif()
 endif()
 
 if (NOT DEFINED GraphicsApi)

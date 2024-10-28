@@ -10,6 +10,8 @@
 #   include <Graphics/VK/VkGraphicsContext.hpp>
 #elif defined(KE_GRAPHICS_API_DX12)
 #   include <Graphics/DX12/Dx12GraphicsContext.hpp>
+#elif defined(KE_GRAPHICS_API_MTL)
+#   include <Graphics/Metal/MetalGraphicsContext.hpp>
 #else
 #   error No valid graphics API
 #endif
@@ -61,6 +63,8 @@ namespace KryneEngine
         using UnderlyingGraphicsContext = VkGraphicsContext;
 #elif defined(KE_GRAPHICS_API_DX12)
         using UnderlyingGraphicsContext = Dx12GraphicsContext;
+#elif defined(KE_GRAPHICS_API_MTL)
+        using UnderlyingGraphicsContext = MetalGraphicsContext;
 #endif
         UnderlyingGraphicsContext m_implementation;
 
