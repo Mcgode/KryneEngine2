@@ -11,6 +11,7 @@
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Common/Texture.hpp>
+#include <Profiling/TracyHeader.hpp>
 #include <tracy/Tracy.hpp>
 #include <Window/Input/InputManager.hpp>
 #include <Window/Window.hpp>

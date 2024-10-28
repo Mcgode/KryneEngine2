@@ -7,6 +7,7 @@
 #include "Window.hpp"
 
 #include <Graphics/Common/GraphicsContext.hpp>
+#include <Profiling/TracyHeader.hpp>
 #include <Window/Input/InputManager.hpp>
 
 namespace KryneEngine
@@ -23,6 +24,7 @@ namespace KryneEngine
 #if defined(KE_GRAPHICS_API_VK)
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
+        glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
         const auto& displayInfo = _appInfo.m_displayOptions;
 
         glfwWindowHint(GLFW_RESIZABLE, displayInfo.m_resizableWindow);

@@ -8,6 +8,8 @@
 
 #include <chrono>
 #include <imgui.h>
+#include <EASTL/unique_ptr.h>
+
 #include <Graphics/Common/GraphicsContext.hpp>
 #include <GraphicsUtils/DynamicBuffer.hpp>
 
