@@ -26,7 +26,7 @@ set (DX12Files
 )
 
 set (MetalFiles
-        Metal/MetalCppImplementation.cpp
+        Metal/Implementation/metal-cpp.cpp
         Metal/MetalHeaders.hpp
         Metal/MetalGraphicsContext.hpp
         Metal/MetalGraphicsContext.cpp
