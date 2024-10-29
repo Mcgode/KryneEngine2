@@ -24,21 +24,26 @@ namespace KryneEngine
     {
         m_device = MTL::CreateSystemDefaultDevice();
 
-        auto* metalWindow = static_cast<NSWindow*>(glfwGetCocoaWindow(_window->GetGlfwWindow()));
+        KE_ASSERT_FATAL(!(_appInfo.m_features.m_present ^ (_window != nullptr)));
 
-        CAMetalLayer* metalLayer = [ CAMetalLayer layer ];
-        metalLayer.device = (__bridge id<MTLDevice>)m_device;
-        if (_appInfo.m_displayOptions.m_sRgbPresent == GraphicsCommon::SoftEnable::Disabled)
+        if (_appInfo.m_features.m_present)
         {
-            metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-        }
-        else
-        {
-            metalLayer.pixelFormat = MTLPixelFormatRGBA8Unorm_sRGB;
-        }
+            auto* metalWindow = static_cast<NSWindow*>(glfwGetCocoaWindow(_window->GetGlfwWindow()));
 
-        metalWindow.contentView.layer = metalLayer;
-        metalWindow.contentView.wantsLayer = YES;
+            CAMetalLayer* metalLayer = [CAMetalLayer layer];
+            metalLayer.device = (__bridge id<MTLDevice>)m_device;
+            if (_appInfo.m_displayOptions.m_sRgbPresent == GraphicsCommon::SoftEnable::Disabled)
+            {
+                metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+            }
+            else
+            {
+                metalLayer.pixelFormat = MTLPixelFormatRGBA8Unorm_sRGB;
+            }
+
+            metalWindow.contentView.layer = metalLayer;
+            metalWindow.contentView.wantsLayer = YES;
+        }
     }
 
     MetalGraphicsContext::~MetalGraphicsContext()
