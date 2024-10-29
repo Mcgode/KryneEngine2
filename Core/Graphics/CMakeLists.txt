@@ -30,7 +30,8 @@ set (MetalFiles
         Metal/MetalHeaders.hpp
         Metal/MetalGraphicsContext.hpp
         Metal/MetalGraphicsContext.cpp
-        Metal/MetalGraphicsContextInit.mm)
+        Metal/MetalGraphicsContextInit.mm
+        Metal/Helpers/MtlPtr.hpp)
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
@@ -84,9 +85,10 @@ elseif(GraphicsApi STREQUAL "MTL")
     find_library(METAL_FRAMEWORK Metal)
     find_library(METALKIT_FRAMEWORK MetalKit)
     find_library(QUARTZCORE_FRAMEWORK QuartzCore)
+    find_library(COCOA_FRAMEWORK Cocoa)
 
     message(STATUS "Linking Metal libs")
-    target_link_libraries(KryneEngineGraphics MetalCpp ${METAL_FRAMEWORK} ${METALKIT_FRAMEWORK} ${QUARTZCORE_FRAMEWORK})
+    target_link_libraries(KryneEngineGraphics metal-cpp metal-cpp-extensions ${METAL_FRAMEWORK} ${METALKIT_FRAMEWORK} ${QUARTZCORE_FRAMEWORK} ${COCOA_FRAMEWORK})
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
