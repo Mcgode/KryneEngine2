@@ -13,13 +13,13 @@ namespace KryneEngine
 {
     template<class T>
     requires std::derived_from<T, NS::Object>
-    class MtlPtr
+    class NsPtr
     {
     public:
-        MtlPtr(): m_ptr(nullptr) {}
-        explicit MtlPtr(T* _ptr) : m_ptr(_ptr) {}
+        NsPtr(): m_ptr(nullptr) {}
+        explicit NsPtr(T* _ptr) : m_ptr(_ptr) {}
 
-        ~MtlPtr()
+        ~NsPtr()
         {
             if (m_ptr != nullptr)
             {
@@ -27,7 +27,7 @@ namespace KryneEngine
             }
         }
 
-        MtlPtr& operator=(T* _ptr)
+        NsPtr& operator=(T* _ptr)
         {
             reset(_ptr);
             return *this;

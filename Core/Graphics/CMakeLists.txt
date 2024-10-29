@@ -31,7 +31,7 @@ set (MetalFiles
         Metal/MetalGraphicsContext.hpp
         Metal/MetalGraphicsContext.cpp
         Metal/MetalGraphicsContextInit.mm
-        Metal/Helpers/MtlPtr.hpp)
+        Metal/Helpers/NsPtr.hpp)
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp
