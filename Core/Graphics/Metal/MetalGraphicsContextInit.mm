@@ -46,6 +46,8 @@ namespace KryneEngine
             }
         }
 
+        m_frameContextCount = 2;
+
         KE_ASSERT_FATAL(!(_appInfo.m_features.m_present ^ (_window != nullptr)));
         if (_appInfo.m_features.m_present)
         {
@@ -61,6 +63,14 @@ namespace KryneEngine
             {
                 metalLayer.pixelFormat = MTLPixelFormatRGBA8Unorm_sRGB;
             }
+
+            metalLayer.maximumDrawableCount =
+                _appInfo.m_displayOptions.m_tripleBuffering == GraphicsCommon::SoftEnable::Disabled
+                    ? 2
+                    : 3;
+            m_frameContextCount = static_cast<u8>(metalLayer.maximumDrawableCount);
+
+            metalLayer.framebufferOnly = YES;
 
             metalWindow.contentView.layer = metalLayer;
             metalWindow.contentView.wantsLayer = YES;

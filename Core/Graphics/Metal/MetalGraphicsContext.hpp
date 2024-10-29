@@ -37,17 +37,19 @@ namespace KryneEngine
 
         ~MetalGraphicsContext();
 
-        [[nodiscard]] u8 GetFrameContextCount() const { KE_ERROR("NYI"); return 0; }
+        [[nodiscard]] u8 GetFrameContextCount() const { return m_frameContextCount; }
 
         void EndFrame(u64 _frameId);
         void WaitForFrame(u64 _frameId) const;
-        [[nodiscard]] bool IsFrameExecuted(u64 _frameId) const { KE_ERROR("NYI"); return false; }
+        [[nodiscard]] bool IsFrameExecuted(u64 _frameId) const;
 
         [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_applicationInfo; }
 
     private:
         const GraphicsCommon::ApplicationInfo m_applicationInfo;
         NsPtr<MTL::Device> m_device;
+
+        u8 m_frameContextCount;
 
         NsPtr<MTL::CommandQueue> m_graphicsQueue;
         NsPtr<MTL::CommandQueue> m_computeQueue;

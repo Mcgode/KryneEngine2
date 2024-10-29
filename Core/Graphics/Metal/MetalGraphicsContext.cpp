@@ -15,4 +15,7 @@ namespace KryneEngine
 
     void MetalGraphicsContext::WaitForFrame(u64 _frameId) const
     {}
+
+    bool MetalGraphicsContext::IsFrameExecuted(u64 _frameId) const
+    {}
 }
