@@ -49,6 +49,10 @@ namespace KryneEngine
         const GraphicsCommon::ApplicationInfo m_applicationInfo;
         NsPtr<MTL::Device> m_device;
 
+        NsPtr<MTL::CommandQueue> m_graphicsQueue;
+        NsPtr<MTL::CommandQueue> m_computeQueue;
+        NsPtr<MTL::IOCommandQueue> m_ioQueue;
+
     public:
         [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc) { KE_ERROR("NYI"); return {}; }
 

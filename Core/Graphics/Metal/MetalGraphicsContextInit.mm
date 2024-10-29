@@ -24,8 +24,29 @@ namespace KryneEngine
     {
         m_device = MTL::CreateSystemDefaultDevice();
 
-        KE_ASSERT_FATAL(!(_appInfo.m_features.m_present ^ (_window != nullptr)));
+        if (_appInfo.m_features.m_graphics)
+        {
+            m_graphicsQueue = m_device->newCommandQueue();
+        }
 
+        if (_appInfo.m_features.m_compute)
+        {
+            if (_appInfo.m_features.m_asyncCompute || m_graphicsQueue == nullptr)
+            {
+                m_computeQueue = m_device->newCommandQueue();
+            }
+        }
+
+        if (_appInfo.m_features.m_transfer)
+        {
+            if (_appInfo.m_features.m_transferQueue || (m_computeQueue == nullptr && m_graphicsQueue == nullptr))
+            {
+                NsPtr<MTL::IOCommandQueueDescriptor> descriptor { MTL::IOCommandQueueDescriptor::alloc()->init() };
+                m_ioQueue = m_device->newIOCommandQueue(descriptor.get(), nullptr);
+            }
+        }
+
+        KE_ASSERT_FATAL(!(_appInfo.m_features.m_present ^ (_window != nullptr)));
         if (_appInfo.m_features.m_present)
         {
             auto* metalWindow = static_cast<NSWindow*>(glfwGetCocoaWindow(_window->GetGlfwWindow()));
