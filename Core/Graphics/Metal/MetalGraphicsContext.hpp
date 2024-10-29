@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <EASTL/unique_ptr.h>
 #include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
 #include <Graphics/Common/Handles.hpp>
@@ -13,6 +14,7 @@
 #include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Common/Texture.hpp>
 #include <Graphics/Metal/MetalHeaders.hpp>
+#include <Graphics/Metal/MetalTypes.hpp>
 
 namespace KryneEngine
 {
@@ -23,9 +25,9 @@ namespace KryneEngine
     struct TextureSrvDesc;
     struct Viewport;
 
+    class MetalFrameContext;
+    class MetalSwapChain;
     class Window;
-
-    using CommandList = void*;
 
     class MetalGraphicsContext
     {
@@ -48,12 +50,14 @@ namespace KryneEngine
     private:
         const GraphicsCommon::ApplicationInfo m_applicationInfo;
         NsPtr<MTL::Device> m_device;
-
-        u8 m_frameContextCount;
+        eastl::unique_ptr<MetalSwapChain> m_swapChain;
 
         NsPtr<MTL::CommandQueue> m_graphicsQueue;
         NsPtr<MTL::CommandQueue> m_computeQueue;
         NsPtr<MTL::IOCommandQueue> m_ioQueue;
+
+        u8 m_frameContextCount;
+        DynamicArray<MetalFrameContext> m_frameContexts;
 
     public:
         [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc) { KE_ERROR("NYI"); return {}; }

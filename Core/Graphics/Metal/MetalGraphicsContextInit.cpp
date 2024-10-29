@@ -6,12 +6,8 @@
 
 #include "MetalGraphicsContext.hpp"
 
-#include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_COCOA
-#include <GLFW/glfw3native.h>
-
-#include <QuartzCore/CAMetalLayer.h>
-
+#include <Graphics/Metal/MetalFrameContext.hpp>
+#include <Graphics/Metal/MetalSwapChain.hpp>
 #include <Window/Window.hpp>
 
 namespace KryneEngine
@@ -48,34 +44,21 @@ namespace KryneEngine
 
         m_frameContextCount = 2;
 
+        KE_ASSERT_FATAL_MSG(!_appInfo.m_features.m_present || _appInfo.m_features.m_graphics,
+                            "Metal graphics context does not support presentation without graphics queue");
         KE_ASSERT_FATAL(!(_appInfo.m_features.m_present ^ (_window != nullptr)));
         if (_appInfo.m_features.m_present)
         {
-            auto* metalWindow = static_cast<NSWindow*>(glfwGetCocoaWindow(_window->GetGlfwWindow()));
-
-            CAMetalLayer* metalLayer = [CAMetalLayer layer];
-            metalLayer.device = (__bridge id<MTLDevice>)m_device.get();
-            if (_appInfo.m_displayOptions.m_sRgbPresent == GraphicsCommon::SoftEnable::Disabled)
-            {
-                metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-            }
-            else
-            {
-                metalLayer.pixelFormat = MTLPixelFormatRGBA8Unorm_sRGB;
-            }
-
-            metalLayer.maximumDrawableCount =
-                _appInfo.m_displayOptions.m_tripleBuffering == GraphicsCommon::SoftEnable::Disabled
-                    ? 2
-                    : 3;
-            m_frameContextCount = static_cast<u8>(metalLayer.maximumDrawableCount);
-
-            metalLayer.framebufferOnly = YES;
-
-            metalWindow.contentView.layer = metalLayer;
-            metalWindow.contentView.wantsLayer = YES;
+            m_swapChain = eastl::make_unique<MetalSwapChain>(*m_device, _appInfo, _window);
+            m_frameContextCount = m_swapChain->m_drawables.Size();
         }
+
+        m_frameContexts.Resize(m_frameContextCount);
+        m_frameContexts.InitAll(
+            m_graphicsQueue != nullptr,
+            m_computeQueue != nullptr,
+            m_ioQueue != nullptr);
     }
 
-    MetalGraphicsContext::~MetalGraphicsContext() {}
+    MetalGraphicsContext::~MetalGraphicsContext() = default;
 }

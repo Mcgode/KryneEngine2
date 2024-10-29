@@ -30,8 +30,13 @@ set (MetalFiles
         Metal/MetalHeaders.hpp
         Metal/MetalGraphicsContext.hpp
         Metal/MetalGraphicsContext.cpp
-        Metal/MetalGraphicsContextInit.mm
-        Metal/Helpers/NsPtr.hpp)
+        Metal/MetalGraphicsContextInit.cpp
+        Metal/Helpers/NsPtr.hpp
+        Metal/MetalFrameContext.cpp
+        Metal/MetalFrameContext.hpp
+        Metal/MetalTypes.hpp
+        Metal/MetalSwapChain.mm
+        Metal/MetalSwapChain.hpp)
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp

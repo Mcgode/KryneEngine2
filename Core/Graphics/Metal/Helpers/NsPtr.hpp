@@ -12,7 +12,9 @@
 namespace KryneEngine
 {
     template<class T>
-    requires std::derived_from<T, NS::Referencing<T>>
+    concept NsObject = std::derived_from<T, NS::Object>;
+
+    template<NsObject T>
     class NsPtr
     {
     public:
