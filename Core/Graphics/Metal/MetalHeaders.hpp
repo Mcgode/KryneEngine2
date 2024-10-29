@@ -8,3 +8,5 @@
 
 #include <Common/Types.hpp>
 #include <Metal/Metal.hpp>
+
+#include <Graphics/Metal/Helpers/NsPtr.hpp>

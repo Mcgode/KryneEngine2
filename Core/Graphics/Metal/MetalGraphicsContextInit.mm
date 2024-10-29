@@ -31,7 +31,7 @@ namespace KryneEngine
             auto* metalWindow = static_cast<NSWindow*>(glfwGetCocoaWindow(_window->GetGlfwWindow()));
 
             CAMetalLayer* metalLayer = [CAMetalLayer layer];
-            metalLayer.device = (__bridge id<MTLDevice>)m_device;
+            metalLayer.device = (__bridge id<MTLDevice>)m_device.get();
             if (_appInfo.m_displayOptions.m_sRgbPresent == GraphicsCommon::SoftEnable::Disabled)
             {
                 metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
@@ -46,9 +46,5 @@ namespace KryneEngine
         }
     }
 
-    MetalGraphicsContext::~MetalGraphicsContext()
-    {
-        m_device->release();
-        m_device = nullptr;
-    }
+    MetalGraphicsContext::~MetalGraphicsContext() {}
 }
