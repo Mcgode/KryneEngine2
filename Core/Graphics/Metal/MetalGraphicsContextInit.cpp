@@ -58,6 +58,9 @@ namespace KryneEngine
             m_graphicsQueue != nullptr,
             m_computeQueue != nullptr,
             m_ioQueue != nullptr);
+
+        const u8 frameIndex = _initialFrameId % m_frameContextCount;
+        m_frameContexts[frameIndex].PrepareForNextFrame(_initialFrameId);
     }
 
     MetalGraphicsContext::~MetalGraphicsContext() = default;
