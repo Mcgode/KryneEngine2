@@ -43,13 +43,14 @@ namespace KryneEngine
         }
 
         m_frameContextCount = 2;
+        const u8 frameIndex = _initialFrameId % m_frameContextCount;
 
         KE_ASSERT_FATAL_MSG(!_appInfo.m_features.m_present || _appInfo.m_features.m_graphics,
                             "Metal graphics context does not support presentation without graphics queue");
         KE_ASSERT_FATAL(!(_appInfo.m_features.m_present ^ (_window != nullptr)));
         if (_appInfo.m_features.m_present)
         {
-            m_swapChain = eastl::make_unique<MetalSwapChain>(*m_device, _appInfo, _window);
+            m_swapChain = eastl::make_unique<MetalSwapChain>(*m_device, _appInfo, _window, m_resources, frameIndex);
             m_frameContextCount = m_swapChain->m_drawables.Size();
         }
 
@@ -59,7 +60,6 @@ namespace KryneEngine
             m_computeQueue != nullptr,
             m_ioQueue != nullptr);
 
-        const u8 frameIndex = _initialFrameId % m_frameContextCount;
         m_frameContexts[frameIndex].PrepareForNextFrame(_initialFrameId);
     }
 

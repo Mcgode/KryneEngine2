@@ -43,7 +43,7 @@ namespace KryneEngine
             if (m_swapChain)
             {
                 KE_ZoneScoped("Retrieve next drawable");
-                m_swapChain->UpdateNextDrawable(frameIndex);
+                m_swapChain->UpdateNextDrawable(frameIndex, m_resources);
             }
         }
 
@@ -84,6 +84,26 @@ namespace KryneEngine
     bool MetalGraphicsContext::DestroyRenderTargetView(RenderTargetViewHandle _handle)
     {
         return m_resources.UnregisterRtv(_handle);
+    }
+
+    RenderTargetViewHandle MetalGraphicsContext::GetPresentRenderTargetView(u8 _swapChainIndex) const
+    {
+        VERIFY_OR_RETURN(m_swapChain != nullptr, { GenPool::kInvalidHandle });
+
+        return m_swapChain->m_rtvs[_swapChainIndex];
+    }
+
+    TextureHandle MetalGraphicsContext::GetPresentTexture(u8 _swapChainIndex) const
+    {
+        VERIFY_OR_RETURN(m_swapChain != nullptr, { GenPool::kInvalidHandle });
+
+        return m_swapChain->m_textures[_swapChainIndex];
+    }
+
+    u32 MetalGraphicsContext::GetCurrentPresentImageIndex() const
+    {
+        VERIFY_OR_RETURN(m_swapChain != nullptr, 0);
+        return m_swapChain->m_index;
     }
 
     CommandList MetalGraphicsContext::BeginGraphicsCommandList(u64 _frameId)

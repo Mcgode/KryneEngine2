@@ -87,11 +87,9 @@ namespace KryneEngine
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc);
         bool DestroyRenderTargetView(RenderTargetViewHandle _handle);
 
-        [[nodiscard]] RenderTargetViewHandle GetPresentRenderTargetView(u8 _swapChainIndex) { KE_ERROR("NYI"); return {}; }
-
-        [[nodiscard]] TextureHandle GetPresentTexture(u8 _swapChainIndex) { KE_ERROR("NYI"); return {}; }
-
-        [[nodiscard]] u32 GetCurrentPresentImageIndex() const { KE_ERROR("NYI"); return {}; }
+        [[nodiscard]] RenderTargetViewHandle GetPresentRenderTargetView(u8 _swapChainIndex) const;
+        [[nodiscard]] TextureHandle GetPresentTexture(u8 _swapChainIndex) const;
+        [[nodiscard]] u32 GetCurrentPresentImageIndex() const;
 
         [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc) { KE_ERROR("NYI"); return {}; }
 

@@ -19,6 +19,23 @@ namespace KryneEngine
     class MetalResources
     {
     public:
+        MetalResources();
+        ~MetalResources();
+
+    public:
+        TextureHandle RegisterTexture(MTL::Texture* _texture);
+        bool UnregisterTexture(TextureHandle _handle);
+        void UpdateSystemTexture(TextureHandle _handle, MTL::Texture* _texture);
+
+    private:
+        struct TextureHotData
+        {
+            NsPtr<MTL::Texture> m_texture;
+        };
+
+        GenerationalPool<TextureHotData> m_textures;
+
+    public:
         RenderTargetViewHandle RegisterRtv(const RenderTargetViewDesc& _desc);
         bool UnregisterRtv(RenderTargetViewHandle _handle);
 
