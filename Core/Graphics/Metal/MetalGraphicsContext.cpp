@@ -8,13 +8,18 @@
 
 #include <Graphics/Metal/MetalFrameContext.hpp>
 #include <Graphics/Metal/MetalSwapChain.hpp>
+#include <Profiling/TracyHeader.hpp>
 
 namespace KryneEngine
 {
     void MetalGraphicsContext::EndFrame(u64 _frameId)
     {
+        KE_ZoneScopedFunction("MetalGraphicsContext::EndFrame");
+
         // Finish current frame and commit
         {
+            KE_ZoneScoped("Finish current frame and commit");
+
             const u8 frameIndex = _frameId % m_frameContextCount;
             MetalFrameContext& frameContext = m_frameContexts[frameIndex];
 
@@ -22,23 +27,31 @@ namespace KryneEngine
             {
                 if (frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.empty())
                 {
+                    KE_ZoneScoped("Begin graphics command buffer for present operation");
                     frameContext.BeginGraphicsCommandList(*m_graphicsQueue);
                 }
                 m_swapChain->Present(frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.back(), frameIndex);
             }
 
-            frameContext.m_graphicsAllocationSet.Commit();
-            frameContext.m_computeAllocationSet.Commit();
-            frameContext.m_ioAllocationSet.Commit();
+            {
+                KE_ZoneScoped("Commit");
+                frameContext.m_graphicsAllocationSet.Commit();
+                frameContext.m_computeAllocationSet.Commit();
+                frameContext.m_ioAllocationSet.Commit();
+            }
 
             if (m_swapChain)
             {
+                KE_ZoneScoped("Retrieve next drawable");
                 m_swapChain->UpdateNextDrawable(frameIndex);
             }
         }
 
+        FrameMark;
+
         // Prepare next frame
         {
+            KE_ZoneScoped("Prepare next frame");
             const u64 nextFrame = _frameId;
             const u8 newFrameIndex = nextFrame % m_frameContextCount;
 

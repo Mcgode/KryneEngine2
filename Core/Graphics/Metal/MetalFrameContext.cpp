@@ -7,6 +7,7 @@
 #include "MetalFrameContext.hpp"
 
 #include <Common/Assert.hpp>
+#include <Profiling/TracyHeader.hpp>
 
 namespace KryneEngine
 {
@@ -37,6 +38,7 @@ namespace KryneEngine
 
     void MetalFrameContext::WaitForFrame(u64 _frameId)
     {
+        KE_ZoneScopedFunction("MetalFrameContext::WaitForFrame");
         if (m_frameId > _frameId)
         {
             return;
