@@ -36,7 +36,9 @@ set (MetalFiles
         Metal/MetalFrameContext.hpp
         Metal/MetalTypes.hpp
         Metal/MetalSwapChain.mm
-        Metal/MetalSwapChain.hpp)
+        Metal/MetalSwapChain.hpp
+        Metal/MetalResources.cpp
+        Metal/MetalResources.hpp)
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp

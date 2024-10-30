@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "MetalResources.hpp"
 #include <EASTL/unique_ptr.h>
 #include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
@@ -83,8 +84,8 @@ namespace KryneEngine
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc) { KE_ERROR("NYI"); return {}; }
         bool DestroySampler(SamplerHandle _sampler) { KE_ERROR("NYI"); return {}; }
 
-        [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc) { KE_ERROR("NYI"); return {}; }
-        bool DestroyRenderTargetView(RenderTargetViewHandle _handle) { KE_ERROR("NYI"); return {}; }
+        [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc);
+        bool DestroyRenderTargetView(RenderTargetViewHandle _handle);
 
         [[nodiscard]] RenderTargetViewHandle GetPresentRenderTargetView(u8 _swapChainIndex) { KE_ERROR("NYI"); return {}; }
 
@@ -157,5 +158,8 @@ namespace KryneEngine
             const bool* _unchanged,
             u64 _frameId) { KE_ERROR("NYI"); return; }
         void DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc) { KE_ERROR("NYI"); return; }
+
+    private:
+        MetalResources m_resources;
     };
 } // KryneEngine

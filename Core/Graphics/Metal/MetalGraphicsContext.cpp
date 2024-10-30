@@ -76,6 +76,16 @@ namespace KryneEngine
         return _frameId < m_frameContexts[frameIndex].m_frameId;
     }
 
+    RenderTargetViewHandle MetalGraphicsContext::CreateRenderTargetView(const RenderTargetViewDesc& _desc)
+    {
+        return m_resources.RegisterRtv(_desc);
+    }
+
+    bool MetalGraphicsContext::DestroyRenderTargetView(RenderTargetViewHandle _handle)
+    {
+        return m_resources.UnregisterRtv(_handle);
+    }
+
     CommandList MetalGraphicsContext::BeginGraphicsCommandList(u64 _frameId)
     {
         VERIFY_OR_RETURN(m_graphicsQueue != nullptr, nullptr);
