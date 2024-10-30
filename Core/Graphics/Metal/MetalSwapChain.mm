@@ -46,10 +46,23 @@ namespace KryneEngine
         metalWindow.contentView.layer = metalLayer;
         metalWindow.contentView.wantsLayer = YES;
 
+        m_metalLayer = reinterpret_cast<CA::MetalLayer*>(metalLayer);
+
         for (size_t i = 0; i < m_drawables.Size(); i++)
         {
-            m_drawables.Init(i, reinterpret_cast<CA::MetalDrawable*>([metalLayer nextDrawable]));
+            m_drawables.Init(i, m_metalLayer->nextDrawable());
             KE_ASSERT_FATAL(m_drawables[i] != nullptr);
         }
+    }
+
+    void MetalSwapChain::Present(CommandList _commandList, u8 _frameIndex)
+    {
+        _commandList->presentDrawable(m_drawables[_frameIndex].get());
+    }
+
+    void MetalSwapChain::UpdateNextDrawable(u8 _frameIndex)
+    {
+        m_drawables[_frameIndex].reset(m_metalLayer->nextDrawable());
+        KE_ASSERT_FATAL(m_drawables[_frameIndex] != nullptr);
     }
 } // namespace KryneEngine

@@ -22,8 +22,7 @@ namespace KryneEngine
             {
                 frameContext.BeginGraphicsCommandList(*m_graphicsQueue);
             }
-            frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.back()->presentDrawable(
-                m_swapChain->m_drawables[frameIndex].get());
+            m_swapChain->Present(frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.back(), frameIndex);
         }
 
         const auto commitCommandBuffers = [] (MetalFrameContext::AllocationSet& _allocationSet)
@@ -39,6 +38,11 @@ namespace KryneEngine
         commitCommandBuffers(frameContext.m_graphicsAllocationSet);
         commitCommandBuffers(frameContext.m_computeAllocationSet);
         commitCommandBuffers(frameContext.m_ioAllocationSet);
+
+        if (m_swapChain)
+        {
+            m_swapChain->UpdateNextDrawable(frameIndex);
+        }
     }
 
     void MetalGraphicsContext::WaitForFrame(u64 _frameId) const
