@@ -75,4 +75,14 @@ namespace KryneEngine
         const u8 frameIndex = _frameId % m_frameContextCount;
         return _frameId < m_frameContexts[frameIndex].m_frameId;
     }
+
+    CommandList MetalGraphicsContext::BeginGraphicsCommandList(u64 _frameId)
+    {
+        VERIFY_OR_RETURN(m_graphicsQueue != nullptr, nullptr);
+        const u8 frameIndex = _frameId % m_frameContextCount;
+        return m_frameContexts[frameIndex].BeginGraphicsCommandList(*m_graphicsQueue);
+    }
+
+    void MetalGraphicsContext::EndGraphicsCommandList(u64 _frameId)
+    {}
 }

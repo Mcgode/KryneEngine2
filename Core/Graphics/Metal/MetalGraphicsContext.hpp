@@ -96,9 +96,8 @@ namespace KryneEngine
 
         bool DestroyRenderPass(RenderPassHandle _handle) { KE_ERROR("NYI"); return {}; }
 
-        CommandList BeginGraphicsCommandList(u64 _frameId) { KE_ERROR("NYI"); return {}; }
-
-        void EndGraphicsCommandList(u64 _frameId) { KE_ERROR("NYI"); }
+        CommandList BeginGraphicsCommandList(u64 _frameId);
+        void EndGraphicsCommandList(u64 _frameId);
 
         void BeginRenderPass(CommandList _commandList, RenderPassHandle _handle) { KE_ERROR("NYI"); return; }
 
