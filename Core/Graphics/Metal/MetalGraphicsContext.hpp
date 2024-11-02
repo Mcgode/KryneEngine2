@@ -91,9 +91,8 @@ namespace KryneEngine
         [[nodiscard]] TextureHandle GetPresentTexture(u8 _swapChainIndex) const;
         [[nodiscard]] u32 GetCurrentPresentImageIndex() const;
 
-        [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc) { KE_ERROR("NYI"); return {}; }
-
-        bool DestroyRenderPass(RenderPassHandle _handle) { KE_ERROR("NYI"); return {}; }
+        [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc);
+        bool DestroyRenderPass(RenderPassHandle _handle);
 
         CommandList BeginGraphicsCommandList(u64 _frameId);
         void EndGraphicsCommandList(u64 _frameId);

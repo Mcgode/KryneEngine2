@@ -6,10 +6,11 @@
 
 #pragma once
 
-#include <Memory/GenerationalPool.hpp>
 #include <EASTL/fixed_vector.h>
 #include <EASTL/optional.h>
-#include "Enums.hpp"
+#include <Graphics/Common/Enums.hpp>
+#include <Graphics/Common/Handles.hpp>
+#include <Memory/GenerationalPool.hpp>
 
 namespace KryneEngine
 {
@@ -47,7 +48,7 @@ namespace KryneEngine
         };
 
         static constexpr u8 kMaxSupportedColorAttachments = 8;
-        eastl::fixed_vector<Attachment, 8, false> m_colorAttachments {};
+        eastl::fixed_vector<Attachment, kMaxSupportedColorAttachments, false> m_colorAttachments {};
         eastl::optional<DepthStencilAttachment> m_depthStencilAttachment {};
 
 #if !defined(KE_FINAL)

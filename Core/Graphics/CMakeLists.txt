@@ -38,7 +38,9 @@ set (MetalFiles
         Metal/MetalSwapChain.mm
         Metal/MetalSwapChain.hpp
         Metal/MetalResources.cpp
-        Metal/MetalResources.hpp)
+        Metal/MetalResources.hpp
+        Metal/Helpers/EnumConverters.cpp
+        Metal/Helpers/EnumConverters.hpp)
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp

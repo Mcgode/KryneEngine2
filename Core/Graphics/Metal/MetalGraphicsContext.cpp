@@ -106,6 +106,12 @@ namespace KryneEngine
         return m_swapChain->m_index;
     }
 
+    RenderPassHandle MetalGraphicsContext::CreateRenderPass(const RenderPassDesc& _desc)
+    { return RenderPassHandle(); }
+
+    bool MetalGraphicsContext::DestroyRenderPass(RenderPassHandle _handle)
+    { return false; }
+
     CommandList MetalGraphicsContext::BeginGraphicsCommandList(u64 _frameId)
     {
         VERIFY_OR_RETURN(m_graphicsQueue != nullptr, nullptr);
