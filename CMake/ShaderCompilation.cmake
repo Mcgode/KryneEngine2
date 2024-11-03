@@ -36,11 +36,19 @@ function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
     set(SHADER_INPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${LOCAL_SHADERS_DIR}")
     set(BUILD_OUTPUT_DIR "${SHADER_BUILD_OUTPUT_DIR}/${OUTPUT_DIR_NAME}")
 
-    if (GraphicsApi STREQUAL "DX12")
-        set(OutputFormat "cso")
-    else ()
+    if (GraphicsApi STREQUAL "VK")
         set(OutputFormat "spirv")
+    else ()
+        set(OutputFormat "cso")
     endif()
+
+    if (GraphicsApi STREQUAL "MTL")
+        set(Converter "metal-shaderconverter")
+        set(ConvertFormat "metallib")
+    else ()
+        set(Converter "none")
+        set(ConvertFormat "none")
+    endif ()
 
     if (NOT ${CMAKE_GENERATOR} MATCHES "Ninja")
         message(FATAL_ERROR "System currently exclusively supports Ninja")
@@ -75,6 +83,8 @@ function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
                 ${SHADER_INPUT_DIR}
                 ${CMAKE_SOURCE_DIR}
                 "${SHADER_INCLUDE_LIST}"
+                ${Converter}
+                ${ConvertFormat}
                 ${ShaderListFiles}
             DEPENDS ${GENERATE_SCRIPT} ${ShaderListFiles}
             COMMENT "Parsing shader list"

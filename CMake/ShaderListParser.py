@@ -16,7 +16,9 @@ def main():
     shaders_dir = Path(sys.argv[6])
     source_dir = Path(sys.argv[7])
     include_list = sys.argv[8]
-    shader_list_files = sys.argv[9:]
+    converter = sys.argv[9]
+    convert_format = sys.argv[10]
+    shader_list_files = sys.argv[11:]
 
     working_dir = output_file.parent
 
@@ -56,6 +58,10 @@ def main():
         shader_output_dir_name = "output_dir"
         writer.variable(shader_output_dir_name, os.path.relpath(shader_output_dir, working_dir))
 
+        converter_name = "converter"
+        if converter != "none":
+            writer.variable(converter_name, converter)
+
         writer.newline()
 
         base_command = f"${shader_compiler_name} "
@@ -81,6 +87,10 @@ def main():
                     command,
                     depfile="$out.d",
                     deps="gcc")
+
+        if converter != "none":
+            writer.newline()
+            writer.rule("shader_convert", f"${converter_name} $in -o $out")
 
         writer.newline()
         writer.comment("--------------------------------------------------------------------")
@@ -125,6 +135,15 @@ def main():
                             "entry_point": entry_point
                         },
                     )
+
+                    if converter != "none":
+                        final_shader = shader_file.relative_to(shaders_dir)
+                        final_shader = final_shader.with_name(f"{final_shader.stem}_{entry_point}.{convert_format}")
+                        final_shader = PurePath(f"${shader_output_dir_name}") / final_shader
+                        writer.build(
+                            [str(final_shader)],
+                            "shader_convert",
+                            str(output_shader))
 
                     print(f" - Shader type [{shader_type}], Entry Point [{entry_point}]")
         writer.close()
