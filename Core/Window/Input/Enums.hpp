@@ -152,6 +152,7 @@ namespace KryneEngine
         LeftShift,
         LeftCtrl,
         LeftAlt,
+        LeftSuper,
         RightShift,
         RightCtrl,
         RightAlt,

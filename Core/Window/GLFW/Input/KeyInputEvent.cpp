@@ -112,6 +112,7 @@ namespace KryneEngine::GLFW
             MAP(GLFW_KEY_LEFT_SHIFT, LeftShift);
             MAP(GLFW_KEY_LEFT_CONTROL, LeftCtrl);
             MAP(GLFW_KEY_LEFT_ALT, LeftAlt);
+            MAP(GLFW_KEY_LEFT_SUPER, LeftSuper);
             MAP(GLFW_KEY_RIGHT_SHIFT, RightShift);
             MAP(GLFW_KEY_RIGHT_CONTROL, RightCtrl);
             MAP(GLFW_KEY_RIGHT_ALT, RightAlt);
