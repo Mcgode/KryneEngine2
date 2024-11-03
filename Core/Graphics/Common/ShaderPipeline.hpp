@@ -299,6 +299,7 @@ namespace KryneEngine
         Type m_type = Type::SampledTexture;
         ShaderVisibility m_visibility = ShaderVisibility::Fragment;
         u16 m_count = 1;
+        TextureTypes m_textureType = TextureTypes::Single2D;
     };
 
     struct DescriptorSetDesc

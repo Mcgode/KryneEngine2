@@ -40,7 +40,9 @@ set (MetalFiles
         Metal/MetalResources.cpp
         Metal/MetalResources.hpp
         Metal/Helpers/EnumConverters.cpp
-        Metal/Helpers/EnumConverters.hpp)
+        Metal/Helpers/EnumConverters.hpp
+        Metal/MetalArgumentBufferManager.cpp
+        Metal/MetalArgumentBufferManager.hpp)
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp

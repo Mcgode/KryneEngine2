@@ -9,6 +9,7 @@
 #include <Graphics/Common/EnumHelpers.hpp>
 #include <Graphics/Common/RenderPass.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
+#include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Metal/MetalHeaders.hpp>
 
 namespace KryneEngine::MetalConverters
@@ -23,6 +24,9 @@ namespace KryneEngine::MetalConverters
     [[nodiscard]] MTL::TextureSwizzle GetSwizzle(TextureComponentMapping _mapping);
 
     [[nodiscard]] MTL::TextureType GetTextureType(TextureTypes _type);
+
+    [[nodiscard]] MTL::DataType GetDataType(DescriptorBindingDesc::Type _type);
+    [[nodiscard]] MTL::BindingAccess GetBindingAccess(DescriptorBindingDesc::Type _type);
 
     [[nodiscard]] MTL::LoadAction GetMetalLoadOperation(RenderPassDesc::Attachment::LoadOperation _op);
     [[nodiscard]] MTL::StoreAction GetMetalStoreOperation(RenderPassDesc::Attachment::StoreOperation _op);

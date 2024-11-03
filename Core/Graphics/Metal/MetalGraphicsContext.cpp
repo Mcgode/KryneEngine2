@@ -258,6 +258,18 @@ namespace KryneEngine
         return m_resources.LoadLibrary(*m_device, _bytecodeData, _bytecodeSize);
     }
 
+    DescriptorSetLayoutHandle MetalGraphicsContext::CreateDescriptorSetLayout(
+        const DescriptorSetDesc& _desc,
+        u32* _bindingIndices)
+    {
+        return m_argumentBufferManager.CreateArgumentDescriptor(_desc, _bindingIndices);
+    }
+
+    bool MetalGraphicsContext::DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout)
+    {
+        return m_argumentBufferManager.DeleteArgumentDescriptor(_layout);
+    }
+
     bool MetalGraphicsContext::FreeShaderModule(ShaderModuleHandle _module)
     {
         return m_resources.FreeLibrary(_module);

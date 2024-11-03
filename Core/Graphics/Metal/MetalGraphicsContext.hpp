@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "MetalResources.hpp"
 #include <EASTL/unique_ptr.h>
 #include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/GraphicsCommon.hpp>
@@ -14,7 +13,9 @@
 #include <Graphics/Common/MemoryBarriers.hpp>
 #include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Common/Texture.hpp>
+#include <Graphics/Metal/MetalArgumentBufferManager.hpp>
 #include <Graphics/Metal/MetalHeaders.hpp>
+#include <Graphics/Metal/MetalResources.hpp>
 #include <Graphics/Metal/MetalTypes.hpp>
 
 namespace KryneEngine
@@ -116,14 +117,14 @@ namespace KryneEngine
             const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers) { KE_ERROR("NYI"); return; }
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
-        [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices) { KE_ERROR("NYI"); return {}; }
+        [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
         [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout) { KE_ERROR("NYI"); return {}; }
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc) { KE_ERROR("NYI"); return {}; }
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc){ KE_ERROR("NYI"); return {}; }
         bool DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline) { KE_ERROR("NYI"); return {}; }
         bool DestroyPipelineLayout(PipelineLayoutHandle _layout) { KE_ERROR("NYI"); return {}; }
         bool DestroyDescriptorSet(DescriptorSetHandle _set) { KE_ERROR("NYI"); return {}; }
-        bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout) { KE_ERROR("NYI"); return {}; }
+        bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout);
         bool FreeShaderModule(ShaderModuleHandle _module);
 
         void UpdateDescriptorSet(
@@ -152,5 +153,6 @@ namespace KryneEngine
 
     private:
         MetalResources m_resources;
+        MetalArgumentBufferManager m_argumentBufferManager;
     };
 } // KryneEngine

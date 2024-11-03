@@ -202,6 +202,39 @@ namespace KryneEngine::MetalConverters
         return usage;
     }
 
+    MTL::DataType GetDataType(DescriptorBindingDesc::Type _type)
+    {
+        switch (_type)
+        {
+        case DescriptorBindingDesc::Type::Sampler:
+            return MTL::DataTypeSampler;
+        case DescriptorBindingDesc::Type::SampledTexture:
+        case DescriptorBindingDesc::Type::StorageReadOnlyTexture:
+        case DescriptorBindingDesc::Type::StorageReadWriteTexture:
+            return MTL::DataTypeTexture;
+        case DescriptorBindingDesc::Type::ConstantBuffer:
+        case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:
+        case DescriptorBindingDesc::Type::StorageReadWriteBuffer:
+            return MTL::DataTypeStruct;
+        }
+    }
+
+    MTL::BindingAccess GetBindingAccess(DescriptorBindingDesc::Type _type)
+    {
+        switch (_type)
+        {
+        case DescriptorBindingDesc::Type::Sampler:
+        case DescriptorBindingDesc::Type::SampledTexture:
+        case DescriptorBindingDesc::Type::StorageReadOnlyTexture:
+        case DescriptorBindingDesc::Type::ConstantBuffer:
+        case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:
+            return MTL::ArgumentAccessReadOnly;
+        case DescriptorBindingDesc::Type::StorageReadWriteTexture:
+        case DescriptorBindingDesc::Type::StorageReadWriteBuffer:
+            return MTL::ArgumentAccessReadWrite;
+        }
+    }
+
     MTL::LoadAction GetMetalLoadOperation(RenderPassDesc::Attachment::LoadOperation _op)
     {
         switch (_op)
