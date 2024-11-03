@@ -20,6 +20,8 @@ namespace KryneEngine
 
     class MetalResources
     {
+        friend class MetalGraphicsContext;
+
     public:
         MetalResources();
         ~MetalResources();

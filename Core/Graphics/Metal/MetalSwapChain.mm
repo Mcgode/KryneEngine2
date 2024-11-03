@@ -75,7 +75,7 @@ namespace KryneEngine
 
     void MetalSwapChain::Present(CommandList _commandList, u8 _frameIndex)
     {
-        _commandList->presentDrawable(m_drawables[_frameIndex].get());
+        _commandList->m_commandBuffer->presentDrawable(m_drawables[_frameIndex].get());
     }
 
     void MetalSwapChain::UpdateNextDrawable(u8 _frameIndex, MetalResources& _resources)

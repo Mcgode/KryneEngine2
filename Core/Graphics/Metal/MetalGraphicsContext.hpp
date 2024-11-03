@@ -97,9 +97,8 @@ namespace KryneEngine
         CommandList BeginGraphicsCommandList(u64 _frameId);
         void EndGraphicsCommandList(u64 _frameId);
 
-        void BeginRenderPass(CommandList _commandList, RenderPassHandle _handle) { KE_ERROR("NYI"); return; }
-
-        void EndRenderPass(CommandList _commandList) { KE_ERROR("NYI"); return; }
+        void BeginRenderPass(CommandList _commandList, RenderPassHandle _handle);
+        void EndRenderPass(CommandList _commandList);
 
         void SetTextureData(
             CommandList _commandList,

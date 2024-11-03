@@ -30,7 +30,9 @@ namespace KryneEngine
                     KE_ZoneScoped("Begin graphics command buffer for present operation");
                     frameContext.BeginGraphicsCommandList(*m_graphicsQueue);
                 }
-                m_swapChain->Present(frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.back(), frameIndex);
+                m_swapChain->Present(
+                    &frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.back(),
+                    frameIndex);
             }
 
             {
@@ -107,10 +109,44 @@ namespace KryneEngine
     }
 
     RenderPassHandle MetalGraphicsContext::CreateRenderPass(const RenderPassDesc& _desc)
-    { return RenderPassHandle(); }
+    {
+        return m_resources.CreateRenderPassDescriptor(_desc);
+    }
 
     bool MetalGraphicsContext::DestroyRenderPass(RenderPassHandle _handle)
-    { return false; }
+    {
+        return m_resources.DestroyRenderPassDescriptor(_handle);
+    }
+
+    void MetalGraphicsContext::BeginRenderPass(CommandList _commandList, RenderPassHandle _handle)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList != nullptr);
+
+        const MetalResources::RenderPassHotData* rpHot = m_resources.m_renderPasses.Get(_handle.m_handle);
+        VERIFY_OR_RETURN_VOID(rpHot != nullptr);
+
+        // Update system RTVs
+        for (const auto& systemRtv: rpHot->m_systemRtvs)
+        {
+            const MetalResources::RtvHotData* rtvHot = m_resources.m_renderTargetViews.Get(systemRtv.m_handle.m_handle);
+            VERIFY_OR_RETURN_VOID(rtvHot != nullptr);
+
+            rpHot->m_descriptor->colorAttachments()->object(systemRtv.m_index)
+                ->setTexture(rtvHot->m_texture.get());
+        }
+
+        // Leaving dangling encoders is expected behaviour.
+        // This allows same command type batching, avoiding encoder re-creation
+        _commandList->ResetEncoder(CommandListData::EncoderType::Render);
+
+        _commandList->m_encoder =
+            _commandList->m_commandBuffer->renderCommandEncoder(rpHot->m_descriptor.get());
+    }
+
+    void MetalGraphicsContext::EndRenderPass(CommandList _commandList)
+    {
+        _commandList->ResetEncoder();
+    }
 
     CommandList MetalGraphicsContext::BeginGraphicsCommandList(u64 _frameId)
     {

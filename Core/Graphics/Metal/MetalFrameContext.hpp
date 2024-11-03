@@ -27,7 +27,7 @@ namespace KryneEngine
     private:
         struct AllocationSet
         {
-            eastl::vector<MTL::CommandBuffer*> m_usedCommandBuffers {};
+            eastl::vector<CommandListData> m_usedCommandBuffers {};
             dispatch_semaphore_t m_synchronizationSemaphore = nullptr;
             bool m_available;
             bool m_committedBuffers = false;

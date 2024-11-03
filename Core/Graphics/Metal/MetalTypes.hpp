@@ -10,5 +10,39 @@
 
 namespace KryneEngine
 {
-    using CommandList = MTL::CommandBuffer*;
+
+    struct CommandListData
+    {
+        enum class EncoderType
+        {
+            Render,
+            Blit,
+            Compute
+        };
+
+        MTL::CommandBuffer* m_commandBuffer;
+        NsPtr<MTL::CommandEncoder> m_encoder;
+        EncoderType m_type;
+
+        void ResetEncoder()
+        {
+            if (m_encoder != nullptr)
+            {
+                m_encoder->endEncoding();
+                m_encoder.reset();
+            }
+        }
+
+        void ResetEncoder(EncoderType _type)
+        {
+            if (m_encoder != nullptr && m_type != _type)
+            {
+                m_encoder->endEncoding();
+                m_encoder.reset();
+            }
+            m_type = _type;
+        }
+    };
+
+    using CommandList = CommandListData*;
 }

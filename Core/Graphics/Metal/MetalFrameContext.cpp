@@ -17,15 +17,15 @@ namespace KryneEngine
         , m_ioAllocationSet(_ioAvailable)
     {}
 
-    MTL::CommandBuffer* MetalFrameContext::BeginGraphicsCommandList(MTL::CommandQueue& _queue)
+    CommandList MetalFrameContext::BeginGraphicsCommandList(MTL::CommandQueue& _queue)
     {
         KE_ASSERT(m_graphicsAllocationSet.m_available);
 
         MTL::CommandBuffer* commandBuffer = _queue.commandBuffer();
         KE_ASSERT_FATAL(commandBuffer != nullptr);
 
-        m_graphicsAllocationSet.m_usedCommandBuffers.push_back(commandBuffer);
-        return commandBuffer;
+        m_graphicsAllocationSet.m_usedCommandBuffers.push_back({ commandBuffer });
+        return &m_graphicsAllocationSet.m_usedCommandBuffers.back();
     }
 
     void MetalFrameContext::PrepareForNextFrame(u64 _frameId)
@@ -67,16 +67,21 @@ namespace KryneEngine
         if (!m_usedCommandBuffers.empty())
         {
             m_committedBuffers = true;
-            m_usedCommandBuffers.back()->addCompletedHandler(
+            m_usedCommandBuffers.back().m_commandBuffer->addCompletedHandler(
                 [this](MTL::CommandBuffer*){
                     dispatch_semaphore_signal(m_synchronizationSemaphore);
                 });
         }
 
-        for (auto commandBuffer: m_usedCommandBuffers)
+        for (auto& commandListData : m_usedCommandBuffers)
         {
-            commandBuffer->commit();
-            commandBuffer->release();
+            if (commandListData.m_encoder != nullptr)
+            {
+                commandListData.m_encoder->endEncoding();
+                commandListData.m_encoder.reset();
+            }
+            commandListData.m_commandBuffer->commit();
+            commandListData.m_commandBuffer->release();
         }
         m_usedCommandBuffers.clear();
     }
