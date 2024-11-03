@@ -46,6 +46,30 @@ namespace KryneEngine::MetalConverters
         }
     }
 
+    MTL::ResourceOptions GetResourceStorage(MemoryUsage _memoryUsage)
+    {
+        switch (_memoryUsage & MemoryUsage::USAGE_TYPE_MASK)
+        {
+        case MemoryUsage::StageOnce_UsageType:
+            return MTL::ResourceStorageModeShared;
+        case MemoryUsage::StageEveryFrame_UsageType:
+#if defined(TARGET_OS_MAC)
+            return MTL::ResourceStorageModeManaged;
+#else
+            return MTL::ResourceStorageModeShared;
+#endif
+        case MemoryUsage::GpuOnly_UsageType:
+            return MTL::ResourceStorageModePrivate;
+        case MemoryUsage::Readback_UsageType:
+#if defined(TARGET_OS_MAC)
+            return MTL::ResourceStorageModeManaged;
+#else
+            return MTL::ResourceStorageModeShared;
+#endif
+        }
+        return 0;
+    }
+
     MTL::LoadAction GetMetalLoadOperation(RenderPassDesc::Attachment::LoadOperation _op)
     {
         switch (_op)

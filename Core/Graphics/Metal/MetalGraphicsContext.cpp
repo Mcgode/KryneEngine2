@@ -112,6 +112,47 @@ namespace KryneEngine
         return result;
     }
 
+    BufferHandle MetalGraphicsContext::CreateBuffer(const BufferCreateDesc& _desc)
+    {
+        return BufferHandle();
+    }
+
+    BufferHandle MetalGraphicsContext::CreateStagingBuffer(
+        const TextureDesc& _createDesc,
+        const eastl::vector<TextureMemoryFootprint>& _footprints)
+    {
+        const TextureMemoryFootprint& lastFootprint = _footprints.back();
+        const size_t size = lastFootprint.m_offset +
+            lastFootprint.m_lineByteAlignedSize * lastFootprint.m_height * lastFootprint.m_depth;
+
+        BufferCreateDesc desc {
+            .m_desc = {
+                .m_size = size,
+#if !defined(KE_FINAL)
+                .m_debugName = _createDesc.m_debugName + "/StagingBuffer"
+#endif
+            },
+            .m_usage = MemoryUsage::StageOnce_UsageType | MemoryUsage::TransferSrcBuffer,
+        };
+
+        return CreateBuffer(desc);
+    }
+
+    bool MetalGraphicsContext::NeedsStagingBuffer(BufferHandle _buffer)
+    {
+        const MetalResources::BufferColdData* bufferCold = m_resources.m_buffers.GetCold(_buffer.m_handle);
+        if (KE_VERIFY(bufferCold != nullptr)) [[likely]]
+        {
+            return bufferCold->m_options == MTL::ResourceStorageModePrivate;
+        }
+        return false;
+    }
+
+    bool MetalGraphicsContext::DestroyBuffer(BufferHandle _bufferHandle)
+    {
+        return m_resources.DestroyBuffer(_bufferHandle);
+    }
+
     RenderTargetViewHandle MetalGraphicsContext::CreateRenderTargetView(const RenderTargetViewDesc& _desc)
     {
         return m_resources.RegisterRtv(_desc);

@@ -6,6 +6,7 @@
 
 #include "MetalResources.hpp"
 
+#include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
 #include <Graphics/Metal/Helpers/EnumConverters.hpp>
 #include <Memory/GenerationalPool.inl>
@@ -14,6 +15,30 @@ namespace KryneEngine
 {
     MetalResources::MetalResources() = default;
     MetalResources::~MetalResources() = default;
+
+    BufferHandle MetalResources::CreateBuffer(MTL::Device& _device, const BufferCreateDesc& _desc)
+    {
+        const GenPool::Handle handle = m_buffers.Allocate();
+
+        auto [bufferHot, bufferCold] = m_buffers.GetAll(handle);
+        const MTL::ResourceOptions options = MetalConverters::GetResourceStorage(_desc.m_usage);
+        bufferHot->m_buffer = _device.newBuffer(_desc.m_desc.m_size, options);
+        KE_ASSERT_FATAL(bufferHot->m_buffer != nullptr);
+        bufferCold->m_options = options;
+
+        return { handle };
+    }
+
+    bool MetalResources::DestroyBuffer(BufferHandle _buffer)
+    {
+        BufferHotData hotData;
+        if (m_buffers.Free(_buffer.m_handle, &hotData))
+        {
+            hotData.m_buffer.reset();
+            return true;
+        }
+        return false;
+    }
 
     TextureHandle MetalResources::RegisterTexture(MTL::Texture* _texture)
     {

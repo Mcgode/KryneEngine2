@@ -15,6 +15,7 @@
 
 namespace KryneEngine
 {
+    struct BufferCreateDesc;
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
 
@@ -25,6 +26,23 @@ namespace KryneEngine
     public:
         MetalResources();
         ~MetalResources();
+
+    public:
+        BufferHandle CreateBuffer(MTL::Device& _device, const BufferCreateDesc& _desc);
+        bool DestroyBuffer(BufferHandle _buffer);
+
+    private:
+        struct BufferHotData
+        {
+            NsPtr<MTL::Buffer> m_buffer;
+        };
+
+        struct BufferColdData
+        {
+            MTL::ResourceOptions m_options;
+        };
+
+        GenerationalPool<BufferHotData, BufferColdData> m_buffers;
 
     public:
         TextureHandle RegisterTexture(MTL::Texture* _texture);

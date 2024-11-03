@@ -63,15 +63,12 @@ namespace KryneEngine
     public:
         [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc);
 
-        [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc) { KE_ERROR("NYI"); return {}; }
-
+        [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc);
         [[nodiscard]] BufferHandle CreateStagingBuffer(
             const TextureDesc& _createDesc,
-            const eastl::vector<TextureMemoryFootprint>& _footprints) { KE_ERROR("NYI"); return {}; }
-
-        [[nodiscard]] bool NeedsStagingBuffer(BufferHandle _buffer) { KE_ERROR("NYI"); return {}; }
-
-        bool DestroyBuffer(BufferHandle _bufferHandle) { KE_ERROR("NYI"); return {}; }
+            const eastl::vector<TextureMemoryFootprint>& _footprints);
+        [[nodiscard]] bool NeedsStagingBuffer(BufferHandle _buffer);
+        bool DestroyBuffer(BufferHandle _bufferHandle);
 
         [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _createDesc) { KE_ERROR("NYI"); return {}; }
 

@@ -14,6 +14,8 @@ namespace KryneEngine::MetalConverters
 {
     [[nodiscard]] size_t GetPixelByteSize(TextureFormat _format);
 
+    [[nodiscard]] MTL::ResourceOptions GetResourceStorage(MemoryUsage _memoryUsage);
+
     [[nodiscard]] MTL::LoadAction GetMetalLoadOperation(RenderPassDesc::Attachment::LoadOperation _op);
     [[nodiscard]] MTL::StoreAction GetMetalStoreOperation(RenderPassDesc::Attachment::StoreOperation _op);
 }
