@@ -81,7 +81,7 @@ namespace KryneEngine
     void MetalSwapChain::UpdateNextDrawable(u8 _frameIndex, MetalResources& _resources)
     {
         CA::MetalDrawable* drawable = m_metalLayer->nextDrawable();
-        m_drawables[_frameIndex].reset(m_metalLayer->nextDrawable());
+        m_drawables[_frameIndex].reset(drawable);
         KE_ASSERT_FATAL(m_drawables[_frameIndex] != nullptr);
         _resources.UpdateSystemTexture(m_textures[_frameIndex], drawable->texture());
         _resources.UpdateSystemTexture(m_rtvs[_frameIndex], drawable->texture());
