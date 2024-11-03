@@ -18,6 +18,8 @@ namespace KryneEngine
     struct BufferCreateDesc;
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
+    struct TextureCreateDesc;
+    struct TextureSrvDesc;
 
     class MetalResources
     {
@@ -45,6 +47,7 @@ namespace KryneEngine
         GenerationalPool<BufferHotData, BufferColdData> m_buffers;
 
     public:
+        TextureHandle CreateTexture(MTL::Device& _device, const TextureCreateDesc& _desc);
         TextureHandle RegisterTexture(MTL::Texture* _texture);
         bool UnregisterTexture(TextureHandle _handle);
         void UpdateSystemTexture(TextureHandle _handle, MTL::Texture* _texture);
@@ -57,6 +60,18 @@ namespace KryneEngine
         };
 
         GenerationalPool<TextureHotData> m_textures;
+
+    public:
+        TextureSrvHandle RegisterTextureSrv(const TextureSrvDesc& _desc);
+        bool UnregisterTextureSrv(TextureSrvHandle _textureSrv);
+
+    private:
+        struct TextureSrvHotData
+        {
+            NsPtr<MTL::Texture> m_texture;
+        };
+
+        GenerationalPool<TextureSrvHotData> m_textureSrvs;
 
     public:
         RenderTargetViewHandle RegisterRtv(const RenderTargetViewDesc& _desc);

@@ -70,13 +70,11 @@ namespace KryneEngine
         [[nodiscard]] bool NeedsStagingBuffer(BufferHandle _buffer);
         bool DestroyBuffer(BufferHandle _bufferHandle);
 
-        [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _createDesc) { KE_ERROR("NYI"); return {}; }
+        [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _createDesc);
+        bool DestroyTexture(TextureHandle _handle);
 
-        bool DestroyTexture(TextureHandle _handle) { KE_ERROR("NYI"); return {}; }
-
-        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 _frameId) { KE_ERROR("NYI"); return {}; }
-
-        bool DestroyTextureSrv(TextureSrvHandle _handle) { KE_ERROR("NYI"); return {}; }
+        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 _frameId);
+        bool DestroyTextureSrv(TextureSrvHandle _handle);
 
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc) { KE_ERROR("NYI"); return {}; }
         bool DestroySampler(SamplerHandle _sampler) { KE_ERROR("NYI"); return {}; }

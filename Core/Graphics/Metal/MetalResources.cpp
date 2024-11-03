@@ -8,6 +8,8 @@
 
 #include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
+#include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
+#include <Graphics/Common/Texture.hpp>
 #include <Graphics/Metal/Helpers/EnumConverters.hpp>
 #include <Memory/GenerationalPool.inl>
 
@@ -26,6 +28,11 @@ namespace KryneEngine
         KE_ASSERT_FATAL(bufferHot->m_buffer != nullptr);
         bufferCold->m_options = options;
 
+#if !defined(KE_FINAL)
+        NS::String* label = NS::String::string(_desc.m_desc.m_debugName.c_str(), NS::UTF8StringEncoding);
+        bufferHot->m_buffer->setLabel(label);
+#endif
+
         return { handle };
     }
 
@@ -40,6 +47,35 @@ namespace KryneEngine
         return false;
     }
 
+    TextureHandle MetalResources::CreateTexture(MTL::Device& _device, const TextureCreateDesc& _desc)
+    {
+        const GenPool::Handle handle = m_textures.Allocate();
+        TextureHotData* hot = m_textures.Get(handle);
+
+        NsPtr<MTL::TextureDescriptor> desc(MTL::TextureDescriptor::alloc()->init());
+        desc->setWidth(_desc.m_desc.m_dimensions.x);
+        desc->setHeight(_desc.m_desc.m_dimensions.y);
+        desc->setDepth(_desc.m_desc.m_dimensions.z);
+        desc->setPixelFormat(MetalConverters::ToPixelFormat(_desc.m_desc.m_format));
+        desc->setArrayLength(_desc.m_desc.m_arraySize);
+        desc->setTextureType(MetalConverters::GetTextureType(_desc.m_desc.m_type));
+        desc->setMipmapLevelCount(_desc.m_desc.m_mipCount);
+
+        desc->setResourceOptions(MetalConverters::GetResourceStorage(_desc.m_memoryUsage));
+        desc->setStorageMode(MetalConverters::GetStorageMode(_desc.m_memoryUsage));
+        desc->setUsage(MetalConverters::GetTextureUsage(_desc.m_memoryUsage));
+
+        hot->m_texture = _device.newTexture(desc.get());
+        hot->m_isSystemTexture = false;
+
+#if !defined(KE_FINAL)
+        NS::String* label = NS::String::string(_desc.m_desc.m_debugName.c_str(), NS::UTF8StringEncoding);
+        hot->m_texture->setLabel(label);
+#endif
+
+        return { handle };
+    }
+
     TextureHandle MetalResources::RegisterTexture(MTL::Texture* _texture)
     {
         const GenPool::Handle handle = m_textures.Allocate();
@@ -50,7 +86,13 @@ namespace KryneEngine
 
     bool MetalResources::UnregisterTexture(TextureHandle _handle)
     {
-        return m_textures.Free(_handle.m_handle);
+        TextureHotData textureHot;
+        if (m_textures.Free(_handle.m_handle, &textureHot))
+        {
+            textureHot.m_texture.reset();
+            return true;
+        }
+        return false;
     }
 
     void MetalResources::UpdateSystemTexture(TextureHandle _handle, MTL::Texture* _texture)
@@ -60,6 +102,45 @@ namespace KryneEngine
         {
             textureHotData->m_texture.reset(_texture->retain());
         }
+    }
+
+    TextureSrvHandle MetalResources::RegisterTextureSrv(const TextureSrvDesc& _desc)
+    {
+        const TextureHotData* originalTexture = m_textures.Get(_desc.m_texture.m_handle);
+        KE_ASSERT_FATAL(originalTexture != nullptr);
+
+        const GenPool::Handle handle = m_textureSrvs.Allocate();
+        TextureSrvHotData* hot = m_textureSrvs.Get(handle);
+        hot->m_texture = originalTexture->m_texture->newTextureView(
+            MetalConverters::ToPixelFormat(_desc.m_format),
+            MetalConverters::GetTextureType(_desc.m_viewType),
+            { _desc.m_minMip, static_cast<u32>(_desc.m_maxMip - _desc.m_minMip) },
+            { _desc.m_arrayStart, _desc.m_arrayRange },
+            {
+                MetalConverters::GetSwizzle(_desc.m_componentsMapping[0]),
+                MetalConverters::GetSwizzle(_desc.m_componentsMapping[1]),
+                MetalConverters::GetSwizzle(_desc.m_componentsMapping[2]),
+                MetalConverters::GetSwizzle(_desc.m_componentsMapping[3])
+            });
+        KE_ASSERT_FATAL(hot->m_texture != nullptr);
+
+#if !defined(KE_FINAL)
+        NS::String* label = NS::String::string(_desc.m_debugName.c_str(), NS::UTF8StringEncoding);
+        hot->m_texture->setLabel(label);
+#endif
+
+        return { handle };
+    }
+
+    bool MetalResources::UnregisterTextureSrv(TextureSrvHandle _textureSrv)
+    {
+        TextureSrvHotData hot;
+        if (m_textureSrvs.Free(_textureSrv.m_handle, &hot))
+        {
+            hot.m_texture.reset();
+            return true;
+        }
+        return false;
     }
 
     RenderTargetViewHandle MetalResources::RegisterRtv(const RenderTargetViewDesc& _desc)

@@ -153,6 +153,26 @@ namespace KryneEngine
         return m_resources.DestroyBuffer(_bufferHandle);
     }
 
+    TextureHandle MetalGraphicsContext::CreateTexture(const TextureCreateDesc& _createDesc)
+    {
+        return m_resources.CreateTexture(*m_device, _createDesc);
+    }
+
+    bool MetalGraphicsContext::DestroyTexture(TextureHandle _handle)
+    {
+        return m_resources.UnregisterTexture(_handle);
+    }
+
+    TextureSrvHandle MetalGraphicsContext::CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64)
+    {
+        return m_resources.RegisterTextureSrv(_srvDesc);
+    }
+
+    bool MetalGraphicsContext::DestroyTextureSrv(TextureSrvHandle _handle)
+    {
+        return m_resources.UnregisterTextureSrv(_handle);
+    }
+
     RenderTargetViewHandle MetalGraphicsContext::CreateRenderTargetView(const RenderTargetViewDesc& _desc)
     {
         return m_resources.RegisterRtv(_desc);
