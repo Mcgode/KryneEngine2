@@ -1,28 +1,55 @@
 
-# Fetch shader compiler executable
+# Fetch DirectX shader compiler executable
 if (LINUX)
-    set(ShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/linux/bin/dxc")
+    set(DirectXShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/linux/bin/dxc")
 elseif (WIN32)
     if (CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64")
-        set(ShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/win32/bin/x64/dxc.exe")
+        set(DirectXShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/win32/bin/x64/dxc.exe")
     elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86")
-        set(ShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/win32/bin/x86/dxc.exe")
+        set(DirectXShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/win32/bin/x86/dxc.exe")
     elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64")
-        set(ShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/win32/bin/arm64/dxc.exe")
+        set(DirectXShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/win32/bin/arm64/dxc.exe")
     else ()
         message(FATAL_ERROR "Unsupported processor ${CMAKE_SYSTEM_PROCESSOR}")
     endif ()
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-    set(ShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/macos/bin/dxc")
+    set(DirectXShaderCompiler "${CMAKE_SOURCE_DIR}/External/DirectXCompiler/macos/bin/dxc")
 else ()
     message(FATAL_ERROR "Platform unsupported")
 endif ()
 
 # Check that we found the executable
-if (EXISTS "${ShaderCompiler}")
-    message(STATUS "Will compile shaders using '${ShaderCompiler}'")
+if (EXISTS "${DirectXShaderCompiler}")
+    message(STATUS "Will compile shaders using '${DirectXShaderCompiler}'")
 else ()
-    message(FATAL_ERROR "Unable to find '${ShaderCompiler}'")
+    message(FATAL_ERROR "Unable to find '${DirectXShaderCompiler}'")
+endif ()
+
+# Add dxc to passed shader tools
+set(ShaderTools "dxc=${DirectXShaderCompiler}")
+
+#
+if (GraphicsApi STREQUAL "MTL")
+    set(NeedSpirVCross ON)
+else ()
+    set(NeedSpirVCross OFF)
+endif ()
+
+# Optionally fetch spirv-cross executable
+if (NeedSpirVCross)
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+        set(SpirVCross "${CMAKE_SOURCE_DIR}/External/spirv-cross/macos/bin/spirv-cross")
+    else ()
+        message(FATAL_ERROR "SpirV-Cross: Platform unsupported")
+    endif ()
+
+    if (EXISTS "${SpirVCross}")
+        message(STATUS "Will cross-compile shaders using '${SpirVCross}'")
+    else ()
+        message(FATAL_ERROR "Unable to find '${SpirVCross}'")
+    endif ()
+
+    set(ShaderTools "${ShaderTools}%%spirv-cross=${SpirVCross}")
 endif ()
 
 # Global variables set
@@ -38,17 +65,11 @@ function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
 
     if (GraphicsApi STREQUAL "VK")
         set(OutputFormat "spirv")
-    else ()
+    elseif (GraphicsApi STREQUAL "DX12")
         set(OutputFormat "cso")
+    elseif (GraphicsApi STREQUAL "MTL")
+        set(OutputFormat "metallib")
     endif()
-
-    if (GraphicsApi STREQUAL "MTL")
-        set(Converter "metal-shaderconverter")
-        set(ConvertFormat "metallib")
-    else ()
-        set(Converter "none")
-        set(ConvertFormat "none")
-    endif ()
 
     if (NOT ${CMAKE_GENERATOR} MATCHES "Ninja")
         message(FATAL_ERROR "System currently exclusively supports Ninja")
@@ -79,12 +100,10 @@ function(target_compile_shaders TARGET_NAME LOCAL_SHADERS_DIR OUTPUT_DIR_NAME)
                 ${SHADER_OUTPUT_DIR}
                 ${OutputFormat}
                 ${COMMANDS_FILE}
-                ${ShaderCompiler}
+                "${ShaderTools}"
                 ${SHADER_INPUT_DIR}
                 ${CMAKE_SOURCE_DIR}
                 "${SHADER_INCLUDE_LIST}"
-                ${Converter}
-                ${ConvertFormat}
                 ${ShaderListFiles}
             DEPENDS ${GENERATE_SCRIPT} ${ShaderListFiles}
             COMMENT "Parsing shader list"
