@@ -25,6 +25,11 @@ namespace KryneEngine
         MetalArgumentBufferManager();
         ~MetalArgumentBufferManager();
 
+        void Init(u8 _inFlightFrameCount);
+
+    private:
+        u8 m_inFlightFrameCount;
+
     public:
         [[nodiscard]] DescriptorSetLayoutHandle CreateArgumentDescriptor(
             const DescriptorSetDesc& _desc,
