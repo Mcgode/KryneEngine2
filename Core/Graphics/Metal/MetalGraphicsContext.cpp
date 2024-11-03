@@ -114,7 +114,7 @@ namespace KryneEngine
 
     BufferHandle MetalGraphicsContext::CreateBuffer(const BufferCreateDesc& _desc)
     {
-        return BufferHandle();
+        return m_resources.CreateBuffer(*m_device, _desc);
     }
 
     BufferHandle MetalGraphicsContext::CreateStagingBuffer(
