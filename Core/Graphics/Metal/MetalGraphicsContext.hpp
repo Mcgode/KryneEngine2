@@ -136,8 +136,8 @@ namespace KryneEngine
             const eastl::span<DescriptorSetWriteInfo>& _writes,
             u64 _frameId) { KE_ERROR("NYI"); return; }
 
-        void SetViewport(CommandList _commandList, const Viewport& _viewport){ KE_ERROR("NYI"); return; }
-        void SetScissorsRect(CommandList _commandList, const Rect& _rect) { KE_ERROR("NYI"); return; }
+        void SetViewport(CommandList _commandList, const Viewport& _viewport);
+        void SetScissorsRect(CommandList _commandList, const Rect& _rect);
         void SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16) { KE_ERROR("NYI"); return; }
         void SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews) { KE_ERROR("NYI"); return; }
         void SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline) { KE_ERROR("NYI"); return; }

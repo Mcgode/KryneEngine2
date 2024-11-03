@@ -6,6 +6,7 @@
 
 #include "MetalGraphicsContext.hpp"
 
+#include <Graphics/Common/Drawing.hpp>
 #include <Graphics/Metal/MetalFrameContext.hpp>
 #include <Graphics/Metal/MetalSwapChain.hpp>
 #include <Profiling/TracyHeader.hpp>
@@ -157,4 +158,32 @@ namespace KryneEngine
 
     void MetalGraphicsContext::EndGraphicsCommandList(u64 _frameId)
     {}
+
+    void MetalGraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
+
+        auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(_commandList->m_encoder.get());
+        encoder->setViewport({
+            .originX = static_cast<double>(_viewport.m_topLeftX),
+            .originY = static_cast<double>(_viewport.m_topLeftY),
+            .width = static_cast<double>(_viewport.m_width),
+            .height = static_cast<double>(_viewport.m_height),
+            .znear = static_cast<double>(_viewport.m_minDepth),
+            .zfar = static_cast<double>(_viewport.m_maxDepth),
+        });
+    }
+
+    void MetalGraphicsContext::SetScissorsRect(CommandList _commandList, const Rect& _rect)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
+
+        auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(_commandList->m_encoder.get());
+        encoder->setScissorRect({
+            .x = _rect.m_left,
+            .y = _rect.m_top,
+            .width = _rect.m_right - _rect.m_left,
+            .height = _rect.m_bottom - _rect.m_top,
+        });
+    }
 }
