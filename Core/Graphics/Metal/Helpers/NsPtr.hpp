@@ -12,9 +12,6 @@
 namespace KryneEngine
 {
     template<class T>
-    concept NsObject = std::derived_from<T, NS::Object>;
-
-    template<NsObject T>
     class NsPtr
     {
     public:
