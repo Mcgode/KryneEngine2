@@ -42,6 +42,8 @@ namespace KryneEngine
         return "spv";
 #elif defined(KE_GRAPHICS_API_DX12)
         return "cso";
+#elif defined(KE_GRAPHICS_API_MTL)
+        return "metallib";
 #else
         static_assert("Not yet implemented");
         return nullptr;
