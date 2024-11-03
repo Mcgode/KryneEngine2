@@ -61,7 +61,7 @@ namespace KryneEngine
         DynamicArray<MetalFrameContext> m_frameContexts;
 
     public:
-        [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc) { KE_ERROR("NYI"); return {}; }
+        [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc);
 
         [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc) { KE_ERROR("NYI"); return {}; }
 

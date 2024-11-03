@@ -5,8 +5,9 @@
  */
 
 #include "MetalGraphicsContext.hpp"
-
 #include <Graphics/Common/Drawing.hpp>
+
+#include <Graphics/Metal/Helpers/EnumConverters.hpp>
 #include <Graphics/Metal/MetalFrameContext.hpp>
 #include <Graphics/Metal/MetalSwapChain.hpp>
 #include <Profiling/TracyHeader.hpp>
@@ -77,6 +78,38 @@ namespace KryneEngine
     {
         const u8 frameIndex = _frameId % m_frameContextCount;
         return _frameId < m_frameContexts[frameIndex].m_frameId;
+    }
+
+    eastl::vector<TextureMemoryFootprint> MetalGraphicsContext::FetchTextureSubResourcesMemoryFootprints(
+        const TextureDesc& _desc)
+    {
+        eastl::vector<TextureMemoryFootprint> result {};
+
+        const size_t pixelByteSize = MetalConverters::GetPixelByteSize(_desc.m_format);
+        size_t currentOffset = 0;
+
+        for (u16 arraySlice = 0; arraySlice < _desc.m_arraySize; arraySlice++)
+        {
+            for (u8 mip = 0; mip < _desc.m_mipCount; mip++)
+            {
+                TextureMemoryFootprint& footprint = result.emplace_back();
+
+                footprint = {
+                    .m_offset = currentOffset,
+                    .m_width = eastl::max(_desc.m_dimensions.x >> mip, 1u),
+                    .m_height = eastl::max(_desc.m_dimensions.y >> mip, 1u),
+                    .m_depth = static_cast<u16>(eastl::max(_desc.m_dimensions.z >> mip, 1u)),
+                    .m_format = _desc.m_format,
+                };
+
+                const size_t rowByteSize = footprint.m_width * pixelByteSize;
+                footprint.m_lineByteAlignedSize = rowByteSize;
+
+                currentOffset += rowByteSize * footprint.m_height * footprint.m_depth;
+            }
+        }
+
+        return result;
     }
 
     RenderTargetViewHandle MetalGraphicsContext::CreateRenderTargetView(const RenderTargetViewDesc& _desc)
