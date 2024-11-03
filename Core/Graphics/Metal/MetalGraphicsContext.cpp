@@ -253,6 +253,16 @@ namespace KryneEngine
     void MetalGraphicsContext::EndGraphicsCommandList(u64 _frameId)
     {}
 
+    ShaderModuleHandle MetalGraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
+    {
+        return m_resources.LoadLibrary(*m_device, _bytecodeData, _bytecodeSize);
+    }
+
+    bool MetalGraphicsContext::FreeShaderModule(ShaderModuleHandle _module)
+    {
+        return m_resources.FreeLibrary(_module);
+    }
+
     void MetalGraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)
     {
         VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);

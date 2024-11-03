@@ -115,7 +115,7 @@ namespace KryneEngine
             const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
             const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers) { KE_ERROR("NYI"); return; }
 
-        [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize) { KE_ERROR("NYI"); return {}; }
+        [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices) { KE_ERROR("NYI"); return {}; }
         [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout) { KE_ERROR("NYI"); return {}; }
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc) { KE_ERROR("NYI"); return {}; }
@@ -124,7 +124,7 @@ namespace KryneEngine
         bool DestroyPipelineLayout(PipelineLayoutHandle _layout) { KE_ERROR("NYI"); return {}; }
         bool DestroyDescriptorSet(DescriptorSetHandle _set) { KE_ERROR("NYI"); return {}; }
         bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout) { KE_ERROR("NYI"); return {}; }
-        bool FreeShaderModule(ShaderModuleHandle _module){ KE_ERROR("NYI"); return {}; }
+        bool FreeShaderModule(ShaderModuleHandle _module);
 
         void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,

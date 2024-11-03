@@ -255,4 +255,27 @@ namespace KryneEngine
         }
         return false;
     }
+
+    ShaderModuleHandle MetalResources::LoadLibrary(MTL::Device& _device, void* _bytecode, size_t _size)
+    {
+        const GenPool::Handle handle = m_libraries.Allocate();
+
+        ShaderModuleHotData* hot = m_libraries.Get(handle);
+
+        dispatch_data_t data = dispatch_data_create(_bytecode, _size, nullptr, {});
+        hot->m_library = _device.newLibrary(data, nullptr);
+
+        return { handle };
+    }
+
+    bool MetalResources::FreeLibrary(ShaderModuleHandle _library)
+    {
+        ShaderModuleHotData hot;
+        if (m_libraries.Free(_library.m_handle, &hot))
+        {
+            hot.m_library.reset();
+            return true;
+        }
+        return false;
+    }
 } // namespace KryneEngine

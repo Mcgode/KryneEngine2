@@ -122,5 +122,17 @@ namespace KryneEngine
         };
 
         GenerationalPool<RenderPassHotData, RenderPassColdData> m_renderPasses;
+
+    public:
+        ShaderModuleHandle LoadLibrary(MTL::Device& _device, void* _bytecode, size_t _size);
+        bool FreeLibrary(ShaderModuleHandle _library);
+
+    private:
+        struct ShaderModuleHotData
+        {
+            NsPtr<MTL::Library> m_library;
+        };
+
+        GenerationalPool<ShaderModuleHotData> m_libraries;
     };
 } // namespace KryneEngine
