@@ -7,6 +7,7 @@
 #pragma once
 
 #include <Graphics/Common/Handles.hpp>
+#include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Metal/Helpers/NsPtr.hpp>
 #include <Memory/GenerationalPool.hpp>
 
@@ -20,8 +21,6 @@ namespace MTL
 
 namespace KryneEngine
 {
-    struct DescriptorSetDesc;
-
     class MetalArgumentBufferManager
     {
     public:
@@ -45,7 +44,12 @@ namespace KryneEngine
             DynamicArray<NsPtr<MTL::ArgumentDescriptor>> m_argDescriptors;
         };
 
-        GenerationalPool<ArgumentDescriptorHotData> m_argumentDescriptors;
+        struct ArgumentDescriptorColdData
+        {
+            ShaderVisibility m_shaderVisibility;
+        };
+
+        GenerationalPool<ArgumentDescriptorHotData, ArgumentDescriptorColdData> m_argumentDescriptors;
 
     public:
         [[nodiscard]] DescriptorSetHandle

@@ -37,10 +37,12 @@ namespace KryneEngine
         u32* _bindingIndices)
     {
         const GenPool::Handle handle = m_argumentDescriptors.Allocate();
-        ArgumentDescriptorHotData* hot = m_argumentDescriptors.Get(handle);
+        auto [hot, cold] = m_argumentDescriptors.GetAll(handle);
 
         hot->m_argDescriptors.Resize(_desc.m_bindings.size());
         hot->m_argDescriptors.InitAll(nullptr);
+
+        cold->m_shaderVisibility = ShaderVisibility::None;
 
         for (size_t i = 0; i < hot->m_argDescriptors.Size(); i++)
         {
@@ -57,6 +59,8 @@ namespace KryneEngine
                 .m_type = static_cast<u32>(binding.m_type),
                 .m_index = static_cast<u32>(i),
             }.m_packedIndex;
+
+            cold->m_shaderVisibility |= binding.m_visibility;
         }
 
         return { handle };
