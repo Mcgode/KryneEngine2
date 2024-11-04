@@ -102,7 +102,7 @@ namespace KryneEngine
         if (m_argumentBufferSets.Free(_argumentBuffer.m_handle, &hot))
         {
             hot.m_encoder.reset();
-            hot.m_argumentBuffers.Clear();
+            hot.m_argumentBuffer.reset();
             return true;
         }
         return false;
