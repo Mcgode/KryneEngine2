@@ -56,7 +56,7 @@ namespace KryneEngine
         struct ArgumentBufferHotData
         {
             NsPtr<MTL::ArgumentEncoder> m_encoder;
-            DynamicArray<NsPtr<MTL::Buffer>> m_argumentBuffers;
+            NsPtr<MTL::Buffer> m_argumentBuffer;
         };
 
         GenerationalPool<ArgumentBufferHotData> m_argumentBufferSets;

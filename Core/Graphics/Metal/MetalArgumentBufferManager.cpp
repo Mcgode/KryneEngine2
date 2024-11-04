@@ -86,16 +86,12 @@ namespace KryneEngine
             argDescHot->m_argDescriptors.Size());
         hot->m_encoder = _device.newArgumentEncoder(array);
 
-        hot->m_argumentBuffers.Resize(m_inFlightFrameCount);
 #if defined(TARGET_OS_MAC)
         const MTL::ResourceOptions options = MTL::ResourceStorageModeManaged;
 #else
         const MTL::ResourceOptions options = MTL::ResourceStorageModeShared;
 #endif
-        for (u8 i = 0; i < m_inFlightFrameCount; i++)
-        {
-            hot->m_argumentBuffers.Init(i, _device.newBuffer(hot->m_encoder->encodedLength(), options));
-        }
+        hot->m_argumentBuffer = _device.newBuffer(hot->m_encoder->encodedLength() * m_inFlightFrameCount, options);
 
         return { handle };
     }
