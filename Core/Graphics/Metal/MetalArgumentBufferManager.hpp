@@ -64,5 +64,28 @@ namespace KryneEngine
         };
 
         GenerationalPool<ArgumentBufferHotData> m_argumentBufferSets;
+
+    public:
+        PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
+        bool DestroyPipelineLayout(PipelineLayoutHandle _layout);
+
+    private:
+        struct PushConstantData
+        {
+            struct VisibilityData
+            {
+                ShaderVisibility m_visibility;
+                u8 m_bufferIndex;
+            };
+            eastl::fixed_vector<VisibilityData, 1> m_data;
+        };
+
+        struct PipelineLayoutHotData
+        {
+            eastl::fixed_vector<ShaderVisibility, 8> m_setVisibilities;
+            eastl::fixed_vector<PushConstantData, 1> m_pushConstantsData;
+        };
+
+        GenerationalPool<PipelineLayoutHotData> m_pipelineLayouts;
     };
 } // namespace KryneEngine

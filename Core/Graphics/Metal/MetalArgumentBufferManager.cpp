@@ -77,8 +77,9 @@ namespace KryneEngine
         return false;
     }
 
-    DescriptorSetHandle
-    MetalArgumentBufferManager::CreateArgumentBuffer(MTL::Device& _device, DescriptorSetLayoutHandle _descriptor)
+    DescriptorSetHandle MetalArgumentBufferManager::CreateArgumentBuffer(
+        MTL::Device& _device,
+        DescriptorSetLayoutHandle _descriptor)
     {
         const GenPool::Handle handle = m_argumentBufferSets.Allocate();
 
@@ -110,5 +111,66 @@ namespace KryneEngine
             return true;
         }
         return false;
+    }
+
+    PipelineLayoutHandle MetalArgumentBufferManager::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
+    {
+        const GenPool::Handle handle = m_pipelineLayouts.Allocate();
+
+        PipelineLayoutHotData* hot = m_pipelineLayouts.Get(handle);
+
+        constexpr ShaderVisibility testedVisibilities[] = {
+            ShaderVisibility::Vertex,
+            ShaderVisibility::TesselationControl,
+            ShaderVisibility::TesselationEvaluation,
+            ShaderVisibility::Fragment,
+            ShaderVisibility::Compute,
+            ShaderVisibility::Mesh,
+            ShaderVisibility::Task
+        };
+
+        // Reproduce SpirV cross behaviour regarding push constant buffer index determination.
+        // If no descriptor set is included in shader, takes buffer index 0.
+        // If there's any set, will take the last set index, and add +1.
+        // Push constant buffer index can vary between stages.
+
+        for (auto pushConstantDesc : _desc.m_pushConstants)
+        {
+            auto& data = hot->m_pushConstantsData.emplace_back();
+            for (const ShaderVisibility visibility: testedVisibilities)
+            {
+                if (BitUtils::EnumHasAny(pushConstantDesc.m_visibility, visibility))
+                {
+                    data.m_data.push_back({
+                        .m_visibility = visibility,
+                    });
+                }
+            }
+        }
+
+        for (size_t i = 0; i < _desc.m_descriptorSets.size(); i++)
+        {
+            const auto& set = _desc.m_descriptorSets[i];
+            const ShaderVisibility setVisibility = m_argumentDescriptors.GetCold(set.m_handle)->m_shaderVisibility;
+            hot->m_setVisibilities.push_back();
+
+            for (auto& pcData: hot->m_pushConstantsData)
+            {
+                for (auto& visibilityData: pcData.m_data)
+                {
+                    if (BitUtils::EnumHasAny(setVisibility, visibilityData.m_visibility))
+                    {
+                        visibilityData.m_bufferIndex = i + 1;
+                    }
+                }
+            }
+        }
+
+        return { handle };
+    }
+
+    bool MetalArgumentBufferManager::DestroyPipelineLayout(PipelineLayoutHandle _layout)
+    {
+        return m_pipelineLayouts.Free(_layout.m_handle);
     }
 } // namespace KryneEngine
