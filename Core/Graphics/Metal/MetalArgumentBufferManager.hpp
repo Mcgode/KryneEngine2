@@ -13,6 +13,9 @@
 namespace MTL
 {
     class ArgumentDescriptor;
+    class ArgumentEncoder;
+    class Buffer;
+    class Device;
 }
 
 namespace KryneEngine
@@ -43,5 +46,19 @@ namespace KryneEngine
         };
 
         GenerationalPool<ArgumentDescriptorHotData> m_argumentDescriptors;
+
+    public:
+        [[nodiscard]] DescriptorSetHandle
+        CreateArgumentBuffer(MTL::Device& _device, DescriptorSetLayoutHandle _descriptor);
+        bool DestroyArgumentBuffer(DescriptorSetHandle _argumentBuffer);
+
+    private:
+        struct ArgumentBufferHotData
+        {
+            NsPtr<MTL::ArgumentEncoder> m_encoder;
+            DynamicArray<NsPtr<MTL::Buffer>> m_argumentBuffers;
+        };
+
+        GenerationalPool<ArgumentBufferHotData> m_argumentBufferSets;
     };
 } // namespace KryneEngine

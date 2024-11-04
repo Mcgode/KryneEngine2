@@ -118,12 +118,12 @@ namespace KryneEngine
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
-        [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout) { KE_ERROR("NYI"); return {}; }
+        [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout);
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc) { KE_ERROR("NYI"); return {}; }
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc){ KE_ERROR("NYI"); return {}; }
         bool DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline) { KE_ERROR("NYI"); return {}; }
         bool DestroyPipelineLayout(PipelineLayoutHandle _layout) { KE_ERROR("NYI"); return {}; }
-        bool DestroyDescriptorSet(DescriptorSetHandle _set) { KE_ERROR("NYI"); return {}; }
+        bool DestroyDescriptorSet(DescriptorSetHandle _set);
         bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout);
         bool FreeShaderModule(ShaderModuleHandle _module);
 

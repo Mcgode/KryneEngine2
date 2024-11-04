@@ -265,6 +265,16 @@ namespace KryneEngine
         return m_argumentBufferManager.CreateArgumentDescriptor(_desc, _bindingIndices);
     }
 
+    DescriptorSetHandle MetalGraphicsContext::CreateDescriptorSet(DescriptorSetLayoutHandle _layout)
+    {
+        return m_argumentBufferManager.CreateArgumentBuffer(*m_device, _layout);
+    }
+
+    bool MetalGraphicsContext::DestroyDescriptorSet(DescriptorSetHandle _set)
+    {
+        return m_argumentBufferManager.DestroyArgumentBuffer(_set);
+    }
+
     bool MetalGraphicsContext::DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout)
     {
         return m_argumentBufferManager.DeleteArgumentDescriptor(_layout);

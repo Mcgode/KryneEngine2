@@ -72,4 +72,43 @@ namespace KryneEngine
         }
         return false;
     }
+
+    DescriptorSetHandle
+    MetalArgumentBufferManager::CreateArgumentBuffer(MTL::Device& _device, DescriptorSetLayoutHandle _descriptor)
+    {
+        const GenPool::Handle handle = m_argumentBufferSets.Allocate();
+
+        ArgumentDescriptorHotData* argDescHot = m_argumentDescriptors.Get(_descriptor.m_handle);
+        ArgumentBufferHotData* hot = m_argumentBufferSets.Get(handle);
+
+        NS::Array* array = NS::Array::array(
+            reinterpret_cast<const NS::Object* const*>(argDescHot->m_argDescriptors.Data()),
+            argDescHot->m_argDescriptors.Size());
+        hot->m_encoder = _device.newArgumentEncoder(array);
+
+        hot->m_argumentBuffers.Resize(m_inFlightFrameCount);
+#if defined(TARGET_OS_MAC)
+        const MTL::ResourceOptions options = MTL::ResourceStorageModeManaged;
+#else
+        const MTL::ResourceOptions options = MTL::ResourceStorageModeShared;
+#endif
+        for (u8 i = 0; i < m_inFlightFrameCount; i++)
+        {
+            hot->m_argumentBuffers.Init(i, _device.newBuffer(hot->m_encoder->encodedLength(), options));
+        }
+
+        return { handle };
+    }
+
+    bool MetalArgumentBufferManager::DestroyArgumentBuffer(DescriptorSetHandle _argumentBuffer)
+    {
+        ArgumentBufferHotData hot;
+        if (m_argumentBufferSets.Free(_argumentBuffer.m_handle, &hot))
+        {
+            hot.m_encoder.reset();
+            hot.m_argumentBuffers.Clear();
+            return true;
+        }
+        return false;
+    }
 } // namespace KryneEngine
