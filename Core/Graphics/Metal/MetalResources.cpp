@@ -6,11 +6,13 @@
 
 #include "MetalResources.hpp"
 
+#include <Common/StringHelpers.hpp>
 #include <Graphics/Common/Buffer.hpp>
 #include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/Texture.hpp>
 #include <Graphics/Metal/Helpers/EnumConverters.hpp>
+#include <Graphics/Metal/MetalArgumentBufferManager.hpp>
 #include <Memory/GenerationalPool.inl>
 
 namespace KryneEngine
@@ -274,6 +276,242 @@ namespace KryneEngine
         if (m_libraries.Free(_library.m_handle, &hot))
         {
             hot.m_library.reset();
+            return true;
+        }
+        return false;
+    }
+
+    GraphicsPipelineHandle MetalResources::CreateGraphicsPso(
+        MTL::Device& _device,
+        MetalArgumentBufferManager& _argBufferManager,
+        const GraphicsPipelineDesc& _desc)
+    {
+        const MetalArgumentBufferManager::PipelineLayoutHotData* hotLayout =
+            _argBufferManager.m_pipelineLayouts.Get(_desc.m_pipelineLayout.m_handle);
+        KE_ASSERT_FATAL(hotLayout != nullptr);
+
+        const GenPool::Handle handle = m_graphicsPso.Allocate();
+        GraphicsPsoHotData* hot = m_graphicsPso.Get(handle);
+
+        // Retrieve vertex buffer index
+        {
+            hot->m_vertexBufferFirstIndex = 0;
+            for (auto& pcData: hotLayout->m_pushConstantsData)
+            {
+                for (auto& visibilityData: pcData.m_data)
+                {
+                    if (visibilityData.m_visibility == ShaderVisibility::Vertex)
+                    {
+                        hot->m_vertexBufferFirstIndex = eastl::max<u8>(hot->m_vertexBufferFirstIndex, visibilityData.m_bufferIndex + 1);
+                    }
+                }
+            }
+
+            // Push constant buffers are set after argument buffers, so can early break
+            if (hot->m_vertexBufferFirstIndex == 0)
+            {
+                for (u32 i = 0; i < hotLayout->m_setVisibilities.size(); i++)
+                {
+                    if (BitUtils::EnumHasAny(hotLayout->m_setVisibilities[i], ShaderVisibility::Vertex))
+                    {
+                        hot->m_vertexBufferFirstIndex = eastl::max<u8>(hot->m_vertexBufferFirstIndex, i + 1);
+                    }
+                }
+            }
+        }
+
+        // Init descriptor
+        NsPtr<MTL::RenderPipelineDescriptor> descriptor { MTL::RenderPipelineDescriptor::alloc()->init() };
+
+        // Set up stages
+        {
+            for (const auto& stage: _desc.m_stages)
+            {
+                ShaderModuleHotData* libHot = m_libraries.Get(stage.m_shaderModule.m_handle);
+                KE_ASSERT_FATAL(libHot != nullptr);
+                const MTL::Function* function = libHot->m_library->newFunction(NS::String::string(
+                    stage.m_entryPoint.c_str(), NS::UTF8StringEncoding));
+
+                switch (stage.m_stage)
+                {
+                case GraphicsShaderStage::Stage::Vertex:
+                    descriptor->setVertexFunction(function);
+                    break;
+                case GraphicsShaderStage::Stage::Fragment:
+                    descriptor->setFragmentFunction(function);
+                    break;
+                default:
+                    KE_ERROR("Unsupported stage");
+                    break;
+                }
+            }
+        }
+
+        // Set up vertex input
+        if (!_desc.m_vertexInput.m_elements.empty())
+        {
+            NsPtr<MTL::VertexDescriptor> vertexDescriptor { MTL::VertexDescriptor::alloc()->init() };
+
+            for (const auto& element: _desc.m_vertexInput.m_elements)
+            {
+                MTL::VertexAttributeDescriptor* attribute = vertexDescriptor->attributes()->object(element.m_location);
+                attribute->setFormat(MetalConverters::GetVertexFormat(element.m_format));
+                attribute->setOffset(element.m_offset);
+                attribute->setBufferIndex(hot->m_vertexBufferFirstIndex + element.m_bindingIndex);
+            }
+
+            for (const auto& binding: _desc.m_vertexInput.m_bindings)
+            {
+                MTL::VertexBufferLayoutDescriptor* layout = vertexDescriptor->layouts()->object(binding.m_binding);
+                layout->setStride(binding.m_stride);
+                layout->setStepFunction(MTL::VertexStepFunctionPerVertex);
+            }
+
+            descriptor->setVertexDescriptor(vertexDescriptor.get());
+        }
+
+        // Save input assembly data
+        {
+            hot->m_topology = _desc.m_inputAssembly.m_topology;
+            hot->m_indexType = _desc.m_inputAssembly.m_indexSize;
+        }
+
+        // Set up raster state
+        {
+            if (_desc.m_rasterState.m_depthBias)
+            {
+                hot->m_staticState.m_depthBias = _desc.m_rasterState.m_depthBiasConstantFactor;
+                hot->m_staticState.m_depthBiasSlope = _desc.m_rasterState.m_depthBiasSlopeFactor;
+                hot->m_staticState.m_depthBiasClamp = _desc.m_rasterState.m_depthBiasClampValue;
+            }
+            else
+            {
+                hot->m_staticState.m_depthBias = 0;
+                hot->m_staticState.m_depthBiasSlope = 0;
+                hot->m_staticState.m_depthBiasClamp = 0;
+            }
+
+            hot->m_staticState.m_fillMode = _desc.m_rasterState.m_fillMode;
+            hot->m_staticState.m_cullMode = _desc.m_rasterState.m_cullMode;
+            hot->m_staticState.m_front = _desc.m_rasterState.m_front;
+            hot->m_staticState.m_depthClip = _desc.m_rasterState.m_depthClip;
+        }
+
+        const RenderPassColdData* passCold = m_renderPasses.GetCold(_desc.m_renderPass.m_handle);
+        KE_ASSERT_FATAL(passCold->m_colorFormats.size() == _desc.m_colorBlending.m_attachments.size());
+
+        // Set up color attachments and blend state
+        {
+            hot->m_staticState.m_blendFactor = _desc.m_colorBlending.m_blendFactor;
+            hot->m_dynamicBlendFactor = _desc.m_colorBlending.m_dynamicBlendFactor;
+
+            for (size_t i = 0; i < passCold->m_colorFormats.size(); i++)
+            {
+                const ColorAttachmentBlendDesc& blendDesc = _desc.m_colorBlending.m_attachments[i];
+                MTL::RenderPipelineColorAttachmentDescriptor* attachment = descriptor->colorAttachments()->object(i);
+
+                attachment->setPixelFormat(MetalConverters::ToPixelFormat(passCold->m_colorFormats[i]));
+                attachment->setWriteMask(MetalConverters::GetColorWriteMask(blendDesc.m_writeMask));
+
+                attachment->setBlendingEnabled(blendDesc.m_blendEnable);
+
+                attachment->setRgbBlendOperation(MetalConverters::GetBlendOperation(blendDesc.m_colorOp));
+                attachment->setSourceRGBBlendFactor(MetalConverters::GetBlendFactor(blendDesc.m_srcColor));
+                attachment->setDestinationRGBBlendFactor(MetalConverters::GetBlendFactor(blendDesc.m_dstColor));
+
+                attachment->setAlphaBlendOperation(MetalConverters::GetBlendOperation(blendDesc.m_alphaOp));
+                attachment->setSourceAlphaBlendFactor(MetalConverters::GetBlendFactor(blendDesc.m_srcAlpha));
+                attachment->setDestinationAlphaBlendFactor(MetalConverters::GetBlendFactor(blendDesc.m_dstAlpha));
+            }
+        }
+
+        // Set depth stencil format
+        if (passCold->m_depthStencilFormat != TextureFormat::NoFormat)
+        {
+            switch (passCold->m_depthStencilFormat)
+            {
+            case TextureFormat::D16:
+            case TextureFormat::D24S8:
+            case TextureFormat::D32F:
+            case TextureFormat::D32FS8:
+                descriptor->setDepthAttachmentPixelFormat(MetalConverters::ToPixelFormat(passCold->m_depthStencilFormat));
+                break;
+            default:
+                KE_ERROR("Unsupported format");
+            }
+        }
+
+        // Set up depth stencil state
+        {
+            DepthStencilStateDesc dsDesc = _desc.m_depthStencil;
+
+            // Harmonize desc with metal behaviour, limiting depth state swaps
+            {
+                if (!dsDesc.m_depthTest)
+                {
+                    dsDesc.m_depthCompare = DepthStencilStateDesc::CompareOp::Always;
+                    dsDesc.m_depthTest = true;
+                }
+
+                if (!dsDesc.m_stencilTest)
+                {
+                    dsDesc.m_front = {
+                        .m_compareOp = DepthStencilStateDesc::CompareOp::Always,
+                    };
+                    dsDesc.m_back = dsDesc.m_front;
+                    dsDesc.m_stencilTest = true;
+                }
+
+                hot->m_dynamicStencilRef = dsDesc.m_dynamicStencilRef;
+                dsDesc.m_dynamicStencilRef = false;
+
+                hot->m_staticState.stencilRefValue = dsDesc.m_stencilRef;
+                dsDesc.m_stencilRef = 0;
+            }
+
+            hot->m_staticState.m_depthStencilHash = StringHash::Murmur2Hash64(&dsDesc, sizeof(DepthStencilStateDesc));
+
+            NsPtr stateDesc { MTL::DepthStencilDescriptor::alloc()->init() };
+            stateDesc->setDepthWriteEnabled(dsDesc.m_depthWrite);
+            stateDesc->setDepthCompareFunction(MetalConverters::GetCompareOperation(dsDesc.m_depthCompare));
+
+            NsPtr frontStencilDesc { MTL::StencilDescriptor::alloc()->init() };
+            frontStencilDesc->setWriteMask(dsDesc.m_stencilWriteMask);
+            frontStencilDesc->setReadMask(dsDesc.m_stencilReadMask);
+            frontStencilDesc->setDepthStencilPassOperation(MetalConverters::GetStencilOperation(dsDesc.m_front.m_passOp));
+            frontStencilDesc->setStencilFailureOperation(MetalConverters::GetStencilOperation(dsDesc.m_front.m_failOp));
+            frontStencilDesc->setDepthFailureOperation(MetalConverters::GetStencilOperation(dsDesc.m_front.m_depthFailOp));
+            frontStencilDesc->setStencilCompareFunction(MetalConverters::GetCompareOperation(dsDesc.m_front.m_compareOp));
+            stateDesc->setFrontFaceStencil(frontStencilDesc.get());
+
+            NsPtr backStencilDesc { MTL::StencilDescriptor::alloc()->init() };
+            backStencilDesc->setWriteMask(dsDesc.m_stencilWriteMask);
+            backStencilDesc->setReadMask(dsDesc.m_stencilReadMask);
+            backStencilDesc->setDepthStencilPassOperation(MetalConverters::GetStencilOperation(dsDesc.m_back.m_passOp));
+            backStencilDesc->setStencilFailureOperation(MetalConverters::GetStencilOperation(dsDesc.m_back.m_failOp));
+            backStencilDesc->setDepthFailureOperation(MetalConverters::GetStencilOperation(dsDesc.m_back.m_depthFailOp));
+            backStencilDesc->setStencilCompareFunction(MetalConverters::GetCompareOperation(dsDesc.m_back.m_compareOp));
+            stateDesc->setBackFaceStencil(backStencilDesc.get());
+
+            hot->m_depthStencilState = _device.newDepthStencilState(stateDesc.get());
+        }
+
+        // Create PSO
+        {
+            NS::Error* error;
+            hot->m_pso = _device.newRenderPipelineState(descriptor.get(), &error);
+            KE_ASSERT_FATAL_MSG(hot->m_pso != nullptr, error->localizedDescription()->cString(NS::UTF8StringEncoding));
+        }
+
+        return { handle };
+    }
+
+    bool MetalResources::DestroyGraphicsPso(GraphicsPipelineHandle _pso)
+    {
+        GraphicsPsoHotData hot;
+        if (m_graphicsPso.Free(_pso.m_handle, &hot))
+        {
+            hot.m_pso.reset();
             return true;
         }
         return false;

@@ -235,6 +235,173 @@ namespace KryneEngine::MetalConverters
         }
     }
 
+    MTL::VertexFormat GetVertexFormat(TextureFormat _format)
+    {
+        static_assert(static_cast<u32>(TextureFormat::D32FS8) == 21, "Please update switch table");
+        switch (_format)
+        {
+        case TextureFormat::NoFormat:
+            return MTL::VertexFormatInvalid;
+        case TextureFormat::R8_UNorm:
+            return MTL::VertexFormatUCharNormalized;
+        case TextureFormat::RG8_UNorm:
+            return MTL::VertexFormatUChar2Normalized;
+        case TextureFormat::RGB8_UNorm:
+            return MTL::VertexFormatUChar3Normalized;
+        case TextureFormat::RGBA8_UNorm:
+            return MTL::VertexFormatUChar4Normalized;
+        case TextureFormat::R8_SNorm:
+            return MTL::VertexFormatCharNormalized;
+        case TextureFormat::RG8_SNorm:
+            return MTL::VertexFormatChar2Normalized;
+        case TextureFormat::RGB8_SNorm:
+            return MTL::VertexFormatChar3Normalized;
+        case TextureFormat::RGBA8_SNorm:
+            return MTL::VertexFormatChar4Normalized;
+        case TextureFormat::R32_Float:
+            return MTL::VertexFormatFloat;
+        case TextureFormat::RG32_Float:
+            return MTL::VertexFormatFloat2;
+        case TextureFormat::RGB32_Float:
+            return MTL::VertexFormatFloat3;
+        case TextureFormat::RGBA32_Float:
+            return MTL::VertexFormatFloat4;
+        default:
+            KE_ERROR("Unsupported format");
+            return MTL::VertexFormatInvalid;
+        }
+    }
+
+    MTL::BlendOperation GetBlendOperation(ColorAttachmentBlendDesc::BlendOp _op)
+    {
+        switch(_op)
+        {
+        case ColorAttachmentBlendDesc::BlendOp::Add:
+            return MTL::BlendOperationAdd;
+        case ColorAttachmentBlendDesc::BlendOp::Subtract:
+            return MTL::BlendOperationSubtract;
+        case ColorAttachmentBlendDesc::BlendOp::ReverseSubtract:
+            return MTL::BlendOperationReverseSubtract;
+        case ColorAttachmentBlendDesc::BlendOp::Min:
+            return MTL::BlendOperationMin;
+        case ColorAttachmentBlendDesc::BlendOp::Max:
+            return MTL::BlendOperationMax;
+        }
+    }
+
+    MTL::BlendFactor GetBlendFactor(ColorAttachmentBlendDesc::BlendFactor _factor)
+    {
+        switch (_factor)
+        {
+        case ColorAttachmentBlendDesc::BlendFactor::Zero:
+            return MTL::BlendFactorZero;
+        case ColorAttachmentBlendDesc::BlendFactor::One:
+            return MTL::BlendFactorOne;
+        case ColorAttachmentBlendDesc::BlendFactor::SrcColor:
+            return MTL::BlendFactorSourceColor;
+        case ColorAttachmentBlendDesc::BlendFactor::InvSrcColor:
+            return MTL::BlendFactorOneMinusSourceColor;
+        case ColorAttachmentBlendDesc::BlendFactor::SrcAlpha:
+            return MTL::BlendFactorSourceAlpha;
+        case ColorAttachmentBlendDesc::BlendFactor::InvSrcAlpha:
+            return MTL::BlendFactorOneMinusSourceAlpha;
+        case ColorAttachmentBlendDesc::BlendFactor::DstColor:
+            return MTL::BlendFactorDestinationColor;
+        case ColorAttachmentBlendDesc::BlendFactor::InvDstColor:
+            return MTL::BlendFactorOneMinusDestinationColor;
+        case ColorAttachmentBlendDesc::BlendFactor::DstAlpha:
+            return MTL::BlendFactorDestinationAlpha;
+        case ColorAttachmentBlendDesc::BlendFactor::InvDstAlpha:
+            return MTL::BlendFactorOneMinusDestinationAlpha;
+        case ColorAttachmentBlendDesc::BlendFactor::SrcAlphaSaturate:
+            return MTL::BlendFactorSourceAlphaSaturated;
+        case ColorAttachmentBlendDesc::BlendFactor::FactorColor:
+            return MTL::BlendFactorBlendColor;
+        case ColorAttachmentBlendDesc::BlendFactor::InvFactorColor:
+            return MTL::BlendFactorOneMinusBlendColor;
+        case ColorAttachmentBlendDesc::BlendFactor::FactorAlpha:
+            return MTL::BlendFactorBlendAlpha;
+        case ColorAttachmentBlendDesc::BlendFactor::InvFactorAlpha:
+            return MTL::BlendFactorOneMinusBlendAlpha;
+        case ColorAttachmentBlendDesc::BlendFactor::Src1Color:
+            return MTL::BlendFactorSource1Color;
+        case ColorAttachmentBlendDesc::BlendFactor::InvSrc1Color:
+            return MTL::BlendFactorOneMinusSource1Color;
+        case ColorAttachmentBlendDesc::BlendFactor::Src1Alpha:
+            return MTL::BlendFactorSource1Alpha;
+        case ColorAttachmentBlendDesc::BlendFactor::InvSrc1Alpha:
+            return MTL::BlendFactorOneMinusSource1Alpha;
+        }
+    }
+
+    MTL::ColorWriteMask GetColorWriteMask(ColorAttachmentBlendDesc::WriteMask _mask)
+    {
+        MTL::ColorWriteMask mask = 0;
+        if (BitUtils::EnumHasAny(_mask, ColorAttachmentBlendDesc::WriteMask::Red))
+        {
+            mask |= MTL::ColorWriteMaskRed;
+        }
+        if (BitUtils::EnumHasAny(_mask, ColorAttachmentBlendDesc::WriteMask::Green))
+        {
+            mask |= MTL::ColorWriteMaskGreen;
+        }
+        if (BitUtils::EnumHasAny(_mask, ColorAttachmentBlendDesc::WriteMask::Blue))
+        {
+            mask |= MTL::ColorWriteMaskBlue;
+        }
+        if (BitUtils::EnumHasAny(_mask, ColorAttachmentBlendDesc::WriteMask::Alpha))
+        {
+            mask |= MTL::ColorWriteMaskAlpha;
+        }
+        return mask;
+    }
+
+    MTL::CompareFunction GetCompareOperation(DepthStencilStateDesc::CompareOp _op)
+    {
+        switch (_op)
+        {
+        case DepthStencilStateDesc::CompareOp::Never:
+            return MTL::CompareFunctionNever;
+        case DepthStencilStateDesc::CompareOp::Less:
+            return MTL::CompareFunctionLess;
+        case DepthStencilStateDesc::CompareOp::Equal:
+            return MTL::CompareFunctionEqual;
+        case DepthStencilStateDesc::CompareOp::LessEqual:
+            return MTL::CompareFunctionLessEqual;
+        case DepthStencilStateDesc::CompareOp::Greater:
+            return MTL::CompareFunctionGreater;
+        case DepthStencilStateDesc::CompareOp::NotEqual:
+            return MTL::CompareFunctionNotEqual;
+        case DepthStencilStateDesc::CompareOp::GreaterEqual:
+            return MTL::CompareFunctionGreaterEqual;
+        case DepthStencilStateDesc::CompareOp::Always:
+            return MTL::CompareFunctionAlways;
+        }
+    }
+
+    MTL::StencilOperation MetalConverters::GetStencilOperation(DepthStencilStateDesc::StencilOp _op)
+    {
+        switch (_op)
+        {
+        case DepthStencilStateDesc::StencilOp::Keep:
+            return MTL::StencilOperationKeep;
+        case DepthStencilStateDesc::StencilOp::Zero:
+            return MTL::StencilOperationZero;
+        case DepthStencilStateDesc::StencilOp::Replace:
+            return MTL::StencilOperationReplace;
+        case DepthStencilStateDesc::StencilOp::IncrementAndClamp:
+            return MTL::StencilOperationIncrementClamp;
+        case DepthStencilStateDesc::StencilOp::DecrementAndClamp:
+            return MTL::StencilOperationDecrementClamp;
+        case DepthStencilStateDesc::StencilOp::Invert:
+            return MTL::StencilOperationInvert;
+        case DepthStencilStateDesc::StencilOp::IncrementAndWrap:
+            return MTL::StencilOperationIncrementWrap;
+        case DepthStencilStateDesc::StencilOp::DecrementAndWrap:
+            return MTL::StencilOperationDecrementWrap;
+        }
+    }
+
     MTL::LoadAction GetMetalLoadOperation(RenderPassDesc::Attachment::LoadOperation _op)
     {
         switch (_op)

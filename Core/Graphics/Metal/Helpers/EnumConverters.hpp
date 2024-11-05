@@ -28,6 +28,15 @@ namespace KryneEngine::MetalConverters
     [[nodiscard]] MTL::DataType GetDataType(DescriptorBindingDesc::Type _type);
     [[nodiscard]] MTL::BindingAccess GetBindingAccess(DescriptorBindingDesc::Type _type);
 
+    [[nodiscard]] MTL::VertexFormat GetVertexFormat(TextureFormat _format);
+
+    [[nodiscard]] MTL::BlendOperation GetBlendOperation(ColorAttachmentBlendDesc::BlendOp _op);
+    [[nodiscard]] MTL::BlendFactor GetBlendFactor(ColorAttachmentBlendDesc::BlendFactor _factor);
+    [[nodiscard]] MTL::ColorWriteMask GetColorWriteMask(ColorAttachmentBlendDesc::WriteMask _mask);
+
+    [[nodiscard]] MTL::CompareFunction GetCompareOperation(DepthStencilStateDesc::CompareOp _op);
+    [[nodiscard]] MTL::StencilOperation GetStencilOperation(DepthStencilStateDesc::StencilOp _op);
+
     [[nodiscard]] MTL::LoadAction GetMetalLoadOperation(RenderPassDesc::Attachment::LoadOperation _op);
     [[nodiscard]] MTL::StoreAction GetMetalStoreOperation(RenderPassDesc::Attachment::StoreOperation _op);
 }

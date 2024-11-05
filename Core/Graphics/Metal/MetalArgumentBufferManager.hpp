@@ -23,6 +23,8 @@ namespace KryneEngine
 {
     class MetalArgumentBufferManager
     {
+        friend class MetalResources;
+
     public:
         MetalArgumentBufferManager();
         ~MetalArgumentBufferManager();

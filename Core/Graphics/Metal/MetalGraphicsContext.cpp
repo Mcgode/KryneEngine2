@@ -275,6 +275,16 @@ namespace KryneEngine
         return m_argumentBufferManager.CreatePipelineLayout(_desc);
     }
 
+    GraphicsPipelineHandle MetalGraphicsContext::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc)
+    {
+        return m_resources.CreateGraphicsPso(*m_device, m_argumentBufferManager, _desc);
+    }
+
+    bool MetalGraphicsContext::DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline)
+    {
+        return m_resources.DestroyGraphicsPso(_pipeline);
+    }
+
     bool MetalGraphicsContext::DestroyPipelineLayout(PipelineLayoutHandle _layout)
     {
         return m_argumentBufferManager.DestroyPipelineLayout(_layout);

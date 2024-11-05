@@ -42,7 +42,8 @@ set (MetalFiles
         Metal/Helpers/EnumConverters.cpp
         Metal/Helpers/EnumConverters.hpp
         Metal/MetalArgumentBufferManager.cpp
-        Metal/MetalArgumentBufferManager.hpp)
+        Metal/MetalArgumentBufferManager.hpp
+        Metal/Helpers/RenderDynamicStates.hpp)
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp

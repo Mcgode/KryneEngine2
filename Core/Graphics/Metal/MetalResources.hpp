@@ -10,6 +10,7 @@
 #include <Graphics/Common/Enums.hpp>
 #include <Graphics/Common/Handles.hpp>
 #include <Graphics/Common/RenderPass.hpp>
+#include <Graphics/Metal/Helpers/RenderDynamicStates.hpp>
 #include <Graphics/Metal/MetalHeaders.hpp>
 #include <Memory/GenerationalPool.hpp>
 
@@ -20,6 +21,8 @@ namespace KryneEngine
     struct RenderPassDesc;
     struct TextureCreateDesc;
     struct TextureSrvDesc;
+
+    class MetalArgumentBufferManager;
 
     class MetalResources
     {
@@ -134,5 +137,27 @@ namespace KryneEngine
         };
 
         GenerationalPool<ShaderModuleHotData> m_libraries;
+
+    public:
+        [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPso(
+            MTL::Device& _device,
+            MetalArgumentBufferManager& _argBufferManager,
+            const GraphicsPipelineDesc& _desc);
+        bool DestroyGraphicsPso(GraphicsPipelineHandle _pso);
+
+    private:
+        struct GraphicsPsoHotData
+        {
+            NsPtr<MTL::RenderPipelineState> m_pso;
+            NsPtr<MTL::DepthStencilState> m_depthStencilState;
+            RenderDynamicState m_staticState;
+            InputAssemblyDesc::PrimitiveTopology m_topology;
+            InputAssemblyDesc::IndexIntSize m_indexType;
+            bool m_dynamicBlendFactor;
+            bool m_dynamicStencilRef;
+            u8 m_vertexBufferFirstIndex;
+        };
+
+        GenerationalPool<GraphicsPsoHotData> m_graphicsPso;
     };
 } // namespace KryneEngine

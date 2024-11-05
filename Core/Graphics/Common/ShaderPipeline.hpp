@@ -101,7 +101,7 @@ namespace KryneEngine
             Back,
         };
 
-        enum class Front
+        enum class Front: u8
         {
             Clockwise,
             CounterClockwise,
