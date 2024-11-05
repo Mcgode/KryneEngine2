@@ -113,7 +113,7 @@ namespace KryneEngine
         bool m_depthClip = true;
         bool m_depthBias = false;
         float m_depthBiasConstantFactor = 0;
-        float m_depthBiasSlopFactor = 0;
+        float m_depthBiasSlopeFactor = 0;
         float m_depthBiasClampValue = 0;
     };
 

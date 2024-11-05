@@ -792,7 +792,7 @@ namespace KryneEngine
             .depthBiasEnable = _desc.m_rasterState.m_depthBias,
             .depthBiasConstantFactor = _desc.m_rasterState.m_depthBiasConstantFactor,
             .depthBiasClamp = _desc.m_rasterState.m_depthBiasClampValue,
-            .depthBiasSlopeFactor = _desc.m_rasterState.m_depthBiasSlopFactor,
+            .depthBiasSlopeFactor = _desc.m_rasterState.m_depthBiasSlopeFactor,
             .lineWidth = 1.f
         };
 

@@ -835,7 +835,7 @@ namespace KryneEngine
             {
                 desc.RasterizerState.DepthBias = *reinterpret_cast<const s32*>(&rasterState.m_depthBiasConstantFactor);
                 desc.RasterizerState.DepthBiasClamp = rasterState.m_depthBiasClampValue;
-                desc.RasterizerState.SlopeScaledDepthBias = rasterState.m_depthBiasSlopFactor;
+                desc.RasterizerState.SlopeScaledDepthBias = rasterState.m_depthBiasSlopeFactor;
             }
             else
             {
