@@ -374,7 +374,7 @@ namespace KryneEngine
 
             for (const auto& binding: _desc.m_vertexInput.m_bindings)
             {
-                MTL::VertexBufferLayoutDescriptor* layout = vertexDescriptor->layouts()->object(binding.m_binding);
+                MTL::VertexBufferLayoutDescriptor* layout = vertexDescriptor->layouts()->object(hot->m_vertexBufferFirstIndex + binding.m_binding);
                 layout->setStride(binding.m_stride);
                 layout->setStepFunction(MTL::VertexStepFunctionPerVertex);
             }
