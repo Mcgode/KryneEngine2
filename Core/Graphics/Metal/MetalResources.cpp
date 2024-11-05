@@ -194,13 +194,15 @@ namespace KryneEngine
         auto [hotData, coldData] = m_renderPasses.GetAll(handle);
         hotData->m_descriptor = MTL::RenderPassDescriptor::alloc()->init();
 
+        coldData->m_colorFormats.clear(true);
+
         for (u8 i = 0u; i < _desc.m_colorAttachments.size(); i++)
         {
             MTL::RenderPassColorAttachmentDescriptor* attachment =
                 hotData->m_descriptor->colorAttachments()->object(i);
             const RenderPassDesc::Attachment& attachmentDesc = _desc.m_colorAttachments[i];
 
-            RtvHotData* rtvHotData = m_renderTargetViews.Get(attachmentDesc.m_rtv.m_handle);
+            auto [rtvHotData, rtvColdData] = m_renderTargetViews.GetAll(attachmentDesc.m_rtv.m_handle);
             MTL::Texture* texture = rtvHotData->m_texture.get();
             KE_ASSERT_FATAL(texture != nullptr);
             if (rtvHotData->m_isSystemTexture)
@@ -216,6 +218,8 @@ namespace KryneEngine
                 attachmentDesc.m_clearColor.g,
                 attachmentDesc.m_clearColor.b,
                 attachmentDesc.m_clearColor.a));
+
+            coldData->m_colorFormats.push_back(rtvColdData->m_pixelFormat);
         }
 
         if (_desc.m_depthStencilAttachment.has_value())
@@ -242,6 +246,12 @@ namespace KryneEngine
                 attachment->setStoreAction(MetalConverters::GetMetalStoreOperation(attachmentDesc.m_stencilStoreOperation));
                 attachment->setClearStencil(attachmentDesc.m_stencilClearValue);
             }
+
+            coldData->m_depthStencilFormat = rtvCold->m_pixelFormat;
+        }
+        else
+        {
+            coldData->m_depthStencilFormat = TextureFormat::NoFormat;
         }
 
         return { handle };
@@ -250,9 +260,11 @@ namespace KryneEngine
     bool MetalResources::DestroyRenderPassDescriptor(RenderPassHandle _handle)
     {
         RenderPassHotData data;
-        if (m_renderPasses.Free(_handle.m_handle, &data))
+        RenderPassColdData coldData;
+        if (m_renderPasses.Free(_handle.m_handle, &data, &coldData))
         {
             data.m_descriptor.reset();
+            coldData.m_colorFormats.clear();
             return true;
         }
         return false;
