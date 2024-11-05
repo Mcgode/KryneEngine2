@@ -127,13 +127,13 @@ int main() {
             true);
 #endif
 
-        fibersManager.WaitForCounter(syncCounter);
-
 #if !defined(__APPLE__)
         fibersManager.WaitForCounter(mainCounter);
 #else
         MainFunc(&fibersManager);
 #endif
+
+        fibersManager.WaitForCounter(syncCounter);
     }
 
     return 0;
