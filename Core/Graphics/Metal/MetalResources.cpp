@@ -106,6 +106,49 @@ namespace KryneEngine
         }
     }
 
+    SamplerHandle MetalResources::CreateSampler(MTL::Device& _device, const SamplerDesc& _desc)
+    {
+        const GenPool::Handle handle = m_samplers.Allocate();
+
+        SamplerHotData* hot = m_samplers.Get(handle);
+
+        NsPtr<MTL::SamplerDescriptor> descriptor;
+
+        descriptor->setMinFilter(MetalConverters::GetMinMagFilter(_desc.m_minFilter));
+        descriptor->setMagFilter(MetalConverters::GetMinMagFilter(_desc.m_magFilter));
+        descriptor->setMipFilter(MetalConverters::GetMipFilter(_desc.m_mipFilter));
+        descriptor->setRAddressMode(MetalConverters::GetAddressMode(_desc.m_addressModeW));
+        descriptor->setSAddressMode(MetalConverters::GetAddressMode(_desc.m_addressModeU));
+        descriptor->setTAddressMode(MetalConverters::GetAddressMode(_desc.m_addressModeV));
+        descriptor->setMaxAnisotropy(_desc.m_anisotropy);
+        descriptor->setBorderColor(MTL::SamplerBorderColorOpaqueBlack);
+        descriptor->setLodMinClamp(_desc.m_lodMin);
+        descriptor->setLodMaxClamp(_desc.m_lodMax);
+        descriptor->setSupportArgumentBuffers(true);
+        KE_ASSERT_FATAL_MSG(_desc.m_opType == SamplerDesc::OpType::Blend, "Metal doesn't support min max filters");
+        KE_ASSERT_FATAL_MSG(_desc.m_lodBias == 0.f, "Metal doesn't support lod bias on samplers");
+
+#if !defined(KE_FINAL)
+        auto* string = NS::String::string(_desc.m_debugName.c_str(), NS::UTF8StringEncoding);
+        descriptor->setLabel(string);
+#endif
+
+        hot->m_sampler = _device.newSamplerState(descriptor.get());
+
+        return { handle };
+    }
+
+    bool MetalResources::DestroySampler(SamplerHandle _sampler)
+    {
+        SamplerHotData hot;
+        if (m_samplers.Free(_sampler.m_handle, &hot))
+        {
+            hot.m_sampler.reset();
+            return true;
+        }
+        return false;
+    }
+
     TextureSrvHandle MetalResources::RegisterTextureSrv(const TextureSrvDesc& _desc)
     {
         const TextureHotData* originalTexture = m_textures.Get(_desc.m_texture.m_handle);

@@ -10,12 +10,17 @@
 #include <Graphics/Common/RenderPass.hpp>
 #include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <Graphics/Common/ShaderPipeline.hpp>
+#include <Graphics/Common/Texture.hpp>
 #include <Graphics/Metal/MetalHeaders.hpp>
 
 namespace KryneEngine::MetalConverters
 {
     [[nodiscard]] size_t GetPixelByteSize(TextureFormat _format);
     [[nodiscard]] MTL::PixelFormat ToPixelFormat(TextureFormat _format);
+
+    [[nodiscard]] MTL::SamplerMinMagFilter GetMinMagFilter(SamplerDesc::Filter _filter);
+    [[nodiscard]] MTL::SamplerMipFilter GetMipFilter(SamplerDesc::Filter _filter);
+    [[nodiscard]] MTL::SamplerAddressMode GetAddressMode(SamplerDesc::AddressMode _mode);
 
     [[nodiscard]] MTL::ResourceOptions GetResourceStorage(MemoryUsage _memoryUsage);
     [[nodiscard]] MTL::StorageMode GetStorageMode(MemoryUsage _memoryUsage);

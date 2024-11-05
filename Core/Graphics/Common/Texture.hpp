@@ -109,5 +109,9 @@ namespace KryneEngine
         float m_lodMin = 0.f;
         float m_lodMax = kNoMaxLod;
         static constexpr float kNoMaxLod = 1024.f;
+
+#if !defined(KE_FINAL)
+        eastl::string m_debugName {};
+#endif
     };
 }

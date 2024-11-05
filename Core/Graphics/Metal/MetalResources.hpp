@@ -19,6 +19,7 @@ namespace KryneEngine
     struct BufferCreateDesc;
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
+    struct SamplerDesc;
     struct TextureCreateDesc;
     struct TextureSrvDesc;
 
@@ -63,6 +64,18 @@ namespace KryneEngine
         };
 
         GenerationalPool<TextureHotData> m_textures;
+
+    public:
+        [[nodiscard]] SamplerHandle CreateSampler(MTL::Device& _device, const SamplerDesc& _desc);
+        bool DestroySampler(SamplerHandle _sampler);
+
+    private:
+        struct SamplerHotData
+        {
+            NsPtr<MTL::SamplerState> m_sampler;
+        };
+
+        GenerationalPool<SamplerHotData> m_samplers;
 
     public:
         TextureSrvHandle RegisterTextureSrv(const TextureSrvDesc& _desc);

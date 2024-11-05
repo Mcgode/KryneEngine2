@@ -173,6 +173,16 @@ namespace KryneEngine
         return m_resources.UnregisterTextureSrv(_handle);
     }
 
+    SamplerHandle MetalGraphicsContext::CreateSampler(const SamplerDesc& _samplerDesc)
+    {
+        return m_resources.CreateSampler(*m_device, _samplerDesc);
+    }
+
+    bool MetalGraphicsContext::DestroySampler(SamplerHandle _sampler)
+    {
+        return m_resources.DestroySampler(_sampler);
+    }
+
     RenderTargetViewHandle MetalGraphicsContext::CreateRenderTargetView(const RenderTargetViewDesc& _desc)
     {
         return m_resources.RegisterRtv(_desc);

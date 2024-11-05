@@ -95,6 +95,43 @@ namespace KryneEngine::MetalConverters
         }
     }
 
+    MTL::SamplerMinMagFilter GetMinMagFilter(SamplerDesc::Filter _filter)
+    {
+        switch (_filter)
+        {
+        case SamplerDesc::Filter::Point:
+            return MTL::SamplerMinMagFilterNearest;
+        case SamplerDesc::Filter::Linear:
+            return MTL::SamplerMinMagFilterLinear;
+        }
+    }
+
+    MTL::SamplerMipFilter GetMipFilter(SamplerDesc::Filter _filter)
+    {
+        switch (_filter)
+        {
+        case SamplerDesc::Filter::Point:
+            return MTL::SamplerMipFilterNearest;
+        case SamplerDesc::Filter::Linear:
+            return MTL::SamplerMipFilterLinear;
+        }
+    }
+
+    MTL::SamplerAddressMode GetAddressMode(SamplerDesc::AddressMode _mode)
+    {
+        switch (_mode)
+        {
+        case SamplerDesc::AddressMode::Repeat:
+            return MTL::SamplerAddressModeRepeat;
+        case SamplerDesc::AddressMode::MirroredRepeat:
+            return MTL::SamplerAddressModeMirrorRepeat;
+        case SamplerDesc::AddressMode::Border:
+            return MTL::SamplerAddressModeClampToBorderColor;
+        case SamplerDesc::AddressMode::Clamp:
+            return MTL::SamplerAddressModeClampToEdge;
+        }
+    }
+
     MTL::ResourceOptions GetResourceStorage(MemoryUsage _memoryUsage)
     {
         switch (_memoryUsage & MemoryUsage::USAGE_TYPE_MASK)

@@ -77,8 +77,8 @@ namespace KryneEngine
         [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 _frameId);
         bool DestroyTextureSrv(TextureSrvHandle _handle);
 
-        [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc) { KE_ERROR("NYI"); return {}; }
-        bool DestroySampler(SamplerHandle _sampler) { KE_ERROR("NYI"); return {}; }
+        [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
+        bool DestroySampler(SamplerHandle _sampler);
 
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc);
         bool DestroyRenderTargetView(RenderTargetViewHandle _handle);
