@@ -116,7 +116,7 @@ namespace KryneEngine
         hot->m_texture = originalTexture->m_texture->newTextureView(
             MetalConverters::ToPixelFormat(_desc.m_format),
             MetalConverters::GetTextureType(_desc.m_viewType),
-            { _desc.m_minMip, static_cast<u32>(_desc.m_maxMip - _desc.m_minMip) },
+            { _desc.m_minMip, static_cast<u32>(_desc.m_maxMip + 1 - _desc.m_minMip) },
             { _desc.m_arrayStart, _desc.m_arrayRange },
             {
                 MetalConverters::GetSwizzle(_desc.m_componentsMapping[0]),
