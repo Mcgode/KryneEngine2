@@ -35,7 +35,7 @@ namespace KryneEngine
         }
         else
         {
-            metalLayer.pixelFormat = MTLPixelFormatRGBA8Unorm_sRGB;
+            metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
         }
 
         metalLayer.maximumDrawableCount =
