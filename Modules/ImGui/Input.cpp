@@ -208,6 +208,7 @@ namespace KryneEngine::Modules::ImGui
         MAP(LeftShift, ImGuiKey_LeftShift);
         MAP(LeftCtrl, ImGuiKey_LeftCtrl);
         MAP(LeftAlt, ImGuiKey_LeftAlt);
+        MAP(LeftSuper, ImGuiKey_LeftSuper);
         MAP(RightShift, ImGuiKey_RightShift);
         MAP(RightCtrl, ImGuiKey_RightCtrl);
         MAP(RightAlt, ImGuiKey_RightAlt);
