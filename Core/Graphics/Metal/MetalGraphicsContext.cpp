@@ -290,6 +290,42 @@ namespace KryneEngine
             MTL::Origin { 0, 0, 0 });
     }
 
+    void MetalGraphicsContext::MapBuffer(BufferMapping& _mapping)
+    {
+        MTL::Buffer* buffer = m_resources.m_buffers.Get(_mapping.m_buffer.m_handle)->m_buffer.get();
+
+        KE_ASSERT_MSG(_mapping.m_ptr == nullptr, "Did not unmap previous map");
+
+        KE_ASSERT(_mapping.m_size == ~0 || buffer->length() >= _mapping.m_offset + _mapping.m_size);
+        _mapping.m_size = eastl::min(_mapping.m_size, buffer->length() - _mapping.m_offset);
+
+        _mapping.m_ptr = static_cast<u8*>(buffer->contents()) + _mapping.m_offset;
+    }
+
+    void MetalGraphicsContext::UnmapBuffer(BufferMapping& _mapping)
+    {
+        MTL::Buffer* buffer = m_resources.m_buffers.Get(_mapping.m_buffer.m_handle)->m_buffer.get();
+        buffer->didModifyRange({ _mapping.m_offset, _mapping.m_size });
+        _mapping.m_ptr = nullptr;
+    }
+
+    void MetalGraphicsContext::CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params)
+    {
+        _commandList->ResetEncoder(CommandListData::EncoderType::Blit);
+        if (_commandList->m_encoder == nullptr)
+        {
+            _commandList->m_encoder = _commandList->m_commandBuffer->blitCommandEncoder();
+        }
+        auto* encoder = reinterpret_cast<MTL::BlitCommandEncoder*>(_commandList->m_encoder.get());
+
+        encoder->copyFromBuffer(
+            m_resources.m_buffers.Get(_params.m_bufferSrc.m_handle)->m_buffer.get(),
+            _params.m_offsetSrc,
+            m_resources.m_buffers.Get(_params.m_bufferDst.m_handle)->m_buffer.get(),
+            _params.m_offsetDst,
+            _params.m_copySize);
+    }
+
     CommandList MetalGraphicsContext::BeginGraphicsCommandList(u64 _frameId)
     {
         VERIFY_OR_RETURN(m_graphicsQueue != nullptr, nullptr);

@@ -104,11 +104,11 @@ namespace KryneEngine
             const SubResourceIndexing& _subResourceIndex,
             void* _data);
 
-        void MapBuffer(BufferMapping& _mapping) { KE_ERROR("NYI"); return; }
+        void MapBuffer(BufferMapping& _mapping);
 
-        void UnmapBuffer(BufferMapping& _mapping) { KE_ERROR("NYI"); return; }
+        void UnmapBuffer(BufferMapping& _mapping);
 
-        void CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params) { KE_ERROR("NYI"); return; }
+        void CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params);
 
         void PlaceMemoryBarriers(
             CommandList _commandList,
