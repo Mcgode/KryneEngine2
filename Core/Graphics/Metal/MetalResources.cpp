@@ -112,7 +112,7 @@ namespace KryneEngine
 
         SamplerHotData* hot = m_samplers.Get(handle);
 
-        NsPtr<MTL::SamplerDescriptor> descriptor;
+        NsPtr<MTL::SamplerDescriptor> descriptor { MTL::SamplerDescriptor::alloc()->init() };
 
         descriptor->setMinFilter(MetalConverters::GetMinMagFilter(_desc.m_minFilter));
         descriptor->setMagFilter(MetalConverters::GetMinMagFilter(_desc.m_magFilter));
@@ -120,7 +120,7 @@ namespace KryneEngine
         descriptor->setRAddressMode(MetalConverters::GetAddressMode(_desc.m_addressModeW));
         descriptor->setSAddressMode(MetalConverters::GetAddressMode(_desc.m_addressModeU));
         descriptor->setTAddressMode(MetalConverters::GetAddressMode(_desc.m_addressModeV));
-        descriptor->setMaxAnisotropy(_desc.m_anisotropy);
+        descriptor->setMaxAnisotropy(eastl::max<u8>(_desc.m_anisotropy, 1u));
         descriptor->setBorderColor(MTL::SamplerBorderColorOpaqueBlack);
         descriptor->setLodMinClamp(_desc.m_lodMin);
         descriptor->setLodMaxClamp(_desc.m_lodMax);
