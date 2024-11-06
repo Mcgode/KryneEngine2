@@ -248,10 +248,14 @@ namespace KryneEngine
 
         _commandList->m_encoder =
             _commandList->m_commandBuffer->renderCommandEncoder(rpHot->m_descriptor.get());
+
+        _commandList->m_userData = new RenderState();
     }
 
     void MetalGraphicsContext::EndRenderPass(CommandList _commandList)
     {
+        delete static_cast<RenderState*>(_commandList->m_userData);
+        _commandList->m_userData = nullptr;
         _commandList->ResetEncoder();
     }
 
@@ -592,13 +596,213 @@ namespace KryneEngine
     void MetalGraphicsContext::SetScissorsRect(CommandList _commandList, const Rect& _rect)
     {
         VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
-
         auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(_commandList->m_encoder.get());
+
         encoder->setScissorRect({
             .x = _rect.m_left,
             .y = _rect.m_top,
             .width = _rect.m_right - _rect.m_left,
             .height = _rect.m_bottom - _rect.m_top,
         });
+    }
+
+    void MetalGraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
+        auto* renderState = static_cast<RenderState*>(_commandList->m_userData);
+        KE_ASSERT_FATAL(renderState != nullptr);
+
+        renderState->m_indexBufferView = _indexBufferView;
+        renderState->m_indexBufferIsU16 = _isU16;
+    }
+
+    void MetalGraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
+        auto* renderState = static_cast<RenderState*>(_commandList->m_userData);
+        KE_ASSERT_FATAL(renderState != nullptr);
+
+        renderState->m_vertexBuffers.clear();
+        renderState->m_vertexBuffers.insert(
+            renderState->m_vertexBuffers.begin(),
+            _bufferViews.begin(),
+            _bufferViews.end());
+    }
+
+    void MetalGraphicsContext::SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
+        auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(_commandList->m_encoder.get());
+        auto* renderState = static_cast<RenderState*>(_commandList->m_userData);
+        KE_ASSERT_FATAL(renderState != nullptr);
+
+        MetalResources::GraphicsPsoHotData* graphicsPsoData = m_resources.m_graphicsPso.Get(_graphicsPipeline.m_handle);
+
+        encoder->setRenderPipelineState(graphicsPsoData->m_pso.get());
+
+        renderState->m_topology = graphicsPsoData->m_topology;
+        if (memcmp(&renderState->m_dynamicState, &graphicsPsoData->m_staticState, sizeof(RenderDynamicState)) != 0)
+        {
+            RenderDynamicState& current = renderState->m_dynamicState;
+            const RenderDynamicState& ref = graphicsPsoData->m_staticState;
+
+            if (!graphicsPsoData->m_dynamicBlendFactor && (current.m_blendFactor != ref.m_blendFactor))
+            {
+                encoder->setBlendColor(
+                    ref.m_blendFactor.r,
+                    ref.m_blendFactor.g,
+                    ref.m_blendFactor.b,
+                    ref.m_blendFactor.a);
+                current.m_blendFactor = ref.m_blendFactor;
+            }
+
+            if (current.m_depthStencilHash != ref.m_depthStencilHash)
+            {
+                encoder->setDepthStencilState(graphicsPsoData->m_depthStencilState.get());
+                current.m_depthStencilHash = ref.m_depthStencilHash;
+            }
+
+            if (memcmp(&current.m_depthBias, &ref.m_depthBias, 3 * sizeof(float)) != 0)
+            {
+                encoder->setDepthBias(ref.m_depthBias, ref.m_depthBiasSlope, ref.m_depthBiasClamp);
+                current.m_depthBias = ref.m_depthBias;
+                current.m_depthBiasSlope = ref.m_depthBiasSlope;
+                current.m_depthBiasClamp = ref.m_depthBiasClamp;
+            }
+
+            if (current.m_fillMode != ref.m_fillMode)
+            {
+                encoder->setTriangleFillMode(MetalConverters::GetTriangleFillMode(ref.m_fillMode));
+                current.m_fillMode = ref.m_fillMode;
+            }
+
+            if (current.m_cullMode != ref.m_cullMode)
+            {
+                encoder->setCullMode(MetalConverters::GetCullMode(ref.m_cullMode));
+                current.m_cullMode = ref.m_cullMode;
+            }
+
+            if (current.m_front != ref.m_front)
+            {
+                encoder->setFrontFacingWinding(MetalConverters::GetWinding(ref.m_front));
+                current.m_front = ref.m_front;
+            }
+
+            if (current.m_depthClip != ref.m_depthClip)
+            {
+                encoder->setDepthClipMode(ref.m_depthClip ? MTL::DepthClipModeClip : MTL::DepthClipModeClamp);
+                current.m_depthClip = ref.m_depthClip;
+            }
+
+            if (!graphicsPsoData->m_dynamicStencilRef && current.m_stencilRefValue != ref.m_stencilRefValue)
+            {
+                encoder->setStencilReferenceValue(ref.m_stencilRefValue);
+                current.m_stencilRefValue = ref.m_stencilRefValue;
+            }
+        }
+
+        u8 i = 0;
+        for (const BufferView& vertexBufferView: renderState->m_vertexBuffers)
+        {
+            encoder->setVertexBuffer(
+                m_resources.m_buffers.Get(vertexBufferView.m_buffer.m_handle)->m_buffer.get(),
+                vertexBufferView.m_offset,
+                vertexBufferView.m_stride,
+                i + graphicsPsoData->m_vertexBufferFirstIndex);
+            i++;
+        }
+    }
+
+    void MetalGraphicsContext::SetGraphicsPushConstant(
+        CommandList _commandList,
+        PipelineLayoutHandle _layout,
+        const eastl::span<u32>& _data,
+        u32 _index,
+        u32 _offset)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
+        auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(_commandList->m_encoder.get());
+
+        const MetalArgumentBufferManager::PushConstantData& pushConstantData =
+            m_argumentBufferManager.m_pipelineLayouts.Get(_layout.m_handle)->m_pushConstantsData[_index];
+
+        for (auto& data: pushConstantData.m_data)
+        {
+            switch (data.m_visibility)
+            {
+            case ShaderVisibility::Vertex:
+                encoder->setVertexBytes(_data.data(), _data.size() * sizeof(u32), sizeof(u32), data.m_bufferIndex);
+                break;
+            case ShaderVisibility::Fragment:
+                encoder->setFragmentBytes(_data.data(), _data.size() * sizeof(u32), data.m_bufferIndex);
+                break;
+            default:
+                KE_ERROR("Invalid visibility");
+                break;
+            }
+        }
+    }
+
+    void MetalGraphicsContext::SetGraphicsDescriptorSets(
+        CommandList _commandList,
+        PipelineLayoutHandle _layout,
+        const eastl::span<DescriptorSetHandle>& _sets,
+        const bool* _unchanged,
+        u64 _frameId)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
+        auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(_commandList->m_encoder.get());
+
+        const MetalArgumentBufferManager::PipelineLayoutHotData& layoutData =
+            *m_argumentBufferManager.m_pipelineLayouts.Get(_layout.m_handle);
+
+        const u8 frameIndex = _frameId % m_frameContextCount;
+        u32 i = 0;
+        for (DescriptorSetHandle buffer: _sets)
+        {
+            const ShaderVisibility visibility = layoutData.m_setVisibilities[i];
+            const MetalArgumentBufferManager::ArgumentBufferHotData& argBuffer =
+                *m_argumentBufferManager.m_argumentBufferSets.Get(buffer.m_handle);
+
+            if (BitUtils::EnumHasAny(visibility, ShaderVisibility::Vertex))
+            {
+                encoder->setVertexBuffer(
+                    argBuffer.m_argumentBuffer.get(),
+                    frameIndex * argBuffer.m_encoder->encodedLength(),
+                    i);
+            }
+            if (BitUtils::EnumHasAny(visibility, ShaderVisibility::Fragment))
+            {
+                encoder->setFragmentBuffer(
+                    argBuffer.m_argumentBuffer.get(),
+                    frameIndex * argBuffer.m_encoder->encodedLength(),
+                    i);
+            }
+
+            i++;
+        }
+    }
+
+    void MetalGraphicsContext::DrawIndexedInstanced(
+        CommandList _commandList,
+        const DrawIndexedInstancedDesc& _desc)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
+        auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(_commandList->m_encoder.get());
+        auto* renderState = static_cast<RenderState*>(_commandList->m_userData);
+        KE_ASSERT_FATAL(renderState != nullptr);
+
+        const MTL::IndexType indexType = renderState->m_indexBufferIsU16 ? MTL::IndexTypeUInt16 : MTL::IndexTypeUInt32;
+        const size_t indexBufferOffset = renderState->m_indexBufferView.m_offset + _desc.m_indexOffset * (renderState->m_indexBufferIsU16 ? sizeof(u16) : sizeof(u32));
+
+        encoder->drawIndexedPrimitives(
+            MetalConverters::GetPrimitiveType(renderState->m_topology),
+            _desc.m_elementCount,
+            indexType,
+            m_resources.m_buffers.Get(renderState->m_indexBufferView.m_buffer.m_handle)->m_buffer.get(),
+            indexBufferOffset,
+            _desc.m_instanceCount,
+            _desc.m_vertexOffset,
+            _desc.m_instanceOffset);
     }
 }

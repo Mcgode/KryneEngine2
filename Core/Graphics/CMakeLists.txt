@@ -43,7 +43,7 @@ set (MetalFiles
         Metal/Helpers/EnumConverters.hpp
         Metal/MetalArgumentBufferManager.cpp
         Metal/MetalArgumentBufferManager.hpp
-        Metal/Helpers/RenderDynamicStates.hpp)
+        Metal/Helpers/RenderState.hpp)
 
 set(CommonFiles
         Common/GraphicsContext.cpp Common/GraphicsContext.hpp

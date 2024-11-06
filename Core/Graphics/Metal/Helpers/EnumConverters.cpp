@@ -464,4 +464,56 @@ namespace KryneEngine::MetalConverters
             return MTL::StoreActionDontCare;
         }
     }
+
+    MTL::TriangleFillMode GetTriangleFillMode(RasterStateDesc::FillMode _mode)
+    {
+        switch (_mode)
+        {
+        case RasterStateDesc::FillMode::Wireframe:
+            return MTL::TriangleFillModeLines;
+        case RasterStateDesc::FillMode::Solid:
+            return MTL::TriangleFillModeFill;
+        }
+    }
+
+    MTL::CullMode GetCullMode(RasterStateDesc::CullMode _mode)
+    {
+        switch (_mode)
+        {
+        case RasterStateDesc::CullMode::None:
+            return MTL::CullModeNone;
+        case RasterStateDesc::CullMode::Front:
+            return MTL::CullModeFront;
+        case RasterStateDesc::CullMode::Back:
+            return MTL::CullModeBack;
+        }
+    }
+
+    MTL::Winding GetWinding(RasterStateDesc::Front _mode)
+    {
+        switch (_mode)
+        {
+        case RasterStateDesc::Front::Clockwise:
+            return MTL::WindingClockwise;
+        case RasterStateDesc::Front::CounterClockwise:
+            return MTL::WindingCounterClockwise;
+        }
+    }
+
+    MTL::PrimitiveType GetPrimitiveType(InputAssemblyDesc::PrimitiveTopology _topology)
+    {
+        switch (_topology)
+        {
+        case InputAssemblyDesc::PrimitiveTopology::PointList:
+            return MTL::PrimitiveTypePoint;
+        case InputAssemblyDesc::PrimitiveTopology::LineList:
+            return MTL::PrimitiveTypeLine;
+        case InputAssemblyDesc::PrimitiveTopology::LineStrip:
+            return MTL::PrimitiveTypeLineStrip;
+        case InputAssemblyDesc::PrimitiveTopology::TriangleList:
+            return MTL::PrimitiveTypeTriangle;
+        case InputAssemblyDesc::PrimitiveTopology::TriangleStrip:
+            return MTL::PrimitiveTypeTriangleStrip;
+        }
+    }
 }

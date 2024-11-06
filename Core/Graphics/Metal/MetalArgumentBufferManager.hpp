@@ -26,6 +26,7 @@ namespace KryneEngine
 
     class MetalArgumentBufferManager
     {
+        friend class MetalGraphicsContext;
         friend class MetalResources;
 
     public:
@@ -89,7 +90,7 @@ namespace KryneEngine
         struct PipelineLayoutHotData
         {
             eastl::fixed_vector<ShaderVisibility, 8> m_setVisibilities;
-            eastl::fixed_vector<PushConstantData, 1> m_pushConstantsData;
+            eastl::fixed_vector<PushConstantData, 2> m_pushConstantsData;
         };
 
         GenerationalPool<PipelineLayoutHotData> m_pipelineLayouts;

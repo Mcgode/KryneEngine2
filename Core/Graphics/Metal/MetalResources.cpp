@@ -428,7 +428,6 @@ namespace KryneEngine
         // Save input assembly data
         {
             hot->m_topology = _desc.m_inputAssembly.m_topology;
-            hot->m_indexType = _desc.m_inputAssembly.m_indexSize;
         }
 
         // Set up raster state
@@ -520,7 +519,7 @@ namespace KryneEngine
                 hot->m_dynamicStencilRef = dsDesc.m_dynamicStencilRef;
                 dsDesc.m_dynamicStencilRef = false;
 
-                hot->m_staticState.stencilRefValue = dsDesc.m_stencilRef;
+                hot->m_staticState.m_stencilRefValue = dsDesc.m_stencilRef;
                 dsDesc.m_stencilRef = 0;
             }
 

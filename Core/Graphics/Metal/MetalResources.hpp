@@ -10,7 +10,7 @@
 #include <Graphics/Common/Enums.hpp>
 #include <Graphics/Common/Handles.hpp>
 #include <Graphics/Common/RenderPass.hpp>
-#include <Graphics/Metal/Helpers/RenderDynamicStates.hpp>
+#include <Graphics/Metal/Helpers/RenderState.hpp>
 #include <Graphics/Metal/MetalHeaders.hpp>
 #include <Memory/GenerationalPool.hpp>
 
@@ -166,7 +166,6 @@ namespace KryneEngine
             NsPtr<MTL::DepthStencilState> m_depthStencilState;
             RenderDynamicState m_staticState;
             InputAssemblyDesc::PrimitiveTopology m_topology;
-            InputAssemblyDesc::IndexIntSize m_indexType;
             bool m_dynamicBlendFactor;
             bool m_dynamicStencilRef;
             u8 m_vertexBufferFirstIndex;

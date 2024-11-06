@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <Graphics/Metal/Helpers/RenderState.hpp>
 #include <Graphics/Metal/MetalHeaders.hpp>
 
 namespace KryneEngine
@@ -23,11 +24,13 @@ namespace KryneEngine
         MTL::CommandBuffer* m_commandBuffer;
         NsPtr<MTL::CommandEncoder> m_encoder;
         EncoderType m_type;
+        void* m_userData = nullptr;
 
         void ResetEncoder()
         {
             if (m_encoder != nullptr)
             {
+                KE_ASSERT(m_userData == nullptr);
                 m_encoder->endEncoding();
                 m_encoder.reset();
             }
@@ -37,6 +40,7 @@ namespace KryneEngine
         {
             if (m_encoder != nullptr && m_type != _type)
             {
+                KE_ASSERT(m_userData == nullptr);
                 m_encoder->endEncoding();
                 m_encoder.reset();
             }

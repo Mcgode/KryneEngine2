@@ -105,7 +105,6 @@ namespace KryneEngine
             void* _data);
 
         void MapBuffer(BufferMapping& _mapping);
-
         void UnmapBuffer(BufferMapping& _mapping);
 
         void CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params);
@@ -134,22 +133,22 @@ namespace KryneEngine
 
         void SetViewport(CommandList _commandList, const Viewport& _viewport);
         void SetScissorsRect(CommandList _commandList, const Rect& _rect);
-        void SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16) { KE_ERROR("NYI"); return; }
-        void SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews) { KE_ERROR("NYI"); return; }
-        void SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline) { KE_ERROR("NYI"); return; }
+        void SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16);
+        void SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews);
+        void SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline);
         void SetGraphicsPushConstant(
             CommandList _commandList,
             PipelineLayoutHandle _layout,
             const eastl::span<u32>& _data,
             u32 _index,
-            u32 _offset) { KE_ERROR("NYI"); return; }
+            u32 _offset);
         void SetGraphicsDescriptorSets(
             CommandList _commandList,
             PipelineLayoutHandle _layout,
             const eastl::span<DescriptorSetHandle>& _sets,
             const bool* _unchanged,
-            u64 _frameId) { KE_ERROR("NYI"); return; }
-        void DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc) { KE_ERROR("NYI"); return; }
+            u64 _frameId);
+        void DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc);
 
     private:
         MetalResources m_resources;

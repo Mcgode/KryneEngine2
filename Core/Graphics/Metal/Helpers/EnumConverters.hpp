@@ -44,4 +44,9 @@ namespace KryneEngine::MetalConverters
 
     [[nodiscard]] MTL::LoadAction GetMetalLoadOperation(RenderPassDesc::Attachment::LoadOperation _op);
     [[nodiscard]] MTL::StoreAction GetMetalStoreOperation(RenderPassDesc::Attachment::StoreOperation _op);
+
+    [[nodiscard]] MTL::TriangleFillMode GetTriangleFillMode(RasterStateDesc::FillMode _mode);
+    [[nodiscard]] MTL::CullMode GetCullMode(RasterStateDesc::CullMode _mode);
+    [[nodiscard]] MTL::Winding GetWinding(RasterStateDesc::Front _mode);
+    [[nodiscard]] MTL::PrimitiveType GetPrimitiveType(InputAssemblyDesc::PrimitiveTopology _topology);
 }
