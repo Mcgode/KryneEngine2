@@ -707,7 +707,6 @@ namespace KryneEngine
             encoder->setVertexBuffer(
                 m_resources.m_buffers.Get(vertexBufferView.m_buffer.m_handle)->m_buffer.get(),
                 vertexBufferView.m_offset,
-                vertexBufferView.m_stride,
                 i + graphicsPsoData->m_vertexBufferFirstIndex);
             i++;
         }
@@ -731,7 +730,7 @@ namespace KryneEngine
             switch (data.m_visibility)
             {
             case ShaderVisibility::Vertex:
-                encoder->setVertexBytes(_data.data(), _data.size() * sizeof(u32), sizeof(u32), data.m_bufferIndex);
+                encoder->setVertexBytes(_data.data(), _data.size() * sizeof(u32), data.m_bufferIndex);
                 break;
             case ShaderVisibility::Fragment:
                 encoder->setFragmentBytes(_data.data(), _data.size() * sizeof(u32), data.m_bufferIndex);
