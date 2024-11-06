@@ -155,7 +155,7 @@ namespace KryneEngine
         {
             const auto& set = _desc.m_descriptorSets[i];
             const ShaderVisibility setVisibility = m_argumentDescriptors.GetCold(set.m_handle)->m_shaderVisibility;
-            hot->m_setVisibilities.push_back();
+            hot->m_setVisibilities.push_back(setVisibility);
 
             for (auto& pcData: hot->m_pushConstantsData)
             {
