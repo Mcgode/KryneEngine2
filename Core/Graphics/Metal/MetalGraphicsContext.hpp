@@ -114,7 +114,7 @@ namespace KryneEngine
             CommandList _commandList,
             const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,
             const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
-            const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers) { KE_ERROR("NYI"); return; }
+            const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers);
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
