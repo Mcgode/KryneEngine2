@@ -33,7 +33,7 @@ namespace KryneEngine
         MetalArgumentBufferManager();
         ~MetalArgumentBufferManager();
 
-        void Init(u8 _inFlightFrameCount);
+        void Init(u8 _inFlightFrameCount, u8 _frameIndex);
 
     private:
         u8 m_inFlightFrameCount;

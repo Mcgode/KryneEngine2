@@ -28,9 +28,10 @@ namespace KryneEngine
     MetalArgumentBufferManager::MetalArgumentBufferManager() = default;
     MetalArgumentBufferManager::~MetalArgumentBufferManager() = default;
 
-    void MetalArgumentBufferManager::Init(u8 _inFlightFrameCount)
+    void MetalArgumentBufferManager::Init(u8 _inFlightFrameCount, u8 _frameIndex)
     {
         m_inFlightFrameCount = _inFlightFrameCount;
+        m_multiFrameTracker.Init(_inFlightFrameCount, _frameIndex);
     }
 
     DescriptorSetLayoutHandle MetalArgumentBufferManager::CreateArgumentDescriptor(

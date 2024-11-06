@@ -62,7 +62,7 @@ namespace KryneEngine
 
         m_frameContexts[frameIndex].PrepareForNextFrame(_initialFrameId);
 
-        m_argumentBufferManager.Init(m_frameContextCount);
+        m_argumentBufferManager.Init(m_frameContextCount, frameIndex);
     }
 
     MetalGraphicsContext::~MetalGraphicsContext() = default;
