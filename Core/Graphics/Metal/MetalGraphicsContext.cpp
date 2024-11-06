@@ -63,6 +63,8 @@ namespace KryneEngine
             m_frameContexts[newFrameIndex].WaitForFrame(previousFrameId);
 
             m_frameContexts[newFrameIndex].PrepareForNextFrame(nextFrame);
+
+            m_argumentBufferManager.UpdateAndFlushArgumentBuffers(m_resources, newFrameIndex);
         }
     }
 
@@ -313,6 +315,18 @@ namespace KryneEngine
     bool MetalGraphicsContext::FreeShaderModule(ShaderModuleHandle _module)
     {
         return m_resources.FreeLibrary(_module);
+    }
+
+    void MetalGraphicsContext::UpdateDescriptorSet(
+        DescriptorSetHandle _descriptorSet,
+        const eastl::span<DescriptorSetWriteInfo>& _writes,
+        u64 _frameId)
+    {
+        m_argumentBufferManager.UpdateArgumentBuffer(
+            m_resources,
+            _writes,
+            _descriptorSet,
+            _frameId % m_frameContextCount);
     }
 
     void MetalGraphicsContext::SetViewport(CommandList _commandList, const Viewport& _viewport)

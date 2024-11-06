@@ -9,6 +9,7 @@
 #include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Metal/Helpers/EnumConverters.hpp>
 #include <Graphics/Metal/MetalHeaders.hpp>
+#include <Graphics/Metal/MetalResources.hpp>
 #include <Memory/GenerationalPool.inl>
 
 namespace KryneEngine
@@ -113,6 +114,7 @@ namespace KryneEngine
         return false;
     }
 
+#pragma region Pipeline layout
     PipelineLayoutHandle MetalArgumentBufferManager::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
     {
         const GenPool::Handle handle = m_pipelineLayouts.Allocate();
@@ -173,4 +175,97 @@ namespace KryneEngine
     {
         return m_pipelineLayouts.Free(_layout.m_handle);
     }
+#pragma endregion
+
+#pragma region Argument buffer update
+    void MetalArgumentBufferManager::UpdateArgumentBuffer(
+        MetalResources& _resources,
+        const eastl::span<DescriptorSetWriteInfo>& _writes,
+        DescriptorSetHandle _descriptorSet,
+        u8 _frameIndex)
+    {
+        eastl::fixed_vector<ArgumentBufferWriteInfo, 128> updates;
+
+        for (const DescriptorSetWriteInfo& writeInfo: _writes)
+        {
+            PackedIndex packedIndex = { .m_packedIndex = writeInfo.m_index };
+            packedIndex.m_index += writeInfo.m_arrayOffset;
+            for (auto& data: writeInfo.m_descriptorData)
+            {
+                ArgumentBufferWriteInfo& info = updates.emplace_back();
+                info.m_index = packedIndex.m_packedIndex;
+                info.m_argumentBuffer = _descriptorSet;
+                info.m_object = data.m_handle;
+
+                m_multiFrameTracker.TrackForOtherFrames(info);
+
+                packedIndex.m_index++;
+            }
+        }
+
+        _FlushUpdates(_resources, updates, _frameIndex);
+    }
+
+    void MetalArgumentBufferManager::UpdateAndFlushArgumentBuffers(MetalResources& _resources, u8 _frameIndex)
+    {
+        m_multiFrameTracker.AdvanceToNextFrame();
+
+        _FlushUpdates(_resources, m_multiFrameTracker.GetData(), _frameIndex);
+    }
+
+    void MetalArgumentBufferManager::_FlushUpdates(
+        MetalResources& _resources,
+        eastl::span<const ArgumentBufferWriteInfo> _updates,
+        u8 _frameIndex)
+    {
+        GenPool::Handle currentBuffer = GenPool::kInvalidHandle;
+        MTL::ArgumentEncoder* encoder = nullptr;
+        MTL::Buffer* buffer = nullptr;
+
+        const auto flush = [&]
+        {
+#if defined(TARGET_OS_MAC)
+            // Could be optimized by not flushing entire buffer
+            buffer->didModifyRange({ encoder->encodedLength() * _frameIndex, encoder->encodedLength() });
+#endif
+        };
+
+        for (const ArgumentBufferWriteInfo& update: _updates)
+        {
+            if (update.m_argumentBuffer != currentBuffer)
+            {
+                flush();
+                currentBuffer = update.m_argumentBuffer.m_handle;
+                const ArgumentBufferHotData* hot = m_argumentBufferSets.Get(currentBuffer);
+                encoder = hot->m_encoder.get();
+                buffer = hot->m_argumentBuffer.get();
+                encoder->setArgumentBuffer(buffer, encoder->encodedLength() * _frameIndex);
+            }
+
+            PackedIndex index { .m_packedIndex = update.m_index };
+            const auto type = static_cast<DescriptorBindingDesc::Type>(index.m_type);
+
+            switch (type)
+            {
+            case DescriptorBindingDesc::Type::Sampler:
+                encoder->setSamplerState(_resources.m_samplers.Get(update.m_object)->m_sampler.get(), index.m_index);
+                break;
+            case DescriptorBindingDesc::Type::SampledTexture:
+            case DescriptorBindingDesc::Type::StorageReadOnlyTexture:
+                encoder->setTexture(_resources.m_textureSrvs.Get(update.m_object)->m_texture.get(), index.m_index);
+                break;
+            case DescriptorBindingDesc::Type::StorageReadWriteTexture:
+                KE_ERROR("Not support yet");
+                break;
+            case DescriptorBindingDesc::Type::ConstantBuffer:
+            case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:
+            case DescriptorBindingDesc::Type::StorageReadWriteBuffer:
+                KE_ERROR("Not supported yet");
+                break;
+            }
+        }
+
+        flush();
+    }
+#pragma endregion
 } // namespace KryneEngine

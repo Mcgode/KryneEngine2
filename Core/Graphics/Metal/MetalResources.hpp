@@ -28,6 +28,7 @@ namespace KryneEngine
     class MetalResources
     {
         friend class MetalGraphicsContext;
+        friend class MetalArgumentBufferManager;
 
     public:
         MetalResources();

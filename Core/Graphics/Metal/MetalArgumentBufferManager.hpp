@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <Common/Utils/MultiFrameTracking.hpp>
 #include <Graphics/Common/Handles.hpp>
 #include <Graphics/Common/ShaderPipeline.hpp>
 #include <Graphics/Metal/Helpers/NsPtr.hpp>
@@ -21,6 +22,8 @@ namespace MTL
 
 namespace KryneEngine
 {
+    class MetalResources;
+
     class MetalArgumentBufferManager
     {
         friend class MetalResources;
@@ -67,6 +70,7 @@ namespace KryneEngine
 
         GenerationalPool<ArgumentBufferHotData> m_argumentBufferSets;
 
+#pragma region Pipeline layout
     public:
         PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
         bool DestroyPipelineLayout(PipelineLayoutHandle _layout);
@@ -89,5 +93,32 @@ namespace KryneEngine
         };
 
         GenerationalPool<PipelineLayoutHotData> m_pipelineLayouts;
+#pragma endregion
+
+#pragma region Argument buffer update
+    public:
+        void UpdateArgumentBuffer(
+            MetalResources& _resources,
+            const eastl::span<DescriptorSetWriteInfo>& _writes,
+            DescriptorSetHandle _descriptorSet,
+            u8 _frameIndex);
+
+        void UpdateAndFlushArgumentBuffers(MetalResources& _resources, u8 _frameIndex);
+
+    private:
+        struct ArgumentBufferWriteInfo
+        {
+            DescriptorSetHandle m_argumentBuffer;
+            u32 m_index;
+            GenPool::Handle m_object;
+        };
+
+        MultiFrameDataTracker<ArgumentBufferWriteInfo> m_multiFrameTracker;
+
+        void _FlushUpdates(
+            MetalResources& _resources,
+            eastl::span<const ArgumentBufferWriteInfo> _updates,
+            u8 _frameIndex);
+#pragma endregion
     };
 } // namespace KryneEngine
