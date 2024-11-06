@@ -255,6 +255,41 @@ namespace KryneEngine
         _commandList->ResetEncoder();
     }
 
+    void MetalGraphicsContext::SetTextureData(
+        CommandList _commandList,
+        BufferHandle _stagingBuffer,
+        TextureHandle _dstTexture,
+        const TextureMemoryFootprint& _footprint,
+        const SubResourceIndexing& _subResourceIndex,
+        void* _data)
+    {
+        MTL::Buffer* stagingBuffer = m_resources.m_buffers.Get(_stagingBuffer.m_handle)->m_buffer.get();
+
+        const auto stagingBufferContent = reinterpret_cast<uintptr_t>(stagingBuffer->contents());
+        memcpy(
+            reinterpret_cast<void*>(stagingBufferContent + _footprint.m_offset),
+            _data,
+            _footprint.m_lineByteAlignedSize * _footprint.m_height * _footprint.m_depth);
+
+        _commandList->ResetEncoder(CommandListData::EncoderType::Blit);
+        if (_commandList->m_encoder == nullptr)
+        {
+            _commandList->m_encoder = _commandList->m_commandBuffer->blitCommandEncoder();
+        }
+        auto* encoder = reinterpret_cast<MTL::BlitCommandEncoder*>(_commandList->m_encoder.get());
+
+        encoder->copyFromBuffer(
+            stagingBuffer,
+            _footprint.m_offset,
+            _footprint.m_lineByteAlignedSize,
+            _footprint.m_lineByteAlignedSize * _footprint.m_height * _footprint.m_depth,
+            MTL::Size { _footprint.m_width, _footprint.m_height, _footprint.m_depth },
+            m_resources.m_textures.Get(_dstTexture.m_handle)->m_texture.get(),
+            _subResourceIndex.m_arraySlice,
+            _subResourceIndex.m_mipIndex,
+            MTL::Origin { 0, 0, 0 });
+    }
+
     CommandList MetalGraphicsContext::BeginGraphicsCommandList(u64 _frameId)
     {
         VERIFY_OR_RETURN(m_graphicsQueue != nullptr, nullptr);

@@ -102,7 +102,7 @@ namespace KryneEngine
             TextureHandle _dstTexture,
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
-            void* _data) { KE_ERROR("NYI"); return; }
+            void* _data);
 
         void MapBuffer(BufferMapping& _mapping) { KE_ERROR("NYI"); return; }
 
