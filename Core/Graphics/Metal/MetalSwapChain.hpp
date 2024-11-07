@@ -36,7 +36,7 @@ namespace KryneEngine
 
     private:
         CA::MetalLayer* m_metalLayer;
-        DynamicArray<NsPtr<CA::MetalDrawable>> m_drawables;
+        NsPtr<CA::MetalDrawable> m_drawable;
         DynamicArray<TextureHandle> m_textures;
         DynamicArray<RenderTargetViewHandle> m_rtvs;
         u8 m_index;

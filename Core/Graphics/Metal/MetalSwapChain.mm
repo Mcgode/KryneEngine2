@@ -43,7 +43,6 @@ namespace KryneEngine
                 ? 2
                 : 3;
 
-        m_drawables.Resize(metalLayer.maximumDrawableCount);
         m_textures.Resize(metalLayer.maximumDrawableCount);
         m_rtvs.Resize(metalLayer.maximumDrawableCount);
 
@@ -61,13 +60,12 @@ namespace KryneEngine
                 : TextureFormat::BGRA8_UNorm,
         };
 
-        for (size_t i = 0; i < m_drawables.Size(); i++)
+        m_drawable = m_metalLayer->nextDrawable();
+        KE_ASSERT_FATAL(m_drawable != nullptr);
+        for (size_t i = 0; i < metalLayer.maximumDrawableCount; i++)
         {
-            CA::MetalDrawable* drawable = m_metalLayer->nextDrawable();
-            m_drawables.Init(i, drawable);
-            KE_ASSERT_FATAL(m_drawables[i] != nullptr);
-            m_textures[i] = _resources.RegisterTexture(drawable->texture());
-            m_rtvs[i] = _resources.RegisterRtv(rtvDesc, drawable->texture());
+            m_textures[i] = _resources.RegisterTexture(m_drawable->texture());
+            m_rtvs[i] = _resources.RegisterRtv(rtvDesc, m_drawable->texture());
         }
 
         m_index = _initialFrameIndex;
@@ -75,17 +73,17 @@ namespace KryneEngine
 
     void MetalSwapChain::Present(CommandList _commandList, u8 _frameIndex)
     {
-        _commandList->m_commandBuffer->presentDrawable(m_drawables[_frameIndex].get());
+        _commandList->m_commandBuffer->presentDrawable(m_drawable.get());
     }
 
     void MetalSwapChain::UpdateNextDrawable(u8 _frameIndex, MetalResources& _resources)
     {
         CA::MetalDrawable* drawable = m_metalLayer->nextDrawable();
-        m_drawables[_frameIndex].reset(drawable);
-        KE_ASSERT_FATAL(m_drawables[_frameIndex] != nullptr);
+        m_drawable.reset(drawable);
+        KE_ASSERT_FATAL(m_drawable != nullptr);
         _resources.UpdateSystemTexture(m_textures[_frameIndex], drawable->texture());
         _resources.UpdateSystemTexture(m_rtvs[_frameIndex], drawable->texture());
 
-        m_index = (_frameIndex + 1) % m_drawables.Size();
+        m_index = (_frameIndex + 1) % m_textures.Size();
     }
 } // namespace KryneEngine

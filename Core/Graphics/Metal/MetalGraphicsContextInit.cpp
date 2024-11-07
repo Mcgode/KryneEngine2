@@ -51,7 +51,7 @@ namespace KryneEngine
         if (_appInfo.m_features.m_present)
         {
             m_swapChain = eastl::make_unique<MetalSwapChain>(*m_device, _appInfo, _window, m_resources, frameIndex);
-            m_frameContextCount = m_swapChain->m_drawables.Size();
+            m_frameContextCount = m_swapChain->m_textures.Size();
         }
 
         m_frameContexts.Resize(m_frameContextCount);
