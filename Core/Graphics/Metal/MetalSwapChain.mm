@@ -61,14 +61,13 @@ namespace KryneEngine
         };
 
         {
-            NsPtr autoReleasePool { NS::AutoreleasePool::alloc()->init() };
-
+            KE_AUTO_RELEASE_POOL;
             m_drawable = m_metalLayer->nextDrawable()->retain();
             KE_ASSERT_FATAL(m_drawable != nullptr);
             for (size_t i = 0; i < metalLayer.maximumDrawableCount; i++)
             {
-                m_textures[i] = _resources.RegisterTexture(m_drawable->texture());
-                m_rtvs[i] = _resources.RegisterRtv(rtvDesc, m_drawable->texture());
+                m_textures[i] = _resources.RegisterTexture(m_drawable->texture()->retain());
+                m_rtvs[i] = _resources.RegisterRtv(rtvDesc, m_drawable->texture()->retain());
             }
         }
 
@@ -82,11 +81,12 @@ namespace KryneEngine
 
     void MetalSwapChain::UpdateNextDrawable(u8 _frameIndex, MetalResources& _resources)
     {
-        CA::MetalDrawable* drawable = m_metalLayer->nextDrawable();
+        KE_AUTO_RELEASE_POOL;
+        CA::MetalDrawable* drawable = m_metalLayer->nextDrawable()->retain();
         m_drawable.reset(drawable);
         KE_ASSERT_FATAL(m_drawable != nullptr);
-        _resources.UpdateSystemTexture(m_textures[_frameIndex], drawable->texture());
-        _resources.UpdateSystemTexture(m_rtvs[_frameIndex], drawable->texture());
+        _resources.UpdateSystemTexture(m_textures[_frameIndex], drawable->texture()->retain());
+        _resources.UpdateSystemTexture(m_rtvs[_frameIndex], drawable->texture()->retain());
 
         m_index = (_frameIndex + 1) % m_textures.Size();
     }

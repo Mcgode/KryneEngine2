@@ -319,6 +319,7 @@ namespace KryneEngine
 
         ShaderModuleHotData* hot = m_libraries.Get(handle);
 
+        KE_AUTO_RELEASE_POOL;
         dispatch_data_t data = dispatch_data_create(_bytecode, _size, nullptr, {});
         hot->m_library = _device.newLibrary(data, nullptr);
 

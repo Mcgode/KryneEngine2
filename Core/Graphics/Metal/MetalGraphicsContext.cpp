@@ -799,6 +799,7 @@ namespace KryneEngine
         const MTL::IndexType indexType = renderState->m_indexBufferIsU16 ? MTL::IndexTypeUInt16 : MTL::IndexTypeUInt32;
         const size_t indexBufferOffset = renderState->m_indexBufferView.m_offset + _desc.m_indexOffset * (renderState->m_indexBufferIsU16 ? sizeof(u16) : sizeof(u32));
 
+        KE_AUTO_RELEASE_POOL;
         encoder->drawIndexedPrimitives(
             MetalConverters::GetPrimitiveType(renderState->m_topology),
             _desc.m_elementCount,

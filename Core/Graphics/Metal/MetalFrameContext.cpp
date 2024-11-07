@@ -21,8 +21,7 @@ namespace KryneEngine
     {
         KE_ASSERT(m_graphicsAllocationSet.m_available);
 
-        NsPtr autoReleasePool { NS::AutoreleasePool::alloc()->init() };
-
+        KE_AUTO_RELEASE_POOL;
         MTL::CommandBuffer* commandBuffer = _queue.commandBuffer()->retain();
         KE_ASSERT_FATAL(commandBuffer != nullptr);
 
@@ -75,6 +74,7 @@ namespace KryneEngine
                 });
         }
 
+        KE_AUTO_RELEASE_POOL;
         for (auto& commandListData : m_usedCommandBuffers)
         {
             if (commandListData.m_encoder != nullptr)
