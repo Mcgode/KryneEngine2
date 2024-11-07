@@ -102,6 +102,12 @@ namespace KryneEngine
 #endif
         hot->m_argumentBuffer = _device.newBuffer(hot->m_encoder->encodedLength() * m_inFlightFrameCount, options);
 
+#if !defined(KE_FINAL)
+        eastl::string debugName;
+        debugName.sprintf("ArgumentBuffer#%d", handle.m_index);
+        hot->m_argumentBuffer->setLabel(NS::String::string(debugName.c_str(), NS::UTF8StringEncoding));
+#endif
+
         return { handle };
     }
 
