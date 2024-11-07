@@ -83,6 +83,8 @@ namespace KryneEngine
         MTL::Device& _device,
         DescriptorSetLayoutHandle _descriptor)
     {
+        KE_AUTO_RELEASE_POOL;
+
         const GenPool::Handle handle = m_argumentBufferSets.Allocate();
 
         ArgumentDescriptorHotData* argDescHot = m_argumentDescriptors.Get(_descriptor.m_handle);

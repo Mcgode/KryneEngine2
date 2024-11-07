@@ -22,6 +22,8 @@ namespace KryneEngine
 
         if (_appInfo.m_features.m_graphics)
         {
+            // Catch internal auto release
+            KE_AUTO_RELEASE_POOL;
             m_graphicsQueue = m_device->newCommandQueue();
         }
 
@@ -29,6 +31,8 @@ namespace KryneEngine
         {
             if (_appInfo.m_features.m_asyncCompute || m_graphicsQueue == nullptr)
             {
+                // Catch internal auto release
+                KE_AUTO_RELEASE_POOL;
                 m_computeQueue = m_device->newCommandQueue();
             }
         }
@@ -38,6 +42,9 @@ namespace KryneEngine
             if (_appInfo.m_features.m_transferQueue || (m_computeQueue == nullptr && m_graphicsQueue == nullptr))
             {
                 NsPtr<MTL::IOCommandQueueDescriptor> descriptor { MTL::IOCommandQueueDescriptor::alloc()->init() };
+
+                // Catch internal auto release
+                KE_AUTO_RELEASE_POOL;
                 m_ioQueue = m_device->newIOCommandQueue(descriptor.get(), nullptr);
             }
         }

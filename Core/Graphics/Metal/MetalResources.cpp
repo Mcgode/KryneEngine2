@@ -341,6 +341,8 @@ namespace KryneEngine
         MetalArgumentBufferManager& _argBufferManager,
         const GraphicsPipelineDesc& _desc)
     {
+        KE_AUTO_RELEASE_POOL;
+
         const MetalArgumentBufferManager::PipelineLayoutHotData* hotLayout =
             _argBufferManager.m_pipelineLayouts.Get(_desc.m_pipelineLayout.m_handle);
         KE_ASSERT_FATAL(hotLayout != nullptr);
@@ -549,6 +551,10 @@ namespace KryneEngine
 
             hot->m_depthStencilState = _device.newDepthStencilState(stateDesc.get());
         }
+
+#if !defined(KE_FINAL)
+        descriptor->setLabel(NS::String::string(_desc.m_debugName.c_str(), NS::UTF8StringEncoding));
+#endif
 
         // Create PSO
         {

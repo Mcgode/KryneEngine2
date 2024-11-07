@@ -9,6 +9,8 @@
 #include <Foundation/NSObject.hpp>
 #include <concepts>
 
+#define KE_AUTO_RELEASE_POOL NsPtr autoReleasePool { NS::AutoreleasePool::alloc()->init() }
+
 namespace KryneEngine
 {
     template<class T>

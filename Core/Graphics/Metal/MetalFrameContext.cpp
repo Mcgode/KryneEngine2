@@ -21,7 +21,9 @@ namespace KryneEngine
     {
         KE_ASSERT(m_graphicsAllocationSet.m_available);
 
-        MTL::CommandBuffer* commandBuffer = _queue.commandBuffer();
+        NsPtr autoReleasePool { NS::AutoreleasePool::alloc()->init() };
+
+        MTL::CommandBuffer* commandBuffer = _queue.commandBuffer()->retain();
         KE_ASSERT_FATAL(commandBuffer != nullptr);
 
         m_graphicsAllocationSet.m_usedCommandBuffers.push_back({ commandBuffer });

@@ -244,10 +244,13 @@ namespace KryneEngine
 
         // Leaving dangling encoders is expected behaviour.
         // This allows same command type batching, avoiding encoder re-creation
+        KE_ASSERT_FATAL(_commandList->m_encoder == nullptr || _commandList->m_type != CommandListData::EncoderType::Render);
         _commandList->ResetEncoder(CommandListData::EncoderType::Render);
 
+        NsPtr autoReleasePool { NS::AutoreleasePool::alloc()->init() };
+
         _commandList->m_encoder =
-            _commandList->m_commandBuffer->renderCommandEncoder(rpHot->m_descriptor.get());
+            _commandList->m_commandBuffer->renderCommandEncoder(rpHot->m_descriptor.get())->retain();
 
         _commandList->m_userData = new RenderState();
     }
@@ -278,7 +281,8 @@ namespace KryneEngine
         _commandList->ResetEncoder(CommandListData::EncoderType::Blit);
         if (_commandList->m_encoder == nullptr)
         {
-            _commandList->m_encoder = _commandList->m_commandBuffer->blitCommandEncoder();
+            NsPtr autoReleasePool { NS::AutoreleasePool::alloc()->init() };
+            _commandList->m_encoder = _commandList->m_commandBuffer->blitCommandEncoder()->retain();
         }
         auto* encoder = reinterpret_cast<MTL::BlitCommandEncoder*>(_commandList->m_encoder.get());
 
@@ -318,7 +322,8 @@ namespace KryneEngine
         _commandList->ResetEncoder(CommandListData::EncoderType::Blit);
         if (_commandList->m_encoder == nullptr)
         {
-            _commandList->m_encoder = _commandList->m_commandBuffer->blitCommandEncoder();
+            NsPtr autoReleasePool { NS::AutoreleasePool::alloc()->init() };
+            _commandList->m_encoder = _commandList->m_commandBuffer->blitCommandEncoder()->retain();
         }
         auto* encoder = reinterpret_cast<MTL::BlitCommandEncoder*>(_commandList->m_encoder.get());
 

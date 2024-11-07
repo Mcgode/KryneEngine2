@@ -510,6 +510,8 @@ namespace KryneEngine::Modules::ImGui
             m_fsModule = _graphicsContext->RegisterShaderModule(m_fsBytecode.data(), m_fsBytecode.size());
         }
 
+        printf("MTL arg buffer descriptor creation incoming\n");
+
         // Set up descriptor set layout
         {
             const DescriptorSetDesc descriptorSetDesc {

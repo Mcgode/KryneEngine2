@@ -60,12 +60,16 @@ namespace KryneEngine
                 : TextureFormat::BGRA8_UNorm,
         };
 
-        m_drawable = m_metalLayer->nextDrawable();
-        KE_ASSERT_FATAL(m_drawable != nullptr);
-        for (size_t i = 0; i < metalLayer.maximumDrawableCount; i++)
         {
-            m_textures[i] = _resources.RegisterTexture(m_drawable->texture());
-            m_rtvs[i] = _resources.RegisterRtv(rtvDesc, m_drawable->texture());
+            NsPtr autoReleasePool { NS::AutoreleasePool::alloc()->init() };
+
+            m_drawable = m_metalLayer->nextDrawable()->retain();
+            KE_ASSERT_FATAL(m_drawable != nullptr);
+            for (size_t i = 0; i < metalLayer.maximumDrawableCount; i++)
+            {
+                m_textures[i] = _resources.RegisterTexture(m_drawable->texture());
+                m_rtvs[i] = _resources.RegisterRtv(rtvDesc, m_drawable->texture());
+            }
         }
 
         m_index = _initialFrameIndex;
