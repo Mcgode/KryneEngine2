@@ -56,7 +56,8 @@ namespace KryneEngine
         // Prepare next frame
         {
             KE_ZoneScoped("Prepare next frame");
-            const u64 nextFrame = _frameId;
+
+            const u64 nextFrame = _frameId + 1;
             const u8 newFrameIndex = nextFrame % m_frameContextCount;
 
             const u64 previousFrameId = eastl::max<u64>(m_frameContextCount, nextFrame) - m_frameContextCount;
