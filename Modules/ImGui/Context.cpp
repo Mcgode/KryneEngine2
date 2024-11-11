@@ -202,11 +202,18 @@ namespace KryneEngine::Modules::ImGui
                         TextureComponentMapping::Red,
                     },
                     .m_format = textureCreateDesc.m_desc.m_format,
+#if !defined(KE_FINAL)
+                    .m_debugName = textureCreateDesc.m_desc.m_debugName + "View",
+#endif
                 };
                 m_fontTextureSrvHandle = graphicsContext->CreateTextureSrv(srvDesc);
 
                 // Set up font sampler
-                const SamplerDesc samplerDesc {}; // Default sampler works great for us
+                const SamplerDesc samplerDesc { // Default sampler works great for us
+#if !defined(KE_FINAL)
+                    .m_debugName = textureCreateDesc.m_desc.m_debugName + "Sampler",
+#endif
+                };
                 m_fontSamplerHandle = graphicsContext->CreateSampler(samplerDesc);
 
                 // Set font descriptor set values
