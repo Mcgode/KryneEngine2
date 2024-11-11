@@ -224,7 +224,7 @@ namespace KryneEngine::MetalConverters
     MTL::TextureUsage GetTextureUsage(MemoryUsage _usage)
     {
         MTL::TextureUsage usage {};
-        if (BitUtils::EnumHasAny(_usage, MemoryUsage::ReadImage))
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::ReadImage | MemoryUsage::SampledImage))
         {
             usage |= MTL::TextureUsageShaderRead;
         }
