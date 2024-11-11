@@ -170,6 +170,7 @@ namespace KryneEngine
         KE_ASSERT_FATAL(hot->m_texture != nullptr);
 
 #if !defined(KE_FINAL)
+        KE_AUTO_RELEASE_POOL;
         NS::String* label = NS::String::string(_desc.m_debugName.c_str(), NS::UTF8StringEncoding);
         hot->m_texture->setLabel(label);
 #endif
