@@ -220,6 +220,7 @@ namespace KryneEngine
         m_multiFrameTracker.AdvanceToNextFrame();
 
         _FlushUpdates(_resources, m_multiFrameTracker.GetData(), _frameIndex);
+        m_multiFrameTracker.ClearData();
     }
 
     void MetalArgumentBufferManager::_FlushUpdates(
