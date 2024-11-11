@@ -235,7 +235,10 @@ namespace KryneEngine
         {
 #if defined(TARGET_OS_MAC)
             // Could be optimized by not flushing entire buffer
-            buffer->didModifyRange({ encoder->encodedLength() * _frameIndex, encoder->encodedLength() });
+            if (buffer != nullptr)
+            {
+                buffer->didModifyRange({encoder->encodedLength() * _frameIndex, encoder->encodedLength()});
+            }
 #endif
         };
 
