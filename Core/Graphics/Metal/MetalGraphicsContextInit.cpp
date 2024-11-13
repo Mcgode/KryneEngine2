@@ -20,6 +20,8 @@ namespace KryneEngine
     {
         m_device = MTL::CreateSystemDefaultDevice();
 
+        KE_VERIFY(m_device->supportsFamily(MTL::GPUFamilyMetal3));
+
         if (_appInfo.m_features.m_graphics)
         {
             // Catch internal auto release
