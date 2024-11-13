@@ -65,7 +65,8 @@ namespace KryneEngine
         m_frameContexts.InitAll(
             m_graphicsQueue != nullptr,
             m_computeQueue != nullptr,
-            m_ioQueue != nullptr);
+            m_ioQueue != nullptr,
+            m_applicationInfo.m_features.m_validationLayers);
 
         m_frameContexts[frameIndex].PrepareForNextFrame(_initialFrameId);
 

@@ -16,7 +16,7 @@ namespace KryneEngine
         friend class MetalGraphicsContext;
 
     public:
-        MetalFrameContext(bool _graphicsAvailable, bool _computeAvailable, bool _ioAvailable);
+        MetalFrameContext(bool _graphicsAvailable, bool _computeAvailable, bool _ioAvailable, bool _validationLayers);
 
         CommandList BeginGraphicsCommandList(MTL::CommandQueue& _queue);
 
@@ -33,13 +33,14 @@ namespace KryneEngine
             bool m_committedBuffers = false;
 
             AllocationSet(bool _available);
-            void Commit();
+            void Commit(bool _enhancedErrors);
             void Wait();
         };
 
         AllocationSet m_graphicsAllocationSet;
         AllocationSet m_computeAllocationSet;
         AllocationSet m_ioAllocationSet;
-        u64 m_frameId;;
+        u64 m_frameId;
+        bool m_enhancedCommandBufferErrors;
     };
 } // namespace KryneEngine

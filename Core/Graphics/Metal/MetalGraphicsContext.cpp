@@ -39,9 +39,9 @@ namespace KryneEngine
 
             {
                 KE_ZoneScoped("Commit");
-                frameContext.m_graphicsAllocationSet.Commit();
-                frameContext.m_computeAllocationSet.Commit();
-                frameContext.m_ioAllocationSet.Commit();
+                frameContext.m_graphicsAllocationSet.Commit(frameContext.m_enhancedCommandBufferErrors);
+                frameContext.m_computeAllocationSet.Commit(frameContext.m_enhancedCommandBufferErrors);
+                frameContext.m_ioAllocationSet.Commit(frameContext.m_enhancedCommandBufferErrors);
             }
 
             if (m_swapChain)

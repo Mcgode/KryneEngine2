@@ -11,10 +11,12 @@
 
 namespace KryneEngine
 {
-    MetalFrameContext::MetalFrameContext(bool _graphicsAvailable, bool _computeAvailable, bool _ioAvailable)
+    MetalFrameContext::MetalFrameContext(
+        bool _graphicsAvailable, bool _computeAvailable, bool _ioAvailable, bool _validationLayers)
         : m_graphicsAllocationSet(_graphicsAvailable)
         , m_computeAllocationSet(_computeAvailable)
         , m_ioAllocationSet(_ioAvailable)
+        , m_enhancedCommandBufferErrors(_validationLayers)
     {}
 
     CommandList MetalFrameContext::BeginGraphicsCommandList(MTL::CommandQueue& _queue)
@@ -22,7 +24,12 @@ namespace KryneEngine
         KE_ASSERT(m_graphicsAllocationSet.m_available);
 
         KE_AUTO_RELEASE_POOL;
-        MTL::CommandBuffer* commandBuffer = _queue.commandBuffer()->retain();
+        NsPtr descriptor { MTL::CommandBufferDescriptor::alloc()->init() };
+        if (m_enhancedCommandBufferErrors)
+        {
+            descriptor->setErrorOptions(MTL::CommandBufferErrorOptionEncoderExecutionStatus);
+        }
+        MTL::CommandBuffer* commandBuffer = _queue.commandBuffer(descriptor.get())->retain();
         KE_ASSERT_FATAL(commandBuffer != nullptr);
 
         m_graphicsAllocationSet.m_usedCommandBuffers.push_back({ commandBuffer });
@@ -58,11 +65,45 @@ namespace KryneEngine
         }
     }
 
-    void MetalFrameContext::AllocationSet::Commit()
+    void MetalFrameContext::AllocationSet::Commit(bool _enhancedErrors)
     {
         if (!m_available)
         {
             return;
+        }
+
+        if (_enhancedErrors)
+        {
+            for (CommandListData commandList: m_usedCommandBuffers)
+            {
+                commandList.m_commandBuffer->addCompletedHandler(
+                    [](MTL::CommandBuffer* commandBuffer) {
+                        {
+                            NS::Object* objectPtr = nullptr;
+                            NS::FastEnumerationState state {};
+
+                            while (commandBuffer->logs()->countByEnumerating(&state, &objectPtr, 1) != 0)
+                            {
+                                auto* log = reinterpret_cast<MTL::FunctionLog*>(objectPtr);
+                                if (log->debugLocation() != nullptr && log->debugLocation()->functionName() != nullptr)
+                                {
+                                    KE_ERROR(
+                                        "Error at %s:%d:%d (encoder '%s')",
+                                        log->debugLocation()->functionName()->cString(NS::UTF8StringEncoding),
+                                        log->debugLocation()->line(),
+                                        log->debugLocation()->column(),
+                                        log->encoderLabel() != nullptr ? log->encoderLabel()->cString(NS::UTF8StringEncoding) : "Unknown label");
+                                }
+                            }
+                        }
+
+                        if (commandBuffer->error() != nullptr)
+                        {
+                            const char* errorString = commandBuffer->error()->description()->cString(NS::UTF8StringEncoding);
+                            KE_ERROR(errorString);
+                        }
+                    });
+            }
         }
 
         if (!m_usedCommandBuffers.empty())
