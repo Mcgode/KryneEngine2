@@ -5,6 +5,6 @@ add_library(TestUtils
 
 target_include_directories(TestUtils PUBLIC .)
 
-target_link_libraries(TestUtils KryneEngineCore gtest)
+target_link_libraries(TestUtils KryneEngine_Core gtest)
 
 add_subdirectory(Core)

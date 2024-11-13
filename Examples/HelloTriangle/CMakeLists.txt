@@ -3,7 +3,7 @@
 add_executable(HelloTriangle HelloTriangle.cpp)
 
 # Link to KryneEngine (Core lib only).
-target_link_libraries(HelloTriangle KryneEngineCore)
+target_link_libraries(HelloTriangle KryneEngine_Core)
 
 # Link shader lib and compile shaders.
 target_link_shader_libraries(HelloTriangle ShaderLib)

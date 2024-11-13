@@ -14,4 +14,4 @@ target_link_libraries(KryneEngine_Modules INTERFACE
 target_include_directories(KryneEngine_Modules INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(KryneEngine INTERFACE)
-target_link_libraries(KryneEngine INTERFACE KryneEngineCore KryneEngine_Modules)
+target_link_libraries(KryneEngine INTERFACE KryneEngine_Core KryneEngine_Modules)

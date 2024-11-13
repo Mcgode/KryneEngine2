@@ -6,6 +6,6 @@ add_executable(Core_Threads_UnitTests
         LightweightMutex_UnitTests.cpp
         Internal/FiberContext_UnitTests.cpp)
 
-target_link_libraries(Core_Threads_UnitTests KryneEngineCore TestUtils gtest gtest_main)
+target_link_libraries(Core_Threads_UnitTests KryneEngine_Core TestUtils gtest gtest_main)
 
 add_test(NAME Core_Threads_UnitTests COMMAND Core_Threads_UnitTests)

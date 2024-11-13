@@ -53,7 +53,7 @@ set(WindowSrc
         Window/Input/Enums.hpp
 )
 
-add_library(KryneEngineCore ${CommonSrc} ${FilesSrc} ${MemorySrc} ${ProfilingSrc} ${ThreadsSrc} ${WindowSrc})
-target_link_libraries(KryneEngineCore KryneEngineGraphics moodycamel Boost::context)
+add_library(KryneEngine_Core ${CommonSrc} ${FilesSrc} ${MemorySrc} ${ProfilingSrc} ${ThreadsSrc} ${WindowSrc})
+target_link_libraries(KryneEngine_Core KryneEngine_Core_Graphics moodycamel Boost::context)
 
-AddCoverage(KryneEngineCore)
+AddCoverage(KryneEngine_Core)

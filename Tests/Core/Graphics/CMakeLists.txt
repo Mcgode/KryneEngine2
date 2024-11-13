@@ -7,6 +7,6 @@ add_executable(Core_Graphics_UnitTests
         GraphicContext/Texture_UnitTests.cpp
 )
 
-target_link_libraries(Core_Graphics_UnitTests KryneEngineCore KryneEngineGraphics TestUtils gtest gtest_main)
+target_link_libraries(Core_Graphics_UnitTests KryneEngine_Core KryneEngine_Core_Graphics TestUtils gtest gtest_main)
 
 add_test(NAME Core_Graphics_UnitTests COMMAND Core_Graphics_UnitTests)

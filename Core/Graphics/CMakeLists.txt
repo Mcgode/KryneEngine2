@@ -72,11 +72,11 @@ elseif (GraphicsApi STREQUAL "MTL")
     set(PrecompiledHeaders Metal/MetalHeaders.hpp)
 endif()
 
-add_library(KryneEngineGraphics STATIC ${SrcFiles})
+add_library(KryneEngine_Core_Graphics STATIC ${SrcFiles})
 message(STATUS "Source files: c${SrcFiles}")
-target_link_libraries(KryneEngineGraphics EASTL glfw glm Tracy::TracyClient)
-target_include_directories(KryneEngineGraphics PUBLIC ${RootDir})
-target_compile_definitions(KryneEngineGraphics PRIVATE
+target_link_libraries(KryneEngine_Core_Graphics EASTL glfw glm Tracy::TracyClient)
+target_include_directories(KryneEngine_Core_Graphics PUBLIC ${RootDir})
+target_compile_definitions(KryneEngine_Core_Graphics PRIVATE
         -DKE_TRACY_COLOR=0x671316
         -DKE_TRACY_FUNC_COLOR=0x9F1D21
 )
@@ -86,13 +86,13 @@ if (GraphicsApi STREQUAL "VK")
     find_package(Vulkan REQUIRED FATAL_ERROR)
 
     message(STATUS "Vulkan include dirs: " ${Vulkan_INCLUDE_DIRS})
-    target_include_directories(KryneEngineGraphics PUBLIC ${Vulkan_INCLUDE_DIRS})
+    target_include_directories(KryneEngine_Core_Graphics PUBLIC ${Vulkan_INCLUDE_DIRS})
 
     message(STATUS "Vulkan lib: " ${Vulkan_LIBRARIES})
-    target_link_libraries(KryneEngineGraphics ${Vulkan_LIBRARIES} VulkanMemoryAllocator)
+    target_link_libraries(KryneEngine_Core_Graphics ${Vulkan_LIBRARIES} VulkanMemoryAllocator)
 elseif(GraphicsApi STREQUAL "DX12")
     message(STATUS "Linking DirectX12 libs")
-    target_link_libraries(KryneEngineGraphics d3d12 dxgi d3dcompiler dxguid DirectX-Headers D3D12MemoryAllocator)
+    target_link_libraries(KryneEngine_Core_Graphics d3d12 dxgi d3dcompiler dxguid DirectX-Headers D3D12MemoryAllocator)
 elseif(GraphicsApi STREQUAL "MTL")
     find_library(METAL_FRAMEWORK Metal)
     find_library(METALKIT_FRAMEWORK MetalKit)
@@ -100,18 +100,18 @@ elseif(GraphicsApi STREQUAL "MTL")
     find_library(COCOA_FRAMEWORK Cocoa)
 
     message(STATUS "Linking Metal libs")
-    target_link_libraries(KryneEngineGraphics metal-cpp metal-cpp-extensions ${METAL_FRAMEWORK} ${METALKIT_FRAMEWORK} ${QUARTZCORE_FRAMEWORK} ${COCOA_FRAMEWORK})
+    target_link_libraries(KryneEngine_Core_Graphics metal-cpp metal-cpp-extensions ${METAL_FRAMEWORK} ${METALKIT_FRAMEWORK} ${QUARTZCORE_FRAMEWORK} ${COCOA_FRAMEWORK})
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(KryneEngineGraphics PRIVATE -Werror=switch)
+    target_compile_options(KryneEngine_Core_Graphics PRIVATE -Werror=switch)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(KryneEngineGraphics PRIVATE /we4062)
+    target_compile_options(KryneEngine_Core_Graphics PRIVATE /we4062)
 endif()
 
 if (PrecompileHeaders)
     message(STATUS "Precompiling indicated headers: ${PrecompileHeaders}")
-    target_precompile_headers(KryneEngineGraphics PUBLIC ${PrecompileHeaders})
+    target_precompile_headers(KryneEngine_Core_Graphics PUBLIC ${PrecompileHeaders})
 endif()
 
-AddCoverage(KryneEngineGraphics)
+AddCoverage(KryneEngine_Core_Graphics)
