@@ -34,11 +34,15 @@ namespace KryneEngine
         return kInvalidSyncCounterId;
     }
 
-    void SyncCounterPool::AddWaitingJob(SyncCounterId _id, FiberJob *_newJob)
+    bool SyncCounterPool::AddWaitingJob(SyncCounterId _id, FiberJob *_newJob)
     {
-        VERIFY_OR_RETURN_VOID(_id >= 0 && _id < kPoolSize);
+        VERIFY_OR_RETURN(_id >= 0 && _id < kPoolSize, true);
 
         auto& entry = m_entries[_id];
+        if (entry.m_counter == 0)
+        {
+            return true;
+        }
         const auto lock = entry.m_mutex.AutoLock();
         if (entry.m_counter == 0)
         {
@@ -48,6 +52,7 @@ namespace KryneEngine
         {
             m_entries[_id].m_waitingJobs.push_back(_newJob);
         }
+        return false;
     }
 
     u32 SyncCounterPool::DecrementCounterValue(SyncCounterId _id)

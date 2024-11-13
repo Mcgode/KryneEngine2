@@ -43,7 +43,7 @@ namespace KryneEngine
 
         SyncCounterId AcquireCounter(u32 _initialValue);
 
-        void AddWaitingJob(SyncCounterId _id, FiberJob* _newJob);
+        bool AddWaitingJob(SyncCounterId _id, FiberJob* _newJob);
 
         u32 DecrementCounterValue(SyncCounterId _id);
 
