@@ -1,5 +1,5 @@
 message(STATUS "Loading examples")
 
 add_subdirectory(HelloTriangle)
-add_subdirectory(Basic)
+add_subdirectory(ImGuiDemo)
 add_subdirectory(BasicRps)

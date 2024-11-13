@@ -1,0 +1,3 @@
+add_executable(ImGuiDemo main.cpp)
+target_shaders_dir_symlink(ImGuiDemo)
+target_link_libraries(ImGuiDemo KryneEngine)
