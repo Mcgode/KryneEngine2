@@ -313,8 +313,11 @@ namespace KryneEngine
 
     void MetalGraphicsContext::UnmapBuffer(BufferMapping& _mapping)
     {
-        MTL::Buffer* buffer = m_resources.m_buffers.Get(_mapping.m_buffer.m_handle)->m_buffer.get();
-        buffer->didModifyRange({ _mapping.m_offset, _mapping.m_size });
+        auto [hot, cold] = m_resources.m_buffers.GetAll(_mapping.m_buffer.m_handle);
+        if ((cold->m_options & MTL::ResourceStorageModeManaged) != 0)
+        {
+            hot->m_buffer->didModifyRange({_mapping.m_offset, _mapping.m_size});
+        }
         _mapping.m_ptr = nullptr;
     }
 
