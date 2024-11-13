@@ -23,6 +23,7 @@ set(FilesSrc
 set(MemorySrc
         Memory/RangeMapping.hpp
         Memory/GenerationalPool.inl Memory/GenerationalPool.hpp
+        Memory/SimplePool.inl Memory/SimplePool.hpp
 )
 
 set(ProfilingSrc
