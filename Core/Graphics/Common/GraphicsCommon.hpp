@@ -36,6 +36,8 @@ namespace KryneEngine::GraphicsCommon
 
         DirectX12_Start = DirectX12_0,
         DirectX12_End = DirectX12_2,
+
+        Metal_3,
     };
 
     enum class SoftEnable: u8
@@ -90,6 +92,11 @@ namespace KryneEngine::GraphicsCommon
         [[nodiscard]] bool IsDirectX12Api() const
         {
             return m_api >= Api::DirectX12_Start && m_api <= Api::DirectX12_End;
+        }
+
+        [[nodiscard]] bool IsMetalApi() const
+        {
+            return m_api == Api::Metal_3;
         }
     };
 }
