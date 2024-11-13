@@ -128,15 +128,13 @@ int main() {
             1,
             FiberJob::Priority::High,
             true);
-#endif
 
-#if !defined(__APPLE__)
-        fibersManager.WaitForCounter(mainCounter);
+        fibersManager.WaitForCounterAndReset(mainCounter);
 #else
         MainFunc(&fibersManager);
 #endif
 
-        fibersManager.WaitForCounter(syncCounter);
+        fibersManager.WaitForCounterAndReset(syncCounter);
     }
 
     return 0;
