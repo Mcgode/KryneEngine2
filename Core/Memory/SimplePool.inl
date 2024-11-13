@@ -4,6 +4,8 @@
 * @date 13/11/2024.
 */
 
+#pragma once
+
 #include "Memory/SimplePool.hpp"
 
 #include <Common/Assert.hpp>
@@ -11,8 +13,15 @@
 namespace KryneEngine
 {
     template <class HotDataStruct, class ColdDataStruct, bool RefCounting, class Allocator>
+    union SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::HotDataItem
+    {
+        HotDataStruct m_hotData;
+        SimplePoolHandle m_nextFreeIndex;
+    };
+
+    template <class HotDataStruct, class ColdDataStruct, bool RefCounting, class Allocator>
     SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::SimplePool()
-        : SimplePool(EASTLAllocatorDefault)
+        : SimplePool(*EASTLAllocatorDefault())
     {}
 
     template <class HotDataStruct, class ColdDataStruct, bool RefCounting, class Allocator>
@@ -71,6 +80,15 @@ namespace KryneEngine
     }
 
     template <class HotDataStruct, class ColdDataStruct, bool RefCounting, class Allocator>
+    template <class... Args>
+    SimplePoolHandle SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::AllocateAndInit(Args... _args)
+    {
+        const SimplePoolHandle result = Allocate();
+        new (&m_hotData[result].m_hotData) HotDataStruct(_args...);
+        return result;
+    }
+
+    template <class HotDataStruct, class ColdDataStruct, bool RefCounting, class Allocator>
     bool SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::Free(
         SimplePoolHandle _handle,
         HotDataStruct* _hotCopy,
@@ -123,9 +141,10 @@ namespace KryneEngine
     }
 
     template <class HotDataStruct, class ColdDataStruct, bool RefCounting, class Allocator>
-    SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::ColdDataStructType&
+    template<class T>
+    eastl::enable_if_t<!eastl::is_void_v<T>, T&>
     SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::GetCold(
-        KryneEngine::SimplePoolHandle _handle) const
+        KryneEngine::SimplePoolHandle _handle) const requires kHasColdData
     {
         KE_ASSERT(m_size > _handle);
 
@@ -138,16 +157,16 @@ namespace KryneEngine
     }
 
     template <class HotDataStruct, class ColdDataStruct, bool RefCounting, class Allocator>
-    SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::RefCountType
-    SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::AddRef(KryneEngine::SimplePoolHandle _handle)
+    s32 SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::AddRef(
+        KryneEngine::SimplePoolHandle _handle) requires RefCounting
     {
         KE_ASSERT(m_size > _handle);
         return m_refCounts[_handle].fetch_add(1, std::memory_order::relaxed) + 1;
     }
 
     template <class HotDataStruct, class ColdDataStruct, bool RefCounting, class Allocator>
-    SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::RefCountType
-    SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::GetRefCount(KryneEngine::SimplePoolHandle _handle)
+    s32 SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::GetRefCount(
+        KryneEngine::SimplePoolHandle _handle) const requires RefCounting
     {
         KE_ASSERT(m_size > _handle);
         return m_refCounts[_handle].load(std::memory_order::acquire);
@@ -159,7 +178,7 @@ namespace KryneEngine
         KE_ASSERT_MSG(m_size < _toSize, "Simple pool is meant to only grow");
 
         {
-            HotDataItem* newHotData = m_allocator.allocate(_toSize * sizeof(HotDataItem));
+            auto* newHotData = static_cast<HotDataItem*>(m_allocator.allocate(_toSize * sizeof(HotDataItem)));
 
             if (m_hotData != nullptr)
             {
@@ -177,7 +196,7 @@ namespace KryneEngine
 
         if constexpr (kHasColdData)
         {
-            ColdDataStruct* newColdData = m_allocator.allocate(_toSize * sizeof(ColdDataStruct));
+            auto* newColdData = static_cast<ColdDataStruct*>(m_allocator.allocate(_toSize * sizeof(ColdDataStruct)));
 
             if (m_coldData != nullptr)
             {
@@ -190,7 +209,7 @@ namespace KryneEngine
 
         if constexpr (RefCounting)
         {
-            std::atomic<s32>* newRefCountArray = m_allocator.allocate(_toSize * sizeof(*m_refCounts));
+            auto* newRefCountArray = static_cast<std::atomic<s32>*>(m_allocator.allocate(_toSize * sizeof(*m_refCounts)));
 
             if (m_refCounts != nullptr)
             {

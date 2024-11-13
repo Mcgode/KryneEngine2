@@ -33,17 +33,20 @@ namespace KryneEngine
         static constexpr bool kHasColdData = !eastl::is_void_v<ColdDataStruct>;
 
         SimplePoolHandle Allocate();
+
+        template<class... Args>
+        SimplePoolHandle AllocateAndInit(Args... _args);
+
         bool Free(SimplePoolHandle  _handle, HotDataStruct* _hotCopy = nullptr, ColdDataStruct* _coldDataCopy = nullptr);
 
         HotDataStruct& Get(SimplePoolHandle _handle) const;
 
-        using ColdDataStructType = typename eastl::enable_if<kHasColdData, ColdDataStruct>::type;
-        ColdDataStructType& GetCold(SimplePoolHandle _handle) const;
+        template <class T = ColdDataStruct>
+        eastl::enable_if_t<!eastl::is_void_v<T>, T&>
+        GetCold(SimplePoolHandle _handle) const requires kHasColdData;
 
-        using RefCountType = typename eastl::enable_if<RefCounting, s32>::type;
-
-        RefCountType AddRef(SimplePoolHandle _handle);
-        RefCountType GetRefCount(SimplePoolHandle _handle);
+        s32 AddRef(SimplePoolHandle _handle) requires RefCounting;
+        [[nodiscard]] s32 GetRefCount(SimplePoolHandle _handle) const requires RefCounting;
 
     protected:
         static constexpr size_t kDefaultPoolSize = 32;
@@ -51,15 +54,11 @@ namespace KryneEngine
         void Resize(size_t _toSize);
 
     private:
-        union HotDataItem
-        {
-            HotDataStruct m_hotData;
-            SimplePoolHandle m_nextFreeIndex;
-        };
+        union HotDataItem;
 
         Allocator m_allocator;
         HotDataItem* m_hotData = nullptr;
-        ColdDataStruct m_coldData = nullptr;
+        ColdDataStruct* m_coldData = nullptr;
         std::atomic<s32>* m_refCounts = nullptr;
         size_t m_size = 0;
         SimplePoolHandle m_nextFreeIndex = 0;
