@@ -38,6 +38,8 @@ namespace KryneEngine
             metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
         }
 
+        metalLayer.displaySyncEnabled = YES;
+
         metalLayer.maximumDrawableCount =
             _appInfo.m_displayOptions.m_tripleBuffering == GraphicsCommon::SoftEnable::Disabled
                 ? 2
