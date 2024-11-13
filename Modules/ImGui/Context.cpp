@@ -423,6 +423,14 @@ namespace KryneEngine::Modules::ImGui
             _graphicsContext->SetVertexBuffers(_commandList, {&bufferView,1});
         }
 
+        // Declare texture SRVs
+        {
+            _graphicsContext->DeclarePassTextureSrvUsage(
+                _commandList,
+                { &m_fontTextureSrvHandle, 1 }
+                );
+        }
+
         u64 vertexOffset = 0;
         u64 indexOffset = 0;
 
