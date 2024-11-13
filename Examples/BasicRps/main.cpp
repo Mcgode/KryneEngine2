@@ -5,6 +5,7 @@
  */
 
 #include <Graphics/Common/GraphicsContext.hpp>
+#include <Profiling/TracyHeader.hpp>
 #include <RpsRuntime/Private/Helpers.hpp>
 #include <RpsRuntime/Public/RpsRuntime.hpp>
 #include <Window/Window.hpp>

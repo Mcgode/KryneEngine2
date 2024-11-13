@@ -1,0 +1,5 @@
+
+add_library(KryneEngine_Modules_RenderGraph STATIC
+    Builder.cpp Builder.hpp)
+
+target_link_libraries(KryneEngine_Modules_RenderGraph KryneEngineCore)
