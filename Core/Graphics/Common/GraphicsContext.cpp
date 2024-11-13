@@ -93,6 +93,13 @@ namespace KryneEngine
         return m_implementation.GetPresentTexture(_swapChainIndex);
     }
 
+    void GraphicsContext::DeclarePassTextureSrvUsage(
+        CommandList _commandList,
+        const eastl::span<TextureSrvHandle>& _textures)
+    {
+        m_implementation.DeclarePassTextureSrvUsage(_commandList, _textures);
+    }
+
     ShaderModuleHandle GraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
     {
         return m_implementation.RegisterShaderModule(_bytecodeData, _bytecodeSize);

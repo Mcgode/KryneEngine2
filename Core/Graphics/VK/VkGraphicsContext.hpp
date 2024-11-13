@@ -198,6 +198,8 @@ namespace KryneEngine
             const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
             const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers);
 
+        void DeclarePassTextureSrvUsage(CommandList _commandList, const eastl::span<TextureSrvHandle>& _textures) {}
+
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
         [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout);
