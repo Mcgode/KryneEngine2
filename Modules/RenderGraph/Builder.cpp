@@ -23,6 +23,103 @@ namespace KryneEngine::Modules::RenderGraph
         return { m_passDeclarations.Get(declaration), *this };
     }
 
+    void PrintRenderPassAttachments(const PassDeclaration& _pass, std::string& _indent)
+    {
+        if (!_pass.m_colorAttachments.empty())
+        {
+            std::cout << _indent << "Color attachments:" << std::endl;
+            _indent.push_back('\t');
+            for (auto& attachment : _pass.m_colorAttachments)
+            {
+                std::cout << _indent << "  - Texture: " << attachment.m_texture << "; ";
+                switch (attachment.m_loadOperation)
+                {
+                case RenderPassDesc::Attachment::LoadOperation::Load:
+                    std::cout << "Load operation: LOAD; ";
+                    break;
+                case RenderPassDesc::Attachment::LoadOperation::Clear:
+                    std::cout << "Load operation: CLEAR; ";
+                    break;
+                case RenderPassDesc::Attachment::LoadOperation::DontCare:
+                    std::cout << "Load operation: DONT_CARE; ";
+                    break;
+                }
+                switch (attachment.m_storeOperation)
+                {
+                case RenderPassDesc::Attachment::StoreOperation::Store:
+                    std::cout << "Store operation: STORE";
+                    break;
+                case RenderPassDesc::Attachment::StoreOperation::Resolve:
+                    std::cout << "Store operation: RESOLVE";
+                    break;
+                case RenderPassDesc::Attachment::StoreOperation::DontCare:
+                    std::cout << "Store operation: DONT_CARE";
+                    break;
+                }
+                std::cout << std::endl;
+            }
+            _indent.pop_back();
+        }
+
+        if (_pass.m_depthAttachment.has_value())
+        {
+            std::cout << _indent << "Depth/stencil attachment:" << std::endl;
+            _indent.push_back('\t');
+            std::cout << _indent << "- Texture: " << _pass.m_depthAttachment.value().m_texture << "; ";
+            switch (_pass.m_depthAttachment.value().m_loadOperation)
+            {
+            case RenderPassDesc::Attachment::LoadOperation::Load:
+                std::cout << "Load operation: LOAD; ";
+                break;
+            case RenderPassDesc::Attachment::LoadOperation::Clear:
+                std::cout << "Load operation: CLEAR; ";
+                break;
+            case RenderPassDesc::Attachment::LoadOperation::DontCare:
+                std::cout << "Load operation: DONT_CARE; ";
+                break;
+            }
+            switch (_pass.m_depthAttachment.value().m_storeOperation)
+            {
+            case RenderPassDesc::Attachment::StoreOperation::Store:
+                std::cout << "Store operation: STORE;";
+                break;
+            case RenderPassDesc::Attachment::StoreOperation::Resolve:
+                std::cout << "Store operation: RESOLVE;";
+                break;
+            case RenderPassDesc::Attachment::StoreOperation::DontCare:
+                std::cout << "Store operation: DONT_CARE;";
+                break;
+            }
+            std::cout << std::endl;
+            _indent.pop_back();
+        }
+    }
+
+    void PrintDependencies(const PassDeclaration& _pass, std::string& _indent)
+    {
+        if (!_pass.m_readDependencies.empty())
+        {
+            std::cout << _indent << "Read dependencies:" << std::endl;
+            _indent.push_back('\t');
+            for (SimplePoolHandle resource: _pass.m_readDependencies)
+            {
+                std::cout << _indent << "- Resource " << resource << std::endl;
+            }
+            _indent.pop_back();
+        }
+
+        if (!_pass.m_writeDependencies.empty())
+        {
+            std::cout << _indent << "Read dependencies:" << std::endl;
+            _indent.push_back('\t');
+            for (SimplePoolHandle resource: _pass.m_writeDependencies)
+            {
+                std::cout << _indent << "- Resource " << resource << std::endl;
+            }
+            _indent.pop_back();
+        }
+    }
+
     void Builder::PrintBuildResult()
     {
         std::cout << "Declared passes:" << std::endl;
@@ -31,85 +128,26 @@ namespace KryneEngine::Modules::RenderGraph
         {
             const PassDeclaration& pass = m_passDeclarations.Get(passHandle);
 
-            std::cout << "  - '" << pass.m_name.c_str() << "'" << std::endl;
+            indent.push_back('\t');
+            std::cout << "- [" << passHandle <<  "] '" << pass.m_name.c_str() << "' - ";
+            switch(pass.m_type)
+            {
+            case PassType::Render:
+                std::cout << "RENDER" << std::endl;
+                break;
+            case PassType::Compute:
+                std::cout << "COMPUTE" << std::endl;
+                break;
+            }
             indent.push_back('\t');
 
-            if (pass.m_colorAttachments.empty())
+            if (pass.m_type == PassType::Render)
             {
-                std::cout << indent << "No color attachments" << std::endl;
+                PrintRenderPassAttachments(pass, indent);
             }
-            else
-            {
-                std::cout << indent << "Color attachments:" << std::endl;
-                for (auto& attachment: pass.m_colorAttachments)
-                {
-                    std::cout << indent << "  - Texture: " << attachment.m_texture << "; ";
-                    switch(attachment.m_loadOperation)
-                    {
-                    case RenderPassDesc::Attachment::LoadOperation::Load:
-                        std::cout << "Load operation: LOAD; ";
-                        break;
-                    case RenderPassDesc::Attachment::LoadOperation::Clear:
-                        std::cout << "Load operation: CLEAR; ";
-                        break;
-                    case RenderPassDesc::Attachment::LoadOperation::DontCare:
-                        std::cout << "Load operation: DONT_CARE; ";
-                        break;
-                    }
-                    switch(attachment.m_storeOperation)
-                    {
-                    case RenderPassDesc::Attachment::StoreOperation::Store:
-                        std::cout << "Store operation: STORE";
-                        break;
-                    case RenderPassDesc::Attachment::StoreOperation::Resolve:
-                        std::cout << "Store operation: RESOLVE";
-                        break;
-                    case RenderPassDesc::Attachment::StoreOperation::DontCare:
-                        std::cout << "Store operation: DONT_CARE";
-                        break;
-                    }
-                    std::cout << std::endl;
-                }
-            }
+            PrintDependencies(pass, indent);
 
-            if (pass.m_depthAttachment.has_value())
-            {
-                std::cout << indent << "Depth/stencil attachment:" << std::endl;
-                for (auto& attachment: pass.m_colorAttachments)
-                {
-                    std::cout << indent << "  - Texture: " << attachment.m_texture << "; ";
-                    switch(attachment.m_loadOperation)
-                    {
-                    case RenderPassDesc::Attachment::LoadOperation::Load:
-                        std::cout << "Load operation: LOAD; ";
-                        break;
-                    case RenderPassDesc::Attachment::LoadOperation::Clear:
-                        std::cout << "Load operation: CLEAR; ";
-                        break;
-                    case RenderPassDesc::Attachment::LoadOperation::DontCare:
-                        std::cout << "Load operation: DONT_CARE; ";
-                        break;
-                    }
-                    switch(attachment.m_storeOperation)
-                    {
-                    case RenderPassDesc::Attachment::StoreOperation::Store:
-                        std::cout << "Store operation: STORE;";
-                        break;
-                    case RenderPassDesc::Attachment::StoreOperation::Resolve:
-                        std::cout << "Store operation: RESOLVE;";
-                        break;
-                    case RenderPassDesc::Attachment::StoreOperation::DontCare:
-                        std::cout << "Store operation: DONT_CARE;";
-                        break;
-                    }
-                    std::cout << std::endl;
-                }
-            }
-            else
-            {
-                std::cout << indent << "No depth/stencil attachment" << std::endl;
-            }
-
+            indent.pop_back();
             indent.pop_back();
         }
     }

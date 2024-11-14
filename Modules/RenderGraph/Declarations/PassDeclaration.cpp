@@ -22,4 +22,16 @@ namespace KryneEngine::Modules::RenderGraph
     {
         return { m_item.m_colorAttachments.emplace_back(_texture), *this };
     }
+
+    PassDeclarationBuilder& PassDeclarationBuilder::ReadDependency(SimplePoolHandle _resource)
+    {
+        m_item.m_readDependencies.push_back(_resource);
+        return *this;
+    }
+
+    PassDeclarationBuilder& PassDeclarationBuilder::WriteDependency(SimplePoolHandle _resource)
+    {
+        m_item.m_writeDependencies.push_back(_resource);
+        return *this;
+    }
 }

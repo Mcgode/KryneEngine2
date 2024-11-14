@@ -13,17 +13,22 @@ int main()
 {
     RenderGraph::Builder builder {};
 
+    KryneEngine::SimplePoolHandle swapChainTexture = 0;
+    KryneEngine::SimplePoolHandle csTexture = 1;
+
     builder
+        .DeclarePass(RenderGraph::PassType::Compute)
+            .SetName("Compute pass")
+            .WriteDependency(csTexture)
+            .Done()
         .DeclarePass(RenderGraph::PassType::Render)
             .SetName("Final draw")
-            .AddColorAttachment(0)
+            .AddColorAttachment(swapChainTexture)
                 .SetLoadOperation(KryneEngine::RenderPassDesc::Attachment::LoadOperation::Clear)
-                .SetStoreOperation(KryneEngine::RenderPassDesc::Attachment::StoreOperation::DontCare)
+                .SetStoreOperation(KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store)
                 .SetClearColor({ 0, 1, 1, 1 })
                 .Done()
-            .Done()
-        .DeclarePass(RenderGraph::PassType::Compute)
-            .SetName("Compute pass");
+            .ReadDependency(csTexture);
 
     builder.PrintBuildResult();
 
