@@ -18,21 +18,21 @@ namespace KryneEngine::Modules::RenderGraph
 
     PassDeclarationBuilder Builder::DeclarePass(PassType _type)
     {
-        SimplePoolHandle declaration = m_passDeclarations.AllocateAndInit(_type);
-        m_declaredPasses.push_back(declaration);
-        return { m_passDeclarations.Get(declaration), *this };
+        return { m_declaredPasses.emplace_back(_type), *this };
     }
 
     void Builder::PrintBuildResult()
     {
         std::cout << "Declared passes:" << std::endl;
         std::string indent = "";
-        for (SimplePoolHandle passHandle : m_declaredPasses)
-        {
-            const PassDeclaration& pass = m_passDeclarations.Get(passHandle);
+        size_t index = 0;
 
+        m_dag.resize(m_declaredPasses.size());
+
+        for (const PassDeclaration& pass : m_declaredPasses)
+        {
             indent.push_back('\t');
-            std::cout << "- [" << passHandle <<  "] '" << pass.m_name.c_str() << "' - ";
+            std::cout << "- [" << index <<  "] '" << pass.m_name.c_str() << "' - ";
             switch(pass.m_type)
             {
             case PassType::Render:
@@ -49,13 +49,32 @@ namespace KryneEngine::Modules::RenderGraph
                 PrintRenderPassAttachments(pass, indent);
             }
             PrintDependencies(pass, indent);
-            for (SimplePoolHandle resource: pass.m_writeDependencies)
-            {
-                m_resourceVersions[resource]++;
-            }
+            BuildDag(index, pass);
 
             indent.pop_back();
             indent.pop_back();
+
+            index++;
+        }
+
+        PrintDag();
+    }
+
+    void Builder::BuildDag(const size_t _index, const PassDeclaration& _passDeclaration)
+    {
+        for (SimplePoolHandle resource: _passDeclaration.m_readDependencies)
+        {
+            const auto versionIt = m_resourceVersions.find(resource);
+            if (versionIt != m_resourceVersions.end())
+            {
+                m_dag[versionIt->second.second].m_children.insert(_index);
+                m_dag[_index].m_parents.insert(versionIt->second.second);
+            }
+        }
+        for (SimplePoolHandle resource: _passDeclaration.m_writeDependencies)
+        {
+            m_resourceVersions[resource].first++;
+            m_resourceVersions[resource].second = _index;
         }
     }
 
@@ -140,7 +159,7 @@ namespace KryneEngine::Modules::RenderGraph
             for (SimplePoolHandle resource: _pass.m_readDependencies)
             {
                 const auto versionIt = m_resourceVersions.find(resource);
-                const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second : 0;
+                const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second.first : 0;
 
                 std::cout << _indent << "- Resource " << resource << " version " << version << std::endl;
             }
@@ -154,11 +173,38 @@ namespace KryneEngine::Modules::RenderGraph
             for (SimplePoolHandle resource: _pass.m_writeDependencies)
             {
                 const auto versionIt = m_resourceVersions.find(resource);
-                const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second : 0;
+                const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second.first : 0;
 
                 std::cout << _indent << "- Resource " << resource << " version " << version << std::endl;
             }
             _indent.pop_back();
         }
+    }
+
+    void Builder::PrintDag()
+    {
+        std::cout << std::endl;
+        std::cout << "DAG:" << std::endl;
+        std::cout << "digraph RenderGraph {" << std::endl;
+
+        for (size_t i = 0; i < m_dag.size(); i++)
+        {
+            const Node& node = m_dag[i];
+            for (size_t child: node.m_children)
+            {
+                std::cout
+                    << eastl::string{}.sprintf(R"(  "[%lld] %s" -> "[%lld] %s";)",
+                                               i, m_declaredPasses[i].m_name.c_str(),
+                                               child, m_declaredPasses[child].m_name.c_str()).c_str()
+                    << std::endl;
+            }
+            if (node.m_children.empty())
+            {
+                std::cout
+                    << eastl::string{}.sprintf(R"(  "[%lld] %s";)", i, m_declaredPasses[i].m_name.c_str()).c_str()
+                    << std::endl;
+            }
+        }
+        std::cout << "}" << std::endl;
     }
 } // namespace KryneEngine::Modules::RenderGraph
