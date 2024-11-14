@@ -141,9 +141,7 @@ namespace KryneEngine
     }
 
     template <class HotDataStruct, class ColdDataStruct, bool RefCounting, class Allocator>
-    template<class T>
-    eastl::enable_if_t<!eastl::is_void_v<T>, T&>
-    SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::GetCold(
+    eastl::add_lvalue_reference_t<ColdDataStruct> SimplePool<HotDataStruct, ColdDataStruct, RefCounting, Allocator>::GetCold(
         KryneEngine::SimplePoolHandle _handle) const requires kHasColdData
     {
         KE_ASSERT(m_size > _handle);

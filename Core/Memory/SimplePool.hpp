@@ -41,9 +41,7 @@ namespace KryneEngine
 
         HotDataStruct& Get(SimplePoolHandle _handle) const;
 
-        template <class T = ColdDataStruct>
-        eastl::enable_if_t<!eastl::is_void_v<T>, T&>
-        GetCold(SimplePoolHandle _handle) const requires kHasColdData;
+        eastl::add_lvalue_reference_t<ColdDataStruct> GetCold(SimplePoolHandle _handle) const requires kHasColdData;
 
         s32 AddRef(SimplePoolHandle _handle) requires RefCounting;
         [[nodiscard]] s32 GetRefCount(SimplePoolHandle _handle) const requires RefCounting;
