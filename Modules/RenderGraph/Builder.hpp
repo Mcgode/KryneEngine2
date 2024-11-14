@@ -7,6 +7,7 @@
 #pragma once
 
 #include <Memory/SimplePool.hpp>
+#include <RenderGraph/Declarations/PassDeclaration.hpp>
 
 namespace KryneEngine
 {
@@ -15,7 +16,7 @@ namespace KryneEngine
 
 namespace KryneEngine::Modules::RenderGraph
 {
-    struct PassDeclaration;
+
 
     enum class PassType;
 
@@ -26,7 +27,7 @@ namespace KryneEngine::Modules::RenderGraph
         ~Builder();
 
     public:
-        PassDeclaration& DeclarePass(PassType _type);
+        PassDeclarationBuilder DeclarePass(PassType _type);
 
         void PrintBuildResult();
 

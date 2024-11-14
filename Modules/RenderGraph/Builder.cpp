@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#include <RenderGraph/PassDeclaration.hpp>
+#include "RenderGraph/Declarations/PassDeclaration.hpp"
 #include <Memory/SimplePool.inl>
 
 namespace KryneEngine::Modules::RenderGraph
@@ -16,11 +16,11 @@ namespace KryneEngine::Modules::RenderGraph
     Builder::Builder() = default;
     Builder::~Builder() = default;
 
-    PassDeclaration& Builder::DeclarePass(PassType _type)
+    PassDeclarationBuilder Builder::DeclarePass(PassType _type)
     {
         SimplePoolHandle declaration = m_passDeclarations.AllocateAndInit(_type);
         m_declaredPasses.push_back(declaration);
-        return m_passDeclarations.Get(declaration);
+        return { m_passDeclarations.Get(declaration), *this };
     }
 
     void Builder::PrintBuildResult()
