@@ -23,7 +23,43 @@ namespace KryneEngine::Modules::RenderGraph
         return { m_passDeclarations.Get(declaration), *this };
     }
 
-    void PrintRenderPassAttachments(const PassDeclaration& _pass, std::string& _indent)
+    void Builder::PrintBuildResult()
+    {
+        std::cout << "Declared passes:" << std::endl;
+        std::string indent = "";
+        for (SimplePoolHandle passHandle : m_declaredPasses)
+        {
+            const PassDeclaration& pass = m_passDeclarations.Get(passHandle);
+
+            indent.push_back('\t');
+            std::cout << "- [" << passHandle <<  "] '" << pass.m_name.c_str() << "' - ";
+            switch(pass.m_type)
+            {
+            case PassType::Render:
+                std::cout << "RENDER" << std::endl;
+                break;
+            case PassType::Compute:
+                std::cout << "COMPUTE" << std::endl;
+                break;
+            }
+            indent.push_back('\t');
+
+            if (pass.m_type == PassType::Render)
+            {
+                PrintRenderPassAttachments(pass, indent);
+            }
+            PrintDependencies(pass, indent);
+            for (SimplePoolHandle resource: pass.m_writeDependencies)
+            {
+                m_resourceVersions[resource]++;
+            }
+
+            indent.pop_back();
+            indent.pop_back();
+        }
+    }
+
+    void Builder::PrintRenderPassAttachments(const PassDeclaration& _pass, std::string& _indent)
     {
         if (!_pass.m_colorAttachments.empty())
         {
@@ -95,7 +131,7 @@ namespace KryneEngine::Modules::RenderGraph
         }
     }
 
-    void PrintDependencies(const PassDeclaration& _pass, std::string& _indent)
+    void Builder::PrintDependencies(const PassDeclaration& _pass, std::string& _indent)
     {
         if (!_pass.m_readDependencies.empty())
         {
@@ -103,52 +139,26 @@ namespace KryneEngine::Modules::RenderGraph
             _indent.push_back('\t');
             for (SimplePoolHandle resource: _pass.m_readDependencies)
             {
-                std::cout << _indent << "- Resource " << resource << std::endl;
+                const auto versionIt = m_resourceVersions.find(resource);
+                const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second : 0;
+
+                std::cout << _indent << "- Resource " << resource << " version " << version << std::endl;
             }
             _indent.pop_back();
         }
 
         if (!_pass.m_writeDependencies.empty())
         {
-            std::cout << _indent << "Read dependencies:" << std::endl;
+            std::cout << _indent << "Write dependencies:" << std::endl;
             _indent.push_back('\t');
             for (SimplePoolHandle resource: _pass.m_writeDependencies)
             {
-                std::cout << _indent << "- Resource " << resource << std::endl;
+                const auto versionIt = m_resourceVersions.find(resource);
+                const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second : 0;
+
+                std::cout << _indent << "- Resource " << resource << " version " << version << std::endl;
             }
             _indent.pop_back();
-        }
-    }
-
-    void Builder::PrintBuildResult()
-    {
-        std::cout << "Declared passes:" << std::endl;
-        std::string indent = "";
-        for (SimplePoolHandle passHandle : m_declaredPasses)
-        {
-            const PassDeclaration& pass = m_passDeclarations.Get(passHandle);
-
-            indent.push_back('\t');
-            std::cout << "- [" << passHandle <<  "] '" << pass.m_name.c_str() << "' - ";
-            switch(pass.m_type)
-            {
-            case PassType::Render:
-                std::cout << "RENDER" << std::endl;
-                break;
-            case PassType::Compute:
-                std::cout << "COMPUTE" << std::endl;
-                break;
-            }
-            indent.push_back('\t');
-
-            if (pass.m_type == PassType::Render)
-            {
-                PrintRenderPassAttachments(pass, indent);
-            }
-            PrintDependencies(pass, indent);
-
-            indent.pop_back();
-            indent.pop_back();
         }
     }
 } // namespace KryneEngine::Modules::RenderGraph

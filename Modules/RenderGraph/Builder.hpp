@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <EASTL/hash_map.h>
 #include <Memory/SimplePool.hpp>
 #include <RenderGraph/Declarations/PassDeclaration.hpp>
 
@@ -32,7 +33,12 @@ namespace KryneEngine::Modules::RenderGraph
         void PrintBuildResult();
 
     private:
+        static void PrintRenderPassAttachments(const PassDeclaration& _pass, std::string& _indent);
+        void PrintDependencies(const PassDeclaration& _pass, std::string& _indent);
+
+    private:
         SimplePool<PassDeclaration> m_passDeclarations;
         eastl::vector<SimplePoolHandle> m_declaredPasses;
+        eastl::hash_map<SimplePoolHandle, u32> m_resourceVersions;
     };
 } // namespace KryneEngine::Modules::RenderGraph
