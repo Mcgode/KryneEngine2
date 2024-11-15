@@ -10,10 +10,15 @@
 
 #include "RenderGraph/Declarations/PassDeclaration.hpp"
 #include <Memory/SimplePool.inl>
+#include <RenderGraph/Registry.hpp>
+#include <RenderGraph/Resource.hpp>
 
 namespace KryneEngine::Modules::RenderGraph
 {
-    Builder::Builder() = default;
+    Builder::Builder(Registry& _registry)
+        : m_registry(_registry)
+    {}
+
     Builder::~Builder() = default;
 
     PassDeclarationBuilder Builder::DeclarePass(PassType _type)
@@ -103,6 +108,44 @@ namespace KryneEngine::Modules::RenderGraph
         }
     }
 
+    void Builder::PrintResource(SimplePoolHandle _resource, std::string& _indent)
+    {
+        const Resource& resource = m_registry.m_resources.Get(_resource);
+
+        std::cout << _indent << "-";
+
+#if !defined(KE_FINAL)
+        if (!resource.m_name.empty())
+        {
+            std::cout << eastl::string().sprintf(" '%s'", resource.m_name.c_str()).c_str();
+        }
+#endif
+
+        switch (resource.m_type)
+        {
+        case ResourceType::RawTexture:
+            std::cout
+                << eastl::string().sprintf(" Raw texture, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
+                << std::endl;
+            break;
+        case ResourceType::RawBuffer:
+            std::cout
+                << eastl::string().sprintf(" Raw buffer, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
+                << std::endl;
+            break;
+        case ResourceType::Sampler:
+            std::cout
+                << eastl::string().sprintf(" Sampler, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
+                << std::endl;
+            break;
+        case ResourceType::TextureSrv:
+            std::cout
+                << eastl::string().sprintf(" Texture SRV, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
+                << std::endl;
+            break;
+        }
+    }
+
     void Builder::PrintRenderPassAttachments(const PassDeclaration& _pass, std::string& _indent)
     {
         if (!_pass.m_colorAttachments.empty())
@@ -111,7 +154,9 @@ namespace KryneEngine::Modules::RenderGraph
             _indent.push_back('\t');
             for (auto& attachment : _pass.m_colorAttachments)
             {
-                std::cout << _indent << "  - Texture: " << attachment.m_texture << "; ";
+                PrintResource(_pass.m_depthAttachment->m_texture, _indent);
+                _indent.push_back('\t');
+                std::cout << _indent;
                 switch (attachment.m_loadOperation)
                 {
                 case RenderPassDesc::Attachment::LoadOperation::Load:
@@ -136,6 +181,7 @@ namespace KryneEngine::Modules::RenderGraph
                     std::cout << "Store operation: DONT_CARE";
                     break;
                 }
+                _indent.pop_back();
                 std::cout << std::endl;
             }
             _indent.pop_back();
@@ -145,7 +191,9 @@ namespace KryneEngine::Modules::RenderGraph
         {
             std::cout << _indent << "Depth/stencil attachment:" << std::endl;
             _indent.push_back('\t');
-            std::cout << _indent << "- Texture: " << _pass.m_depthAttachment.value().m_texture << "; ";
+            PrintResource(_pass.m_depthAttachment->m_texture, _indent);
+            _indent.push_back('\t');
+            std::cout << _indent;
             switch (_pass.m_depthAttachment.value().m_loadOperation)
             {
             case RenderPassDesc::Attachment::LoadOperation::Load:
@@ -172,6 +220,7 @@ namespace KryneEngine::Modules::RenderGraph
             }
             std::cout << std::endl;
             _indent.pop_back();
+            _indent.pop_back();
         }
     }
 
@@ -186,7 +235,10 @@ namespace KryneEngine::Modules::RenderGraph
                 const auto versionIt = m_resourceVersions.find(resource);
                 const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second.first : 0;
 
-                std::cout << _indent << "- Resource " << resource << " version " << version << std::endl;
+                PrintResource(resource, _indent);
+                _indent.push_back('\t');
+                std::cout << _indent << "Version " << version << std::endl;
+                _indent.pop_back();
             }
             _indent.pop_back();
         }
@@ -200,7 +252,10 @@ namespace KryneEngine::Modules::RenderGraph
                 const auto versionIt = m_resourceVersions.find(resource);
                 const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second.first : 0;
 
-                std::cout << _indent << "- Resource " << resource << " version " << version << std::endl;
+                PrintResource(resource, _indent);
+                _indent.push_back('\t');
+                std::cout << _indent << "Version " << version << std::endl;
+                _indent.pop_back();
             }
             _indent.pop_back();
         }

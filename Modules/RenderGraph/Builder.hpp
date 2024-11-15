@@ -18,14 +18,13 @@ namespace KryneEngine
 
 namespace KryneEngine::Modules::RenderGraph
 {
-
-
+    class Registry;
     enum class PassType;
 
     class Builder
     {
     public:
-        Builder();
+        explicit Builder(Registry& _registry);
         ~Builder();
 
     public:
@@ -36,11 +35,14 @@ namespace KryneEngine::Modules::RenderGraph
     private:
         void BuildDag(size_t _index, const PassDeclaration& _passDeclaration);
 
-        static void PrintRenderPassAttachments(const PassDeclaration& _pass, std::string& _indent);
+        void PrintResource(SimplePoolHandle _resource, std::string& _indent);
+        void PrintRenderPassAttachments(const PassDeclaration& _pass, std::string& _indent);
         void PrintDependencies(const PassDeclaration& _pass, std::string& _indent);
         void PrintDag();
 
     private:
+        Registry& m_registry;
+
         eastl::vector<PassDeclaration> m_declaredPasses;
         eastl::hash_map<SimplePoolHandle, eastl::pair<u32, size_t>> m_resourceVersions;
 

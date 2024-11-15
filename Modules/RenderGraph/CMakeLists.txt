@@ -7,6 +7,9 @@ add_library(KryneEngine_Modules_RenderGraph STATIC
         Declarations/PassAttachmentDeclaration.hpp
         Declarations/PassDeclaration.cpp
         Utils/DeclarationBuilder.hpp
+        Registry.cpp
+        Registry.hpp
+        Resource.hpp
 )
 
 target_link_libraries(KryneEngine_Modules_RenderGraph KryneEngine_Core KryneEngine_Modules_Includes)

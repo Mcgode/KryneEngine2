@@ -4,21 +4,23 @@
  * @date 13/11/2024.
  */
 
-#include "RenderGraph/Declarations/PassDeclaration.hpp"
+#include <RenderGraph/Declarations/PassDeclaration.hpp>
+#include <RenderGraph/Registry.hpp>
 #include <RenderGraph/Builder.hpp>
 
 using namespace KryneEngine::Modules;
 
 int main()
 {
-    RenderGraph::Builder builder {};
+    RenderGraph::Registry registry {};
+    RenderGraph::Builder builder { registry };
 
-    KryneEngine::SimplePoolHandle swapChainTexture = 0;
-    KryneEngine::SimplePoolHandle csTexture = 1;
-    KryneEngine::SimplePoolHandle texGenBuffer = 2;
-    KryneEngine::SimplePoolHandle frameCBuffer = 3;
-    KryneEngine::SimplePoolHandle lightsBuffer = 4;
-    KryneEngine::SimplePoolHandle lightingAtlas = 5;
+    KryneEngine::SimplePoolHandle swapChainTexture = registry.RegisterRawTexture({}, "Swapchain buffer");
+    KryneEngine::SimplePoolHandle csTexture = registry.RegisterRawTexture({}, "Compute shader texture");
+    KryneEngine::SimplePoolHandle texGenBuffer = registry.RegisterRawBuffer({}, "Texture generation buffer");
+    KryneEngine::SimplePoolHandle frameCBuffer = registry.RegisterRawBuffer({}, "Frame constant buffer");
+    KryneEngine::SimplePoolHandle lightsBuffer = registry.RegisterRawBuffer({}, "Lights buffer");
+    KryneEngine::SimplePoolHandle lightingAtlas = registry.RegisterRawTexture({}, "Lighting atlas");
 
     builder
         .DeclarePass(RenderGraph::PassType::Compute)
