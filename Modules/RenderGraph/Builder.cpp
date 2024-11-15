@@ -69,7 +69,7 @@ namespace KryneEngine::Modules::RenderGraph
     {
         const auto handleResourceRead = [this, _index](SimplePoolHandle _resource)
         {
-            const auto versionIt = m_resourceVersions.find(_resource);
+            const auto versionIt = m_resourceVersions.find(m_registry.GetUnderlyingResource(_resource));
             if (versionIt != m_resourceVersions.end())
             {
                 m_dag[versionIt->second.second].m_children.insert(_index);
@@ -89,7 +89,7 @@ namespace KryneEngine::Modules::RenderGraph
         }
         for (SimplePoolHandle resource: _passDeclaration.m_writeDependencies)
         {
-            handleResourceWrite(resource);
+            handleResourceWrite(m_registry.GetUnderlyingResource(resource));
         }
 
         // Render targets are to be marked as implicit READ/WRITE dependencies
@@ -98,12 +98,12 @@ namespace KryneEngine::Modules::RenderGraph
             for (const auto& colorAttachment: _passDeclaration.m_colorAttachments)
             {
                 handleResourceRead(colorAttachment.m_texture);
-                handleResourceWrite(colorAttachment.m_texture);
+                handleResourceWrite(m_registry.GetUnderlyingResource(colorAttachment.m_texture));
             }
             if (_passDeclaration.m_depthAttachment.has_value())
             {
                 handleResourceRead(_passDeclaration.m_depthAttachment->m_texture);
-                handleResourceWrite(_passDeclaration.m_depthAttachment->m_texture);
+                handleResourceWrite(m_registry.GetUnderlyingResource(_passDeclaration.m_depthAttachment->m_texture));
             }
         }
     }
@@ -112,35 +112,39 @@ namespace KryneEngine::Modules::RenderGraph
     {
         const Resource& resource = m_registry.m_resources.Get(_resource);
 
-        std::cout << _indent << "-";
+        std::cout << _indent << "- ";
 
 #if !defined(KE_FINAL)
         if (!resource.m_name.empty())
         {
-            std::cout << eastl::string().sprintf(" '%s'", resource.m_name.c_str()).c_str();
+            std::cout << eastl::string().sprintf("'%s'", resource.m_name.c_str()).c_str();
         }
+        else
 #endif
+        {
+            std::cout << "Resource " << _resource;
+        }
 
         switch (resource.m_type)
         {
         case ResourceType::RawTexture:
             std::cout
-                << eastl::string().sprintf(" Raw texture, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
+                << eastl::string().sprintf(", Raw texture, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
                 << std::endl;
             break;
         case ResourceType::RawBuffer:
             std::cout
-                << eastl::string().sprintf(" Raw buffer, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
+                << eastl::string().sprintf(", Raw buffer, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
                 << std::endl;
             break;
         case ResourceType::Sampler:
             std::cout
-                << eastl::string().sprintf(" Sampler, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
+                << eastl::string().sprintf(", Sampler, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
                 << std::endl;
             break;
         case ResourceType::TextureSrv:
             std::cout
-                << eastl::string().sprintf(" Texture SRV, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
+                << eastl::string().sprintf(", Texture SRV, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
                 << std::endl;
             break;
         }
@@ -232,7 +236,7 @@ namespace KryneEngine::Modules::RenderGraph
             _indent.push_back('\t');
             for (SimplePoolHandle resource: _pass.m_readDependencies)
             {
-                const auto versionIt = m_resourceVersions.find(resource);
+                const auto versionIt = m_resourceVersions.find(m_registry.GetUnderlyingResource(resource));
                 const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second.first : 0;
 
                 PrintResource(resource, _indent);

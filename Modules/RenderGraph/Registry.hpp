@@ -24,6 +24,12 @@ namespace KryneEngine::Modules::RenderGraph
     public:
         SimplePoolHandle RegisterRawTexture(TextureHandle _texture, const eastl::string_view& _name = {});
         SimplePoolHandle RegisterRawBuffer(BufferHandle _buffer, const eastl::string_view& _name = {});
+        SimplePoolHandle RegisterTextureSrv(
+            TextureSrvHandle _textureSrv,
+            SimplePoolHandle _textureResource,
+            const eastl::string_view& _name = {});
+
+        SimplePoolHandle GetUnderlyingResource(SimplePoolHandle _resource) const;
 
     private:
         SimplePool<Resource, void, true> m_resources;

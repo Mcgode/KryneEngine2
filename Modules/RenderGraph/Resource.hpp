@@ -36,6 +36,7 @@ namespace KryneEngine::Modules::RenderGraph
     struct TextureSrvData
     {
         TextureSrvHandle m_textureSrv;
+        SimplePoolHandle m_textureResource;
     };
 
     struct Resource
