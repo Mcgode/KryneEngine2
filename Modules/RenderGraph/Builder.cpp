@@ -62,19 +62,44 @@ namespace KryneEngine::Modules::RenderGraph
 
     void Builder::BuildDag(const size_t _index, const PassDeclaration& _passDeclaration)
     {
-        for (SimplePoolHandle resource: _passDeclaration.m_readDependencies)
+        const auto handleResourceRead = [this, _index](SimplePoolHandle _resource)
         {
-            const auto versionIt = m_resourceVersions.find(resource);
+            const auto versionIt = m_resourceVersions.find(_resource);
             if (versionIt != m_resourceVersions.end())
             {
                 m_dag[versionIt->second.second].m_children.insert(_index);
                 m_dag[_index].m_parents.insert(versionIt->second.second);
             }
+        };
+
+        const auto handleResourceWrite = [this, _index](SimplePoolHandle _resource)
+        {
+            m_resourceVersions[_resource].first++;
+            m_resourceVersions[_resource].second = _index;
+        };
+
+        for (SimplePoolHandle resource: _passDeclaration.m_readDependencies)
+        {
+            handleResourceRead(resource);
         }
         for (SimplePoolHandle resource: _passDeclaration.m_writeDependencies)
         {
-            m_resourceVersions[resource].first++;
-            m_resourceVersions[resource].second = _index;
+            handleResourceWrite(resource);
+        }
+
+        // Render targets are to be marked as implicit READ/WRITE dependencies
+        if (_passDeclaration.m_type == PassType::Render)
+        {
+            for (const auto& colorAttachment: _passDeclaration.m_colorAttachments)
+            {
+                handleResourceRead(colorAttachment.m_texture);
+                handleResourceWrite(colorAttachment.m_texture);
+            }
+            if (_passDeclaration.m_depthAttachment.has_value())
+            {
+                handleResourceRead(_passDeclaration.m_depthAttachment->m_texture);
+                handleResourceWrite(_passDeclaration.m_depthAttachment->m_texture);
+            }
         }
     }
 
