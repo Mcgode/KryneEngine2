@@ -26,6 +26,13 @@ namespace KryneEngine::Modules::RenderGraph
         return { m_declaredPasses.emplace_back(_type), *this };
     }
 
+    Builder& Builder::DeclareTargetResource(SimplePoolHandle _resource)
+    {
+        const SimplePoolHandle underlyingPass = m_registry.GetUnderlyingResource(_resource);
+        m_targetResources.insert(_resource);
+        return *this;
+    }
+
     void Builder::PrintBuildResult()
     {
         std::cout << "Declared passes:" << std::endl;
@@ -33,6 +40,7 @@ namespace KryneEngine::Modules::RenderGraph
         size_t index = 0;
 
         m_dag.resize(m_declaredPasses.size());
+        m_passAlive.resize(m_declaredPasses.size(), false);
 
         for (const PassDeclaration& pass : m_declaredPasses)
         {
@@ -62,6 +70,8 @@ namespace KryneEngine::Modules::RenderGraph
             index++;
         }
 
+        ProcessDagDeferredCulling();
+
         PrintDag();
     }
 
@@ -81,6 +91,11 @@ namespace KryneEngine::Modules::RenderGraph
         {
             m_resourceVersions[_resource].first++;
             m_resourceVersions[_resource].second = _index;
+
+            if (m_targetResources.find(_resource) != m_targetResources.end())
+            {
+                m_passAlive[_index] = true;
+            }
         };
 
         for (SimplePoolHandle resource: _passDeclaration.m_readDependencies)
@@ -104,6 +119,21 @@ namespace KryneEngine::Modules::RenderGraph
             {
                 handleResourceRead(_passDeclaration.m_depthAttachment->m_texture);
                 handleResourceWrite(m_registry.GetUnderlyingResource(_passDeclaration.m_depthAttachment->m_texture));
+            }
+        }
+    }
+
+    void Builder::ProcessDagDeferredCulling()
+    {
+        for (size_t i = 0; i < m_passAlive.size(); i++)
+        {
+            const size_t index = m_passAlive.size() - i - 1;
+            if (m_passAlive[index])
+            {
+                for (const size_t parent: m_dag[index].m_parents)
+                {
+                    m_passAlive[parent] = true;
+                }
             }
         }
     }
@@ -269,13 +299,44 @@ namespace KryneEngine::Modules::RenderGraph
     {
         std::cout << std::endl;
         std::cout << "DAG:" << std::endl;
-        std::cout << "digraph RenderGraph {" << std::endl;
+        std::cout << "digraph RawRenderGraph {" << std::endl;
 
         for (size_t i = 0; i < m_dag.size(); i++)
         {
             const Node& node = m_dag[i];
             for (size_t child: node.m_children)
             {
+                std::cout
+                    << eastl::string{}.sprintf(R"(  "[%lld] %s" -> "[%lld] %s";)",
+                                               i, m_declaredPasses[i].m_name.c_str(),
+                                               child, m_declaredPasses[child].m_name.c_str()).c_str()
+                    << std::endl;
+            }
+            if (node.m_children.empty())
+            {
+                std::cout
+                    << eastl::string{}.sprintf(R"(  "[%lld] %s";)", i, m_declaredPasses[i].m_name.c_str()).c_str()
+                    << std::endl;
+            }
+        }
+        std::cout << "}" << std::endl;std::cout << std::endl;
+        std::cout << "Culled DAG:" << std::endl;
+        std::cout << "digraph RenderGraph {" << std::endl;
+
+        for (size_t i = 0; i < m_dag.size(); i++)
+        {
+            if (!m_passAlive[i])
+            {
+                continue;
+            }
+
+            const Node& node = m_dag[i];
+            for (size_t child: node.m_children)
+            {
+                if (!m_passAlive[child])
+                {
+                    continue;
+                }
                 std::cout
                     << eastl::string{}.sprintf(R"(  "[%lld] %s" -> "[%lld] %s";)",
                                                i, m_declaredPasses[i].m_name.c_str(),

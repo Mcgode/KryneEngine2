@@ -43,6 +43,7 @@ int main()
         KE_ZoneScoped("Build render graph");
 
         builder
+            .DeclareTargetResource(swapChainTexture)
             .DeclarePass(RenderGraph::PassType::Compute)
                 .SetName("Recompute generative buffer")
                 .ReadDependency(texGenBuffer)
@@ -74,7 +75,12 @@ int main()
                     .Done()
                 .ReadDependency(frameCBuffer)
                 .ReadDependency(csTexture)
-                .ReadDependency(lightingAtlasSrv);
+                .ReadDependency(lightingAtlasSrv)
+                .Done()
+            .DeclarePass(RenderGraph::PassType::Compute)
+                .SetName("Discard pass")
+                .ReadDependency(lightingAtlasSrv)
+                .ReadDependency(csTexture);
 
         builder.PrintBuildResult();
     }

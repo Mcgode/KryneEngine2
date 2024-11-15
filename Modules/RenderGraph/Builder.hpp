@@ -30,10 +30,13 @@ namespace KryneEngine::Modules::RenderGraph
     public:
         PassDeclarationBuilder DeclarePass(PassType _type);
 
+        Builder& DeclareTargetResource(SimplePoolHandle _resource);
+
         void PrintBuildResult();
 
     private:
         void BuildDag(size_t _index, const PassDeclaration& _passDeclaration);
+        void ProcessDagDeferredCulling();
 
         void PrintResource(SimplePoolHandle _resource, std::string& _indent);
         void PrintRenderPassAttachments(const PassDeclaration& _pass, std::string& _indent);
@@ -56,5 +59,8 @@ namespace KryneEngine::Modules::RenderGraph
             eastl::vector_set<size_t> m_parents;
         };
         eastl::vector<Node> m_dag;
+
+        eastl::vector_set<SimplePoolHandle> m_targetResources;
+        eastl::vector<bool> m_passAlive;
     };
 } // namespace KryneEngine::Modules::RenderGraph
