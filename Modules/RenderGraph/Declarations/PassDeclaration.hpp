@@ -14,6 +14,7 @@ namespace KryneEngine::Modules::RenderGraph
     {
         Render,
         Compute,
+        Blit,
     };
 
     struct PassDeclaration
