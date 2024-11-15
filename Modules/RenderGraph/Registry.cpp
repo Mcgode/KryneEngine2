@@ -49,6 +49,9 @@ namespace KryneEngine::Modules::RenderGraph
     {
         KE_ASSERT(m_resources.Get(_textureResource).m_type == ResourceType::RawTexture);
 
+        // Add ref to underlying texture resource
+        m_resources.AddRef(_textureResource);
+
         const SimplePoolHandle handle = m_resources.AllocateAndInit(Resource {
             .m_type = ResourceType::TextureSrv,
             .m_textureSrvData = {
