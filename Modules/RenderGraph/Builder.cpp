@@ -73,6 +73,7 @@ namespace KryneEngine::Modules::RenderGraph
         ProcessDagDeferredCulling();
 
         PrintDag();
+        PrintFlattenedPasses();
     }
 
     void Builder::BuildDag(const size_t _index, const PassDeclaration& _passDeclaration)
@@ -350,6 +351,157 @@ namespace KryneEngine::Modules::RenderGraph
                     << std::endl;
             }
         }
+        std::cout << "}" << std::endl;
+    }
+
+    void Builder::PrintFlattenedPasses()
+    {
+        eastl::vector<size_t> renderPasses;
+        eastl::vector<size_t> computePasses;
+        eastl::vector<size_t> transferPasses;
+
+        constexpr auto typeCount = static_cast<size_t>(PassType::COUNT);
+        eastl::vector<eastl::pair<size_t, size_t>> crossQueueDependencyMatrix[typeCount * typeCount];
+
+        for (size_t i = 0; i < m_declaredPasses.size(); i++)
+        {
+            const PassDeclaration& pass = m_declaredPasses[i];
+            if (!m_passAlive[i])
+            {
+                continue;
+            }
+            switch (pass.m_type)
+            {
+            case PassType::Render:
+                renderPasses.push_back(i);
+                break;
+            case PassType::Compute:
+                computePasses.push_back(i);
+                break;
+            case PassType::Transfer:
+                transferPasses.push_back(i);
+                break;
+            case PassType::COUNT:
+                continue;
+            }
+
+            const auto passTypeOffset = static_cast<size_t>(pass.m_type) * typeCount;
+            for (size_t childIndex : m_dag[i].m_children)
+            {
+                if (!m_passAlive[childIndex])
+                {
+                    continue;
+                }
+                const PassDeclaration& child = m_declaredPasses[childIndex];
+                if (child.m_type == pass.m_type)
+                {
+                    continue;
+                }
+                const auto childType = static_cast<size_t>(child.m_type);
+                const size_t crossDepIndex = childType + passTypeOffset;
+                auto& dependencies = crossQueueDependencyMatrix[crossDepIndex];
+                if (dependencies.empty() || dependencies.back().first != i)
+                {
+                    dependencies.emplace_back(i, childIndex);
+                }
+            }
+        }
+
+        std::cout << std::endl;
+        std::cout << "Flattened passes:" << std::endl;
+        std::cout << "digraph FlattenedPasses {" << std::endl;
+
+        std::cout << "\tsubgraph RenderPasses {" << std::endl;
+        if (renderPasses.size() == 1)
+        {
+            std::cout
+                << "\t\t"
+                << eastl::string().sprintf(
+                                      R"("[%lld] %s";)",
+                                      renderPasses[0],
+                                      m_declaredPasses[renderPasses[0]].m_name.c_str()).c_str()
+                << std::endl;
+        }
+        for (size_t i = 1; i < renderPasses.size(); i++)
+        {
+            std::cout
+                << "\t\t"
+                << eastl::string().sprintf(
+                                      R"("[%lld] %s" -> "[%lld] %s";)",
+                                      renderPasses[i - 1],
+                                      m_declaredPasses[renderPasses[i - 1]].m_name.c_str(),
+                                      renderPasses[i],
+                                      m_declaredPasses[renderPasses[i]].m_name.c_str()).c_str()
+                << std::endl;
+        }
+        std::cout << "\t}" << std::endl;
+
+        std::cout << "\tsubgraph ComputePasses {" << std::endl;
+        if (computePasses.size() == 1)
+        {
+            std::cout
+                << "\t\t"
+                << eastl::string().sprintf(
+                                      R"("[%lld] %s";)",
+                                      computePasses[0],
+                                      m_declaredPasses[computePasses[0]].m_name.c_str()).c_str()
+                << std::endl;
+        }
+        for (size_t i = 1; i < computePasses.size(); i++)
+        {
+            std::cout
+                << "\t\t"
+                << eastl::string().sprintf(
+                                      R"("[%lld] %s" -> "[%lld] %s";)",
+                                      computePasses[i - 1],
+                                      m_declaredPasses[computePasses[i - 1]].m_name.c_str(),
+                                      computePasses[i],
+                                      m_declaredPasses[computePasses[i]].m_name.c_str()).c_str()
+                << std::endl;
+        }
+        std::cout << "\t}" << std::endl;
+
+        std::cout << "\tsubgraph TransferPasses {" << std::endl;
+        if (transferPasses.size() == 1)
+        {
+            std::cout
+                << "\t\t"
+                << eastl::string().sprintf(
+                                      R"("[%lld] %s";)",
+                                      transferPasses[0],
+                                      m_declaredPasses[transferPasses[0]].m_name.c_str()).c_str()
+                << std::endl;
+        }
+        for (size_t i = 1; i < transferPasses.size(); i++)
+        {
+            std::cout
+                << "\t\t"
+                << eastl::string().sprintf(
+                                      R"("[%lld] %s" -> "[%lld] %s";)",
+                                      transferPasses[i - 1],
+                                      m_declaredPasses[transferPasses[i - 1]].m_name.c_str(),
+                                      transferPasses[i],
+                                      m_declaredPasses[transferPasses[i]].m_name.c_str()).c_str()
+                << std::endl;
+        }
+        std::cout << "\t}" << std::endl;
+
+        for (const auto& crossQueueDependencies : crossQueueDependencyMatrix)
+        {
+            for (const auto& dependencyPair : crossQueueDependencies)
+            {
+                std::cout
+                    << "\t"
+                    << eastl::string().sprintf(
+                                          R"("[%lld] %s" -> "[%lld] %s";)",
+                                          dependencyPair.first,
+                                          m_declaredPasses[dependencyPair.first].m_name.c_str(),
+                                          dependencyPair.second,
+                                          m_declaredPasses[dependencyPair.second].m_name.c_str()).c_str()
+                    << std::endl;
+            }
+        }
+
         std::cout << "}" << std::endl;
     }
 } // namespace KryneEngine::Modules::RenderGraph

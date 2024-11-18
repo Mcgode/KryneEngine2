@@ -42,6 +42,7 @@ namespace KryneEngine::Modules::RenderGraph
         void PrintRenderPassAttachments(const PassDeclaration& _pass, std::string& _indent);
         void PrintDependencies(const PassDeclaration& _pass, std::string& _indent);
         void PrintDag();
+        void PrintFlattenedPasses();
 
     private:
         Registry& m_registry;
