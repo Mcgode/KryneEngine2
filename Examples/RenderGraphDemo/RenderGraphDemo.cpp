@@ -6,6 +6,7 @@
 
 #include <Profiling/TracyHeader.hpp>
 #include <RenderGraph/Declarations/PassDeclaration.hpp>
+#include <RenderGraph/RenderGraph.hpp>
 #include <RenderGraph/Registry.hpp>
 #include <RenderGraph/Builder.hpp>
 
@@ -15,8 +16,8 @@ int main()
 {
     TracySetProgramName("Render graph demo");
 
-    RenderGraph::Registry registry {};
-    RenderGraph::Builder builder { registry };
+    RenderGraph::RenderGraph renderGraph {};
+    RenderGraph::Builder& builder = renderGraph.BeginFrame();
 
     KryneEngine::SimplePoolHandle
         swapChainTexture,
@@ -30,13 +31,13 @@ int main()
     {
         KE_ZoneScoped("Registration");
 
-        swapChainTexture = registry.RegisterRawTexture({}, "Swapchain buffer");
-        csTexture = registry.RegisterRawTexture({}, "Compute shader texture");
-        texGenBuffer = registry.RegisterRawBuffer({}, "Texture generation buffer");
-        frameCBuffer = registry.RegisterRawBuffer({}, "Frame constant buffer");
-        lightsBuffer = registry.RegisterRawBuffer({}, "Lights buffer");
-        lightingAtlas = registry.RegisterRawTexture({}, "Lighting atlas");
-        lightingAtlasSrv = registry.RegisterTextureSrv({}, lightingAtlas, "Lighting atlas SRV");
+        swapChainTexture = renderGraph.GetRegistry().RegisterRawTexture({}, "Swapchain buffer");
+        csTexture = renderGraph.GetRegistry().RegisterRawTexture({}, "Compute shader texture");
+        texGenBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Texture generation buffer");
+        frameCBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Frame constant buffer");
+        lightsBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Lights buffer");
+        lightingAtlas = renderGraph.GetRegistry().RegisterRawTexture({}, "Lighting atlas");
+        lightingAtlasSrv = renderGraph.GetRegistry().RegisterTextureSrv({}, lightingAtlas, "Lighting atlas SRV");
     }
 
     {
@@ -87,7 +88,7 @@ int main()
                 .ReadDependency(lightingAtlasSrv)
                 .ReadDependency(csTexture);
 
-        builder.PrintBuildResult();
+        renderGraph.SubmitFrame();
     }
 
     return 0;

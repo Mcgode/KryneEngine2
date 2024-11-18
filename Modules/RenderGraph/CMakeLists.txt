@@ -10,6 +10,8 @@ add_library(KryneEngine_Modules_RenderGraph STATIC
         Registry.cpp
         Registry.hpp
         Resource.hpp
+        RenderGraph.cpp
+        RenderGraph.hpp
 )
 
 target_link_libraries(KryneEngine_Modules_RenderGraph KryneEngine_Core KryneEngine_Modules_Includes)
