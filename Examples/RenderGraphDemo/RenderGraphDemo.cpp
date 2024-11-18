@@ -44,7 +44,7 @@ int main()
 
         builder
             .DeclareTargetResource(swapChainTexture)
-            .DeclarePass(RenderGraph::PassType::Blit)
+            .DeclarePass(RenderGraph::PassType::Transfer)
                 .SetName("Upload constant buffer")
                 .WriteDependency(frameCBuffer)
                 .Done()
