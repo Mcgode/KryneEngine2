@@ -34,4 +34,10 @@ namespace KryneEngine::Modules::RenderGraph
         m_item.m_writeDependencies.push_back(_resource);
         return *this;
     }
+
+    PassDeclarationBuilder& PassDeclarationBuilder::SetExecuteFunction(PassDeclaration::ExecuteFunction&& _function)
+    {
+        m_item.m_executeFunction = _function;
+        return *this;
+    }
 }

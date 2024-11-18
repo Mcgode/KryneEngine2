@@ -10,6 +10,9 @@
 
 namespace KryneEngine::Modules::RenderGraph
 {
+    class RenderGraph;
+    struct PassExecutionData;
+
     enum class PassType
     {
         Render,
@@ -23,6 +26,8 @@ namespace KryneEngine::Modules::RenderGraph
     public:
         explicit PassDeclaration(PassType _type);
 
+        using ExecuteFunction = eastl::function<void(RenderGraph&, PassExecutionData&)>;
+
     public:
         PassType m_type;
         eastl::string m_name;
@@ -30,6 +35,7 @@ namespace KryneEngine::Modules::RenderGraph
         eastl::optional<PassAttachmentDeclaration> m_depthAttachment;
         eastl::vector<SimplePoolHandle> m_readDependencies;
         eastl::vector<SimplePoolHandle> m_writeDependencies;
+        ExecuteFunction m_executeFunction;
     };
 
     class Builder;
@@ -43,6 +49,7 @@ namespace KryneEngine::Modules::RenderGraph
         PassAttachmentDeclarationBuilder AddColorAttachment(SimplePoolHandle _texture);
         PassDeclarationBuilder& ReadDependency(SimplePoolHandle _resource);
         PassDeclarationBuilder& WriteDependency(SimplePoolHandle _resource);
+        PassDeclarationBuilder& SetExecuteFunction(PassDeclaration::ExecuteFunction&& _function);
     };
 } // namespace KryneEngine::Module::RenderGraph
 

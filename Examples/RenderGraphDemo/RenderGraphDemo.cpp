@@ -10,7 +10,16 @@
 #include <RenderGraph/Registry.hpp>
 #include <RenderGraph/Builder.hpp>
 
+#include<iostream>
+
 using namespace KryneEngine::Modules;
+
+void ExecuteUploadConstantBuffer(
+    [[maybe_unused]] RenderGraph::RenderGraph& _renderGraph,
+    [[maybe_unused]] RenderGraph::PassExecutionData& _passExecutionData)
+{
+    std::cout << "Uploading constant buffer" << std::endl;
+}
 
 int main()
 {
@@ -47,26 +56,31 @@ int main()
             .DeclareTargetResource(swapChainTexture)
             .DeclarePass(RenderGraph::PassType::Transfer)
                 .SetName("Upload constant buffer")
+                .SetExecuteFunction(ExecuteUploadConstantBuffer)
                 .WriteDependency(frameCBuffer)
                 .Done()
             .DeclarePass(RenderGraph::PassType::Compute)
                 .SetName("Recompute generative buffer")
+                .SetExecuteFunction([](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
                 .ReadDependency(texGenBuffer)
                 .WriteDependency(texGenBuffer)
                 .Done()
             .DeclarePass(RenderGraph::PassType::Compute)
                 .SetName("Texture generation")
+                .SetExecuteFunction( [](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
                 .ReadDependency(texGenBuffer)
                 .ReadDependency(frameCBuffer)
                 .WriteDependency(csTexture)
                 .Done()
             .DeclarePass(RenderGraph::PassType::Compute)
                 .SetName("Light dispatch")
+                .SetExecuteFunction([](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
                 .ReadDependency(frameCBuffer)
                 .WriteDependency(lightsBuffer)
                 .Done()
             .DeclarePass(RenderGraph::PassType::Render)
                 .SetName("Light atlas draw")
+                .SetExecuteFunction( [](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
                 .AddColorAttachment(lightingAtlas)
                     .SetLoadOperation(KryneEngine::RenderPassDesc::Attachment::LoadOperation::DontCare)
                     .Done()
@@ -74,6 +88,7 @@ int main()
                 .Done()
             .DeclarePass(RenderGraph::PassType::Render)
                 .SetName("Final draw")
+                .SetExecuteFunction( [](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
                 .AddColorAttachment(swapChainTexture)
                     .SetLoadOperation(KryneEngine::RenderPassDesc::Attachment::LoadOperation::Clear)
                     .SetStoreOperation(KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store)
@@ -85,6 +100,7 @@ int main()
                 .Done()
             .DeclarePass(RenderGraph::PassType::Compute)
                 .SetName("Discard pass")
+                .SetExecuteFunction([](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
                 .ReadDependency(lightingAtlasSrv)
                 .ReadDependency(csTexture);
 

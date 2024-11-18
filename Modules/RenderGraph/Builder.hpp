@@ -23,6 +23,8 @@ namespace KryneEngine::Modules::RenderGraph
 
     class Builder
     {
+        friend class RenderGraph;
+
     public:
         explicit Builder(Registry& _registry);
         ~Builder();

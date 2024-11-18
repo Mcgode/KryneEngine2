@@ -6,11 +6,17 @@
 
 #include "RenderGraph.hpp"
 
+#include <Graphics/Common/GraphicsContext.hpp>
 #include <RenderGraph/Builder.hpp>
 #include <RenderGraph/Registry.hpp>
 
 namespace KryneEngine::Modules::RenderGraph
 {
+    struct PassExecutionData
+    {
+        CommandList m_commandList;
+    };
+
     RenderGraph::RenderGraph()
     {
         m_registry = eastl::make_unique<Registry>();
@@ -27,6 +33,22 @@ namespace KryneEngine::Modules::RenderGraph
     void RenderGraph::SubmitFrame()
     {
         m_builder->PrintBuildResult();
+
+        PassExecutionData passExecutionData = {
+            .m_commandList = {},
+        };
+
+        for (size_t i = 0; i < m_builder->m_declaredPasses.size(); i++)
+        {
+            if (!m_builder->m_passAlive[i])
+            {
+                continue;
+            }
+
+            KE_ASSERT(m_builder->m_declaredPasses[i].m_executeFunction != nullptr);
+            m_builder->m_declaredPasses[i].m_executeFunction(*this, passExecutionData);
+        }
+
         m_builder.reset();
     }
 } // namespace KryneEngine::Modules::RenderGraph
