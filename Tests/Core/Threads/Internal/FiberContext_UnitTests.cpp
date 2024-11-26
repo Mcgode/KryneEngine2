@@ -57,11 +57,7 @@ namespace KryneEngine::Tests
             EXPECT_NE(ctx, nullptr);
             if (ctx != nullptr)
             {
-#if CONTEXT_SWITCH_WINDOWS_FIBERS
-                EXPECT_NE(ctx->m_winFiber, nullptr);
-#else
-#   error No test case yet
-#endif
+                EXPECT_NE(ctx->m_context, nullptr);
             }
         }
 
@@ -181,26 +177,28 @@ namespace KryneEngine::Tests
         contexts.starting.m_name = "Starting";
         contexts.target.m_name = "Target";
 
-        constexpr auto targetFunction = [](void* _contexts)
+        constexpr auto targetFunction = [](boost::context::detail::transfer_t _transfer)
         {
-            auto* contexts = static_cast<Contexts*>(_contexts);
+            auto* contexts = static_cast<Contexts*>(_transfer.data);
+
+            contexts->starting.m_context = _transfer.fctx;
 
             contexts->target.m_name = "Targeted";
 
             contexts->target.SwapContext(&contexts->starting);
         };
 
+        constexpr size_t stackSize = 1 << 16;
+        void* stack = std::aligned_alloc(16, stackSize);
+
         std::thread startThread(
             [&](){
-#if CONTEXT_SWITCH_WINDOWS_FIBERS
-                contexts.starting.m_winFiber = ConvertThreadToFiber(nullptr);
-                contexts.target.m_winFiber = CreateFiber(1 << 16, targetFunction, &contexts);
+                contexts.target.m_context = boost::context::detail::make_fcontext(
+                    static_cast<u8*>(stack) + stackSize, // Stack starts from the end
+                    stackSize,
+                    targetFunction);
 
                 contexts.starting.SwapContext(&contexts.target);
-                ConvertFiberToThread();
-#else
-#   error No test yet
-#endif
             });
         startThread.join();
 
@@ -210,11 +208,7 @@ namespace KryneEngine::Tests
         // Teardown
         // -----------------------------------------------------------------------
 
-#if CONTEXT_SWITCH_WINDOWS_FIBERS
-        DeleteFiber(contexts.target.m_winFiber);
-#else
-#   error No test yet
-#endif
+        std::free(stack);
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 }
