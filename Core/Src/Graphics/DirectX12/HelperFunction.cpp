@@ -4,8 +4,9 @@
  * @date 31/01/2024.
  */
 
-#include "HelperFunctions.hpp"
 #include <iostream>
+
+#include "Graphics/DirectX12/HelperFunctions.hpp"
 
 namespace KryneEngine
 {

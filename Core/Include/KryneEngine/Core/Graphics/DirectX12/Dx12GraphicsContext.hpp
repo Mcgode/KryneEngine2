@@ -6,14 +6,15 @@
 
 #pragma once
 
-#include "Dx12Headers.hpp"
-#include "Dx12FrameContext.hpp"
-#include "Dx12Resources.h"
-#include "Dx12Types.hpp"
-#include <Common/Arrays.hpp>
-#include <Graphics/Common/MemoryBarriers.hpp>
-#include <Graphics/Common/Texture.hpp>
 #include <EASTL/unique_ptr.h>
+
+#include "KryneEngine/Core/Common/Arrays.hpp"
+#include "KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp"
+#include "KryneEngine/Core/Graphics/Common/Texture.hpp"
+#include "KryneEngine/Core/Graphics/DirectX12/Dx12Headers.hpp"
+#include "KryneEngine/Core/Graphics/DirectX12/Dx12FrameContext.hpp"
+#include "KryneEngine/Core/Graphics/DirectX12/Dx12Resources.h"
+#include "KryneEngine/Core/Graphics/DirectX12/Dx12Types.hpp"
 
 namespace KryneEngine
 {

@@ -4,17 +4,18 @@
  * @date 11/03/2023.
  */
 
-#include "Dx12GraphicsContext.hpp"
-#include "Dx12DescriptorSetManager.hpp"
-#include "Dx12SwapChain.hpp"
-#include "HelperFunctions.hpp"
-#include <Common/Utils/Alignment.hpp>
 #include <D3D12MemAlloc.h>
-#include <Graphics/Common/Buffer.hpp>
-#include <Graphics/Common/Drawing.hpp>
-#include <Window/Window.hpp>
-#include <Memory/GenerationalPool.inl>
 #include <dxgidebug.h>
+
+#include "Graphics/DirectX12/HelperFunctions.hpp"
+#include "KryneEngine/Core/Common/Utils/Alignment.hpp"
+#include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
+#include "KryneEngine/Core/Graphics/Common/Drawing.hpp"
+#include "KryneEngine/Core/Graphics/DirectX12/Dx12GraphicsContext.hpp"
+#include "KryneEngine/Core/Graphics/DirectX12/Dx12DescriptorSetManager.hpp"
+#include "KryneEngine/Core/Graphics/DirectX12/Dx12SwapChain.hpp"
+#include "KryneEngine/Core/Memory/GenerationalPool.inl"
+#include "KryneEngine/Core/Window/Window.hpp"
 
 namespace KryneEngine
 {

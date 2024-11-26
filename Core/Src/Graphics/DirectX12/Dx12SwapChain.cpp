@@ -4,14 +4,16 @@
  * @date 12/03/2023.
  */
 
-#include "Dx12SwapChain.hpp"
-#include "Dx12GraphicsContext.hpp"
-#include "HelperFunctions.hpp"
-#include <Window/Window.hpp>
+
+#include "KryneEngine/Core/Graphics/DirectX12/Dx12SwapChain.hpp"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
-#include <Graphics/Common/ResourceViews/RenderTargetView.hpp>
+
+#include "Graphics/DirectX12/HelperFunctions.hpp"
+#include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
+#include "KryneEngine/Core/Graphics/DirectX12/Dx12GraphicsContext.hpp"
+#include "KryneEngine/Core/Window/Window.hpp"
 
 namespace KryneEngine
 {

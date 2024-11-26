@@ -9,7 +9,7 @@
 #if defined(KE_GRAPHICS_API_VK)
 #   include "KryneEngine/Core/Graphics/Vulkan/VkGraphicsContext.hpp"
 #elif defined(KE_GRAPHICS_API_DX12)
-#   include "KryneEngine/Core/Graphics/DX12/Dx12GraphicsContext.hpp"
+#   include "KryneEngine/Core/Graphics/DirectX12/Dx12GraphicsContext.hpp"
 #elif defined(KE_GRAPHICS_API_MTL)
 #   include "KryneEngine/Core/Graphics/Metal/MetalGraphicsContext.hpp"
 #else

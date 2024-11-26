@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <Platform/Windows.h>
+#include "KryneEngine/Core/Platform/Windows.h"
 
 // The min/max macros conflict with like-named member functions.
 // Only use std::min and std::max defined in <algorithm>.
@@ -37,7 +37,7 @@ using Microsoft::WRL::ComPtr;
 #include <directx/d3dx12.h>
 
 // Kryne engine includes
-#include <Common/Types.hpp>
-#include <Graphics/Common/GraphicsCommon.hpp>
-#include <Memory/GenerationalPool.hpp>
-#include <Profiling/TracyHeader.hpp>
+#include "KryneEngine/Core/Common/Types.hpp"
+#include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
+#include "KryneEngine/Core/Memory/GenerationalPool.hpp"
+#include "KryneEngine/Core/Profiling/TracyHeader.hpp"

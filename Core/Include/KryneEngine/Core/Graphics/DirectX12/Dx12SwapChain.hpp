@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include <Common/Arrays.hpp>
-#include "Dx12Headers.hpp"
-#include "Dx12Resources.h"
+#include "KryneEngine/Core/Common/Arrays.hpp"
+#include "KryneEngine/Core/Graphics/DirectX12/Dx12Headers.hpp"
+#include "KryneEngine/Core/Graphics/DirectX12/Dx12Resources.h"
 
 namespace KryneEngine
 {

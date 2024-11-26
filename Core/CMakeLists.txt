@@ -114,15 +114,20 @@ if (GraphicsApi STREQUAL "VK")
         )
 elseif(GraphicsApi STREQUAL "DX12")
         set(GraphicsFiles ${GraphicsCommonFiles}
-                Graphics/DX12/Dx12GraphicsContext.cpp Graphics/DX12/Dx12GraphicsContext.hpp
-                Graphics/DX12/Dx12Headers.hpp
-                Graphics/DX12/HelperFunction.cpp Graphics/DX12/HelperFunctions.hpp
-                Graphics/DX12/Dx12SwapChain.cpp Graphics/DX12/Dx12SwapChain.hpp
-                Graphics/DX12/Dx12FrameContext.cpp Graphics/DX12/Dx12FrameContext.hpp
-                Graphics/DX12/Dx12Resources.cpp
-                Graphics/DX12/Dx12Resources.h
-                Graphics/DX12/Dx12Types.hpp
-                Graphics/DX12/Dx12DescriptorSetManager.cpp Graphics/DX12/Dx12DescriptorSetManager.hpp
+                Src/Graphics/DirectX12/Dx12GraphicsContext.cpp
+                Include/KryneEngine/Core/Graphics/DirectX12/Dx12GraphicsContext.hpp
+                Include/KryneEngine/Core/Graphics/DirectX12/Dx12Headers.hpp
+                Src/Graphics/DirectX12/HelperFunction.cpp
+                Src/Graphics/DirectX12/HelperFunctions.hpp
+                Src/Graphics/DirectX12/Dx12SwapChain.cpp
+                Include/KryneEngine/Core/Graphics/DirectX12/Dx12SwapChain.hpp
+                Src/Graphics/DirectX12/Dx12FrameContext.cpp
+                Include/KryneEngine/Core/Graphics/DirectX12/Dx12FrameContext.hpp
+                Src/Graphics/DirectX12/Dx12Resources.cpp
+                Include/KryneEngine/Core/Graphics/DirectX12/Dx12Resources.h
+                Include/KryneEngine/Core/Graphics/DirectX12/Dx12Types.hpp
+                Src/Graphics/DirectX12/Dx12DescriptorSetManager.cpp
+                Include/KryneEngine/Core/Graphics/DirectX12/Dx12DescriptorSetManager.hpp
         )
 elseif (GraphicsApi STREQUAL "MTL")
         set(GraphicsFiles ${GraphicsCommonFiles}

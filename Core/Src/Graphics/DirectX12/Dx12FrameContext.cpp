@@ -4,9 +4,9 @@
  * @date 12/03/2023.
  */
 
-#include <Common/Assert.hpp>
-#include "Dx12FrameContext.hpp"
-#include "HelperFunctions.hpp"
+#include "Graphics/DirectX12/HelperFunctions.hpp"
+#include "KryneEngine/Core/Common/Assert.hpp"
+#include "KryneEngine/Core/Graphics/DirectX12/Dx12FrameContext.hpp"
 
 namespace KryneEngine
 {
