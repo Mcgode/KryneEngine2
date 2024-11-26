@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "RenderGraph/Declarations/PassDeclaration.hpp"
-#include <Memory/SimplePool.inl>
+#include <KryneEngine/Core/Memory/SimplePool.inl>
 #include <RenderGraph/Registry.hpp>
 #include <RenderGraph/Resource.hpp>
 

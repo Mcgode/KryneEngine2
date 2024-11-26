@@ -5,18 +5,19 @@
  */
 
 #include "Context.hpp"
-#include "Input.hpp"
-#include <Common/Utils/Alignment.hpp>
-#include <Graphics/Common/Drawing.hpp>
-#include <Graphics/Common/ResourceViews/ShaderResourceView.hpp>
-#include <Graphics/Common/ShaderPipeline.hpp>
-#include <Graphics/Common/Texture.hpp>
-#include <Profiling/TracyHeader.hpp>
-#include <tracy/Tracy.hpp>
-#include <Window/Input/InputManager.hpp>
-#include <Window/Window.hpp>
+
 #include <fstream>
 #include <imgui_internal.h>
+#include <KryneEngine/Core/Common/Utils/Alignment.hpp>
+#include <KryneEngine/Core/Graphics/Common/Drawing.hpp>
+#include <KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp>
+#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
+#include <KryneEngine/Core/Graphics/Common/Texture.hpp>
+#include <KryneEngine/Core/Profiling/TracyHeader.hpp>
+#include <KryneEngine/Core/Window/Input/InputManager.hpp>
+#include <KryneEngine/Core/Window/Window.hpp>
+
+#include "Input.hpp"
 
 namespace KryneEngine::Modules::ImGui
 {

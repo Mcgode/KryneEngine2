@@ -5,9 +5,9 @@
 */
 
 #include <gtest/gtest.h>
+#include <KryneEngine/Core/Threads/LightweightSemaphore.hpp>
 
-#include <Threads/LightweightSemaphore.hpp>
-#include <Utils/AssertUtils.hpp>
+#include "Utils/AssertUtils.hpp"
 
 namespace KryneEngine::Tests
 {

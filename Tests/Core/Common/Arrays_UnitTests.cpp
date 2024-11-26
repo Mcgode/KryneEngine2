@@ -5,9 +5,9 @@
  */
 
 #include <gtest/gtest.h>
+#include <KryneEngine/Core/Common/Arrays.hpp>
 
-#include <Common/Arrays.hpp>
-#include <Utils/AssertUtils.hpp>
+#include "Utils/AssertUtils.hpp"
 
 namespace KryneEngine::Tests
 {

@@ -5,10 +5,10 @@
  */
 
 #include <gtest/gtest.h>
-#include <Utils/AssertUtils.hpp>
+#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/Common/Texture.hpp>
 
-#include <Graphics/Common/Texture.hpp>
-#include <Graphics/Common/GraphicsContext.hpp>
+#include "Utils/AssertUtils.hpp"
 
 #include "Common.h"
 

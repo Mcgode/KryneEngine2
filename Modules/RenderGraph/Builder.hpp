@@ -8,8 +8,10 @@
 
 #include <EASTL/hash_map.h>
 #include <EASTL/vector_set.h>
-#include <Memory/SimplePool.hpp>
-#include <RenderGraph/Declarations/PassDeclaration.hpp>
+#include <KryneEngine/Core/Memory/SimplePool.hpp>
+#include <string>
+
+#include "RenderGraph/Declarations/PassDeclaration.hpp"
 
 namespace KryneEngine
 {

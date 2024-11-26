@@ -6,7 +6,7 @@
 
 #include "RenderGraph/Registry.hpp"
 
-#include <Memory/SimplePool.inl>
+#include <KryneEngine/Core/Memory/SimplePool.inl>
 #include <RenderGraph/Resource.hpp>
 
 namespace KryneEngine::Modules::RenderGraph

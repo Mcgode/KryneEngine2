@@ -4,12 +4,14 @@
  * @date 13/11/2024.
  */
 
-#include <Graphics/Common/GraphicsContext.hpp>
-#include <Graphics/Common/Drawing.hpp>
-#include <Profiling/TracyHeader.hpp>
-#include <Window/Window.hpp>
-
 #include <fstream>
+
+#include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
+#include "KryneEngine/Core/Graphics/Common/Drawing.hpp"
+#include "KryneEngine/Core/Graphics/Common/GraphicsContext.hpp"
+#include "KryneEngine/Core/Graphics/Common/RenderPass.hpp"
+#include "KryneEngine/Core/Profiling/TracyHeader.hpp"
+#include "KryneEngine/Core/Window/Window.hpp"
 
 using namespace KryneEngine;
 

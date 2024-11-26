@@ -5,9 +5,9 @@
  */
 
 #include <gtest/gtest.h>
+#include <KryneEngine/Core/Threads/LightweightMutex.hpp>
 
-#include <Threads/LightweightMutex.hpp>
-#include <Utils/AssertUtils.hpp>
+#include "Utils/AssertUtils.hpp"
 
 namespace KryneEngine::Tests
 {

@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include <Graphics/Common/Buffer.hpp>
-#include <Graphics/Common/Handles.hpp>
-#include <Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/Common/Buffer.hpp>
+#include <KryneEngine/Core/Graphics/Common/Handles.hpp>
+#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 
 namespace KryneEngine::Modules::GraphicsUtils
 {

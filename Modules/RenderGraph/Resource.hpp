@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <Graphics/Common/Handles.hpp>
+#include <KryneEngine/Core/Graphics/Common/Handles.hpp>
 
 namespace KryneEngine::Modules::RenderGraph
 {

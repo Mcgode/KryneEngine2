@@ -5,12 +5,11 @@
  */
 
 #include <gtest/gtest.h>
-#include <Utils/AssertUtils.hpp>
-
-#include <Graphics/Common/Buffer.hpp>
-#include <Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/Common/Buffer.hpp>
+#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 
 #include "Common.h"
+#include "Utils/AssertUtils.hpp"
 
 namespace KryneEngine::Tests::Graphics
 {

@@ -5,8 +5,7 @@
  */
 
 #include <gtest/gtest.h>
-
-#include <Common/Utils/Alignment.hpp>
+#include <KryneEngine/Core/Common/Utils/Alignment.hpp>
 
 namespace KryneEngine::Tests
 {

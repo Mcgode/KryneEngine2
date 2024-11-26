@@ -10,7 +10,7 @@
 #include <imgui.h>
 #include <EASTL/unique_ptr.h>
 
-#include <Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 #include <GraphicsUtils/DynamicBuffer.hpp>
 
 namespace KryneEngine

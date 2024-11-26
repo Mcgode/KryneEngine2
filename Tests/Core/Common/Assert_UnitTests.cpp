@@ -5,8 +5,8 @@
  */
 
 
-#include <Common/Assert.hpp>
 #include <gtest/gtest.h>
+#include <KryneEngine/Core/Common/Assert.hpp>
 
 #include "Utils/AssertUtils.hpp"
 

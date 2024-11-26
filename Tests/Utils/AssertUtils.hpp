@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include <Common/Assert.hpp>
+#include <EASTL/span.h>
+#include <KryneEngine/Core/Common/Assert.hpp>
 
 namespace KryneEngine::Tests
 {

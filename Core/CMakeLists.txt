@@ -1,60 +1,184 @@
 set(RootDir ${CMAKE_SOURCE_DIR}/Core)
-add_subdirectory(Graphics)
 
 set(CommonSrc
-        Common/additional_impl.cpp 
-        Common/Assert.hpp Common/Assert.cpp
-        Common/BitUtils.hpp
-        Common/EastlHelpers.hpp
-        Common/StringHelpers.hpp
-        Common/Types.hpp
-        Common/Utils/MultiFrameTracking.hpp
-        Common/Utils/Alignment.hpp
+        Include/KryneEngine/Core/Common/Arrays.hpp
+        Include/KryneEngine/Core/Common/Assert.hpp
+        Src/Common/Assert.cpp
+        Include/KryneEngine/Core/Common/BitUtils.hpp
+        Include/KryneEngine/Core/Common/EastlHelpers.hpp
+        Include/KryneEngine/Core/Common/StringHelpers.hpp
+        Include/KryneEngine/Core/Common/Types.hpp
+        Src/Common/additional_impl.cpp
+        Include/KryneEngine/Core/Common/Utils/Alignment.hpp
+        Include/KryneEngine/Core/Common/Utils/MultiFrameTracking.hpp
 )
 
 set(FilesSrc
-        Files/FileWatcher.cpp Files/FileWatcher.hpp
-        Files/WatchedDirectory.cpp Files/WatchedDirectory.hpp
-        Files/FileSystemHelper.cpp Files/FileSystemHelper.hpp
-        Files/IoQueryManager.cpp Files/IoQueryManager.hpp
-        Files/File.cpp Files/File.hpp
+        Src/Files/FileWatcher.cpp
+        Src/Files/FileWatcher.hpp
+        Src/Files/WatchedDirectory.cpp
+        Src/Files/WatchedDirectory.hpp
+        Src/Files/FileSystemHelper.cpp
+        Src/Files/FileSystemHelper.hpp
+        Src/Files/IoQueryManager.cpp
+        Src/Files/IoQueryManager.hpp
+        Src/Files/File.cpp
+        Src/Files/File.hpp
         )
 
+set(GraphicsCommonFiles
+        Src/Graphics/Common/GraphicsContext.cpp
+        Include/KryneEngine/Core/Graphics/Common/GraphicsContext.hpp
+        Include/KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp
+        Include/KryneEngine/Core/Graphics/Common/Texture.hpp
+        Include/KryneEngine/Core/Graphics/Common/Enums.hpp
+        Src/Graphics/Common/EnumHelpers.cpp
+        Include/KryneEngine/Core/Graphics/Common/EnumHelpers.hpp
+        Include/KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp
+        Include/KryneEngine/Core/Graphics/Common/RenderPass.hpp
+        Include/KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp
+        Include/KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp
+        Include/KryneEngine/Core/Graphics/Common/Buffer.hpp
+        Include/KryneEngine/Core/Graphics/Common/Handles.hpp
+        Include/KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp
+        Include/KryneEngine/Core/Graphics/Common/Drawing.hpp
+)
+
 set(MemorySrc
-        Memory/RangeMapping.hpp
-        Memory/GenerationalPool.inl Memory/GenerationalPool.hpp
-        Memory/SimplePool.inl Memory/SimplePool.hpp
+        Include/KryneEngine/Core/Memory/RangeMapping.hpp
+        Include/KryneEngine/Core/Memory/GenerationalPool.inl
+        Include/KryneEngine/Core/Memory/GenerationalPool.hpp
+        Include/KryneEngine/Core/Memory/SimplePool.inl
+        Include/KryneEngine/Core/Memory/SimplePool.hpp
 )
 
 set(ProfilingSrc
-        Profiling/TracyHeader.hpp
+        Include/KryneEngine/Core/Profiling/TracyHeader.hpp
 )
 
 set(ThreadsSrc
-        Threads/FibersManager.cpp Threads/FibersManager.hpp
-        Threads/FiberThread.cpp Threads/FiberThread.hpp
-        Threads/HelperFunctions.cpp Threads/HelperFunctions.hpp
-        Threads/FiberTls.inl Threads/FiberTls.hpp
-        Threads/FiberJob.cpp Threads/FiberJob.hpp
-        Threads/Internal/FiberContext.cpp Threads/Internal/FiberContext.hpp
-        Threads/SyncCounterPool.cpp Threads/SyncCounterPool.hpp
-        Threads/LightweightMutex.cpp Threads/LightweightMutex.hpp
-        Threads/RwMutex.hpp
-        Threads/LightweightSemaphore.hpp Threads/LightweightSemaphore.cpp
-        Threads/SpinLock.cpp Threads/SpinLock.hpp
+        Src/Threads/FibersManager.cpp
+        Include/KryneEngine/Core/Threads/FibersManager.hpp
+        Src/Threads/FiberThread.cpp
+        Include/KryneEngine/Core/Threads/FiberThread.hpp
+        Src/Threads/HelperFunctions.cpp
+        Include/KryneEngine/Core/Threads/HelperFunctions.hpp
+        Include/KryneEngine/Core/Threads/FiberTls.inl
+        Include/KryneEngine/Core/Threads/FiberTls.hpp
+        Src/Threads/FiberJob.cpp
+        Include/KryneEngine/Core/Threads/FiberJob.hpp
+        Src/Threads/Internal/FiberContext.cpp
+        Src/Threads/Internal/FiberContext.hpp
+        Src/Threads/SyncCounterPool.cpp
+        Include/KryneEngine/Core/Threads/SyncCounterPool.hpp
+        Src/Threads/LightweightMutex.cpp
+        Include/KryneEngine/Core/Threads/LightweightMutex.hpp
+        Include/KryneEngine/Core/Threads/RwMutex.hpp
+        Include/KryneEngine/Core/Threads/LightweightSemaphore.hpp
+        Src/Threads/LightweightSemaphore.cpp
+        Src/Threads/SpinLock.cpp
+        Include/KryneEngine/Core/Threads/SpinLock.hpp
 )
 
 set(WindowSrc
-        Window/Window.cpp Window/Window.hpp
-        Window/Input/InputManager.cpp Window/Input/InputManager.hpp
-        Window/Input/KeyInputEvent.hpp
-        Window/GLFW/Input/KeyInputEvent.hpp
-        Window/GLFW/Input/KeyInputEvent.cpp
-        Window/Input/MouseInputEvent.hpp
-        Window/Input/Enums.hpp
+        Src/Window/Window.cpp Include/KryneEngine/Core/Window/Window.hpp
+        Src/Window/Input/InputManager.cpp Include/KryneEngine/Core/Window/Input/InputManager.hpp
+        Include/KryneEngine/Core/Window/Input/KeyInputEvent.hpp
+        Include/KryneEngine/Core/Window/GLFW/Input/KeyInputEvent.hpp
+        Src/Window/GLFW/Input/KeyInputEvent.cpp
+        Include/KryneEngine/Core/Window/Input/MouseInputEvent.hpp
+        Include/KryneEngine/Core/Window/Input/Enums.hpp
 )
 
-add_library(KryneEngine_Core ${CommonSrc} ${FilesSrc} ${MemorySrc} ${ProfilingSrc} ${ThreadsSrc} ${WindowSrc})
-target_link_libraries(KryneEngine_Core KryneEngine_Core_Graphics moodycamel Boost::context)
+if (GraphicsApi STREQUAL "VK")
+        set(GraphicsFiles ${GraphicsCommonFiles}
+                Include/KryneEngine/Core/Graphics/Vulkan/VkGraphicsContext.hpp
+                Src/Graphics/Vulkan/VkGraphicsContext.cpp
+                Src/Graphics/Vulkan/HelperFunctions.cpp
+                Src/Graphics/Vulkan/HelperFunctions.hpp
+                Src/Graphics/Vulkan/VkSwapChain.cpp
+                Include/KryneEngine/Core/Graphics/Vulkan/VkSwapChain.hpp
+                Src/Graphics/Vulkan/VkSurface.cpp
+                Include/KryneEngine/Core/Graphics/Vulkan/VkSurface.hpp
+                Include/KryneEngine/Core/Graphics/Vulkan/CommonStructures.hpp
+                Include/KryneEngine/Core/Graphics/Vulkan/VkHeaders.hpp
+                Src/Graphics/Vulkan/VkFrameContext.cpp
+                Include/KryneEngine/Core/Graphics/Vulkan/VkFrameContext.hpp
+                Src/Graphics/Vulkan/VkResources.cpp
+                Include/KryneEngine/Core/Graphics/Vulkan/VkResources.hpp
+                Include/KryneEngine/Core/Graphics/Vulkan/VkTypes.hpp
+                Src/Graphics/Vulkan/VkDebugHandler.hpp
+                Src/Graphics/Vulkan/VmaUsage.cpp
+                Src/Graphics/Vulkan/VkDescriptorSetManager.cpp
+                Include/KryneEngine/Core/Graphics/Vulkan/VkDescriptorSetManager.hpp
+        )
+elseif(GraphicsApi STREQUAL "DX12")
+        set(GraphicsFiles ${GraphicsCommonFiles}
+                Graphics/DX12/Dx12GraphicsContext.cpp Graphics/DX12/Dx12GraphicsContext.hpp
+                Graphics/DX12/Dx12Headers.hpp
+                Graphics/DX12/HelperFunction.cpp Graphics/DX12/HelperFunctions.hpp
+                Graphics/DX12/Dx12SwapChain.cpp Graphics/DX12/Dx12SwapChain.hpp
+                Graphics/DX12/Dx12FrameContext.cpp Graphics/DX12/Dx12FrameContext.hpp
+                Graphics/DX12/Dx12Resources.cpp
+                Graphics/DX12/Dx12Resources.h
+                Graphics/DX12/Dx12Types.hpp
+                Graphics/DX12/Dx12DescriptorSetManager.cpp Graphics/DX12/Dx12DescriptorSetManager.hpp
+        )
+elseif (GraphicsApi STREQUAL "MTL")
+        set(GraphicsFiles ${GraphicsCommonFiles}
+                Src/Graphics/Metal/Implementation/metal-cpp.cpp
+                Include/KryneEngine/Core/Graphics/Metal/MetalHeaders.hpp
+                Include/KryneEngine/Core/Graphics/Metal/MetalGraphicsContext.hpp
+                Src/Graphics/Metal/MetalGraphicsContext.cpp
+                Src/Graphics/Metal/MetalGraphicsContextInit.cpp
+                Include/KryneEngine/Core/Graphics/Metal/Helpers/NsPtr.hpp
+                Src/Graphics/Metal/MetalFrameContext.cpp
+                Include/KryneEngine/Core/Graphics/Metal/MetalFrameContext.hpp
+                Include/KryneEngine/Core/Graphics/Metal/MetalTypes.hpp
+                Src/Graphics/Metal/MetalSwapChain.mm
+                Include/KryneEngine/Core/Graphics/Metal/MetalSwapChain.hpp
+                Src/Graphics/Metal/MetalResources.cpp
+                Include/KryneEngine/Core/Graphics/Metal/MetalResources.hpp
+                Src/Graphics/Metal/Helpers/EnumConverters.cpp
+                Src/Graphics/Metal/Helpers/EnumConverters.hpp
+                Src/Graphics/Metal/MetalArgumentBufferManager.cpp
+                Include/KryneEngine/Core/Graphics/Metal/MetalArgumentBufferManager.hpp
+                Include/KryneEngine/Core/Graphics/Metal/Helpers/RenderState.hpp
+        )
+endif()
+
+add_library(KryneEngine_Core ${CommonSrc} ${FilesSrc} ${GraphicsFiles} ${MemorySrc} ${ProfilingSrc} ${ThreadsSrc} ${WindowSrc})
+target_link_libraries(KryneEngine_Core EASTL glfw glm Tracy::TracyClient moodycamel Boost::context)
+
+if (GraphicsApi STREQUAL "VK")
+        message(STATUS "Finding and linking Vulkan lib")
+        find_package(Vulkan REQUIRED)
+
+        message(STATUS "Vulkan include dirs: " ${Vulkan_INCLUDE_DIRS})
+        target_include_directories(KryneEngine_Core PUBLIC ${Vulkan_INCLUDE_DIRS})
+
+        message(STATUS "Vulkan lib: " ${Vulkan_LIBRARIES})
+        target_link_libraries(KryneEngine_Core ${Vulkan_LIBRARIES} VulkanMemoryAllocator)
+elseif(GraphicsApi STREQUAL "DX12")
+        message(STATUS "Linking DirectX12 libs")
+        target_link_libraries(KryneEngine_Core d3d12 dxgi d3dcompiler dxguid DirectX-Headers D3D12MemoryAllocator)
+elseif(GraphicsApi STREQUAL "MTL")
+        find_library(METAL_FRAMEWORK Metal)
+        find_library(METALKIT_FRAMEWORK MetalKit)
+        find_library(QUARTZCORE_FRAMEWORK QuartzCore)
+        find_library(COCOA_FRAMEWORK Cocoa)
+
+        message(STATUS "Linking Metal libs")
+        target_link_libraries(KryneEngine_Core metal-cpp metal-cpp-extensions ${METAL_FRAMEWORK} ${METALKIT_FRAMEWORK} ${QUARTZCORE_FRAMEWORK} ${COCOA_FRAMEWORK})
+endif()
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        target_compile_options(KryneEngine_Core PRIVATE -Werror=switch)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        target_compile_options(KryneEngine_Core PRIVATE /we4062)
+endif()
+
+target_include_directories(KryneEngine_Core PUBLIC Include)
+target_include_directories(KryneEngine_Core PRIVATE Src)
 
 AddCoverage(KryneEngine_Core)

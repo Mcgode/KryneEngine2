@@ -6,8 +6,8 @@
 
 #include "Input.hpp"
 
-#include <Window/Window.hpp>
-#include <Window/Input/InputManager.hpp>
+#include <KryneEngine/Core/Window/Input/InputManager.hpp>
+#include <KryneEngine/Core/Window/Window.hpp>
 
 namespace KryneEngine::Modules::ImGui
 {

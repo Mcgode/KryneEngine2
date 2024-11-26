@@ -5,8 +5,8 @@
  */
 
 #include <gtest/gtest.h>
+#include <KryneEngine/Core/Memory/GenerationalPool.inl>
 
-#include <Memory/GenerationalPool.inl>
 #include "Utils/AssertUtils.hpp"
 
 namespace KryneEngine::Tests

@@ -6,7 +6,7 @@
 
 #include "RenderGraph.hpp"
 
-#include <Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 #include <RenderGraph/Builder.hpp>
 #include <RenderGraph/Registry.hpp>
 

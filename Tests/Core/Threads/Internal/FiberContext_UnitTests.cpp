@@ -10,8 +10,9 @@
 #   include <Platform/Windows.h>
 #endif
 
-#include <Threads/Internal/FiberContext.hpp>
-#include <Utils/AssertUtils.hpp>
+#include "../../../Core/Src/Threads/Internal/FiberContext.hpp"
+
+#include "Utils/AssertUtils.hpp"
 
 namespace KryneEngine::Tests
 {

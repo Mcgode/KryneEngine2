@@ -4,15 +4,12 @@
  * @date 13/11/2024.
  */
 
-#include <Profiling/TracyHeader.hpp>
-#include <RenderGraph/Declarations/PassDeclaration.hpp>
+#include <iostream>
+#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Profiling/TracyHeader.hpp>
+#include <RenderGraph/Builder.hpp>
 #include <RenderGraph/RenderGraph.hpp>
 #include <RenderGraph/Registry.hpp>
-#include <RenderGraph/Builder.hpp>
-
-#include <Graphics/Common/GraphicsContext.hpp>
-
-#include <iostream>
 
 using namespace KryneEngine;
 using namespace KryneEngine::Modules;

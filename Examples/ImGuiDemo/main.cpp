@@ -1,10 +1,14 @@
-#include <Graphics/Common/GraphicsContext.hpp>
-#include <Graphics/Common/RenderPass.hpp>
+/**
+ * @file
+ */
+
 #include <ImGui/Context.hpp>
 #include <iostream>
-#include <Profiling/TracyHeader.hpp>
-#include <Threads/FibersManager.hpp>
-#include <Window/Window.hpp>
+#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/Common/RenderPass.hpp>
+#include <KryneEngine/Core/Profiling/TracyHeader.hpp>
+#include <KryneEngine/Core/Threads/FibersManager.hpp>
+#include <KryneEngine/Core/Window/Window.hpp>
 
 using namespace KryneEngine;
 namespace KEModules = KryneEngine::Modules;

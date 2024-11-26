@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <Window/Input/Enums.hpp>
+#include <KryneEngine/Core/Window/Input/Enums.hpp>
 #include <imgui.h>
 
 namespace KryneEngine

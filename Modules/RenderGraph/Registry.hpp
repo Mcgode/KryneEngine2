@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <Graphics/Common/Handles.hpp>
-#include <Memory/SimplePool.hpp>
+#include <KryneEngine/Core/Graphics/Common/Handles.hpp>
+#include <KryneEngine/Core/Memory/SimplePool.hpp>
 
 namespace KryneEngine::Modules::RenderGraph
 {
