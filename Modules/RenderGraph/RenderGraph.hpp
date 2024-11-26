@@ -8,6 +8,11 @@
 
 #include <EASTL/unique_ptr.h>
 
+namespace KryneEngine
+{
+    class GraphicsContext;
+}
+
 namespace KryneEngine::Modules::RenderGraph
 {
     class Builder;
@@ -22,8 +27,8 @@ namespace KryneEngine::Modules::RenderGraph
         [[nodiscard]] Registry& GetRegistry() const { return *m_registry; }
         [[nodiscard]] Builder& GetBuilder() const { return *m_builder; }
 
-        [[nodiscard]] Builder& BeginFrame();
-        void SubmitFrame();
+        [[nodiscard]] Builder& BeginFrame(GraphicsContext& _graphicsContext);
+        void SubmitFrame(GraphicsContext& _graphicsContext);
 
     private:
         eastl::unique_ptr<Registry> m_registry;

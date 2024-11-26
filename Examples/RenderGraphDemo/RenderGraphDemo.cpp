@@ -10,8 +10,11 @@
 #include <RenderGraph/Registry.hpp>
 #include <RenderGraph/Builder.hpp>
 
-#include<iostream>
+#include <Graphics/Common/GraphicsContext.hpp>
 
+#include <iostream>
+
+using namespace KryneEngine;
 using namespace KryneEngine::Modules;
 
 void ExecuteUploadConstantBuffer(
@@ -25,8 +28,23 @@ int main()
 {
     TracySetProgramName("Render graph demo");
 
+    GraphicsCommon::ApplicationInfo appInfo {};
+    appInfo.m_features.m_present = false;
+    appInfo.m_applicationName = "Render graph demo - Kryne Engine 2";
+#if defined(KE_GRAPHICS_API_VK)
+    appInfo.m_api = GraphicsCommon::Api::Vulkan_1_3;
+    appInfo.m_applicationName += " - Vulkan";
+#elif defined(KE_GRAPHICS_API_DX12)
+    appInfo.m_api = KryneEngine::GraphicsCommon::Api::DirectX12_1;
+    appInfo.m_applicationName += " - DirectX 12";
+#elif defined(KE_GRAPHICS_API_MTL)
+    appInfo.m_api = GraphicsCommon::Api::Metal_3;
+    appInfo.m_applicationName += " - Metal";
+#endif
+    GraphicsContext graphicsContext(appInfo, nullptr);
+
     RenderGraph::RenderGraph renderGraph {};
-    RenderGraph::Builder& builder = renderGraph.BeginFrame();
+    RenderGraph::Builder& builder = renderGraph.BeginFrame(graphicsContext);
 
     KryneEngine::SimplePoolHandle
         swapChainTexture,
@@ -35,7 +53,8 @@ int main()
         frameCBuffer,
         lightsBuffer,
         lightingAtlas,
-        lightingAtlasSrv;
+        lightingAtlasSrv,
+        readbackBuffer;
 
     {
         KE_ZoneScoped("Registration");
@@ -47,13 +66,13 @@ int main()
         lightsBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Lights buffer");
         lightingAtlas = renderGraph.GetRegistry().RegisterRawTexture({}, "Lighting atlas");
         lightingAtlasSrv = renderGraph.GetRegistry().RegisterTextureSrv({}, lightingAtlas, "Lighting atlas SRV");
+        readbackBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Readback buffer");
     }
 
     {
         KE_ZoneScoped("Build render graph");
 
         builder
-            .DeclareTargetResource(swapChainTexture)
             .DeclarePass(RenderGraph::PassType::Transfer)
                 .SetName("Upload constant buffer")
                 .SetExecuteFunction(ExecuteUploadConstantBuffer)
@@ -102,9 +121,17 @@ int main()
                 .SetName("Discard pass")
                 .SetExecuteFunction([](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
                 .ReadDependency(lightingAtlasSrv)
-                .ReadDependency(csTexture);
+                .ReadDependency(csTexture)
+                .Done()
+            .DeclarePass(RenderGraph::PassType::Transfer)
+                .SetName("Read back result")
+                .SetExecuteFunction([](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
+                .ReadDependency(swapChainTexture)
+                .WriteDependency(readbackBuffer)
+                .Done()
+            .DeclareTargetResource(readbackBuffer);
 
-        renderGraph.SubmitFrame();
+        renderGraph.SubmitFrame(graphicsContext);
     }
 
     return 0;

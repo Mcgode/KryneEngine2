@@ -24,13 +24,13 @@ namespace KryneEngine::Modules::RenderGraph
 
     RenderGraph::~RenderGraph() = default;
 
-    Builder& RenderGraph::BeginFrame()
+    Builder& RenderGraph::BeginFrame(GraphicsContext& _graphicsContext)
     {
         m_builder = eastl::make_unique<Builder>(GetRegistry());
         return *m_builder;
     }
 
-    void RenderGraph::SubmitFrame()
+    void RenderGraph::SubmitFrame(GraphicsContext& _graphicsContext)
     {
         m_builder->PrintBuildResult();
 
