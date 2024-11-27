@@ -22,6 +22,9 @@ namespace KryneEngine
 
     BufferHandle MetalResources::CreateBuffer(MTL::Device& _device, const BufferCreateDesc& _desc)
     {
+        VERIFY_OR_RETURN(_desc.m_desc.m_size > 0, { GenPool::kInvalidHandle });
+        VERIFY_OR_RETURN(BitUtils::EnumHasAny(_desc.m_usage, ~MemoryUsage::USAGE_TYPE_MASK), { GenPool::kInvalidHandle });
+
         const GenPool::Handle handle = m_buffers.Allocate();
 
         auto [bufferHot, bufferCold] = m_buffers.GetAll(handle);
