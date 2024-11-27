@@ -4,7 +4,7 @@
  * @date 29/10/2024.
  */
 
-#include "KryneEngine/Core/Graphics/Metal/MetalSwapChain.hpp"
+#include "Graphics/Metal/MetalSwapChain.hpp"
 
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_COCOA
@@ -12,8 +12,8 @@
 
 #include <QuartzCore/CAMetalLayer.h>
 
+#include "Graphics/Metal/MetalResources.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
-#include "KryneEngine/Core/Graphics/Metal/MetalResources.hpp"
 #include "KryneEngine/Core/Window/Window.hpp"
 
 namespace KryneEngine

@@ -4,12 +4,12 @@
  * @date 28/10/2024.
  */
 
-#include "KryneEngine/Core/Graphics/Metal/MetalGraphicsContext.hpp"
+#include "Graphics/Metal/MetalGraphicsContext.hpp"
 
 #include "Graphics/Metal/Helpers/EnumConverters.hpp"
+#include "Graphics/Metal/MetalFrameContext.hpp"
+#include "Graphics/Metal/MetalSwapChain.hpp"
 #include "KryneEngine/Core/Graphics/Common/Drawing.hpp"
-#include "KryneEngine/Core/Graphics/Metal/MetalFrameContext.hpp"
-#include "KryneEngine/Core/Graphics/Metal/MetalSwapChain.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"
 
 namespace KryneEngine

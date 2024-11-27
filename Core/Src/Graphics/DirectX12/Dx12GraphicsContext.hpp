@@ -8,13 +8,13 @@
 
 #include <EASTL/unique_ptr.h>
 
+#include "Graphics/DirectX12/Dx12Headers.hpp"
+#include "Graphics/DirectX12/Dx12FrameContext.hpp"
+#include "Graphics/DirectX12/Dx12Resources.h"
+#include "Graphics/DirectX12/Dx12Types.hpp"
 #include "KryneEngine/Core/Common/Arrays.hpp"
 #include "KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp"
 #include "KryneEngine/Core/Graphics/Common/Texture.hpp"
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12Headers.hpp"
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12FrameContext.hpp"
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12Resources.h"
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12Types.hpp"
 
 namespace KryneEngine
 {

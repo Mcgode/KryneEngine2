@@ -4,13 +4,13 @@
  * @date 13/08/2024.
  */
 
-#include "KryneEngine/Core/Graphics/Vulkan/VkDescriptorSetManager.hpp"
+#include "Graphics/Vulkan/VkDescriptorSetManager.hpp"
 
 #include <EASTL/vector_map.h>
 
 #include "Graphics/Vulkan/HelperFunctions.hpp"
+#include "Graphics/Vulkan/VkResources.hpp"
 #include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkResources.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 
 namespace KryneEngine

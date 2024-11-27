@@ -9,9 +9,9 @@
 #include <EASTL/shared_ptr.h>
 #include <EASTL/span.h>
 
+#include "Graphics/Vulkan/CommonStructures.hpp"
+#include "Graphics/Vulkan/VkHeaders.hpp"
 #include "KryneEngine/Core/Graphics/Common/Handles.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/CommonStructures.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkHeaders.hpp"
 
 struct GLFWwindow;
 

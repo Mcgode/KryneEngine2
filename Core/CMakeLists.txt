@@ -92,63 +92,63 @@ set(WindowSrc
 
 if (GraphicsApi STREQUAL "VK")
         set(GraphicsFiles ${GraphicsCommonFiles}
-                Include/KryneEngine/Core/Graphics/Vulkan/VkGraphicsContext.hpp
+                Src/Graphics/Vulkan/VkGraphicsContext.hpp
                 Src/Graphics/Vulkan/VkGraphicsContext.cpp
                 Src/Graphics/Vulkan/HelperFunctions.cpp
                 Src/Graphics/Vulkan/HelperFunctions.hpp
                 Src/Graphics/Vulkan/VkSwapChain.cpp
-                Include/KryneEngine/Core/Graphics/Vulkan/VkSwapChain.hpp
+                Src/Graphics/Vulkan/VkSwapChain.hpp
                 Src/Graphics/Vulkan/VkSurface.cpp
-                Include/KryneEngine/Core/Graphics/Vulkan/VkSurface.hpp
-                Include/KryneEngine/Core/Graphics/Vulkan/CommonStructures.hpp
-                Include/KryneEngine/Core/Graphics/Vulkan/VkHeaders.hpp
+                Src/Graphics/Vulkan/VkSurface.hpp
+                Src/Graphics/Vulkan/CommonStructures.hpp
+                Src/Graphics/Vulkan/VkHeaders.hpp
                 Src/Graphics/Vulkan/VkFrameContext.cpp
-                Include/KryneEngine/Core/Graphics/Vulkan/VkFrameContext.hpp
+                Src/Graphics/Vulkan/VkFrameContext.hpp
                 Src/Graphics/Vulkan/VkResources.cpp
-                Include/KryneEngine/Core/Graphics/Vulkan/VkResources.hpp
-                Include/KryneEngine/Core/Graphics/Vulkan/VkTypes.hpp
+                Src/Graphics/Vulkan/VkResources.hpp
+                Src/Graphics/Vulkan/VkTypes.hpp
                 Src/Graphics/Vulkan/VkDebugHandler.hpp
                 Src/Graphics/Vulkan/VmaUsage.cpp
                 Src/Graphics/Vulkan/VkDescriptorSetManager.cpp
-                Include/KryneEngine/Core/Graphics/Vulkan/VkDescriptorSetManager.hpp
+                Src/Graphics/Vulkan/VkDescriptorSetManager.hpp
         )
 elseif(GraphicsApi STREQUAL "DX12")
         set(GraphicsFiles ${GraphicsCommonFiles}
                 Src/Graphics/DirectX12/Dx12GraphicsContext.cpp
-                Include/KryneEngine/Core/Graphics/DirectX12/Dx12GraphicsContext.hpp
-                Include/KryneEngine/Core/Graphics/DirectX12/Dx12Headers.hpp
+                Src/Graphics/DirectX12/Dx12GraphicsContext.hpp
+                Src/Graphics/DirectX12/Dx12Headers.hpp
                 Src/Graphics/DirectX12/HelperFunction.cpp
                 Src/Graphics/DirectX12/HelperFunctions.hpp
                 Src/Graphics/DirectX12/Dx12SwapChain.cpp
-                Include/KryneEngine/Core/Graphics/DirectX12/Dx12SwapChain.hpp
+                Src/Graphics/DirectX12/Dx12SwapChain.hpp
                 Src/Graphics/DirectX12/Dx12FrameContext.cpp
-                Include/KryneEngine/Core/Graphics/DirectX12/Dx12FrameContext.hpp
+                Src/Graphics/DirectX12/Dx12FrameContext.hpp
                 Src/Graphics/DirectX12/Dx12Resources.cpp
-                Include/KryneEngine/Core/Graphics/DirectX12/Dx12Resources.h
-                Include/KryneEngine/Core/Graphics/DirectX12/Dx12Types.hpp
+                Src/Graphics/DirectX12/Dx12Resources.h
+                Src/Graphics/DirectX12/Dx12Types.hpp
                 Src/Graphics/DirectX12/Dx12DescriptorSetManager.cpp
-                Include/KryneEngine/Core/Graphics/DirectX12/Dx12DescriptorSetManager.hpp
+                Src/Graphics/DirectX12/Dx12DescriptorSetManager.hpp
         )
 elseif (GraphicsApi STREQUAL "MTL")
         set(GraphicsFiles ${GraphicsCommonFiles}
                 Src/Graphics/Metal/Implementation/metal-cpp.cpp
-                Include/KryneEngine/Core/Graphics/Metal/MetalHeaders.hpp
-                Include/KryneEngine/Core/Graphics/Metal/MetalGraphicsContext.hpp
+                Src/Graphics/Metal/MetalHeaders.hpp
+                Src/Graphics/Metal/MetalGraphicsContext.hpp
                 Src/Graphics/Metal/MetalGraphicsContext.cpp
                 Src/Graphics/Metal/MetalGraphicsContextInit.cpp
-                Include/KryneEngine/Core/Graphics/Metal/Helpers/NsPtr.hpp
+                Src/Graphics/Metal/Helpers/NsPtr.hpp
                 Src/Graphics/Metal/MetalFrameContext.cpp
-                Include/KryneEngine/Core/Graphics/Metal/MetalFrameContext.hpp
-                Include/KryneEngine/Core/Graphics/Metal/MetalTypes.hpp
+                Src/Graphics/Metal/MetalFrameContext.hpp
+                Src/Graphics/Metal/MetalTypes.hpp
                 Src/Graphics/Metal/MetalSwapChain.mm
-                Include/KryneEngine/Core/Graphics/Metal/MetalSwapChain.hpp
+                Src/Graphics/Metal/MetalSwapChain.hpp
                 Src/Graphics/Metal/MetalResources.cpp
-                Include/KryneEngine/Core/Graphics/Metal/MetalResources.hpp
+                Src/Graphics/Metal/MetalResources.hpp
                 Src/Graphics/Metal/Helpers/EnumConverters.cpp
                 Src/Graphics/Metal/Helpers/EnumConverters.hpp
                 Src/Graphics/Metal/MetalArgumentBufferManager.cpp
-                Include/KryneEngine/Core/Graphics/Metal/MetalArgumentBufferManager.hpp
-                Include/KryneEngine/Core/Graphics/Metal/Helpers/RenderState.hpp
+                Src/Graphics/Metal/MetalArgumentBufferManager.hpp
+                Src/Graphics/Metal/Helpers/RenderState.hpp
         )
 endif()
 

@@ -4,9 +4,10 @@
  * @date 21/03/2022.
  */
 
-#include "KryneEngine/Core/Graphics/Vulkan/VkSurface.hpp"
+#include "Graphics/Vulkan/VkSurface.hpp"
 
 #include <GLFW/glfw3.h>
+
 #include "Graphics/Vulkan/HelperFunctions.hpp"
 
 namespace KryneEngine

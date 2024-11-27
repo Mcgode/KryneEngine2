@@ -8,16 +8,16 @@
 
 #include <EASTL/unique_ptr.h>
 
+#include "Graphics/Metal/MetalArgumentBufferManager.hpp"
+#include "Graphics/Metal/MetalHeaders.hpp"
+#include "Graphics/Metal/MetalResources.hpp"
+#include "Graphics/Metal/MetalTypes.hpp"
 #include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
 #include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
 #include "KryneEngine/Core/Graphics/Common/Handles.hpp"
 #include "KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp"
 #include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Graphics/Common/Texture.hpp"
-#include "KryneEngine/Core/Graphics/Metal/MetalArgumentBufferManager.hpp"
-#include "KryneEngine/Core/Graphics/Metal/MetalHeaders.hpp"
-#include "KryneEngine/Core/Graphics/Metal/MetalResources.hpp"
-#include "KryneEngine/Core/Graphics/Metal/MetalTypes.hpp"
 
 namespace KryneEngine
 {

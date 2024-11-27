@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include "Graphics/Metal/Helpers/NsPtr.hpp"
 #include "KryneEngine/Core/Common/Utils/MultiFrameTracking.hpp"
 #include "KryneEngine/Core/Graphics/Common/Handles.hpp"
 #include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
-#include "KryneEngine/Core/Graphics/Metal/Helpers/NsPtr.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.hpp"
 
 namespace MTL

@@ -4,17 +4,17 @@
  * @date 20/03/2022.
  */
 
-#include "KryneEngine/Core/Graphics/Vulkan/VkSwapChain.hpp"
+#include "Graphics/Vulkan/VkSwapChain.hpp"
 
 #include <GLFW/glfw3.h>
 
-#include "Graphics/Vulkan/VkDebugHandler.hpp"
 #include "Graphics/Vulkan/HelperFunctions.hpp"
+#include "Graphics/Vulkan/VkDebugHandler.hpp"
+#include "Graphics/Vulkan/VkResources.hpp"
+#include "Graphics/Vulkan/VkSurface.hpp"
 #include "KryneEngine/Core/Common/Assert.hpp"
 #include "KryneEngine/Core/Common/EastlHelpers.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkResources.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkSurface.hpp"
 
 namespace KryneEngine
 {

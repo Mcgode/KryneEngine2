@@ -4,7 +4,7 @@
  * @date 29/10/2024.
  */
 
-#include "KryneEngine/Core/Graphics/Metal/MetalFrameContext.hpp"
+#include "Graphics/Metal/MetalFrameContext.hpp"
 
 #include "KryneEngine/Core/Common/Assert.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"

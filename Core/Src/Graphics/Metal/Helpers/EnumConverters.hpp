@@ -6,12 +6,12 @@
 
 #pragma once
 
+#include "Graphics/Metal/MetalHeaders.hpp"
 #include "KryneEngine/Core/Graphics/Common/EnumHelpers.hpp"
 #include "KryneEngine/Core/Graphics/Common/RenderPass.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp"
 #include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Graphics/Common/Texture.hpp"
-#include "KryneEngine/Core/Graphics/Metal/MetalHeaders.hpp"
 
 namespace KryneEngine::MetalConverters
 {

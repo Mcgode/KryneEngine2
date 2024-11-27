@@ -8,11 +8,11 @@
 
 #include <EASTL/fixed_vector.h>
 
+#include "Graphics/Metal/Helpers/RenderState.hpp"
+#include "Graphics/Metal/MetalHeaders.hpp"
 #include "KryneEngine/Core/Graphics/Common/Enums.hpp"
 #include "KryneEngine/Core/Graphics/Common/Handles.hpp"
 #include "KryneEngine/Core/Graphics/Common/RenderPass.hpp"
-#include "KryneEngine/Core/Graphics/Metal/Helpers/RenderState.hpp"
-#include "KryneEngine/Core/Graphics/Metal/MetalHeaders.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.hpp"
 
 namespace KryneEngine

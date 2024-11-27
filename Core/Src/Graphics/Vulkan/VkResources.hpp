@@ -9,10 +9,10 @@
 #include <EASTL/shared_ptr.h>
 #include <vk_mem_alloc.h>
 
+#include "Graphics/Vulkan/VkHeaders.hpp"
 #include "KryneEngine/Core/Graphics/Common/Handles.hpp"
 #include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Graphics/Common/Texture.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkHeaders.hpp"
 
 namespace KryneEngine
 {

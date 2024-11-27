@@ -9,12 +9,12 @@
 #include <EASTL/unique_ptr.h>
 #include <EASTL/vector_set.h>
 
+#include "Graphics/Vulkan/CommonStructures.hpp"
+#include "Graphics/Vulkan/VkTypes.hpp"
+#include "Graphics/Vulkan/VkFrameContext.hpp"
+#include "Graphics/Vulkan/VkResources.hpp"
 #include "KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp"
 #include "KryneEngine/Core/Graphics/Common/Texture.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkTypes.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkFrameContext.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkResources.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/CommonStructures.hpp"
 
 namespace KryneEngine
 {

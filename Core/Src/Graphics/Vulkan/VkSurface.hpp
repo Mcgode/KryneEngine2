@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Graphics/Vulkan/VkHeaders.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/CommonStructures.hpp"
+#include "Graphics/Vulkan/CommonStructures.hpp"
+#include "Graphics/Vulkan/VkHeaders.hpp"
 
 struct GLFWwindow;
 

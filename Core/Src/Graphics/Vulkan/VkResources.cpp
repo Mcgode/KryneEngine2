@@ -4,12 +4,12 @@
  * @date 19/02/2024.
  */
 
-#include "KryneEngine/Core/Graphics/Vulkan/VkResources.hpp"
+#include "Graphics/Vulkan/VkResources.hpp"
 
 #include "Graphics/Vulkan/HelperFunctions.hpp"
 #include "Graphics/Vulkan/VkDebugHandler.hpp"
+#include "Graphics/Vulkan/VkDescriptorSetManager.hpp"
 #include "KryneEngine/Core/Common/Utils/Alignment.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkDescriptorSetManager.hpp"
 #include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
 #include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
 #include "KryneEngine/Core/Graphics/Common/RenderPass.hpp"

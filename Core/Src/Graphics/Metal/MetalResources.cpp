@@ -4,15 +4,15 @@
  * @date 30/10/2024.
  */
 
-#include "KryneEngine/Core/Graphics/Metal/MetalResources.hpp"
+#include "Graphics/Metal/MetalResources.hpp"
 
 #include "Graphics/Metal/Helpers/EnumConverters.hpp"
+#include "Graphics/Metal/MetalArgumentBufferManager.hpp"
 #include "KryneEngine/Core/Common/StringHelpers.hpp"
 #include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp"
 #include "KryneEngine/Core/Graphics/Common/Texture.hpp"
-#include "KryneEngine/Core/Graphics/Metal/MetalArgumentBufferManager.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 
 namespace KryneEngine

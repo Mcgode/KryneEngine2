@@ -4,7 +4,7 @@
  * @date 19/03/2022.
  */
 
-#include "KryneEngine/Core/Graphics/Vulkan/VkGraphicsContext.hpp"
+#include "Graphics/Vulkan/VkGraphicsContext.hpp"
 
 #include <iostream>
 #include <regex>
@@ -12,14 +12,14 @@
 #include <EASTL/vector_map.h>
 #include <GLFW/glfw3.h>
 
+#include "Graphics/Vulkan/VkDescriptorSetManager.hpp"
+#include "Graphics/Vulkan/VkSurface.hpp"
+#include "Graphics/Vulkan/VkSwapChain.hpp"
 #include "Graphics/Vulkan/HelperFunctions.hpp"
 #include "Graphics/Vulkan/VkDebugHandler.hpp"
 #include "KryneEngine/Core/Common/StringHelpers.hpp"
 #include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
 #include "KryneEngine/Core/Graphics/Common/Drawing.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkDescriptorSetManager.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkSurface.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkSwapChain.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 #include "KryneEngine/Core/Window/Window.hpp"
 

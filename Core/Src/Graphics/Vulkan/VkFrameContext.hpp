@@ -9,8 +9,8 @@
 #include <EASTL/shared_ptr.h>
 #include <EASTL/fixed_vector.h>
 
-#include "KryneEngine/Core/Graphics/Vulkan/CommonStructures.hpp"
-#include "KryneEngine/Core/Graphics/Vulkan/VkHeaders.hpp"
+#include "Graphics/Vulkan/CommonStructures.hpp"
+#include "Graphics/Vulkan/VkHeaders.hpp"
 #include "KryneEngine/Core/Threads/LightweightMutex.hpp"
 
 namespace KryneEngine

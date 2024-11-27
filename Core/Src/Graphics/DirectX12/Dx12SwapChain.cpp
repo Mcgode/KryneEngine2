@@ -5,14 +5,14 @@
  */
 
 
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12SwapChain.hpp"
+#include "Graphics/DirectX12/Dx12SwapChain.hpp"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
+#include "Graphics/DirectX12/Dx12GraphicsContext.hpp"
 #include "Graphics/DirectX12/HelperFunctions.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12GraphicsContext.hpp"
 #include "KryneEngine/Core/Window/Window.hpp"
 
 namespace KryneEngine

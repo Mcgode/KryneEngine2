@@ -4,7 +4,7 @@
  * @date 12/03/2023.
  */
 
-#include "KryneEngine/Core/Graphics/Vulkan/VkFrameContext.hpp"
+#include "Graphics/Vulkan/VkFrameContext.hpp"
 
 #include "Graphics/Vulkan/HelperFunctions.hpp"
 #include "Graphics/Vulkan/VkDebugHandler.hpp"

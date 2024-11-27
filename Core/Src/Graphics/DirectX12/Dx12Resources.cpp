@@ -5,13 +5,14 @@
  */
 
 #include <D3D12MemAlloc.h>
+
+#include "Graphics/DirectX12/Dx12DescriptorSetManager.hpp"
+#include "Graphics/DirectX12/Dx12Resources.h"
 #include "Graphics/DirectX12/HelperFunctions.hpp"
 #include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp"
 #include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12Resources.h"
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12DescriptorSetManager.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 
 namespace KryneEngine

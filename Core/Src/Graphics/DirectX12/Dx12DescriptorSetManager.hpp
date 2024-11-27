@@ -6,11 +6,11 @@
 
 #pragma once
 
+#include "Graphics/DirectX12/Dx12Headers.hpp"
+#include "Graphics/DirectX12/Dx12Types.hpp"
 #include "KryneEngine/Core/Common/Utils/MultiFrameTracking.hpp"
 #include "KryneEngine/Core/Graphics/Common/Handles.hpp"
 #include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12Headers.hpp"
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12Types.hpp"
 
 namespace KryneEngine
 {

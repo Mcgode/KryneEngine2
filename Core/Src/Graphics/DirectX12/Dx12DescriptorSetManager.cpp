@@ -4,9 +4,9 @@
  * @date 11/08/2024.
  */
 
+#include "Graphics/DirectX12/Dx12DescriptorSetManager.hpp"
+#include "Graphics/DirectX12/Dx12Resources.h"
 #include "Graphics/DirectX12/HelperFunctions.hpp"
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12DescriptorSetManager.hpp"
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12Resources.h"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 
 namespace KryneEngine

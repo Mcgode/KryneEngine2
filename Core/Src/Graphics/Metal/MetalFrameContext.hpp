@@ -8,7 +8,7 @@
 
 #include <EASTL/vector.h>
 
-#include "KryneEngine/Core/Graphics/Metal/MetalTypes.hpp"
+#include "Graphics/Metal/MetalTypes.hpp"
 
 namespace KryneEngine
 {

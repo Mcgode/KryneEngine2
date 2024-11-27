@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Graphics/Vulkan/VkHeaders.hpp"
+#include "Graphics/Vulkan/VkHeaders.hpp"
 
 namespace KryneEngine
 {

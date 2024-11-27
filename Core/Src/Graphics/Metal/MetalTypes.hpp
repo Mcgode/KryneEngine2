@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "Graphics/Metal/MetalHeaders.hpp"
 #include "KryneEngine/Core/Common/Assert.hpp"
-#include "KryneEngine/Core/Graphics/Metal/MetalHeaders.hpp"
 
 namespace KryneEngine
 {

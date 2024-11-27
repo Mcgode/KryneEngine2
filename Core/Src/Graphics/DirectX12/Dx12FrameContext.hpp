@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Graphics/DirectX12/Dx12Headers.hpp"
+#include "Graphics/DirectX12/Dx12Headers.hpp"
 #include "KryneEngine/Core/Threads/LightweightMutex.hpp"
 
 namespace KryneEngine
