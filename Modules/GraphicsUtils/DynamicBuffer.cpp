@@ -98,7 +98,7 @@ namespace KryneEngine::Modules::GraphicsUtils
 
     void DynamicBuffer::PrepareBuffers(
         GraphicsContext* _graphicsContext,
-        CommandList _commandLine,
+        CommandListHandle _commandLine,
         KryneEngine::BarrierAccessFlags _accessFlags,
         u8 _frameIndex)
     {

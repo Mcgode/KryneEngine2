@@ -29,7 +29,7 @@ namespace KryneEngine
 
         [[nodiscard]] bool WaitForEvents() const;
         [[nodiscard]] GLFWwindow* GetGlfwWindow() const { return m_glfwWindow; }
-        [[nodiscard]] GraphicsContext* GetGraphicsContext() const { return m_graphicsContext.get(); }
+        [[nodiscard]] GraphicsContext* GetGraphicsContext() const { return m_graphicsContext; }
         [[nodiscard]] InputManager* GetInputManager() const { return m_inputManager.get(); }
 
         [[nodiscard]] u32 RegisterWindowFocusEventCallback(eastl::function<void(bool)>&& _callback);
@@ -38,7 +38,7 @@ namespace KryneEngine
     private:
         GLFWwindow* m_glfwWindow;
 
-        eastl::unique_ptr<GraphicsContext> m_graphicsContext;
+        GraphicsContext* m_graphicsContext;
         eastl::unique_ptr<InputManager> m_inputManager;
 
         LightweightMutex m_callbackMutex;

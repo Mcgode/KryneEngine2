@@ -38,10 +38,10 @@ int main()
     appInfo.m_api = GraphicsCommon::Api::Metal_3;
     appInfo.m_applicationName += " - Metal";
 #endif
-    GraphicsContext graphicsContext(appInfo, nullptr);
+    auto* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
 
     RenderGraph::RenderGraph renderGraph {};
-    RenderGraph::Builder& builder = renderGraph.BeginFrame(graphicsContext);
+    RenderGraph::Builder& builder = renderGraph.BeginFrame(*graphicsContext);
 
     KryneEngine::SimplePoolHandle
         swapChainTexture,
@@ -128,7 +128,7 @@ int main()
                 .Done()
             .DeclareTargetResource(readbackBuffer);
 
-        renderGraph.SubmitFrame(graphicsContext);
+        renderGraph.SubmitFrame(*graphicsContext);
     }
 
     return 0;

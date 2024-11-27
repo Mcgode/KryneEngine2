@@ -137,7 +137,7 @@ namespace KryneEngine::Modules::ImGui
         m_context = nullptr;
     }
 
-    void Context::NewFrame(Window* _window, CommandList _commandList)
+    void Context::NewFrame(Window* _window, CommandListHandle _commandList)
     {
         KE_ZoneScopedFunction("Modules::ImGui::ContextNewFrame");
 
@@ -314,7 +314,7 @@ namespace KryneEngine::Modules::ImGui
         ::ImGui::NewFrame();
     }
 
-    void Context::PrepareToRenderFrame(GraphicsContext* _graphicsContext, CommandList _commandList)
+    void Context::PrepareToRenderFrame(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
     {
         KE_ZoneScopedFunction("Modules::ImGui::ContextPrepareToRenderFrame");
 
@@ -388,7 +388,7 @@ namespace KryneEngine::Modules::ImGui
         }
     }
 
-    void Context::RenderFrame(GraphicsContext* _graphicsContext, CommandList _commandList)
+    void Context::RenderFrame(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
     {
         KE_ZoneScopedFunction("Modules::ImGui::ContextRenderFrame");
 

@@ -61,7 +61,7 @@ namespace KryneEngine::Modules::ImGui
          * @param _window The Window object.
          * @param _commandList The command list.
          */
-        void NewFrame(Window* _window, CommandList _commandList);
+        void NewFrame(Window* _window, CommandListHandle _commandList);
 
         /**
          * @brief Prepares the rendering context for a new frame by updating the vertex and index buffers.
@@ -69,7 +69,7 @@ namespace KryneEngine::Modules::ImGui
          * @param _graphicsContext The graphics context used for rendering.
          * @param _commandList The command list used for uploading the buffers.
          */
-        void PrepareToRenderFrame(GraphicsContext* _graphicsContext, CommandList _commandList);
+        void PrepareToRenderFrame(GraphicsContext* _graphicsContext, CommandListHandle _commandList);
 
         /**
          * @brief Renders a frame using the provided graphics context and command list.
@@ -79,7 +79,7 @@ namespace KryneEngine::Modules::ImGui
          * @param _graphicsContext The graphics context used for rendering.
          * @param _commandList The command list used for rendering.
          */
-        void RenderFrame(GraphicsContext* _graphicsContext, CommandList _commandList);
+        void RenderFrame(GraphicsContext* _graphicsContext, CommandListHandle _commandList);
 
     private:
         ImGuiContext* m_context;

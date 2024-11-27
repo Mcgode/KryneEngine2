@@ -6,12 +6,13 @@
 
 #include <fstream>
 
-#include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
-#include "KryneEngine/Core/Graphics/Common/Drawing.hpp"
-#include "KryneEngine/Core/Graphics/Common/GraphicsContext.hpp"
-#include "KryneEngine/Core/Graphics/Common/RenderPass.hpp"
-#include "KryneEngine/Core/Profiling/TracyHeader.hpp"
-#include "KryneEngine/Core/Window/Window.hpp"
+#include <KryneEngine/Core/Graphics/Common/Buffer.hpp>
+#include <KryneEngine/Core/Graphics/Common/Drawing.hpp>
+#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/Common/RenderPass.hpp>
+#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
+#include <KryneEngine/Core/Profiling/TracyHeader.hpp>
+#include <KryneEngine/Core/Window/Window.hpp>
 
 using namespace KryneEngine;
 
@@ -212,7 +213,7 @@ void PrepareBuffers(
             // This is used here only for demonstration purposes. In a real-time scenario, you should avoid creating
             // command buffers for each trivial operations, and group them into one single buffer.
 
-            CommandList commandList = _graphicsContext.BeginGraphicsCommandList();
+            CommandListHandle commandList = _graphicsContext.BeginGraphicsCommandList();
 
             _graphicsContext.CopyBuffer(
                 commandList,
@@ -274,7 +275,7 @@ int main()
     {
         KE_ZoneScoped("Main loop");
 
-        CommandList commandList = graphicsContext->BeginGraphicsCommandList();
+        CommandListHandle commandList = graphicsContext->BeginGraphicsCommandList();
 
         const u8 index = graphicsContext->GetCurrentPresentImageIndex();
         graphicsContext->BeginRenderPass(commandList, renderPassHandles[index]);

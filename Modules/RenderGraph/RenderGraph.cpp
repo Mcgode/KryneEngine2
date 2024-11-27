@@ -14,7 +14,7 @@ namespace KryneEngine::Modules::RenderGraph
 {
     struct PassExecutionData
     {
-        CommandList m_commandList;
+        CommandListHandle m_commandList;
     };
 
     RenderGraph::RenderGraph()

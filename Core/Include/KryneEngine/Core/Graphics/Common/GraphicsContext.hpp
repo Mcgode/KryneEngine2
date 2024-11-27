@@ -6,67 +6,61 @@
 
 #pragma once
 
-#if defined(KE_GRAPHICS_API_VK)
-#   include "KryneEngine/Core/Graphics/Vulkan/VkGraphicsContext.hpp"
-#elif defined(KE_GRAPHICS_API_DX12)
-#   include "KryneEngine/Core/Graphics/DirectX12/Dx12GraphicsContext.hpp"
-#elif defined(KE_GRAPHICS_API_MTL)
-#   include "KryneEngine/Core/Graphics/Metal/MetalGraphicsContext.hpp"
-#else
-#   error No valid graphics API
-#endif
+#include "KryneEngine/Core/Graphics/Common/Handles.hpp"
+#include "KryneEngine/Core/Graphics/Common/Texture.hpp"
 
 namespace KryneEngine
 {
+    namespace GraphicsCommon
+    {
+        struct ApplicationInfo;
+    }
+
+    struct BufferCopyParameters;
+    struct BufferCreateDesc;
+    struct BufferMapping;
+    struct BufferMemoryBarrier;
+    struct BufferView;
+    struct DescriptorSetDesc;
+    struct DescriptorSetWriteInfo;
+    struct DrawIndexedInstancedDesc;
+    struct GlobalMemoryBarrier;
+    struct GraphicsPipelineDesc;
+    struct PipelineLayoutDesc;
+    struct RenderTargetViewDesc;
+    struct RenderPassDesc;
+    struct TextureSrvDesc;
+    struct TextureMemoryBarrier;
+    struct Viewport;
+
     class Window;
+
+    using CommandListHandle = void*;
 
     class GraphicsContext
     {
     public:
-        explicit GraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo, Window* _window);
-
-        ~GraphicsContext();
+        static GraphicsContext* Create(const GraphicsCommon::ApplicationInfo& _appInfo, Window* _window);
+        static void Destroy(GraphicsContext* _context);
 
         [[nodiscard]] inline u64 GetFrameId() const
         {
             return m_frameId;
         }
-
-        [[nodiscard]] inline u8 GetFrameContextCount() const
-        {
-            return m_implementation.GetFrameContextCount();
-        }
-
+        [[nodiscard]] u8 GetFrameContextCount() const;
         [[nodiscard]] inline u8 GetCurrentFrameContextIndex() const
         {
             return m_frameId % GetFrameContextCount();
         }
 
         bool EndFrame();
-
         void WaitForLastFrame() const;
+        [[nodiscard]] bool IsFrameExecuted(u64 _frameId) const;
 
-        [[nodiscard]] inline bool IsFrameExecuted(u64 _frameId) const
-        {
-            return m_implementation.IsFrameExecuted(_frameId);
-        }
-
-        [[nodiscard]] inline const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const
-        {
-            return m_implementation.GetApplicationInfo();
-        }
-
+        [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const;
         [[nodiscard]] static const char* GetShaderFileExtension();
 
     private:
-#if defined(KE_GRAPHICS_API_VK)
-        using UnderlyingGraphicsContext = VkGraphicsContext;
-#elif defined(KE_GRAPHICS_API_DX12)
-        using UnderlyingGraphicsContext = Dx12GraphicsContext;
-#elif defined(KE_GRAPHICS_API_MTL)
-        using UnderlyingGraphicsContext = MetalGraphicsContext;
-#endif
-        UnderlyingGraphicsContext m_implementation;
 
         const Window* m_window;
 
@@ -74,151 +68,60 @@ namespace KryneEngine
         u64 m_frameId;
 
     public:
-        [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc)
-        {
-            return m_implementation.FetchTextureSubResourcesMemoryFootprints(_desc);
-        }
 
-        [[nodiscard]] inline BufferHandle CreateBuffer(const BufferCreateDesc& _desc)
-        {
-            return m_implementation.CreateBuffer(_desc);
-        }
-
-        [[nodiscard]] inline BufferHandle CreateStagingBuffer(
-            const TextureDesc& _createDesc,
-            const eastl::vector<TextureMemoryFootprint>& _footprints)
-        {
-            return m_implementation.CreateStagingBuffer(_createDesc, _footprints);
-        }
-
-        [[nodiscard]] inline bool NeedsStagingBuffer(BufferHandle _buffer)
-        {
-            return m_implementation.NeedsStagingBuffer(_buffer);
-        }
-
-        inline bool DestroyBuffer(BufferHandle _bufferHandle)
-        {
-            return m_implementation.DestroyBuffer(_bufferHandle);
-        }
+        [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc);
+        [[nodiscard]] bool NeedsStagingBuffer(BufferHandle _buffer);
+        bool DestroyBuffer(BufferHandle _bufferHandle);
 
         [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _createDesc);
+        [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc);
+        [[nodiscard]] BufferHandle CreateStagingBuffer(
+            const TextureDesc& _createDesc,
+            const eastl::vector<TextureMemoryFootprint>& _footprints);
+        bool DestroyTexture(TextureHandle _handle);
 
-        inline bool DestroyTexture(TextureHandle _handle)
-        {
-            return m_implementation.DestroyTexture(_handle);
-        }
-
-        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc)
-        {
-            return m_implementation.CreateTextureSrv(_srvDesc, m_frameId);
-        }
-
-        inline bool DestroyTextureSrv(TextureSrvHandle _handle)
-        {
-            return m_implementation.DestroyTextureSrv(_handle);
-        }
+        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc);
+        bool DestroyTextureSrv(TextureSrvHandle _handle);
 
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
         bool DestroySampler(SamplerHandle _sampler);
 
-        [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
-        {
-            return m_implementation.CreateRenderTargetView(_desc);
-        }
+        [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc);
+        bool DestroyRenderTargetView(RenderTargetViewHandle _handle);
 
-        bool DestroyRenderTargetView(RenderTargetViewHandle _handle)
-        {
-            return m_implementation.DestroyRenderTargetView(_handle);
-        }
-
-        [[nodiscard]] RenderTargetViewHandle GetPresentRenderTargetView(u8 _swapChainIndex)
-        {
-            return m_implementation.GetPresentRenderTargetView(_swapChainIndex);
-        }
-
+        [[nodiscard]] RenderTargetViewHandle GetPresentRenderTargetView(u8 _swapChainIndex);
         [[nodiscard]] TextureHandle GetPresentTexture(u8 _swapChainIndex);
+        [[nodiscard]] u32 GetCurrentPresentImageIndex() const;
 
-        [[nodiscard]] inline u32 GetCurrentPresentImageIndex() const
-        {
-            return m_implementation.GetCurrentPresentImageIndex();
-        }
+        [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc);
+        bool DestroyRenderPass(RenderPassHandle _handle);
 
-        [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc)
-        {
-            return m_implementation.CreateRenderPass(_desc);
-        }
+        CommandListHandle BeginGraphicsCommandList();
+        void EndGraphicsCommandList();
 
-        bool DestroyRenderPass(RenderPassHandle _handle)
-        {
-            return m_implementation.DestroyRenderPass(_handle);
-        }
+        void BeginRenderPass(CommandListHandle _commandList, RenderPassHandle _handle);
+        void EndRenderPass(CommandListHandle _commandList);
 
-        CommandList BeginGraphicsCommandList()
-        {
-            return m_implementation.BeginGraphicsCommandList(m_frameId);
-        }
-
-        void EndGraphicsCommandList()
-        {
-            m_implementation.EndGraphicsCommandList(m_frameId);
-        }
-
-        void BeginRenderPass(CommandList _commandList, RenderPassHandle _handle)
-        {
-            m_implementation.BeginRenderPass(_commandList, _handle);
-        }
-
-        void EndRenderPass(CommandList _commandList)
-        {
-            m_implementation.EndRenderPass(_commandList);
-        }
-
-        inline void SetTextureData(
-            CommandList _commandList,
+        void SetTextureData(
+            CommandListHandle _commandList,
             BufferHandle _stagingBuffer,
             TextureHandle _dstTexture,
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
-            void* _data)
-        {
-            m_implementation.SetTextureData(
-                _commandList,
-                _stagingBuffer,
-                _dstTexture,
-                _footprint,
-                _subResourceIndex,
-                _data);
-        }
+            void* _data);
 
-        inline void MapBuffer(BufferMapping& _mapping)
-        {
-            m_implementation.MapBuffer(_mapping);
-        }
+        void MapBuffer(BufferMapping& _mapping);
+        void UnmapBuffer(BufferMapping& _mapping);
 
-        inline void UnmapBuffer(BufferMapping& _mapping)
-        {
-            m_implementation.UnmapBuffer(_mapping);
-        }
+        void CopyBuffer(CommandListHandle _commandList, const BufferCopyParameters& _params);
 
-        inline void CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params)
-        {
-            m_implementation.CopyBuffer(_commandList, _params);
-        }
-
-        inline void PlaceMemoryBarriers(
-            CommandList _commandList,
+        void PlaceMemoryBarriers(
+            CommandListHandle _commandList,
             const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,
             const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
-            const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers)
-        {
-            m_implementation.PlaceMemoryBarriers(
-                _commandList,
-                _globalMemoryBarriers,
-                _bufferMemoryBarriers,
-                _textureMemoryBarriers);
-        }
+            const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers);
 
-        void DeclarePassTextureSrvUsage(CommandList _commandList, const eastl::span<TextureSrvHandle>& _textures);
+        void DeclarePassTextureSrvUsage(CommandListHandle _commandList, const eastl::span<TextureSrvHandle>& _textures);
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
@@ -235,23 +138,23 @@ namespace KryneEngine
             DescriptorSetHandle _descriptorSet,
             const eastl::span<DescriptorSetWriteInfo>& _writes);
 
-        void SetViewport(CommandList  _commandList, const Viewport& _viewport);
-        void SetScissorsRect(CommandList _commandList, const Rect& _rect);
-        void SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16 = false);
-        void SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews);
-        void SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline);
+        void SetViewport(CommandListHandle _commandList, const Viewport& _viewport);
+        void SetScissorsRect(CommandListHandle _commandList, const Rect& _rect);
+        void SetIndexBuffer(CommandListHandle _commandList, const BufferView& _indexBufferView, bool _isU16 = false);
+        void SetVertexBuffers(CommandListHandle _commandList, const eastl::span<BufferView>& _bufferViews);
+        void SetGraphicsPipeline(CommandListHandle _commandList, GraphicsPipelineHandle _graphicsPipeline);
         void SetGraphicsPushConstant(
-            CommandList _commandList,
+            CommandListHandle _commandList,
             PipelineLayoutHandle _layout,
             const eastl::span<u32>& _data,
             u32 _index = 0,
             u32 _offset = 0);
         void SetGraphicsDescriptorSets(
-            CommandList _commandList,
+            CommandListHandle _commandList,
             PipelineLayoutHandle _layout,
             const eastl::span<DescriptorSetHandle>& _sets,
             const bool* _unchanged = nullptr);
-        void DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc);
+        void DrawIndexedInstanced(CommandListHandle _commandList, const DrawIndexedInstancedDesc& _desc);
     };
 }
 

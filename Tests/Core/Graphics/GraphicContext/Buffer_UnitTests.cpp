@@ -29,7 +29,7 @@ namespace KryneEngine::Tests::Graphics
 
         ScopedAssertCatcher catcher;
         const GraphicsCommon::ApplicationInfo appInfo = DefaultAppInfo();
-        auto graphicsContext = eastl::make_unique<GraphicsContext>(appInfo, nullptr);
+        GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
 
         // -----------------------------------------------------------------------
         // Execute
@@ -49,7 +49,7 @@ namespace KryneEngine::Tests::Graphics
         // Teardown
         // -----------------------------------------------------------------------
 
-        graphicsContext.reset();
+        GraphicsContext::Destroy(graphicsContext);
 
 #if defined(KE_GRAPHICS_API_VK)
         // One error from validation layers, non-destroyed buffer
@@ -86,7 +86,7 @@ namespace KryneEngine::Tests::Graphics
 
         ScopedAssertCatcher catcher;
         const GraphicsCommon::ApplicationInfo appInfo = DefaultAppInfo();
-        auto graphicsContext = eastl::make_unique<GraphicsContext>(appInfo, nullptr);
+        GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
         const BufferHandle buffer = graphicsContext->CreateBuffer(defaultBufferCreateDesc);
 
         // -----------------------------------------------------------------------
@@ -101,7 +101,7 @@ namespace KryneEngine::Tests::Graphics
         // Teardown
         // -----------------------------------------------------------------------
 
-        graphicsContext.reset();
+        GraphicsContext::Destroy(graphicsContext);
         catcher.ExpectNoMessage();
     }
 
@@ -113,7 +113,7 @@ namespace KryneEngine::Tests::Graphics
 
         ScopedAssertCatcher catcher;
         const GraphicsCommon::ApplicationInfo appInfo = DefaultAppInfo();
-        auto graphicsContext = eastl::make_unique<GraphicsContext>(appInfo, nullptr);
+        GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
         eastl::vector<BufferHandle> buffers;
 
         // -----------------------------------------------------------------------
@@ -299,7 +299,7 @@ namespace KryneEngine::Tests::Graphics
         {
             graphicsContext->DestroyBuffer(handle);
         }
-        graphicsContext.reset();
+        GraphicsContext::Destroy(graphicsContext);
         catcher.ExpectMessageCount(errorCount);
     }
 }

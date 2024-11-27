@@ -27,7 +27,8 @@ namespace KryneEngine::Tests::Graphics
         // -----------------------------------------------------------------------
 
         {
-            GraphicsContext context(appInfo, nullptr);
+            auto* context = GraphicsContext::Create(appInfo, nullptr);
+            GraphicsContext::Destroy(context);
         }
 
         // -----------------------------------------------------------------------
@@ -54,20 +55,23 @@ namespace KryneEngine::Tests::Graphics
 
         {
             appInfo.m_displayOptions.m_tripleBuffering = GraphicsCommon::SoftEnable::Disabled;
-            const GraphicsContext graphicsContext(appInfo, nullptr);
-            EXPECT_EQ(graphicsContext.GetFrameContextCount(), 2);
+            GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
+            EXPECT_EQ(graphicsContext->GetFrameContextCount(), 2);
+            GraphicsContext::Destroy(graphicsContext);
         }
 
         {
             appInfo.m_displayOptions.m_tripleBuffering = GraphicsCommon::SoftEnable::TryEnable;
-            const GraphicsContext graphicsContext(appInfo, nullptr);
-            EXPECT_EQ(graphicsContext.GetFrameContextCount(), 2);
+            GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
+            EXPECT_EQ(graphicsContext->GetFrameContextCount(), 2);
+            GraphicsContext::Destroy(graphicsContext);
         }
 
         {
             appInfo.m_displayOptions.m_tripleBuffering = GraphicsCommon::SoftEnable::ForceEnabled;
-            const GraphicsContext graphicsContext(appInfo, nullptr);
-            EXPECT_EQ(graphicsContext.GetFrameContextCount(), 2);
+            GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
+            EXPECT_EQ(graphicsContext->GetFrameContextCount(), 2);
+            GraphicsContext::Destroy(graphicsContext);
         }
 
         // -----------------------------------------------------------------------
@@ -85,13 +89,13 @@ namespace KryneEngine::Tests::Graphics
 
         ScopedAssertCatcher catcher;
         const GraphicsCommon::ApplicationInfo appInfo = DefaultAppInfo();
-        const GraphicsContext graphicsContext(appInfo, nullptr);
+        GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
 
         // -----------------------------------------------------------------------
         // Execute
         // -----------------------------------------------------------------------
 
-        const GraphicsCommon::ApplicationInfo gAppInfo = graphicsContext.GetApplicationInfo();
+        const GraphicsCommon::ApplicationInfo gAppInfo = graphicsContext->GetApplicationInfo();
 
         EXPECT_EQ(appInfo.m_applicationName, gAppInfo.m_applicationName);
         EXPECT_BINARY_EQ(appInfo.m_applicationVersion, gAppInfo.m_applicationVersion);
@@ -105,6 +109,8 @@ namespace KryneEngine::Tests::Graphics
         // -----------------------------------------------------------------------
         // Teardown
         // -----------------------------------------------------------------------
+
+        GraphicsContext::Destroy(graphicsContext);
 
         catcher.ExpectNoMessage();
     }

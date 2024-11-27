@@ -7,8 +7,9 @@
 #pragma once
 
 #include <KryneEngine/Core/Graphics/Common/Buffer.hpp>
-#include <KryneEngine/Core/Graphics/Common/Handles.hpp>
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/Common/Handles.hpp>
+#include <KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp>
 
 namespace KryneEngine::Modules::GraphicsUtils
 {
@@ -21,7 +22,7 @@ namespace KryneEngine::Modules::GraphicsUtils
         void Unmap(GraphicsContext* _graphicsContext);
         void PrepareBuffers(
             GraphicsContext* _graphicsContext,
-            CommandList _commandLine,
+            CommandListHandle _commandLine,
             KryneEngine::BarrierAccessFlags _accessFlags,
             u8 _frameIndex);
 

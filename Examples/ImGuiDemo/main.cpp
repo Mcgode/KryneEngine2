@@ -82,7 +82,7 @@ void MainFunc(void* _fibersManagerPtr)
     {
         KE_ZoneScoped("Main loop");
 
-        CommandList commandList = graphicsContext->BeginGraphicsCommandList();
+        CommandListHandle commandList = graphicsContext->BeginGraphicsCommandList();
 
         imGuiContext.NewFrame(&mainWindow, commandList);
 

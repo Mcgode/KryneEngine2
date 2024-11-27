@@ -38,7 +38,7 @@ namespace KryneEngine
         }
         glfwSetWindowUserPointer(m_glfwWindow, this);
 
-        m_graphicsContext = eastl::make_unique<GraphicsContext>(_appInfo, this);
+        m_graphicsContext = GraphicsContext::Create(_appInfo, this);
 
         {
             KE_ZoneScoped("Input management init");
@@ -51,7 +51,7 @@ namespace KryneEngine
 
     Window::~Window()
     {
-        m_graphicsContext.reset();
+        GraphicsContext::Destroy(m_graphicsContext);
 
         glfwDestroyWindow(m_glfwWindow);
         glfwTerminate();
