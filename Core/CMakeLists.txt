@@ -160,7 +160,7 @@ if (GraphicsApi STREQUAL "VK")
         find_package(Vulkan REQUIRED)
 
         message(STATUS "Vulkan include dirs: " ${Vulkan_INCLUDE_DIRS})
-        target_include_directories(KryneEngine_Core PUBLIC ${Vulkan_INCLUDE_DIRS})
+        target_include_directories(KryneEngine_Core PRIVATE ${Vulkan_INCLUDE_DIRS})
 
         message(STATUS "Vulkan lib: " ${Vulkan_LIBRARIES})
         target_link_libraries(KryneEngine_Core ${Vulkan_LIBRARIES} VulkanMemoryAllocator)

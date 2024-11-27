@@ -4,7 +4,7 @@
  * @date 21/07/2024.
  */
 
-#include "Context.hpp"
+#include "KryneEngine/Modules/ImGui/Context.hpp"
 
 #include <fstream>
 #include <imgui_internal.h>
@@ -87,7 +87,7 @@ namespace KryneEngine::Modules::ImGui
 
         _InitPso(graphicsContext, _renderPass);
 
-        m_timePoint = std::chrono::steady_clock::now();
+        m_timePoint = eastl::chrono::steady_clock::now();
     }
 
     Context::~Context() { KE_ASSERT_MSG(m_context == nullptr, "ImGui module was not shut down"); }
@@ -305,8 +305,8 @@ namespace KryneEngine::Modules::ImGui
             m_fontsStagingHandle = GenPool::kInvalidHandle;
         }
 
-        const auto currentTimePoint =  std::chrono::steady_clock::now();
-        const std::chrono::duration<double> interval = currentTimePoint - m_timePoint;
+        const auto currentTimePoint =  eastl::chrono::steady_clock::now();
+        const eastl::chrono::duration<double> interval = currentTimePoint - m_timePoint;
         m_timePoint = currentTimePoint;
 
         io.DeltaTime = static_cast<float>(interval.count());

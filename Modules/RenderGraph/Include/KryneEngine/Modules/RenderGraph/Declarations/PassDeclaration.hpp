@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <RenderGraph/Declarations/PassAttachmentDeclaration.hpp>
+#include "KryneEngine/Modules/RenderGraph/Declarations/PassAttachmentDeclaration.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
 {

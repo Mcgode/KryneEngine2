@@ -7,9 +7,9 @@
 #include <iostream>
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
-#include <RenderGraph/Builder.hpp>
-#include <RenderGraph/RenderGraph.hpp>
-#include <RenderGraph/Registry.hpp>
+#include <KryneEngine/Modules/RenderGraph/Builder.hpp>
+#include <KryneEngine/Modules/RenderGraph/Registry.hpp>
+#include <KryneEngine/Modules/RenderGraph/RenderGraph.hpp>
 
 using namespace KryneEngine;
 using namespace KryneEngine::Modules;

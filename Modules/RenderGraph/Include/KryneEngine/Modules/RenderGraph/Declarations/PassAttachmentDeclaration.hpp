@@ -8,7 +8,8 @@
 
 #include <KryneEngine/Core/Graphics/Common/RenderPass.hpp>
 #include <KryneEngine/Core/Memory/SimplePool.hpp>
-#include <RenderGraph/Utils/DeclarationBuilder.hpp>
+
+#include "KryneEngine/Modules/RenderGraph/Utils/DeclarationBuilder.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
 {

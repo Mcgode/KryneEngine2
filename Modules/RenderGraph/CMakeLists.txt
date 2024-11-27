@@ -1,17 +1,20 @@
 
 add_library(KryneEngine_Modules_RenderGraph STATIC
-        Builder.cpp
-        Builder.hpp
-        Declarations/PassDeclaration.hpp
-        Declarations/PassAttachmentDeclaration.cpp
-        Declarations/PassAttachmentDeclaration.hpp
-        Declarations/PassDeclaration.cpp
-        Utils/DeclarationBuilder.hpp
-        Registry.cpp
-        Registry.hpp
-        Resource.hpp
-        RenderGraph.cpp
-        RenderGraph.hpp
+        Src/Builder.cpp
+        Include/KryneEngine/Modules/RenderGraph/Builder.hpp
+        Include/KryneEngine/Modules/RenderGraph/Declarations/PassDeclaration.hpp
+        Src/Declarations/PassAttachmentDeclaration.cpp
+        Include/KryneEngine/Modules/RenderGraph/Declarations/PassAttachmentDeclaration.hpp
+        Src/Declarations/PassDeclaration.cpp
+        Include/KryneEngine/Modules/RenderGraph/Utils/DeclarationBuilder.hpp
+        Src/Registry.cpp
+        Include/KryneEngine/Modules/RenderGraph/Registry.hpp
+        Include/KryneEngine/Modules/RenderGraph/Resource.hpp
+        Src/RenderGraph.cpp
+        Include/KryneEngine/Modules/RenderGraph/RenderGraph.hpp
 )
 
-target_link_libraries(KryneEngine_Modules_RenderGraph KryneEngine_Core KryneEngine_Modules_Includes)
+target_link_libraries(KryneEngine_Modules_RenderGraph KryneEngine_Core)
+
+target_include_directories(KryneEngine_Modules_RenderGraph PUBLIC Include)
+target_include_directories(KryneEngine_Modules_RenderGraph PRIVATE Src)

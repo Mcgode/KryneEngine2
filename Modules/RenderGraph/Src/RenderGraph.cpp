@@ -4,11 +4,12 @@
  * @date 15/11/2024.
  */
 
-#include "RenderGraph.hpp"
+#include "KryneEngine/Modules/RenderGraph/RenderGraph.hpp"
 
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
-#include <RenderGraph/Builder.hpp>
-#include <RenderGraph/Registry.hpp>
+
+#include "KryneEngine/Modules/RenderGraph/Builder.hpp"
+#include "KryneEngine/Modules/RenderGraph/Registry.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
 {

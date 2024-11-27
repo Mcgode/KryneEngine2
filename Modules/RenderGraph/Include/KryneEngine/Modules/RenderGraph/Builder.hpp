@@ -11,7 +11,7 @@
 #include <KryneEngine/Core/Memory/SimplePool.hpp>
 #include <string>
 
-#include "RenderGraph/Declarations/PassDeclaration.hpp"
+#include "KryneEngine/Modules/RenderGraph/Declarations/PassDeclaration.hpp"
 
 namespace KryneEngine
 {

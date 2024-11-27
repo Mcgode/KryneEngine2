@@ -4,10 +4,11 @@
  * @date 14/11/2024.
  */
 
-#include "RenderGraph/Registry.hpp"
+#include "KryneEngine/Modules/RenderGraph/Registry.hpp"
 
 #include <KryneEngine/Core/Memory/SimplePool.inl>
-#include <RenderGraph/Resource.hpp>
+
+#include "KryneEngine/Modules/RenderGraph/Resource.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
 {

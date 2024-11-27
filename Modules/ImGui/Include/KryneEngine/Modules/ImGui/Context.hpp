@@ -6,12 +6,11 @@
 
 #pragma once
 
-#include <chrono>
 #include <imgui.h>
+#include <EASTL/chrono.h>
 #include <EASTL/unique_ptr.h>
-
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
-#include <GraphicsUtils/DynamicBuffer.hpp>
+#include <KryneEngine/Modules/GraphicsUtils/DynamicBuffer.hpp>
 
 namespace KryneEngine
 {
@@ -104,7 +103,7 @@ namespace KryneEngine::Modules::ImGui
         GraphicsUtils::DynamicBuffer m_dynamicVertexBuffer;
         GraphicsUtils::DynamicBuffer m_dynamicIndexBuffer;
 
-        std::chrono::time_point<std::chrono::steady_clock> m_timePoint;
+        eastl::chrono::time_point<eastl::chrono::steady_clock> m_timePoint;
 
         eastl::unique_ptr<Input> m_input;
 

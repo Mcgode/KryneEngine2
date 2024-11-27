@@ -4,7 +4,7 @@
  * @date 04/08/2024.
  */
 
-#include "DynamicBuffer.hpp"
+#include "KryneEngine/Modules/GraphicsUtils/DynamicBuffer.hpp"
 
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 

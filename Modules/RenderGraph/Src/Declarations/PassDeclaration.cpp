@@ -4,7 +4,7 @@
  * @date 14/11/2024.
  */
 
-#include "RenderGraph/Declarations/PassDeclaration.hpp"
+#include "KryneEngine/Modules/RenderGraph/Declarations/PassDeclaration.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
 {

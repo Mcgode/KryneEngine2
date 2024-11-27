@@ -4,14 +4,14 @@
  * @date 13/11/2024.
  */
 
-#include "Builder.hpp"
+#include "KryneEngine/Modules/RenderGraph/Builder.hpp"
 
 #include <iostream>
-
-#include "RenderGraph/Declarations/PassDeclaration.hpp"
 #include <KryneEngine/Core/Memory/SimplePool.inl>
-#include <RenderGraph/Registry.hpp>
-#include <RenderGraph/Resource.hpp>
+
+#include "KryneEngine/Modules/RenderGraph/Declarations/PassDeclaration.hpp"
+#include "KryneEngine/Modules/RenderGraph/Registry.hpp"
+#include "KryneEngine/Modules/RenderGraph/Resource.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
 {
