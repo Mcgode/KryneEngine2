@@ -8,6 +8,7 @@
 
 #include <EASTL/vector_map.h>
 
+#include "KryneEngine/Core/Math/Vector.hpp"
 #include "KryneEngine/Core/Threads/LightweightMutex.hpp"
 #include "KryneEngine/Core/Window/Input/KeyInputEvent.hpp"
 #include "KryneEngine/Core/Window/Input/MouseInputEvent.hpp"

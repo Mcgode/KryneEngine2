@@ -44,6 +44,17 @@ set(GraphicsCommonFiles
         Include/KryneEngine/Core/Graphics/Common/Drawing.hpp
 )
 
+set(MathSrc
+        Src/Math/Vector2.cpp
+        Src/Math/Vector3.cpp
+        Src/Math/Vector4.cpp
+        Include/KryneEngine/Core/Math/Vector.hpp
+        Include/KryneEngine/Core/Math/Vector2.hpp
+        Include/KryneEngine/Core/Math/Vector3.hpp
+        Include/KryneEngine/Core/Math/Vector4.hpp
+        Include/KryneEngine/Core/Math/XSimdUtils.hpp
+)
+
 set(MemorySrc
         Include/KryneEngine/Core/Memory/RangeMapping.hpp
         Include/KryneEngine/Core/Memory/GenerationalPool.inl
@@ -152,8 +163,8 @@ elseif (GraphicsApi STREQUAL "MTL")
         )
 endif()
 
-add_library(KryneEngine_Core ${CommonSrc} ${FilesSrc} ${GraphicsFiles} ${MemorySrc} ${ProfilingSrc} ${ThreadsSrc} ${WindowSrc})
-target_link_libraries(KryneEngine_Core EASTL glfw glm Tracy::TracyClient moodycamel Boost::context)
+add_library(KryneEngine_Core ${CommonSrc} ${FilesSrc} ${GraphicsFiles} ${MathSrc} ${MemorySrc} ${ProfilingSrc} ${ThreadsSrc} ${WindowSrc})
+target_link_libraries(KryneEngine_Core EASTL glfw glm Tracy::TracyClient moodycamel Boost::context xsimd)
 
 if (GraphicsApi STREQUAL "VK")
         message(STATUS "Finding and linking Vulkan lib")

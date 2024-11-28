@@ -12,6 +12,7 @@
 #include "KryneEngine/Core/Common/Types.hpp"
 #include "KryneEngine/Core/Graphics/Common/Enums.hpp"
 #include "KryneEngine/Core/Graphics/Common/Handles.hpp"
+#include "KryneEngine/Core/Math/Vector.hpp"
 
 namespace KryneEngine
 {
