@@ -86,7 +86,14 @@ namespace KryneEngine
     {
         GetImplementation(this).EndFrame(m_frameId);
         m_frameId++;
-        return m_window->WaitForEvents();
+        if (m_window == nullptr)
+        {
+            return false;
+        }
+        else
+        {
+            return m_window->WaitForEvents();
+        }
     }
 
     void GraphicsContext::WaitForLastFrame() const

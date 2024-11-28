@@ -305,7 +305,7 @@ namespace KryneEngine
 
         KE_ASSERT_MSG(_mapping.m_ptr == nullptr, "Did not unmap previous map");
 
-        KE_ASSERT(_mapping.m_size == ~0 || buffer->length() >= _mapping.m_offset + _mapping.m_size);
+        KE_ASSERT(_mapping.m_size == ~0u || buffer->length() >= _mapping.m_offset + _mapping.m_size);
         _mapping.m_size = eastl::min(_mapping.m_size, buffer->length() - _mapping.m_offset);
 
         _mapping.m_ptr = static_cast<u8*>(buffer->contents()) + _mapping.m_offset;
