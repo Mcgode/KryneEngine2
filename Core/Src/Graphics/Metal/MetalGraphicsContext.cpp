@@ -122,7 +122,7 @@ namespace KryneEngine
 
     BufferHandle MetalGraphicsContext::CreateStagingBuffer(
         const TextureDesc& _createDesc,
-        const eastl::vector<TextureMemoryFootprint>& _footprints)
+        const eastl::span<const TextureMemoryFootprint>& _footprints)
     {
         const TextureMemoryFootprint& lastFootprint = _footprints.back();
         const size_t size = lastFootprint.m_offset +
@@ -351,9 +351,9 @@ namespace KryneEngine
 
     void MetalGraphicsContext::PlaceMemoryBarriers(
         CommandList _commandList,
-        const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,
-        const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
-        const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers)
+        const eastl::span<const GlobalMemoryBarrier>& _globalMemoryBarriers,
+        const eastl::span<const BufferMemoryBarrier>& _bufferMemoryBarriers,
+        const eastl::span<const TextureMemoryBarrier>& _textureMemoryBarriers)
     {
         const bool isComputePass =  _commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Compute;
 
@@ -525,7 +525,7 @@ namespace KryneEngine
 
     void MetalGraphicsContext::DeclarePassTextureSrvUsage(
         CommandList _commandList,
-        const eastl::span<TextureSrvHandle>& _textures)
+        const eastl::span<const TextureSrvHandle>& _textures)
     {
         KE_ASSERT(_commandList->m_encoder != nullptr
                   && (_commandList->m_type == CommandListData::EncoderType::Render
@@ -612,7 +612,7 @@ namespace KryneEngine
 
     void MetalGraphicsContext::UpdateDescriptorSet(
         DescriptorSetHandle _descriptorSet,
-        const eastl::span<DescriptorSetWriteInfo>& _writes,
+        const eastl::span<const DescriptorSetWriteInfo>& _writes,
         u64 _frameId)
     {
         m_argumentBufferManager.UpdateArgumentBuffer(
@@ -660,7 +660,7 @@ namespace KryneEngine
         renderState->m_indexBufferIsU16 = _isU16;
     }
 
-    void MetalGraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews)
+    void MetalGraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferView>& _bufferViews)
     {
         VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
         auto* renderState = static_cast<RenderState*>(_commandList->m_userData);
@@ -759,7 +759,7 @@ namespace KryneEngine
     void MetalGraphicsContext::SetGraphicsPushConstant(
         CommandList _commandList,
         PipelineLayoutHandle _layout,
-        const eastl::span<u32>& _data,
+        const eastl::span<const u32>& _data,
         u32 _index,
         u32 _offset)
     {
@@ -789,7 +789,7 @@ namespace KryneEngine
     void MetalGraphicsContext::SetGraphicsDescriptorSets(
         CommandList _commandList,
         PipelineLayoutHandle _layout,
-        const eastl::span<DescriptorSetHandle>& _sets,
+        const eastl::span<const DescriptorSetHandle>& _sets,
         const bool* _unchanged,
         u64 _frameId)
     {

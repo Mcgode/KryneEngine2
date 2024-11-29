@@ -189,7 +189,7 @@ namespace KryneEngine
 #pragma region Argument buffer update
     void MetalArgumentBufferManager::UpdateArgumentBuffer(
         MetalResources& _resources,
-        const eastl::span<DescriptorSetWriteInfo>& _writes,
+        const eastl::span<const DescriptorSetWriteInfo>& _writes,
         DescriptorSetHandle _descriptorSet,
         u8 _frameIndex)
     {

@@ -175,7 +175,7 @@ namespace KryneEngine
 
     BufferHandle GraphicsContext::CreateStagingBuffer(
         const TextureDesc& _createDesc,
-        const eastl::vector<TextureMemoryFootprint>& _footprints)
+        const eastl::span<const TextureMemoryFootprint>& _footprints)
     {
         return GetImplementation(this).CreateStagingBuffer(_createDesc, _footprints);
     }
@@ -298,9 +298,9 @@ namespace KryneEngine
 
     void GraphicsContext::PlaceMemoryBarriers(
         CommandListHandle _commandList,
-        const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,
-        const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
-        const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers)
+        const eastl::span<const GlobalMemoryBarrier>& _globalMemoryBarriers,
+        const eastl::span<const BufferMemoryBarrier>& _bufferMemoryBarriers,
+        const eastl::span<const TextureMemoryBarrier>& _textureMemoryBarriers)
     {
         return GetImplementation(this).PlaceMemoryBarriers(
             reinterpret_cast<CommandList>(_commandList),
@@ -312,7 +312,7 @@ namespace KryneEngine
 
     void GraphicsContext::DeclarePassTextureSrvUsage(
         CommandListHandle _commandList,
-        const eastl::span<TextureSrvHandle>& _textures)
+        const eastl::span<const TextureSrvHandle>& _textures)
     {
         GetImplementation(this).DeclarePassTextureSrvUsage(
             reinterpret_cast<CommandList>(_commandList),
@@ -373,7 +373,7 @@ namespace KryneEngine
 
     void GraphicsContext::UpdateDescriptorSet(
         DescriptorSetHandle _descriptorSet,
-        const eastl::span<DescriptorSetWriteInfo>& _writes)
+        const eastl::span<const DescriptorSetWriteInfo>& _writes)
     {
         GetImplementation(this).UpdateDescriptorSet(_descriptorSet, _writes, m_frameId);
     }
@@ -400,7 +400,7 @@ namespace KryneEngine
             _isU16);
     }
 
-    void GraphicsContext::SetVertexBuffers(CommandListHandle _commandList, const eastl::span<BufferView>& _bufferViews)
+    void GraphicsContext::SetVertexBuffers(CommandListHandle _commandList, const eastl::span<const BufferView>& _bufferViews)
     {
         GetImplementation(this).SetVertexBuffers(
             reinterpret_cast<CommandList>(_commandList),
@@ -417,7 +417,7 @@ namespace KryneEngine
     void GraphicsContext::SetGraphicsPushConstant(
         CommandListHandle _commandList,
         PipelineLayoutHandle _layout,
-        const eastl::span<u32>& _data,
+        const eastl::span<const u32>& _data,
         u32 _index,
         u32 _offset)
     {
@@ -432,7 +432,7 @@ namespace KryneEngine
     void GraphicsContext::SetGraphicsDescriptorSets(
         CommandListHandle _commandList,
         PipelineLayoutHandle _layout,
-        const eastl::span<DescriptorSetHandle>& _sets,
+        const eastl::span<const DescriptorSetHandle>& _sets,
         const bool* _unchanged)
     {
         GetImplementation(this).SetGraphicsDescriptorSets(

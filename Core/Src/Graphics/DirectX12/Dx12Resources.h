@@ -42,7 +42,7 @@ namespace KryneEngine
         [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc);
         [[nodiscard]] BufferHandle CreateStagingBuffer(
             const TextureDesc& _desc,
-            const eastl::vector<TextureMemoryFootprint>& _footprints);
+            const eastl::span<const TextureMemoryFootprint>& _footprints);
         bool DestroyBuffer(BufferHandle _buffer);
 
         [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _createDesc, ID3D12Device* _device);

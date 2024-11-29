@@ -77,7 +77,7 @@ namespace KryneEngine
         [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc);
         [[nodiscard]] BufferHandle CreateStagingBuffer(
             const TextureDesc& _createDesc,
-            const eastl::vector<TextureMemoryFootprint>& _footprints);
+            const eastl::span<const TextureMemoryFootprint>& _footprints);
         bool DestroyTexture(TextureHandle _handle);
 
         [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc);
@@ -117,11 +117,11 @@ namespace KryneEngine
 
         void PlaceMemoryBarriers(
             CommandListHandle _commandList,
-            const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,
-            const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
-            const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers);
+            const eastl::span<const GlobalMemoryBarrier>& _globalMemoryBarriers,
+            const eastl::span<const BufferMemoryBarrier>& _bufferMemoryBarriers,
+            const eastl::span<const TextureMemoryBarrier>& _textureMemoryBarriers);
 
-        void DeclarePassTextureSrvUsage(CommandListHandle _commandList, const eastl::span<TextureSrvHandle>& _textures);
+        void DeclarePassTextureSrvUsage(CommandListHandle _commandList, const eastl::span<const TextureSrvHandle>& _textures);
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
@@ -136,23 +136,23 @@ namespace KryneEngine
 
         void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,
-            const eastl::span<DescriptorSetWriteInfo>& _writes);
+            const eastl::span<const DescriptorSetWriteInfo>& _writes);
 
         void SetViewport(CommandListHandle _commandList, const Viewport& _viewport);
         void SetScissorsRect(CommandListHandle _commandList, const Rect& _rect);
         void SetIndexBuffer(CommandListHandle _commandList, const BufferView& _indexBufferView, bool _isU16 = false);
-        void SetVertexBuffers(CommandListHandle _commandList, const eastl::span<BufferView>& _bufferViews);
+        void SetVertexBuffers(CommandListHandle _commandList, const eastl::span<const BufferView>& _bufferViews);
         void SetGraphicsPipeline(CommandListHandle _commandList, GraphicsPipelineHandle _graphicsPipeline);
         void SetGraphicsPushConstant(
             CommandListHandle _commandList,
             PipelineLayoutHandle _layout,
-            const eastl::span<u32>& _data,
+            const eastl::span<const u32>& _data,
             u32 _index = 0,
             u32 _offset = 0);
         void SetGraphicsDescriptorSets(
             CommandListHandle _commandList,
             PipelineLayoutHandle _layout,
-            const eastl::span<DescriptorSetHandle>& _sets,
+            const eastl::span<const DescriptorSetHandle>& _sets,
             const bool* _unchanged = nullptr);
         void DrawIndexedInstanced(CommandListHandle _commandList, const DrawIndexedInstancedDesc& _desc);
     };

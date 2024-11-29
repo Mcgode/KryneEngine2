@@ -98,7 +98,7 @@ namespace KryneEngine
 
     BufferHandle Dx12Resources::CreateStagingBuffer(
         const TextureDesc& _desc,
-        const eastl::vector<TextureMemoryFootprint>& _footprints)
+        const eastl::span<const TextureMemoryFootprint>& _footprints)
     {
         KE_ZoneScopedFunction("Dx12Resources::CreateStagingBuffer");
 

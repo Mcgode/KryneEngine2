@@ -104,7 +104,7 @@ namespace KryneEngine
         [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc, VkDevice _device);
         [[nodiscard]] BufferHandle CreateStagingBuffer(
             const TextureDesc& _createDesc,
-            const eastl::vector<TextureMemoryFootprint>& _footprints,
+            const eastl::span<const TextureMemoryFootprint>& _footprints,
             VkDevice _device);
         bool DestroyBuffer(BufferHandle _buffer);
 

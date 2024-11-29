@@ -725,9 +725,9 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::PlaceMemoryBarriers(
         CommandList _commandList,
-        const eastl::span<GlobalMemoryBarrier>& _globalMemoryBarriers,
-        const eastl::span<BufferMemoryBarrier>& _bufferMemoryBarriers,
-        const eastl::span<TextureMemoryBarrier>& _textureMemoryBarriers)
+        const eastl::span<const GlobalMemoryBarrier>& _globalMemoryBarriers,
+        const eastl::span<const BufferMemoryBarrier>& _bufferMemoryBarriers,
+        const eastl::span<const TextureMemoryBarrier>& _textureMemoryBarriers)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::PlaceMemoryBarriers");
 
@@ -969,7 +969,7 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::UpdateDescriptorSet(
         DescriptorSetHandle _descriptorSet,
-        const eastl::span<DescriptorSetWriteInfo>& _writes,
+        const eastl::span<const DescriptorSetWriteInfo>& _writes,
         u64 _frameId)
     {
         m_descriptorSetManager->UpdateDescriptorSet(
@@ -1024,7 +1024,7 @@ namespace KryneEngine
         _commandList->IASetIndexBuffer(&indexBufferView);
     }
 
-    void Dx12GraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<BufferView>& _bufferViews)
+    void Dx12GraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferView>& _bufferViews)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::SetVertexBuffers");
 
@@ -1065,7 +1065,7 @@ namespace KryneEngine
     void Dx12GraphicsContext::SetGraphicsPushConstant(
         CommandList _commandList,
         PipelineLayoutHandle _layout,
-        const eastl::span<u32>& _data,
+        const eastl::span<const u32>& _data,
         u32 _index,
         u32 _offset)
     {
@@ -1085,7 +1085,7 @@ namespace KryneEngine
     void Dx12GraphicsContext::SetGraphicsDescriptorSets(
         CommandList _commandList,
         PipelineLayoutHandle,
-        const eastl::span<DescriptorSetHandle>& _sets,
+        const eastl::span<const DescriptorSetHandle>& _sets,
         const bool* _unchanged,
         u32 _frameId)
     {
