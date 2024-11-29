@@ -14,12 +14,28 @@ namespace KryneEngine::Math
     template <typename T, size_t Alignment = sizeof(T)>
     struct alignas(Alignment) Vector2Base
     {
-        Vector2Base() = default;
+        Vector2Base()
+        {
+            if constexpr (sizeof(Vector2Base) == 4 * sizeof(T))
+            {
+                // Ensure padding is zero-initialized
+                new (&x + 2) T(0);
+                new (&x + 3) T(0);
+            }
+        }
 
         template <typename U0, typename U1 = U0>
         requires std::is_constructible_v<T, U0>
             && std::is_constructible_v<T, U1>
-        Vector2Base(U0 _x, U1 _y) : x(_x), y(_y) {}
+        Vector2Base(U0 _x, U1 _y) : x(_x), y(_y)
+        {
+            if constexpr (sizeof(Vector2Base) == 4 * sizeof(T))
+            {
+                // Ensure padding is zero-initialized
+                new (&x + 2) T(0);
+                new (&x + 3) T(0);
+            }
+        }
 
         template <typename U>
         requires std::is_constructible_v<T, U>

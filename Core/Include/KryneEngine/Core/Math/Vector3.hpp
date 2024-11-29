@@ -15,13 +15,25 @@ namespace KryneEngine::Math
     template <typename T, size_t Alignment = sizeof(T)>
     struct alignas(Alignment) Vector3Base
     {
-        Vector3Base() = default;
+        Vector3Base(): x(), y(), z()
+        {
+            if constexpr (Alignment > sizeof(T))
+            {
+                // Ensure padding is zero-initialized
+                new (&x + 3) T(0);
+            }
+        }
 
         template <typename U0, typename U1 = U0, typename U2 = U0>
-        requires std::is_constructible_v<T, U0>
-            && std::is_constructible_v<T, U1>
-            && std::is_constructible_v<T, U2>
-        Vector3Base(U0 _x, U1 _y, U2 _z = 0) : x(_x), y(_y), z(_z) {}
+        requires std::is_constructible_v<T, U0> && std::is_constructible_v<T, U1> && std::is_constructible_v<T, U2>
+        Vector3Base(U0 _x, U1 _y, U2 _z = 0) : x(_x), y(_y), z(_z)
+        {
+            if constexpr (Alignment > sizeof(T))
+            {
+                // Ensure padding is zero-initialized
+                new (&x + 3) T(0);
+            }
+        }
 
         template <typename U>
         requires std::is_constructible_v<T, U>
@@ -29,8 +41,7 @@ namespace KryneEngine::Math
 
         template <typename U, size_t OtherAlignment>
         requires std::is_constructible_v<T, U>
-        explicit Vector3Base(const Vector3Base<U, OtherAlignment> &_other) : Vector3Base(_other.x, _other.y, _other.z)
-        {}
+        explicit Vector3Base(const Vector3Base<U, OtherAlignment> &_other) : Vector3Base(_other.x, _other.y, _other.z) {}
 
         Vector3Base operator+(const Vector3Base& _other) const;
         Vector3Base operator-(const Vector3Base& _other) const;
