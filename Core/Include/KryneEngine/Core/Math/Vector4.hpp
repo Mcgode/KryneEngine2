@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "KryneEngine/Core/Math/Vector3.hpp"
 
 namespace KryneEngine::Math
 {
@@ -28,10 +29,17 @@ namespace KryneEngine::Math
         requires std::is_constructible_v<T, U>
         explicit Vector4Base(U _value) : Vector4Base(_value, _value, _value, _value) {}
 
-        template <typename U, size_t OtherAlignment>
+        template <typename U, size_t A>
         requires std::is_constructible_v<T, U>
-        explicit Vector4Base(const Vector4Base<U, OtherAlignment> &_other) : Vector4Base(_other.x, _other.y, _other.z, _other.w)
-        {}
+        explicit Vector4Base(const Vector4Base<U, A> &_other) : Vector4Base(_other.x, _other.y, _other.z, _other.w) {}
+
+        template <typename U0, typename U1, size_t A>
+        requires std::is_constructible_v<T, U0> && std::is_constructible_v<T, U1>
+        explicit Vector4Base(const Vector3Base<U0, A>& _vec3, U1 _w = 0): Vector4Base(_vec3.x, _vec3.y, _vec3.z, _w) {}
+
+        template <typename U0, typename U1, typename U2, size_t A>
+        requires std::is_constructible_v<T, U0> && std::is_constructible_v<T, U1> && std::is_constructible_v<T, U2>
+        explicit Vector4Base(const Vector2Base<U0, A>& _vec2, U1 _z = 0, U2 _w = 0): Vector4Base(_vec2.x, _vec2.y, _z, _w) {}
 
         Vector4Base operator+(const Vector4Base& _other) const;
         Vector4Base operator-(const Vector4Base& _other) const;

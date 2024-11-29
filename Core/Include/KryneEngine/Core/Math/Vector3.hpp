@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "KryneEngine/Core/Math/Vector2.hpp"
 
 namespace KryneEngine::Math
 {
@@ -42,6 +43,10 @@ namespace KryneEngine::Math
         template <typename U, size_t OtherAlignment>
         requires std::is_constructible_v<T, U>
         explicit Vector3Base(const Vector3Base<U, OtherAlignment> &_other) : Vector3Base(_other.x, _other.y, _other.z) {}
+
+        template <typename U0, typename U1, size_t A>
+            requires std::is_constructible_v<T, U0> && std::is_constructible_v<T, U1>
+        explicit Vector3Base(const Vector2Base<U0, A>& _vec2, U1 _z = 0): Vector3Base(_vec2.x, _vec2.y, _z) {}
 
         Vector3Base operator+(const Vector3Base& _other) const;
         Vector3Base operator-(const Vector3Base& _other) const;
