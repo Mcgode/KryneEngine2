@@ -508,7 +508,7 @@ namespace KryneEngine
             attachmentReferences.push_back(ref);
 
             VkClearColorValue clearColorValue;
-            memcpy(&clearColorValue.float32, &attachment.m_clearColor[0], sizeof(clearColorValue.float32));
+            memcpy(&clearColorValue.float32, &attachment.m_clearColor.x, sizeof(clearColorValue.float32));
             clearValues.push_back({ .color = clearColorValue });
         }
 
