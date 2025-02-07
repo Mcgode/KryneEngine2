@@ -1,0 +1,7 @@
+{
+  "slang": {
+    "additionalSearchPaths": [
+      "Modules/ShaderLib/Shaders"
+    ]
+  }
+}
