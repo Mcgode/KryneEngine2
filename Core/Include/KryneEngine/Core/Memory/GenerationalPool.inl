@@ -40,10 +40,13 @@ namespace KryneEngine
         // Copy old array
         if (m_hotDataArray != nullptr)
         {
-            memcpy(newHotArray, m_hotDataArray, m_size * sizeof(HotData));
+            memcpy(
+                reinterpret_cast<void*>(newHotArray),
+                reinterpret_cast<void*>(m_hotDataArray),
+                m_size * sizeof(HotData));
             delete[] m_hotDataArray;
         }
-        memset(newHotArray + m_size, 0, (_toSize - m_size) * sizeof(HotData));
+        memset(reinterpret_cast<void*>(newHotArray + m_size), 0, (_toSize - m_size) * sizeof(HotData));
         m_hotDataArray = newHotArray;
 
         if constexpr (kHasColdData)
@@ -52,10 +55,13 @@ namespace KryneEngine
             // Copy old array
             if (m_coldDataArray != nullptr)
             {
-                memcpy(newColdArray, m_coldDataArray, m_size * sizeof(ColdDataStruct));
+                memcpy(
+                    reinterpret_cast<void*>(newColdArray),
+                    reinterpret_cast<void*>(m_coldDataArray),
+                    m_size * sizeof(ColdDataStruct));
                 delete[] m_coldDataArray;
             }
-            memset(newColdArray + m_size, 0, (_toSize - m_size) * sizeof(ColdDataStruct));
+            memset(reinterpret_cast<void*>(newColdArray + m_size), 0, (_toSize - m_size) * sizeof(ColdDataStruct));
             m_coldDataArray = newColdArray;
         }
 
