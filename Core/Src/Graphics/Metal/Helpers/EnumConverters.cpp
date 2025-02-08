@@ -417,7 +417,7 @@ namespace KryneEngine::MetalConverters
         }
     }
 
-    MTL::StencilOperation MetalConverters::GetStencilOperation(DepthStencilStateDesc::StencilOp _op)
+    MTL::StencilOperation GetStencilOperation(DepthStencilStateDesc::StencilOp _op)
     {
         switch (_op)
         {
