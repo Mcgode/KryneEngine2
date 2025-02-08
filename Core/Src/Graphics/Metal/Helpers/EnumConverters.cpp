@@ -152,8 +152,9 @@ namespace KryneEngine::MetalConverters
 #else
             return MTL::ResourceStorageModeShared;
 #endif
+        default:
+            return 0;
         }
-        return 0;
     }
 
     MTL::StorageMode GetStorageMode(MemoryUsage _memoryUsage)
