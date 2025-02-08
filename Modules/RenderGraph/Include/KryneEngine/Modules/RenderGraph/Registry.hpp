@@ -29,7 +29,7 @@ namespace KryneEngine::Modules::RenderGraph
             SimplePoolHandle _textureResource,
             const eastl::string_view& _name = {});
 
-        SimplePoolHandle GetUnderlyingResource(SimplePoolHandle _resource) const;
+        [[nodiscard]] SimplePoolHandle GetUnderlyingResource(SimplePoolHandle _resource) const;
 
     private:
         SimplePool<Resource, void, true> m_resources;
