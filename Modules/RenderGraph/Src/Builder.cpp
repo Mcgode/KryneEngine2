@@ -54,6 +54,11 @@ namespace KryneEngine::Modules::RenderGraph
             case PassType::Compute:
                 std::cout << "COMPUTE" << std::endl;
                 break;
+            case PassType::Transfer:
+                std::cout << "TRANSFER" << std::endl;
+                break;
+            default:
+                break;
             }
             indent.push_back('\t');
 
