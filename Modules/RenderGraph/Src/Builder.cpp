@@ -28,8 +28,8 @@ namespace KryneEngine::Modules::RenderGraph
 
     Builder& Builder::DeclareTargetResource(SimplePoolHandle _resource)
     {
-        const SimplePoolHandle underlyingPass = m_registry.GetUnderlyingResource(_resource);
-        m_targetResources.insert(_resource);
+        const SimplePoolHandle underlyingResource = m_registry.GetUnderlyingResource(_resource);
+        m_targetResources.insert(underlyingResource);
         return *this;
     }
 
