@@ -14,8 +14,9 @@
 namespace KryneEngine
 {
     template<class T>
-    struct DynamicArray
+    class DynamicArray final
     {
+    public:
         using Ptr = T*;
         using Ref = T&;
         using Iterator = Ptr;
