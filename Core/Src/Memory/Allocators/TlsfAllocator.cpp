@@ -192,7 +192,7 @@ namespace KryneEngine
         }
 
         if (selectedFl != 255)
-            return m_control->m_headerMap[selectedFl >> TlsfHeap::kFlShift][selectedSl];
+            return m_control->m_headerMap[selectedFl][selectedSl];
         return nullptr;
     }
 
