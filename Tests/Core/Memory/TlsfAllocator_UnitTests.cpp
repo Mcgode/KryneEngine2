@@ -94,9 +94,46 @@ namespace KryneEngine::Tests
         // Execute
         // -----------------------------------------------------------------------
 
+        const TlsfHeap::ControlBlock* control = GetControlBlock(allocator);
+        const TlsfHeap::BlockHeader* firstBlock = control->m_nullBlock.m_previousFreeBlock;
+
         void* p0 = allocator.Allocate(1024);
 
         EXPECT_NE(p0, nullptr);
+        EXPECT_EQ(firstBlock, TlsfHeap::UserPtrToBlockHeader(p0));
+
+        // Similar to creation, after a single allocation we should only have 1 block
+        EXPECT_EQ(control->m_nullBlock.m_nextFreeBlock, nullptr);
+        EXPECT_NE(control->m_nullBlock.m_previousFreeBlock, nullptr);
+
+        EXPECT_NE(control->m_flBitmap, 0);
+        EXPECT_EQ(BitUtils::GetMostSignificantBit(control->m_flBitmap), BitUtils::GetLeastSignificantBit(control->m_flBitmap));
+        const u8 flIndex = BitUtils::GetMostSignificantBit(control->m_flBitmap);
+
+        for (auto i = 0; i < eastl::size(control->m_slBitmaps); i++)
+        {
+            if (i != flIndex)
+                EXPECT_EQ(control->m_slBitmaps[i], 0);
+            else
+            {
+                EXPECT_NE(control->m_slBitmaps[i], 0);
+                EXPECT_EQ(BitUtils::GetMostSignificantBit(control->m_slBitmaps[i]), BitUtils::GetLeastSignificantBit(control->m_slBitmaps[i]));
+            }
+        }
+        const u8 slIndex = BitUtils::GetMostSignificantBit(control->m_slBitmaps[flIndex]);
+
+        for (auto fl = 0; fl < TlsfHeap::kFlIndexCount; fl++)
+        {
+            for (auto sl = 0; sl < TlsfHeap::kSlCount; sl++)
+            {
+                if (fl != flIndex || sl != slIndex)
+                    EXPECT_EQ(control->m_headerMap[fl][sl], &control->m_nullBlock);
+                else
+                    EXPECT_NE(control->m_headerMap[fl][sl], &control->m_nullBlock);
+            }
+        }
+
+        EXPECT_NE(control->m_headerMap[flIndex][slIndex], firstBlock);
 
         catcher.ExpectNoMessage();
     }
