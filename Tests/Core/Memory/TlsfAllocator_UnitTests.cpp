@@ -78,5 +78,26 @@ namespace KryneEngine::Tests
         catcher.ExpectNoMessage();
     }
 
+    TEST(TlsfAllocator, BasicAllocate)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
 
+        ScopedAssertCatcher catcher;
+
+        constexpr size_t heapSize = 8 * 1024;
+        eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
+        TlsfAllocator allocator = TlsfAllocator::Create(heap.get(), heapSize);
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        void* p0 = allocator.Allocate(1024);
+
+        EXPECT_NE(p0, nullptr);
+
+        catcher.ExpectNoMessage();
+    }
 }
