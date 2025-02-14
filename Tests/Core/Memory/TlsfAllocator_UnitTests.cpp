@@ -78,7 +78,7 @@ namespace KryneEngine::Tests
         catcher.ExpectNoMessage();
     }
 
-    TEST(TlsfAllocator, BasicAllocate)
+    TEST(TlsfAllocator, SingleAllocate)
     {
         // -----------------------------------------------------------------------
         // Setup
