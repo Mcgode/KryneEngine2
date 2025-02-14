@@ -134,4 +134,32 @@ namespace KryneEngine::Tests
 
         catcher.ExpectNoMessage();
     }
+
+    TEST(TlsfAllocator, InvalidAllocations)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+
+        constexpr size_t heapSize = 8 * 1024;
+        eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
+        TlsfAllocator allocator = TlsfAllocator::Create(heap.get(), heapSize);
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        // Size 0 outputs nullptr
+        EXPECT_EQ(allocator.Allocate(0), nullptr);
+
+        // If bigger that biggest allocatable size, outputs nullptr
+        EXPECT_EQ(allocator.Allocate(1ull << 60), nullptr);
+
+        // Even if valid size, if not enough space, cannot allocate
+        EXPECT_EQ(allocator.Allocate(heapSize), nullptr);
+
+        catcher.ExpectNoMessage();
+    }
 }
