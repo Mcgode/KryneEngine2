@@ -4,6 +4,7 @@
  * @date 13/02/2025.
  */
 
+#include <EASTL/unique_ptr.h>
 #include <gtest/gtest.h>
 #include <KryneEngine/Core/Memory/Allocators/TlsfAllocator.hpp>
 #include <KryneEngine/Core/Memory/Heaps/TlsfHeap.hpp>
@@ -13,6 +14,11 @@
 
 namespace KryneEngine::Tests
 {
+    inline TlsfHeap::ControlBlock* GetControlBlock(TlsfAllocator& _allocator)
+    {
+        return *reinterpret_cast<TlsfHeap::ControlBlock**>(&_allocator);
+    }
+
     TEST(TlsfAllocator, Creation)
     {
         // -----------------------------------------------------------------------
@@ -21,14 +27,16 @@ namespace KryneEngine::Tests
 
         ScopedAssertCatcher catcher;
 
-        std::byte heap[8 * 1024];
-        TlsfAllocator allocator = TlsfAllocator::Create(heap, sizeof(heap));
+        constexpr size_t heapSize = 8 * 1024;
+        eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
 
         // -----------------------------------------------------------------------
         // Execute
         // -----------------------------------------------------------------------
 
-        TlsfHeap::ControlBlock* control = *reinterpret_cast<TlsfHeap::ControlBlock**>(&allocator);
+        TlsfAllocator allocator = TlsfAllocator::Create(heap.get(), heapSize);
+
+        const TlsfHeap::ControlBlock* control = GetControlBlock(allocator);
 
         // After creation, we expect the null block to have no entry in `m_nextFreeBlock`, but we expect the initial
         // pool free block to be found in `m_previousFreeBlock`
@@ -64,6 +72,8 @@ namespace KryneEngine::Tests
                     EXPECT_NE(control->m_headerMap[fl][sl], &control->m_nullBlock);
             }
         }
+
+        EXPECT_EQ(control->m_headerMap[flIndex][slIndex], control->m_nullBlock.m_previousFreeBlock);
 
         catcher.ExpectNoMessage();
     }
