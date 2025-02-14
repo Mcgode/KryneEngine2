@@ -49,8 +49,21 @@ namespace KryneEngine
 
     void* TlsfAllocator::Allocate(size_t _size, size_t _alignment)
     {
-        TlsfHeap::BlockHeader* header = SearchHeader(_size);
-        return PrepareBlockUsed(header, _size);
+        TlsfHeap::BlockHeader* block = nullptr;
+
+        if (_size == 0)
+            return nullptr;
+
+        auto [fl, sl] = MappingSearch(_size);
+        block = SearchHeader(_size, fl, sl);
+
+        if (block == nullptr)
+            return nullptr;
+
+        TLSF_ASSERT(block->GetSize() >= _size);
+        RemoveBlock(block, fl, sl);
+
+        return PrepareBlockUsed(block, _size);
     }
 
     void TlsfAllocator::Free(void* _ptr)
@@ -106,6 +119,30 @@ namespace KryneEngine
         m_control->m_headerMap[fl][sl] = _block;
         m_control->m_flBitmap |= (1 << fl);
         m_control->m_slBitmaps[fl] |= (1 << sl);
+    }
+
+    void TlsfAllocator::RemoveBlock(TlsfHeap::BlockHeader* _block, u8 _fl, u8 _sl)
+    {
+        TlsfHeap::BlockHeader* previous = _block->m_previousFreeBlock;
+        TlsfHeap::BlockHeader* next = _block->m_nextFreeBlock;
+        TLSF_ASSERT(previous != nullptr);
+        TLSF_ASSERT(next != nullptr);
+
+        next->m_previousFreeBlock = previous;
+        previous->m_nextFreeBlock = next;
+
+        if (m_control->m_headerMap[_fl][_sl] == _block)
+        {
+            m_control->m_headerMap[_fl][_sl] = next;
+            if (next == &m_control->m_nullBlock)
+            {
+                m_control->m_slBitmaps[_fl] &= ~(1 << _sl);
+                if (m_control->m_slBitmaps[_fl] == 0)
+                {
+                    m_control->m_flBitmap &= ~(1 << _fl);
+                }
+            }
+        }
     }
 
     TlsfHeap::BlockHeader* TlsfAllocator::LinkNext(TlsfHeap::BlockHeader* _block)
@@ -169,21 +206,23 @@ namespace KryneEngine
         return MappingInsert(_desiredSize);
     }
 
-    TlsfHeap::BlockHeader* TlsfAllocator::SearchHeader(u64 _desiredSize)
+    TlsfHeap::BlockHeader* TlsfAllocator::SearchHeader(u64 _desiredSize, u8& _fl, u8& _sl)
     {
-        const auto [fl, sl] = MappingSearch(_desiredSize);
-        u64 bitmap = m_control->m_slBitmaps[fl] & (~0 << sl);
+        if (_fl >= TlsfHeap::kFlIndexCount)
+            return nullptr;
+
+        u64 bitmap = m_control->m_slBitmaps[_fl] & (~0 << _sl);
 
         u8 selectedFl = 255;
-        u8 selectedSl;
+        u8 selectedSl = _sl;
         if (bitmap != 0)
         {
-            selectedFl = fl;
+            selectedFl = _fl;
             selectedSl = BitUtils::GetLeastSignificantBit(bitmap);
         }
         else
         {
-            bitmap = m_control->m_flBitmap & (~0 << (fl + 1));
+            bitmap = m_control->m_flBitmap & (~0 << (_fl + 1));
             if (bitmap != 0)
             {
                 selectedFl = BitUtils::GetLeastSignificantBit(bitmap);
@@ -191,8 +230,11 @@ namespace KryneEngine
             }
         }
 
+        _fl = selectedFl;
+        _sl = selectedSl;
+
         if (selectedFl != 255)
-            return m_control->m_headerMap[selectedFl][selectedSl];
+            return m_control->m_headerMap[_fl][_sl];
         return nullptr;
     }
 
