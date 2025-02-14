@@ -324,6 +324,7 @@ namespace KryneEngine
         TLSF_ASSERT_MSG(!_left->IsLast(), "Left block must not be last");
         // Note: Leaves flags untouched
         _left->m_size += _right->GetSize() + TlsfHeap::kBlockHeaderOverhead;
+        LinkNext(_left);
         return _left;
     }
 } // namespace KryneEngine
