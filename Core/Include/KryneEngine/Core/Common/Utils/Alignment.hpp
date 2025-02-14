@@ -28,6 +28,18 @@ namespace KryneEngine::Alignment
         return ((_value + BitUtils::BitMask<T>(_pot)) >> _pot) << _pot;
     }
 
+    template <class T>
+    inline constexpr T AlignDown(T _value, T _alignment)
+    {
+        return (_alignment != 0) ? ((_value) / _alignment) * _alignment : 0;
+    }
+
+    template <class T>
+    inline constexpr T AlignDownPot(T _value, u8 _pot)
+    {
+        return _value & ~BitUtils::BitMask<T>(_pot);
+    }
+
     constexpr inline u64 NextPowerOfTwo(u64 _value)
     {
         _value--;
