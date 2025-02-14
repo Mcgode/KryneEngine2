@@ -73,9 +73,10 @@ namespace KryneEngine
             "Heap start must be aligned to %lld bytes", kAlignment);
 
         TLSF_ASSERT_MSG(
-            heapPoolBytes >= kSmallestBlockSize,
-            "Heap pool minimum size is %lld bytes",
-            kHeapPoolOverhead + kSmallestBlockSize
+            heapPoolBytes >= kMinBlockSize && heapPoolBytes <= kMaxBlockSize,
+            "Heap pool size must be contained between 0x%x and 0x%x00 bytes",
+            kHeapPoolOverhead + kMinBlockSize,
+            (kHeapPoolOverhead + kMaxBlockSize) / 256
             );
 
         auto* block = reinterpret_cast<BlockHeader*>(_heapStart - kBlockHeaderMemoryAddressLeftOffset);
@@ -129,10 +130,10 @@ namespace KryneEngine
 
     eastl::pair<u8, u8> TlsfAllocator::MappingInsert(u64 _insertSize)
     {
-        if (_insertSize < TlsfHeap::kSmallestBlockSize)
+        if (_insertSize < TlsfHeap::kSmallBlockSize)
         {
             // Store small blocks in first list.
-            return { 0, _insertSize / (TlsfHeap::kSmallestBlockSize / TlsfHeap::kSlCount) };
+            return { 0, _insertSize / (TlsfHeap::kSmallBlockSize / TlsfHeap::kSlCount) };
         }
         const u8 fl = BitUtils::GetMostSignificantBit( _insertSize);
         const u8 sl = (_insertSize >> (fl - TlsfHeap::kSlCountPot)) - (1 << TlsfHeap::kSlCountPot);

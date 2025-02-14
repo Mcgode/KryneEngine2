@@ -17,7 +17,7 @@ namespace KryneEngine::TlsfHeap
     static constexpr u8 kFlIndexMaxPot = 32;
     static constexpr u8 kFlShift = kSlCountPot + kAlignmentPot;
     static constexpr u8 kFlIndexCount = kFlIndexMaxPot - kFlShift + 1;
-    static constexpr u64 kSmallestBlockSize = 1 << kFlShift;
+    static constexpr u64 kSmallBlockSize = 1 << kFlShift;
 
     struct BlockHeader
     {
@@ -44,6 +44,9 @@ namespace KryneEngine::TlsfHeap
         static constexpr size_t kUsedBitMask = 0b01;
         static constexpr size_t kPrevUsedBitMask = 0b10;
     };
+
+    static constexpr size_t kMinBlockSize = sizeof(BlockHeader) - sizeof(BlockHeader*);
+    static constexpr size_t kMaxBlockSize = 1ull << kFlIndexMaxPot;
 
     struct alignas(kAlignment) ControlBlock
     {
