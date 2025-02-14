@@ -11,6 +11,7 @@ set(CommonSrc
         Src/Common/additional_impl.cpp
         Include/KryneEngine/Core/Common/Utils/Alignment.hpp
         Include/KryneEngine/Core/Common/Utils/MultiFrameTracking.hpp
+        Src/Common/BitUtils.cpp
 )
 
 set(FilesSrc
