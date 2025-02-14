@@ -58,5 +58,9 @@ namespace KryneEngine
         void TrimFree(TlsfHeap::BlockHeader* _block, size_t _size);
         static void MarkAsFree(TlsfHeap::BlockHeader* _block);
         static void MarkAsUsed(TlsfHeap::BlockHeader* _block);
+
+        TlsfHeap::BlockHeader* MergePreviousBlock(TlsfHeap::BlockHeader* _block);
+        TlsfHeap::BlockHeader* MergeNextBlock(TlsfHeap::BlockHeader* _block);
+        static TlsfHeap::BlockHeader* MergeBlocks(TlsfHeap::BlockHeader* _left, TlsfHeap::BlockHeader* _right);
     };
 } // namespace KryneEngine

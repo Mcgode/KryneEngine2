@@ -68,7 +68,15 @@ namespace KryneEngine
 
     void TlsfAllocator::Free(void* _ptr)
     {
+        if (_ptr == nullptr)
+            return;
 
+        TlsfHeap::BlockHeader* block = TlsfHeap::UserPtrToBlockHeader(_ptr);
+        TLSF_ASSERT_MSG(!block->IsFree(), "Block must not be free");
+        MarkAsFree(block);
+        block = MergePreviousBlock(block);
+        block = MergeNextBlock(block);
+        InsertBlock(block);
     }
 
     void TlsfAllocator::SetupHeapPool(std::byte* _heapStart, size_t _heapSize)
@@ -274,5 +282,48 @@ namespace KryneEngine
         TlsfHeap::BlockHeader* next = NextBlock(_block);
         next->SetPrevUsed();
         _block->SetUsed();
+    }
+
+    TlsfHeap::BlockHeader* TlsfAllocator::MergePreviousBlock(TlsfHeap::BlockHeader* _block)
+    {
+        if (_block->IsPrevFree())
+        {
+            TlsfHeap::BlockHeader* previous = _block->m_previousPhysicalBlock;
+            TLSF_ASSERT_MSG(previous != nullptr, "Previous physical block must not be null");
+            TLSF_ASSERT_MSG(previous->IsFree(), "Previous physical block must be free");
+
+            const auto [fl, sl] = MappingInsert(previous->GetSize());
+            RemoveBlock(previous, fl, sl);
+
+            _block = MergeBlocks(previous, _block);
+        }
+
+        return _block;
+    }
+
+    TlsfHeap::BlockHeader* TlsfAllocator::MergeNextBlock(TlsfHeap::BlockHeader* _block)
+    {
+        TlsfHeap::BlockHeader* next = NextBlock(_block);
+        TLSF_ASSERT_MSG(next != nullptr, "Next physical block must not be null");
+
+        if (next->IsFree())
+        {
+            TLSF_ASSERT_MSG(!_block->IsLast(), "Physical block must not be last");
+
+            const auto [fl, sl] = MappingInsert(next->GetSize());
+            RemoveBlock(next, fl, sl);
+
+            _block = MergeBlocks(_block, next);
+        }
+
+        return _block;
+    }
+
+    TlsfHeap::BlockHeader* TlsfAllocator::MergeBlocks(TlsfHeap::BlockHeader* _left, TlsfHeap::BlockHeader* _right)
+    {
+        TLSF_ASSERT_MSG(!_left->IsLast(), "Left block must not be last");
+        // Note: Leaves flags untouched
+        _left->m_size += _right->GetSize() + TlsfHeap::kBlockHeaderOverhead;
+        return _left;
     }
 } // namespace KryneEngine
