@@ -19,6 +19,12 @@ namespace KryneEngine::Tests
         return *reinterpret_cast<TlsfHeap::ControlBlock**>(&_allocator);
     }
 
+    inline TlsfHeap::BlockHeader* NextBlock(TlsfHeap::BlockHeader* _block)
+    {
+        return reinterpret_cast<TlsfHeap::BlockHeader*>(
+            reinterpret_cast<uintptr_t>(_block) + _block->GetSize() + TlsfHeap::kBlockHeaderOverhead);
+    }
+
     TEST(TlsfAllocator, Creation)
     {
         // -----------------------------------------------------------------------
@@ -219,6 +225,76 @@ namespace KryneEngine::Tests
 
         EXPECT_EQ(control->m_headerMap[flIndex][slIndex], firstBlock);
         EXPECT_EQ(firstBlock->GetSize(), firstBlockSize);
+
+        catcher.ExpectNoMessage();
+    }
+
+    TEST(TlsfAllocator, AdvancedBlockMerge)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+
+        constexpr size_t heapSize = 8 * 1024;
+        eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
+        TlsfAllocator allocator = TlsfAllocator::Create(heap.get(), heapSize);
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        const TlsfHeap::ControlBlock* control = GetControlBlock(allocator);
+        TlsfHeap::BlockHeader* firstBlock = control->m_nullBlock.m_previousFreeBlock;
+
+        const size_t initialSize = firstBlock->GetSize();
+
+        constexpr size_t p0Size = 128;
+        void* p0 = allocator.Allocate(p0Size);
+        EXPECT_NE(p0, nullptr);
+
+        TlsfHeap::BlockHeader* previous = firstBlock;
+        TlsfHeap::BlockHeader* block = NextBlock(firstBlock);
+
+        EXPECT_EQ(TlsfHeap::UserPtrToBlockHeader(p0), firstBlock);
+        EXPECT_EQ(previous->GetSize(), p0Size);
+        EXPECT_EQ(p0Size + block->GetSize() + TlsfHeap::kBlockHeaderOverhead, initialSize);
+        size_t offset = p0Size + TlsfHeap::kBlockHeaderOverhead;
+
+        constexpr size_t p1Size = 256;
+        void* p1 = allocator.Allocate(p1Size);
+        EXPECT_NE(p1, nullptr);
+
+        previous = block;
+        block = NextBlock(block);
+        EXPECT_EQ(TlsfHeap::UserPtrToBlockHeader(p1), previous);
+        EXPECT_EQ(previous->GetSize(), p1Size);
+        EXPECT_EQ(p1Size + block->GetSize() + TlsfHeap::kBlockHeaderOverhead, initialSize - offset);
+        offset += p1Size + TlsfHeap::kBlockHeaderOverhead;
+
+        constexpr size_t p2Size = 512;
+        void* p2 = allocator.Allocate(p2Size);
+        EXPECT_NE(p2, nullptr);
+
+        previous = block;
+        block = NextBlock(block);
+        EXPECT_EQ(TlsfHeap::UserPtrToBlockHeader(p2), previous);
+        EXPECT_EQ(previous->GetSize(), p2Size);
+        EXPECT_EQ(p2Size + block->GetSize() + TlsfHeap::kBlockHeaderOverhead, initialSize - offset);
+
+        allocator.Free(p0);
+        size_t size = p0Size;
+        EXPECT_EQ(firstBlock->GetSize(), size);
+        EXPECT_EQ(NextBlock(firstBlock), TlsfHeap::UserPtrToBlockHeader(p1));
+
+        allocator.Free(p1);
+        size += p1Size + TlsfHeap::kBlockHeaderOverhead;
+        EXPECT_EQ(firstBlock->GetSize(), size);
+        EXPECT_EQ(NextBlock(firstBlock), TlsfHeap::UserPtrToBlockHeader(p2));
+
+        allocator.Free(p2);
+        EXPECT_EQ(firstBlock->GetSize(), initialSize); // All freed, should have all merged
 
         catcher.ExpectNoMessage();
     }
