@@ -65,7 +65,7 @@ namespace KryneEngine::TlsfHeap
     static constexpr u64 kUserPtrToBlockHeaderOffset = offsetof(BlockHeader, m_size) + sizeof(size_t);
     static constexpr u64 kHeapPoolOverhead = sizeof(BlockHeader) * 2;
 
-    inline BlockHeader* PointerToBlockHeader(void* _ptr)
+    inline BlockHeader* UserPtrToBlockHeader(void* _ptr)
     {
         return reinterpret_cast<BlockHeader*>(reinterpret_cast<uintptr_t>(_ptr) - kUserPtrToBlockHeaderOffset);
     }
