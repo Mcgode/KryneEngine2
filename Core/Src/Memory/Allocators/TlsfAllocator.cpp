@@ -101,7 +101,7 @@ namespace KryneEngine
                 TlsfHeap::BlockHeader* remaining = block;
                 if (CanSplit(block, gap))
                 {
-                    remaining = SplitBlock(block, gap);
+                    remaining = SplitBlock(block, gap - TlsfHeap::kBlockHeaderOverhead);
                     remaining->SetPrevFree();
 
                     LinkNext(block);
