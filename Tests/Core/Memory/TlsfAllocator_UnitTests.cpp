@@ -182,6 +182,8 @@ namespace KryneEngine::Tests
         const TlsfHeap::ControlBlock* control = GetControlBlock(allocator);
         const TlsfHeap::BlockHeader* firstBlock = control->m_nullBlock.m_previousFreeBlock;
 
+        const size_t firstBlockSize = firstBlock->GetSize();
+
         void* p = allocator.Allocate(1024);
         EXPECT_NE(p, nullptr);
 
@@ -216,6 +218,7 @@ namespace KryneEngine::Tests
         }
 
         EXPECT_EQ(control->m_headerMap[flIndex][slIndex], firstBlock);
+        EXPECT_EQ(firstBlock->GetSize(), firstBlockSize);
 
         catcher.ExpectNoMessage();
     }
