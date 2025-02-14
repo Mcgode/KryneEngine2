@@ -6,10 +6,11 @@
 
 #include <EASTL/unique_ptr.h>
 #include <gtest/gtest.h>
+#include <KryneEngine/Core/Common/BitUtils.hpp>
+#include <KryneEngine/Core/Common/Utils/Alignment.hpp>
 #include <KryneEngine/Core/Memory/Allocators/TlsfAllocator.hpp>
 #include <KryneEngine/Core/Memory/Heaps/TlsfHeap.hpp>
 
-#include "KryneEngine/Core/Common/BitUtils.hpp"
 #include "Utils/AssertUtils.hpp"
 
 namespace KryneEngine::Tests
@@ -295,6 +296,35 @@ namespace KryneEngine::Tests
 
         allocator.Free(p2);
         EXPECT_EQ(firstBlock->GetSize(), initialSize); // All freed, should have all merged
+
+        catcher.ExpectNoMessage();
+    }
+
+    TEST(TlsfAllocator, AlignedAlloc)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+
+        constexpr size_t heapSize = 16 * 1024;
+        eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
+        TlsfAllocator allocator = TlsfAllocator::Create(heap.get(), heapSize);
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        constexpr size_t blockSize = 1024;
+        for (u8 i = 0; i <= 10; i++)
+        {
+            const size_t alignment = 1 << i;
+            void* p = allocator.Allocate(blockSize, alignment);
+            EXPECT_TRUE(Alignment::IsAligned(reinterpret_cast<uintptr_t>(p), alignment))
+                << std::format("Pointer {:#x} is not aligned to {:#x}", reinterpret_cast<uintptr_t>(p), alignment);
+            allocator.Free(p);
+        }
 
         catcher.ExpectNoMessage();
     }
