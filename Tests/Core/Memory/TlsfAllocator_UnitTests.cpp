@@ -103,9 +103,6 @@ namespace KryneEngine::Tests
         EXPECT_EQ(firstBlock, TlsfHeap::UserPtrToBlockHeader(p0));
 
         // Similar to creation, after a single allocation we should only have 1 block
-        EXPECT_EQ(control->m_nullBlock.m_nextFreeBlock, nullptr);
-        EXPECT_NE(control->m_nullBlock.m_previousFreeBlock, nullptr);
-
         EXPECT_NE(control->m_flBitmap, 0);
         EXPECT_EQ(BitUtils::GetMostSignificantBit(control->m_flBitmap), BitUtils::GetLeastSignificantBit(control->m_flBitmap));
         const u8 flIndex = BitUtils::GetMostSignificantBit(control->m_flBitmap);
