@@ -46,11 +46,14 @@ namespace KryneEngine
         void InsertBlock(TlsfHeap::BlockHeader* _block);
         static TlsfHeap::BlockHeader* LinkNext(TlsfHeap::BlockHeader* _block);
         static TlsfHeap::BlockHeader* NextBlock(const TlsfHeap::BlockHeader* _block);
+        static bool CanSplit(const TlsfHeap::BlockHeader* _block, size_t _size);
+        static TlsfHeap::BlockHeader* SplitBlock(TlsfHeap::BlockHeader* _block, size_t _size);
 
         static eastl::pair<u8, u8> MappingInsert(u64 _insertSize);
         static eastl::pair<u8, u8> MappingSearch(u64 _desiredSize);
 
-        TlsfHeap::BlockHeader** SearchHeader(u64 _desiredSize);
-
+        TlsfHeap::BlockHeader* SearchHeader(u64 _desiredSize);
+        void* PrepareBlockUsed(TlsfHeap::BlockHeader* _block, size_t _size);
+        void TrimFree(TlsfHeap::BlockHeader* _block, size_t _size);
     };
 } // namespace KryneEngine

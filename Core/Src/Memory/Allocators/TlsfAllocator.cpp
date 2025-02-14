@@ -49,12 +49,8 @@ namespace KryneEngine
 
     void* TlsfAllocator::Allocate(size_t _size, size_t _alignment)
     {
-        TlsfHeap::BlockHeader** header = SearchHeader(_size);
-
-        if (header == nullptr)
-            return nullptr;
-
-        return nullptr;
+        TlsfHeap::BlockHeader* header = SearchHeader(_size);
+        return PrepareBlockUsed(header, _size);
     }
 
     void TlsfAllocator::Free(void* _ptr)
@@ -123,9 +119,35 @@ namespace KryneEngine
     {
         auto* next = reinterpret_cast<TlsfHeap::BlockHeader*>(
             reinterpret_cast<uintptr_t>(TlsfHeap::BlockHeaderToUserPtr(_block)) +
-            _block->GetSize() - TlsfHeap::kUsedBlockHeaderOverhead);
+            _block->GetSize() - TlsfHeap::kBlockHeaderOverhead);
         TLSF_ASSERT(!_block->IsLast());
         return next;
+    }
+
+    bool TlsfAllocator::CanSplit(const TlsfHeap::BlockHeader* _block, size_t _size)
+    {
+        return _block->GetSize() > _size + sizeof(TlsfHeap::BlockHeader);
+    }
+
+    TlsfHeap::BlockHeader* TlsfAllocator::SplitBlock(TlsfHeap::BlockHeader* _block, size_t _size)
+    {
+        auto* remaining = reinterpret_cast<TlsfHeap::BlockHeader*>(
+            reinterpret_cast<uintptr_t>(TlsfHeap::BlockHeaderToUserPtr(_block))
+            + _size - TlsfHeap::kBlockHeaderOverhead);
+        const size_t remainingSize = _block->GetSize() - (_size + TlsfHeap::kBlockHeaderOverhead);
+
+        TLSF_ASSERT_MSG(
+            Alignment::IsAligned(reinterpret_cast<uintptr_t>(TlsfHeap::BlockHeaderToUserPtr(remaining)), TlsfHeap::kAlignment),
+            "Remaining block not aligned properly");
+
+        TLSF_ASSERT(_block->GetSize() == _size + remainingSize + TlsfHeap::kBlockHeaderOverhead);
+        remaining->SetSize(remainingSize);
+        TLSF_ASSERT_MSG(remaining->GetSize() >= TlsfHeap::kMinBlockSize, "Remaining block must be at least %lld bytes", TlsfHeap::kSmallBlockSize);
+
+        _block->SetSize(_size);
+        remaining->SetFree();
+
+        return remaining;
     }
 
     eastl::pair<u8, u8> TlsfAllocator::MappingInsert(u64 _insertSize)
@@ -147,7 +169,7 @@ namespace KryneEngine
         return MappingInsert(_desiredSize);
     }
 
-    TlsfHeap::BlockHeader** TlsfAllocator::SearchHeader(u64 _desiredSize)
+    TlsfHeap::BlockHeader* TlsfAllocator::SearchHeader(u64 _desiredSize)
     {
         const auto [fl, sl] = MappingSearch(_desiredSize);
         u64 bitmap = m_control->m_slBitmaps[fl] & (~0 << sl);
@@ -170,7 +192,31 @@ namespace KryneEngine
         }
 
         if (selectedFl != 255)
-            return &m_control->m_headerMap[selectedFl >> TlsfHeap::kFlShift][selectedSl];
+            return m_control->m_headerMap[selectedFl >> TlsfHeap::kFlShift][selectedSl];
         return nullptr;
+    }
+
+    void* TlsfAllocator::PrepareBlockUsed(TlsfHeap::BlockHeader* _block, size_t _size)
+    {
+        if (_block == nullptr)
+            return nullptr;
+
+        TLSF_ASSERT_MSG(_size > 0, "Size must be non-zero");
+        TrimFree(_block, _size);
+        _block->SetUsed();
+        return TlsfHeap::BlockHeaderToUserPtr(_block);
+    }
+
+    void TlsfAllocator::TrimFree(TlsfHeap::BlockHeader* _block, size_t _size)
+    {
+        TLSF_ASSERT_MSG(_block->IsFree(), "Block must be free");
+
+        if (CanSplit(_block, _size))
+        {
+            TlsfHeap::BlockHeader* remaining = SplitBlock(_block, _size);
+            LinkNext(_block);
+            remaining->SetPrevFree();
+            InsertBlock(remaining);
+        }
     }
 } // namespace KryneEngine
