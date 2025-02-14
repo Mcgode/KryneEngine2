@@ -89,7 +89,7 @@ namespace KryneEngine
 
             if (gap && gap < gapMinimum)
             {
-                const size_t offset = Alignment::AlignUp(gapMinimum - gap, TlsfHeap::kAlignment);
+                const size_t offset = Alignment::AlignUp(gapMinimum - gap, _alignment);
                 aligned += offset;
                 gap = aligned - ptr;
             }
