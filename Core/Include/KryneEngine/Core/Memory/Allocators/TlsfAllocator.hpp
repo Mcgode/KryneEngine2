@@ -55,5 +55,7 @@ namespace KryneEngine
         TlsfHeap::BlockHeader* SearchHeader(u64 _desiredSize);
         void* PrepareBlockUsed(TlsfHeap::BlockHeader* _block, size_t _size);
         void TrimFree(TlsfHeap::BlockHeader* _block, size_t _size);
+        static void MarkAsFree(TlsfHeap::BlockHeader* _block);
+        static void MarkAsUsed(TlsfHeap::BlockHeader* _block);
     };
 } // namespace KryneEngine

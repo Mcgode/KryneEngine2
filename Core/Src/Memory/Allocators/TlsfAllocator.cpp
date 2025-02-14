@@ -145,7 +145,7 @@ namespace KryneEngine
         TLSF_ASSERT_MSG(remaining->GetSize() >= TlsfHeap::kMinBlockSize, "Remaining block must be at least %lld bytes", TlsfHeap::kSmallBlockSize);
 
         _block->SetSize(_size);
-        remaining->SetFree();
+        MarkAsFree(remaining);
 
         return remaining;
     }
@@ -203,7 +203,7 @@ namespace KryneEngine
 
         TLSF_ASSERT_MSG(_size > 0, "Size must be non-zero");
         TrimFree(_block, _size);
-        _block->SetUsed();
+        MarkAsUsed(_block);
         return TlsfHeap::BlockHeaderToUserPtr(_block);
     }
 
@@ -218,5 +218,19 @@ namespace KryneEngine
             remaining->SetPrevFree();
             InsertBlock(remaining);
         }
+    }
+
+    void TlsfAllocator::MarkAsFree(TlsfHeap::BlockHeader* _block)
+    {
+        TlsfHeap::BlockHeader* next = NextBlock(_block);
+        next->SetPrevFree();
+        _block->SetFree();
+    }
+
+    void TlsfAllocator::MarkAsUsed(TlsfHeap::BlockHeader* _block)
+    {
+        TlsfHeap::BlockHeader* next = NextBlock(_block);
+        next->SetPrevUsed();
+        _block->SetUsed();
     }
 } // namespace KryneEngine
