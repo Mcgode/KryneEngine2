@@ -62,6 +62,9 @@ set(MemorySrc
         Include/KryneEngine/Core/Memory/GenerationalPool.hpp
         Include/KryneEngine/Core/Memory/SimplePool.inl
         Include/KryneEngine/Core/Memory/SimplePool.hpp
+        Src/Memory/Allocators/TlsfAllocator.cpp
+        Include/KryneEngine/Core/Memory/Allocators/TlsfAllocator.hpp
+        Include/KryneEngine/Core/Memory/Heaps/TlsfHeap.hpp
 )
 
 set(ProfilingSrc
