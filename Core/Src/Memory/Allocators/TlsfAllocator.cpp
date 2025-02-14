@@ -54,7 +54,25 @@ namespace KryneEngine
         if (_size == 0)
             return nullptr;
 
-        auto [fl, sl] = MappingSearch(_size);
+        size_t adjusted = Alignment::AlignUp(_size, TlsfHeap::kAlignment);
+        adjusted = eastl::max<size_t>(adjusted, TlsfHeap::kMinBlockSize);
+        size_t alignedSize = adjusted;
+
+        constexpr size_t gapMinimum = sizeof(TlsfHeap::BlockHeader);
+        if (_alignment > TlsfHeap::kAlignment)
+        {
+            /*
+             * We must allocate an additional minimum block size bytes so that if
+             * our free block will leave an alignment gap which is smaller, we can
+             * trim a leading free block and release it back to the pool. We must
+             * do this because the previous physical block is in use, therefore
+             * the prev_phys_block field is not valid, and we can't simply adjust
+             * the size of that block.
+             */
+            alignedSize = Alignment::AlignUp(_size + gapMinimum + _alignment, _alignment);
+        }
+
+        auto [fl, sl] = MappingSearch(alignedSize);
         block = SearchHeader(_size, fl, sl);
 
         if (block == nullptr)
@@ -62,6 +80,36 @@ namespace KryneEngine
 
         TLSF_ASSERT(block->GetSize() >= _size);
         RemoveBlock(block, fl, sl);
+
+        if (_alignment > TlsfHeap::kAlignment)
+        {
+            const auto ptr = reinterpret_cast<uintptr_t>(TlsfHeap::BlockHeaderToUserPtr(block));
+            uintptr_t aligned = Alignment::AlignUp(ptr, _alignment);
+            size_t gap = aligned - ptr;
+
+            if (gap && gap < gapMinimum)
+            {
+                const size_t offset = Alignment::AlignUp(gapMinimum - gap, TlsfHeap::kAlignment);
+                aligned += offset;
+                gap = aligned - ptr;
+            }
+
+            if (gap)
+            {
+                TLSF_ASSERT(gap >= gapMinimum);
+
+                TlsfHeap::BlockHeader* remaining = block;
+                if (CanSplit(block, gap))
+                {
+                    remaining = SplitBlock(block, gap);
+                    remaining->SetPrevFree();
+
+                    LinkNext(block);
+                    InsertBlock(block);
+                }
+                block = remaining;
+            }
+        }
 
         return PrepareBlockUsed(block, _size);
     }
