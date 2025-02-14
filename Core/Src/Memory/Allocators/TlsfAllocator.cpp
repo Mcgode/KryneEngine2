@@ -225,8 +225,7 @@ namespace KryneEngine
     TlsfHeap::BlockHeader* TlsfAllocator::SplitBlock(TlsfHeap::BlockHeader* _block, size_t _size)
     {
         auto* remaining = reinterpret_cast<TlsfHeap::BlockHeader*>(
-            reinterpret_cast<uintptr_t>(TlsfHeap::BlockHeaderToUserPtr(_block))
-            + _size - TlsfHeap::kBlockHeaderOverhead);
+            reinterpret_cast<uintptr_t>(_block) + _size + TlsfHeap::kBlockHeaderOverhead);
         const size_t remainingSize = _block->GetSize() - (_size + TlsfHeap::kBlockHeaderOverhead);
 
         TLSF_ASSERT_MSG(
