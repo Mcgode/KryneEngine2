@@ -65,6 +65,8 @@ set(MemorySrc
         Src/Memory/Allocators/TlsfAllocator.cpp
         Include/KryneEngine/Core/Memory/Allocators/TlsfAllocator.hpp
         Include/KryneEngine/Core/Memory/Heaps/TlsfHeap.hpp
+        Src/Memory/Allocators/Allocator.cpp
+        Include/KryneEngine/Core/Memory/Allocators/Allocator.hpp
 )
 
 set(ProfilingSrc
