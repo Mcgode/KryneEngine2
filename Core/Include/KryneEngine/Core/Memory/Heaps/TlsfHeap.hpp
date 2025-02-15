@@ -54,7 +54,6 @@ namespace KryneEngine::TlsfHeap
         u32 m_flBitmap;
         u32 m_slBitmaps[kFlIndexCount];
         BlockHeader* m_headerMap[kFlIndexCount][kSlCount];
-        std::byte m_userData[64]; ///< Some memory space for user data, such as synchronization primitives
 
         static_assert(sizeof(m_flBitmap) * 8 >= kFlIndexMaxPot, "m_flBitmap integer type inadequate");
         static_assert(sizeof(*m_slBitmaps) * 8 == (1 << kSlCountPot), "m_slBitmaps integer type inadequate");

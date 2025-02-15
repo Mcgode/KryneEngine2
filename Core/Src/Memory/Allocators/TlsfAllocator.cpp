@@ -27,11 +27,16 @@
 
 namespace KryneEngine
 {
-    TlsfAllocator TlsfAllocator::Create(std::byte* _heapStart, size_t _heapSize)
+    TlsfAllocator* TlsfAllocator::Create(std::byte* _heapStart, size_t _heapSize)
     {
         TLSF_ASSERT_MSG(_heapSize > sizeof(TlsfHeap::ControlBlock), "Heap size must be greater than the size of the control block");
 
-        auto* control = reinterpret_cast<TlsfHeap::ControlBlock*>(_heapStart);
+        auto* allocator = reinterpret_cast<TlsfAllocator*>(_heapStart);
+        new (allocator) TlsfAllocator(Alignment::AlignUp(sizeof(TlsfAllocator), TlsfHeap::kAlignment));
+        _heapStart += allocator->m_allocatorSize;
+        _heapSize -= allocator->m_allocatorSize;
+
+        TlsfHeap::ControlBlock* control = allocator->GetControlBlock();
         memset(control, 0, offsetof(TlsfHeap::ControlBlock, m_headerMap));
         for (auto& headerList : control->m_headerMap)
         {
@@ -40,10 +45,8 @@ namespace KryneEngine
                 header = &control->m_nullBlock;
             }
         }
-        memset(&control->m_userData, 0, sizeof(control->m_userData));
 
-        TlsfAllocator allocator(control);
-        allocator.SetupHeapPool(_heapStart + sizeof(TlsfHeap::ControlBlock), _heapSize - sizeof(TlsfHeap::ControlBlock));
+        allocator->SetupHeapPool(_heapStart + sizeof(TlsfHeap::ControlBlock), _heapSize - sizeof(TlsfHeap::ControlBlock));
         return allocator;
     }
 
@@ -161,20 +164,21 @@ namespace KryneEngine
         TLSF_ASSERT_MSG(_block->IsFree(), "Block must be free");
         const auto [fl, sl] = MappingInsert(_block->GetSize());
 
-        TlsfHeap::BlockHeader* current = m_control->m_headerMap[fl][sl];
+        TlsfHeap::ControlBlock* control = GetControlBlock();
+        TlsfHeap::BlockHeader* current = control->m_headerMap[fl][sl];
         TLSF_ASSERT_MSG(current != nullptr, "Freelist cannot have a null entry");
         TLSF_ASSERT_MSG(_block != nullptr, "Cannot insert a null entry in the freelist");
         _block->m_nextFreeBlock = current;
-        _block->m_previousFreeBlock = &m_control->m_nullBlock;
+        _block->m_previousFreeBlock = &control->m_nullBlock;
         current->m_previousFreeBlock = _block;
 
         TLSF_ASSERT_MSG(
             Alignment::IsAligned(reinterpret_cast<uintptr_t>(TlsfHeap::BlockHeaderToUserPtr(_block)), TlsfHeap::kAlignment),
             "Block not aligned properly");
 
-        m_control->m_headerMap[fl][sl] = _block;
-        m_control->m_flBitmap |= (1 << fl);
-        m_control->m_slBitmaps[fl] |= (1 << sl);
+        control->m_headerMap[fl][sl] = _block;
+        control->m_flBitmap |= (1 << fl);
+        control->m_slBitmaps[fl] |= (1 << sl);
     }
 
     void TlsfAllocator::RemoveBlock(TlsfHeap::BlockHeader* _block, u8 _fl, u8 _sl)
@@ -187,15 +191,16 @@ namespace KryneEngine
         next->m_previousFreeBlock = previous;
         previous->m_nextFreeBlock = next;
 
-        if (m_control->m_headerMap[_fl][_sl] == _block)
+        TlsfHeap::ControlBlock* control = GetControlBlock();
+        if (control->m_headerMap[_fl][_sl] == _block)
         {
-            m_control->m_headerMap[_fl][_sl] = next;
-            if (next == &m_control->m_nullBlock)
+            control->m_headerMap[_fl][_sl] = next;
+            if (next == &control->m_nullBlock)
             {
-                m_control->m_slBitmaps[_fl] &= ~(1 << _sl);
-                if (m_control->m_slBitmaps[_fl] == 0)
+                control->m_slBitmaps[_fl] &= ~(1 << _sl);
+                if (control->m_slBitmaps[_fl] == 0)
                 {
-                    m_control->m_flBitmap &= ~(1 << _fl);
+                    control->m_flBitmap &= ~(1 << _fl);
                 }
             }
         }
@@ -266,7 +271,8 @@ namespace KryneEngine
         if (_fl >= TlsfHeap::kFlIndexCount)
             return nullptr;
 
-        u64 bitmap = m_control->m_slBitmaps[_fl] & (~0 << _sl);
+        TlsfHeap::ControlBlock* control = GetControlBlock();
+        u64 bitmap = control->m_slBitmaps[_fl] & (~0 << _sl);
 
         u8 selectedFl = 255;
         u8 selectedSl = _sl;
@@ -277,11 +283,11 @@ namespace KryneEngine
         }
         else
         {
-            bitmap = m_control->m_flBitmap & (~0 << (_fl + 1));
+            bitmap = control->m_flBitmap & (~0 << (_fl + 1));
             if (bitmap != 0)
             {
                 selectedFl = BitUtils::GetLeastSignificantBit(bitmap);
-                selectedSl = BitUtils::GetLeastSignificantBit(m_control->m_slBitmaps[selectedFl]);
+                selectedSl = BitUtils::GetLeastSignificantBit(control->m_slBitmaps[selectedFl]);
             }
         }
 
@@ -289,7 +295,7 @@ namespace KryneEngine
         _sl = selectedSl;
 
         if (selectedFl != 255)
-            return m_control->m_headerMap[_fl][_sl];
+            return control->m_headerMap[_fl][_sl];
         return nullptr;
     }
 

@@ -15,9 +15,10 @@
 
 namespace KryneEngine::Tests
 {
-    inline TlsfHeap::ControlBlock* GetControlBlock(TlsfAllocator& _allocator)
+    inline TlsfHeap::ControlBlock* GetControlBlock(TlsfAllocator* _allocator)
     {
-        return *reinterpret_cast<TlsfHeap::ControlBlock**>(&_allocator);
+        constexpr size_t offset = Alignment::AlignUp(sizeof(TlsfAllocator), TlsfHeap::kAlignment);
+        return reinterpret_cast<TlsfHeap::ControlBlock*>(reinterpret_cast<uintptr_t>(_allocator) + offset);
     }
 
     inline TlsfHeap::BlockHeader* NextBlock(TlsfHeap::BlockHeader* _block)
@@ -41,7 +42,7 @@ namespace KryneEngine::Tests
         // Execute
         // -----------------------------------------------------------------------
 
-        TlsfAllocator allocator = TlsfAllocator::Create(heap.get(), heapSize);
+        TlsfAllocator* allocator = TlsfAllocator::Create(heap.get(), heapSize);
 
         const TlsfHeap::ControlBlock* control = GetControlBlock(allocator);
 
@@ -74,7 +75,7 @@ namespace KryneEngine::Tests
             for (auto sl = 0; sl < TlsfHeap::kSlCount; sl++)
             {
                 if (fl != flIndex || sl != slIndex)
-                    EXPECT_EQ(control->m_headerMap[fl][sl], &control->m_nullBlock);
+                    EXPECT_EQ(control->m_headerMap[fl][sl], &control->m_nullBlock) << fl << ":" << sl;
                 else
                     EXPECT_NE(control->m_headerMap[fl][sl], &control->m_nullBlock);
             }
@@ -95,7 +96,7 @@ namespace KryneEngine::Tests
 
         constexpr size_t heapSize = 8 * 1024;
         eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
-        TlsfAllocator allocator = TlsfAllocator::Create(heap.get(), heapSize);
+        TlsfAllocator* allocator = TlsfAllocator::Create(heap.get(), heapSize);
 
         // -----------------------------------------------------------------------
         // Execute
@@ -104,7 +105,7 @@ namespace KryneEngine::Tests
         const TlsfHeap::ControlBlock* control = GetControlBlock(allocator);
         const TlsfHeap::BlockHeader* firstBlock = control->m_nullBlock.m_previousFreeBlock;
 
-        void* p0 = allocator.Allocate(1024);
+        void* p0 = allocator->Allocate(1024);
 
         EXPECT_NE(p0, nullptr);
         EXPECT_EQ(firstBlock, TlsfHeap::UserPtrToBlockHeader(p0));
@@ -152,20 +153,20 @@ namespace KryneEngine::Tests
 
         constexpr size_t heapSize = 8 * 1024;
         eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
-        TlsfAllocator allocator = TlsfAllocator::Create(heap.get(), heapSize);
+        TlsfAllocator* allocator = TlsfAllocator::Create(heap.get(), heapSize);
 
         // -----------------------------------------------------------------------
         // Execute
         // -----------------------------------------------------------------------
 
         // Size 0 outputs nullptr
-        EXPECT_EQ(allocator.Allocate(0), nullptr);
+        EXPECT_EQ(allocator->Allocate(0), nullptr);
 
         // If bigger that biggest allocatable size, outputs nullptr
-        EXPECT_EQ(allocator.Allocate(1ull << 60), nullptr);
+        EXPECT_EQ(allocator->Allocate(1ull << 60), nullptr);
 
         // Even if valid size, if not enough space, cannot allocate
-        EXPECT_EQ(allocator.Allocate(heapSize), nullptr);
+        EXPECT_EQ(allocator->Allocate(heapSize), nullptr);
 
         catcher.ExpectNoMessage();
     }
@@ -180,7 +181,7 @@ namespace KryneEngine::Tests
 
         constexpr size_t heapSize = 8 * 1024;
         eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
-        TlsfAllocator allocator = TlsfAllocator::Create(heap.get(), heapSize);
+        TlsfAllocator* allocator = TlsfAllocator::Create(heap.get(), heapSize);
 
         // -----------------------------------------------------------------------
         // Execute
@@ -191,10 +192,10 @@ namespace KryneEngine::Tests
 
         const size_t firstBlockSize = firstBlock->GetSize();
 
-        void* p = allocator.Allocate(1024);
+        void* p = allocator->Allocate(1024);
         EXPECT_NE(p, nullptr);
 
-        allocator.Free(p);
+        allocator->Free(p);
 
         // Similar to single allocation, after a single alloc & free we should only have 1 block
         EXPECT_NE(control->m_flBitmap, 0);
@@ -240,7 +241,7 @@ namespace KryneEngine::Tests
 
         constexpr size_t heapSize = 8 * 1024;
         eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
-        TlsfAllocator allocator = TlsfAllocator::Create(heap.get(), heapSize);
+        TlsfAllocator* allocator = TlsfAllocator::Create(heap.get(), heapSize);
 
         // -----------------------------------------------------------------------
         // Execute
@@ -252,7 +253,7 @@ namespace KryneEngine::Tests
         const size_t initialSize = firstBlock->GetSize();
 
         constexpr size_t p0Size = 128;
-        void* p0 = allocator.Allocate(p0Size);
+        void* p0 = allocator->Allocate(p0Size);
         EXPECT_NE(p0, nullptr);
 
         TlsfHeap::BlockHeader* previous = firstBlock;
@@ -264,7 +265,7 @@ namespace KryneEngine::Tests
         size_t offset = p0Size + TlsfHeap::kBlockHeaderOverhead;
 
         constexpr size_t p1Size = 256;
-        void* p1 = allocator.Allocate(p1Size);
+        void* p1 = allocator->Allocate(p1Size);
         EXPECT_NE(p1, nullptr);
 
         previous = block;
@@ -275,7 +276,7 @@ namespace KryneEngine::Tests
         offset += p1Size + TlsfHeap::kBlockHeaderOverhead;
 
         constexpr size_t p2Size = 512;
-        void* p2 = allocator.Allocate(p2Size);
+        void* p2 = allocator->Allocate(p2Size);
         EXPECT_NE(p2, nullptr);
 
         previous = block;
@@ -284,17 +285,17 @@ namespace KryneEngine::Tests
         EXPECT_EQ(previous->GetSize(), p2Size);
         EXPECT_EQ(p2Size + block->GetSize() + TlsfHeap::kBlockHeaderOverhead, initialSize - offset);
 
-        allocator.Free(p0);
+        allocator->Free(p0);
         size_t size = p0Size;
         EXPECT_EQ(firstBlock->GetSize(), size);
         EXPECT_EQ(NextBlock(firstBlock), TlsfHeap::UserPtrToBlockHeader(p1));
 
-        allocator.Free(p1);
+        allocator->Free(p1);
         size += p1Size + TlsfHeap::kBlockHeaderOverhead;
         EXPECT_EQ(firstBlock->GetSize(), size);
         EXPECT_EQ(NextBlock(firstBlock), TlsfHeap::UserPtrToBlockHeader(p2));
 
-        allocator.Free(p2);
+        allocator->Free(p2);
         EXPECT_EQ(firstBlock->GetSize(), initialSize); // All freed, should have all merged
 
         catcher.ExpectNoMessage();
@@ -310,7 +311,7 @@ namespace KryneEngine::Tests
 
         constexpr size_t heapSize = 16 * 1024;
         eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
-        TlsfAllocator allocator = TlsfAllocator::Create(heap.get(), heapSize);
+        TlsfAllocator* allocator = TlsfAllocator::Create(heap.get(), heapSize);
 
         // -----------------------------------------------------------------------
         // Execute
@@ -320,10 +321,10 @@ namespace KryneEngine::Tests
         for (u8 i = 0; i <= 10; i++)
         {
             const size_t alignment = 1 << i;
-            void* p = allocator.Allocate(blockSize, alignment);
+            void* p = allocator->Allocate(blockSize, alignment);
             EXPECT_TRUE(Alignment::IsAligned(reinterpret_cast<uintptr_t>(p), alignment))
                 << std::format("Pointer {:#x} is not aligned to {:#x}", reinterpret_cast<uintptr_t>(p), alignment);
-            allocator.Free(p);
+            allocator->Free(p);
         }
 
         catcher.ExpectNoMessage();
