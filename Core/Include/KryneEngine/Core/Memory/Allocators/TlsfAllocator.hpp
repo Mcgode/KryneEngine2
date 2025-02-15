@@ -45,6 +45,8 @@ namespace KryneEngine
         void SetAutoGrowth(bool _autoGrowth) { m_autoGrowth = _autoGrowth; }
         [[nodiscard]] bool IsAutoGrowth() const { return m_autoGrowth; }
 
+        bool AddHeap();
+
     protected:
         explicit TlsfAllocator(AllocatorInstance _parentAllocator, size_t _heapSize, u32 _allocatorSize);
 
@@ -57,6 +59,7 @@ namespace KryneEngine
     private:
         AllocatorInstance m_parentAllocator;
         size_t m_heapSize;
+        void* m_nextHeap = nullptr;
         u32 m_allocatorSize;
         bool m_autoGrowth = true;
 

@@ -38,6 +38,10 @@ namespace KryneEngine
         adjusted = eastl::max<size_t>(adjusted, TlsfHeap::kMinBlockSize);
         size_t alignedSize = adjusted;
 
+        const size_t usableHeapSize = m_heapSize - TlsfHeap::kHeapPoolOverhead - sizeof(void*);
+        if (adjusted > usableHeapSize)
+            return nullptr;
+
         constexpr size_t gapMinimum = sizeof(TlsfHeap::BlockHeader);
         if (_alignment > TlsfHeap::kAlignment)
         {
@@ -56,7 +60,17 @@ namespace KryneEngine
         block = SearchHeader(_size, fl, sl);
 
         if (block == nullptr)
-            return nullptr;
+        {
+            // Try to auto-grow the allocator by adding a heap
+            if (!m_autoGrowth || !AddHeap())
+                return nullptr;
+            eastl::pair<u8, u8> pair = MappingSearch(alignedSize);
+            fl = pair.first; sl = pair.second;
+            block = SearchHeader(_size, fl, sl);
+
+            if (block == nullptr)
+                return nullptr;
+        }
 
         TLSF_ASSERT(block->GetSize() >= _size);
         RemoveBlock(block, fl, sl);
@@ -137,6 +151,24 @@ namespace KryneEngine
         return allocator;
     }
 
+    bool TlsfAllocator::AddHeap()
+    {
+        void*& nextHeap = m_nextHeap;
+        while (nextHeap != nullptr)
+        {
+            nextHeap = *static_cast<void**>(nextHeap);
+        }
+
+        auto* newHeap = reinterpret_cast<std::byte*>(m_parentAllocator.allocate(m_heapSize, TlsfHeap::kAlignment));
+        if (newHeap == nullptr)
+            return false;
+
+        nextHeap = newHeap;
+        memset(newHeap, 0, sizeof(void*));
+        newHeap += sizeof(void*);
+        SetupHeapPool(newHeap, m_heapSize - sizeof(void*));
+        return true;
+    }
 
     TlsfAllocator::TlsfAllocator(AllocatorInstance _parentAllocator, size_t _heapSize, u32 _allocatorSize)
         : m_parentAllocator(_parentAllocator)
