@@ -117,7 +117,7 @@ namespace KryneEngine
         return PrepareBlockUsed(block, _size);
     }
 
-    void TlsfAllocator::Free(void* _ptr)
+    void TlsfAllocator::Free(void* _ptr, size_t /* _size */)
     {
         if (_ptr == nullptr)
             return;

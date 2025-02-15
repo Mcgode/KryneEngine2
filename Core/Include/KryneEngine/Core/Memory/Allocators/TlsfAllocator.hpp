@@ -7,6 +7,7 @@
 #pragma once
 
 #include "KryneEngine/Core/Common/Types.hpp"
+#include "KryneEngine/Core/Memory/Allocators/Allocator.hpp"
 
 namespace KryneEngine
 {
@@ -27,17 +28,17 @@ namespace KryneEngine
      * heap used as the initial heap pool.
      * This allows the allocator to be fully accounted for memory-wise.
      */
-    class TlsfAllocator
+    class TlsfAllocator: public IAllocator
     {
     public:
         TlsfAllocator(const TlsfAllocator& _other) = delete;
         TlsfAllocator(TlsfAllocator&& _other) = delete;
         TlsfAllocator& operator=(const TlsfAllocator& _other) = delete;
         TlsfAllocator& operator=(TlsfAllocator&& _other) = delete;
-        ~TlsfAllocator() = delete;
+        ~TlsfAllocator() override = default;
 
-        void* Allocate(size_t _size, size_t _alignment = 0);
-        void Free(void* _ptr);
+        void* Allocate(size_t _size, size_t _alignment) override;
+        void Free(void* _ptr, size_t _size) override;
 
         static TlsfAllocator* Create(std::byte* _heapStart, size_t _heapSize);
 
