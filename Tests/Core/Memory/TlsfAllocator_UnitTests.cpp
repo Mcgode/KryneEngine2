@@ -323,4 +323,33 @@ namespace KryneEngine::Tests
 
         catcher.ExpectNoMessage();
     }
+
+    TEST(TlsfAllocator, AutoGrowth)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+
+        constexpr size_t heapSize = 8 * 1024;
+        TlsfAllocator* allocator = TlsfAllocator::Create(AllocatorInstance(), heapSize);
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        // Block size that is big enough to warrant a new heap
+        constexpr size_t blockSize = 6 * 1024;
+
+        EXPECT_TRUE(allocator->IsAutoGrowth());
+        void* p0 = allocator->Allocate(blockSize, 0);
+        EXPECT_NE(p0, nullptr);
+
+        allocator->SetAutoGrowth(false);
+        void* p1 = allocator->Allocate(blockSize, 0);
+        EXPECT_EQ(p1, nullptr);
+
+        catcher.ExpectNoMessage();
+    }
 }
