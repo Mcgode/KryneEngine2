@@ -12,6 +12,7 @@ set(CommonSrc
         Include/KryneEngine/Core/Common/Utils/Alignment.hpp
         Include/KryneEngine/Core/Common/Utils/MultiFrameTracking.hpp
         Src/Common/BitUtils.cpp
+        Include/KryneEngine/Core/Common/Misc/EastlConfig.hpp
 )
 
 set(FilesSrc
@@ -199,6 +200,8 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         target_compile_options(KryneEngine_Core PRIVATE /we4062)
 endif()
+
+target_compile_definitions(KryneEngine_Core PUBLIC EASTL_USER_CONFIG_HEADER="KryneEngine/Core/Common/Misc/EastlConfig.hpp")
 
 target_include_directories(KryneEngine_Core PUBLIC Include)
 target_include_directories(KryneEngine_Core PRIVATE Src)

@@ -10,7 +10,7 @@
 
 namespace KryneEngine
 {
-    void* AllocatorInstance::allocate(const size_t _size, const u32 _flags)
+    void* AllocatorInstance::allocate(size_t _size, int _flags)
     {
         if (m_allocator)
         {
@@ -18,11 +18,11 @@ namespace KryneEngine
         }
         else
         {
-            return ::new((char*)nullptr, static_cast<s32>(_flags), 0, __FILE__, __LINE__) std::byte[_size];
+            return ::new((char*)nullptr, _flags, 0, __FILE__, __LINE__) std::byte[_size];
         }
     }
 
-    void* AllocatorInstance::allocate(size_t _size, size_t _alignment, size_t _alignmentOffset, u32 _flags)
+    void* AllocatorInstance::allocate(size_t _size, size_t _alignment, size_t _alignmentOffset, int _flags)
     {
         if (m_allocator)
         {
@@ -31,7 +31,7 @@ namespace KryneEngine
         }
         else
         {
-            return ::new(_alignment, _alignmentOffset, (char*)nullptr, static_cast<s32>(_flags), 0, __FILE__, __LINE__) std::byte[_size];
+            return ::new(_alignment, _alignmentOffset, (char*)nullptr, _flags, 0, __FILE__, __LINE__) std::byte[_size];
         }
     }
 
