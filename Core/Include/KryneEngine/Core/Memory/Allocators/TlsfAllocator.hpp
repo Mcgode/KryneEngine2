@@ -40,10 +40,13 @@ namespace KryneEngine
         void* Allocate(size_t _size, size_t _alignment) override;
         void Free(void* _ptr, size_t _size) override;
 
-        static TlsfAllocator* Create(std::byte* _heapStart, size_t _heapSize);
+        static TlsfAllocator* Create(AllocatorInstance _parentAllocator, size_t _initialHeapSize);
+
+        void SetAutoGrowth(bool _autoGrowth) { m_autoGrowth = _autoGrowth; }
+        [[nodiscard]] bool IsAutoGrowth() const { return m_autoGrowth; }
 
     protected:
-        explicit TlsfAllocator(size_t _allocatorSize): m_allocatorSize(_allocatorSize) {}
+        explicit TlsfAllocator(AllocatorInstance _parentAllocator, size_t _heapSize, u32 _allocatorSize);
 
         void SetupHeapPool(std::byte* _heapStart, size_t _heapSize);
         [[nodiscard]] inline TlsfHeap::ControlBlock* GetControlBlock() const
@@ -52,7 +55,10 @@ namespace KryneEngine
         }
 
     private:
-        size_t m_allocatorSize;
+        AllocatorInstance m_parentAllocator;
+        size_t m_heapSize;
+        u32 m_allocatorSize;
+        bool m_autoGrowth = true;
 
         void InsertBlock(TlsfHeap::BlockHeader* _block);
         void RemoveBlock(TlsfHeap::BlockHeader* _block, u8 _fl, u8 _sl);

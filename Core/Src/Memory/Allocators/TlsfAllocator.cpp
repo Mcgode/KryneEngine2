@@ -27,29 +27,6 @@
 
 namespace KryneEngine
 {
-    TlsfAllocator* TlsfAllocator::Create(std::byte* _heapStart, size_t _heapSize)
-    {
-        TLSF_ASSERT_MSG(_heapSize > sizeof(TlsfHeap::ControlBlock), "Heap size must be greater than the size of the control block");
-
-        auto* allocator = reinterpret_cast<TlsfAllocator*>(_heapStart);
-        new (allocator) TlsfAllocator(Alignment::AlignUp(sizeof(TlsfAllocator), TlsfHeap::kAlignment));
-        _heapStart += allocator->m_allocatorSize;
-        _heapSize -= allocator->m_allocatorSize;
-
-        TlsfHeap::ControlBlock* control = allocator->GetControlBlock();
-        memset(control, 0, offsetof(TlsfHeap::ControlBlock, m_headerMap));
-        for (auto& headerList : control->m_headerMap)
-        {
-            for (auto& header : headerList)
-            {
-                header = &control->m_nullBlock;
-            }
-        }
-
-        allocator->SetupHeapPool(_heapStart + sizeof(TlsfHeap::ControlBlock), _heapSize - sizeof(TlsfHeap::ControlBlock));
-        return allocator;
-    }
-
     void* TlsfAllocator::Allocate(size_t _size, size_t _alignment)
     {
         TlsfHeap::BlockHeader* block = nullptr;
@@ -129,6 +106,43 @@ namespace KryneEngine
         block = MergeNextBlock(block);
         InsertBlock(block);
     }
+
+    TlsfAllocator* TlsfAllocator::Create(AllocatorInstance _parentAllocator, size_t _heapSize)
+    {
+        const u32 allocatorSize = Alignment::AlignUp(sizeof(TlsfAllocator), TlsfHeap::kAlignment);
+        KE_ASSERT_MSG(_heapSize > allocatorSize, "Heap size must be greater than the size of the control structures");
+
+        auto* heapStart = reinterpret_cast<std::byte*>(_parentAllocator.allocate(_heapSize, TlsfHeap::kAlignment));
+        IF_NOT_VERIFY_MSG(heapStart != nullptr, "Failed to allocate memory for the allocator")
+        {
+            return nullptr;
+        }
+
+        auto* allocator = reinterpret_cast<TlsfAllocator*>(heapStart);
+        new (allocator) TlsfAllocator(_parentAllocator, _heapSize, allocatorSize);
+        heapStart += allocator->m_allocatorSize;
+        _heapSize -= allocator->m_allocatorSize;
+
+        TlsfHeap::ControlBlock* control = allocator->GetControlBlock();
+        memset(control, 0, offsetof(TlsfHeap::ControlBlock, m_headerMap));
+        for (auto& headerList : control->m_headerMap)
+        {
+            for (auto& header : headerList)
+            {
+                header = &control->m_nullBlock;
+            }
+        }
+
+        allocator->SetupHeapPool(heapStart + sizeof(TlsfHeap::ControlBlock), _heapSize - sizeof(TlsfHeap::ControlBlock));
+        return allocator;
+    }
+
+
+    TlsfAllocator::TlsfAllocator(AllocatorInstance _parentAllocator, size_t _heapSize, u32 _allocatorSize)
+        : m_parentAllocator(_parentAllocator)
+        , m_heapSize(_heapSize)
+        , m_allocatorSize(_allocatorSize)
+    {}
 
     void TlsfAllocator::SetupHeapPool(std::byte* _heapStart, size_t _heapSize)
     {

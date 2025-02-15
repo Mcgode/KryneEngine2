@@ -36,13 +36,12 @@ namespace KryneEngine::Tests
         ScopedAssertCatcher catcher;
 
         constexpr size_t heapSize = 8 * 1024;
-        eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
 
         // -----------------------------------------------------------------------
         // Execute
         // -----------------------------------------------------------------------
 
-        TlsfAllocator* allocator = TlsfAllocator::Create(heap.get(), heapSize);
+        TlsfAllocator* allocator = TlsfAllocator::Create(AllocatorInstance(), heapSize);
 
         const TlsfHeap::ControlBlock* control = GetControlBlock(allocator);
 
@@ -95,8 +94,7 @@ namespace KryneEngine::Tests
         ScopedAssertCatcher catcher;
 
         constexpr size_t heapSize = 8 * 1024;
-        eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
-        TlsfAllocator* allocator = TlsfAllocator::Create(heap.get(), heapSize);
+        TlsfAllocator* allocator = TlsfAllocator::Create(AllocatorInstance(), heapSize);
 
         // -----------------------------------------------------------------------
         // Execute
@@ -152,8 +150,7 @@ namespace KryneEngine::Tests
         ScopedAssertCatcher catcher;
 
         constexpr size_t heapSize = 8 * 1024;
-        eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
-        TlsfAllocator* allocator = TlsfAllocator::Create(heap.get(), heapSize);
+        TlsfAllocator* allocator = TlsfAllocator::Create(AllocatorInstance(), heapSize);
 
         // -----------------------------------------------------------------------
         // Execute
@@ -180,8 +177,7 @@ namespace KryneEngine::Tests
         ScopedAssertCatcher catcher;
 
         constexpr size_t heapSize = 8 * 1024;
-        eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
-        TlsfAllocator* allocator = TlsfAllocator::Create(heap.get(), heapSize);
+        TlsfAllocator* allocator = TlsfAllocator::Create(AllocatorInstance(), heapSize);
 
         // -----------------------------------------------------------------------
         // Execute
@@ -240,8 +236,7 @@ namespace KryneEngine::Tests
         ScopedAssertCatcher catcher;
 
         constexpr size_t heapSize = 8 * 1024;
-        eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
-        TlsfAllocator* allocator = TlsfAllocator::Create(heap.get(), heapSize);
+        TlsfAllocator* allocator = TlsfAllocator::Create(AllocatorInstance(), heapSize);
 
         // -----------------------------------------------------------------------
         // Execute
@@ -310,8 +305,7 @@ namespace KryneEngine::Tests
         ScopedAssertCatcher catcher;
 
         constexpr size_t heapSize = 16 * 1024;
-        eastl::unique_ptr<std::byte> heap(new std::byte[heapSize]);
-        TlsfAllocator* allocator = TlsfAllocator::Create(heap.get(), heapSize);
+        TlsfAllocator* allocator = TlsfAllocator::Create(AllocatorInstance(), heapSize);
 
         // -----------------------------------------------------------------------
         // Execute
