@@ -35,7 +35,7 @@ namespace KryneEngine
 
         void* allocate(size_t _size, int _flags = 0);
         void* allocate(size_t _size, size_t _alignment, size_t _alignmentOffset = 0, int _flags = 0);
-        void deallocate(void* _ptr, size_t _size);
+        void deallocate(void* _ptr, size_t _size = 0);
 
         void set_name(const char*) {}
 
