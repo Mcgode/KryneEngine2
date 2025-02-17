@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Common/Arrays.hpp"
+#include "DynamicArray.hpp"
 
 namespace KryneEngine
 {

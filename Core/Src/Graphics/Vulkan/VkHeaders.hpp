@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Common/Types.hpp"
-#include "KryneEngine/Core/Common/Arrays.hpp"
 #include "KryneEngine/Core/Common/Assert.hpp"
+#include "KryneEngine/Core/Common/Types.hpp"
 #include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
+#include "KryneEngine/Core/Memory/Arrays.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"
 

@@ -1,7 +1,6 @@
 set(RootDir ${CMAKE_SOURCE_DIR}/Core)
 
 set(CommonSrc
-        Include/KryneEngine/Core/Common/Arrays.hpp
         Include/KryneEngine/Core/Common/Assert.hpp
         Src/Common/Assert.cpp
         Include/KryneEngine/Core/Common/BitUtils.hpp
@@ -58,6 +57,7 @@ set(MathSrc
 )
 
 set(MemorySrc
+        Include/KryneEngine/Core/Memory/DynamicArray.hpp
         Include/KryneEngine/Core/Memory/RangeMapping.hpp
         Include/KryneEngine/Core/Memory/GenerationalPool.inl
         Include/KryneEngine/Core/Memory/GenerationalPool.hpp

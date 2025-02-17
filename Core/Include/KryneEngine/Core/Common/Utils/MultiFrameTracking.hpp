@@ -8,7 +8,7 @@
 
 #include <EASTL/span.h>
 
-#include "KryneEngine/Core/Common/Arrays.hpp"
+#include "KryneEngine/Core/Memory/DynamicArray.hpp"
 
 namespace KryneEngine
 {
