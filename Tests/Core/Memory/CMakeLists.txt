@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 add_executable(Core_Memory_UnitTests
+        DynamicArray_UnitTests.cpp
         GenerationalPool_UnitTests.cpp
         TlsfAllocator_UnitTests.cpp)
 
