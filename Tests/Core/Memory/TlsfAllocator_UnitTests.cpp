@@ -361,6 +361,45 @@ namespace KryneEngine::Tests
         delete allocator;
     }
 
+    TEST(TlsfAllocator, MultiHeapDestruction)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+
+        constexpr size_t containingHeapSize = 1024 * 1024;
+        TlsfAllocator* containingAllocator = TlsfAllocator::Create(AllocatorInstance(), containingHeapSize);
+        containingAllocator->SetAutoGrowth(false);
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        const TlsfHeap::BlockHeader* firstBlock = GetControlBlock(containingAllocator)->m_nullBlock.m_previousFreeBlock;
+        const size_t allFreeSize = firstBlock->GetSize();
+
+        constexpr size_t containedHeapSize = 8 * 1024;
+        TlsfAllocator* containedAllocator = TlsfAllocator::Create(AllocatorInstance(containingAllocator), containedHeapSize);
+        containedAllocator->AddHeap();
+        containedAllocator->AddHeap();
+
+        // Call destructor, should remove all added heaps
+        containedAllocator->~TlsfAllocator();
+
+        // Deallocate TLSF allocator
+        containingAllocator->Free(containedAllocator, containedHeapSize);
+
+        EXPECT_EQ(firstBlock->GetSize(), allFreeSize);
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        delete containingAllocator;
+    }
+
     TEST(TlsfAllocator, AutoGrowth)
     {
         // -----------------------------------------------------------------------
