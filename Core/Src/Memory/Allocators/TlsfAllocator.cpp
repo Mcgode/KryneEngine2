@@ -27,6 +27,17 @@
 
 namespace KryneEngine
 {
+    TlsfAllocator::~TlsfAllocator()
+    {
+        HeapLink nextHeap = m_nextHeap;
+        while (nextHeap.m_next != nullptr)
+        {
+            HeapLink* current = nextHeap.m_next;
+            nextHeap = *nextHeap.m_next;
+            m_parentAllocator.deallocate(current, m_heapSize);
+        }
+    }
+
     void* TlsfAllocator::Allocate(size_t _size, size_t _alignment)
     {
         TlsfHeap::BlockHeader* block = nullptr;
@@ -153,20 +164,21 @@ namespace KryneEngine
 
     bool TlsfAllocator::AddHeap()
     {
-        void*& nextHeap = m_nextHeap;
-        while (nextHeap != nullptr)
+        HeapLink* lastHeap = &m_nextHeap;
+        while (lastHeap->m_next != nullptr)
         {
-            nextHeap = *static_cast<void**>(nextHeap);
+            lastHeap = lastHeap->m_next;
         }
 
-        auto* newHeap = reinterpret_cast<std::byte*>(m_parentAllocator.allocate(m_heapSize, TlsfHeap::kAlignment));
-        if (newHeap == nullptr)
+        auto* newHeapStart = reinterpret_cast<std::byte*>(m_parentAllocator.allocate(m_heapSize, TlsfHeap::kAlignment));
+        if (newHeapStart == nullptr)
             return false;
 
-        nextHeap = newHeap;
-        memset(newHeap, 0, sizeof(void*));
-        newHeap += sizeof(void*);
-        SetupHeapPool(newHeap, m_heapSize - sizeof(void*));
+        auto* newHeapLink = reinterpret_cast<HeapLink*>(newHeapStart);
+        lastHeap->m_next = newHeapLink;
+        newHeapLink->m_next = nullptr;
+        newHeapStart += sizeof(HeapLink);
+        SetupHeapPool(newHeapStart, m_heapSize - sizeof(void*));
         return true;
     }
 

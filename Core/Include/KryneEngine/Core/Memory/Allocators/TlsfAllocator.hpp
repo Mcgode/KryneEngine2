@@ -35,7 +35,7 @@ namespace KryneEngine
         TlsfAllocator(TlsfAllocator&& _other) = delete;
         TlsfAllocator& operator=(const TlsfAllocator& _other) = delete;
         TlsfAllocator& operator=(TlsfAllocator&& _other) = delete;
-        ~TlsfAllocator() override = default;
+        ~TlsfAllocator() override;
 
         void* Allocate(size_t _size, size_t _alignment) override;
         void Free(void* _ptr, size_t _size) override;
@@ -59,7 +59,12 @@ namespace KryneEngine
     private:
         AllocatorInstance m_parentAllocator;
         size_t m_heapSize;
-        void* m_nextHeap = nullptr;
+
+        // Use named struct for easier pointer logic (compared to using raw void*).
+        struct HeapLink {
+            HeapLink* m_next = nullptr;
+        } m_nextHeap;
+
         u32 m_allocatorSize;
         bool m_autoGrowth = true;
 
