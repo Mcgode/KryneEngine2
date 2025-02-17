@@ -83,6 +83,12 @@ namespace KryneEngine::Tests
         EXPECT_EQ(control->m_headerMap[flIndex][slIndex], control->m_nullBlock.m_previousFreeBlock);
 
         catcher.ExpectNoMessage();
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        delete allocator;
     }
 
     TEST(TlsfAllocator, SingleAllocate)
@@ -139,6 +145,12 @@ namespace KryneEngine::Tests
         EXPECT_NE(control->m_headerMap[flIndex][slIndex], firstBlock);
 
         catcher.ExpectNoMessage();
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        delete allocator;
     }
 
     TEST(TlsfAllocator, InvalidAllocations)
@@ -163,9 +175,16 @@ namespace KryneEngine::Tests
         EXPECT_EQ(allocator->Allocate(1ull << 60, 0), nullptr);
 
         // Even if valid size, if not enough space, cannot allocate
+        allocator->SetAutoGrowth(false);
         EXPECT_EQ(allocator->Allocate(heapSize, 0), nullptr);
 
         catcher.ExpectNoMessage();
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        delete allocator;
     }
 
     TEST(TlsfAllocator, SingleFree)
@@ -225,6 +244,12 @@ namespace KryneEngine::Tests
         EXPECT_EQ(firstBlock->GetSize(), firstBlockSize);
 
         catcher.ExpectNoMessage();
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        delete allocator;
     }
 
     TEST(TlsfAllocator, AdvancedBlockMerge)
@@ -294,6 +319,12 @@ namespace KryneEngine::Tests
         EXPECT_EQ(firstBlock->GetSize(), initialSize); // All freed, should have all merged
 
         catcher.ExpectNoMessage();
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        delete allocator;
     }
 
     TEST(TlsfAllocator, AlignedAlloc)
@@ -322,6 +353,12 @@ namespace KryneEngine::Tests
         }
 
         catcher.ExpectNoMessage();
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        delete allocator;
     }
 
     TEST(TlsfAllocator, AutoGrowth)
@@ -351,5 +388,11 @@ namespace KryneEngine::Tests
         EXPECT_EQ(p1, nullptr);
 
         catcher.ExpectNoMessage();
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        delete allocator;
     }
 }
