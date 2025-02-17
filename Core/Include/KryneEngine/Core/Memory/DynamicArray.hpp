@@ -132,7 +132,7 @@ namespace KryneEngine
             if (m_count > 0)
             {
                 const size_t size = sizeof(T) * m_count;
-                m_array = static_cast<Ptr>(m_allocator.allocate(size));
+                m_array = static_cast<Ptr>(m_allocator.allocate(size, alignof(T)));
             }
         }
 
