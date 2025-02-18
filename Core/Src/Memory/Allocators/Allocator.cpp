@@ -43,7 +43,7 @@ namespace KryneEngine
         }
         else
         {
-            ::operator delete[](_ptr);
+            operator delete[](_ptr);
         }
     }
 } // namespace KryneEngine
