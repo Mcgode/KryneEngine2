@@ -31,6 +31,7 @@ namespace KryneEngine
     {
     public:
         explicit Dx12GraphicsContext(
+            AllocatorInstance _allocator,
             const GraphicsCommon::ApplicationInfo& _appInfo,
             Window* _window,
             u64 _currentFrameId);

@@ -21,10 +21,12 @@
 namespace KryneEngine
 {
     Dx12GraphicsContext::Dx12GraphicsContext(
+        AllocatorInstance _allocator,
         const GraphicsCommon::ApplicationInfo& _appInfo,
         Window* _window,
         u64 _currentFrameId)
         : m_appInfo(_appInfo)
+        , m_frameContexts(_allocator)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::Dx12GraphicsContext");
 
