@@ -176,7 +176,7 @@ namespace KryneEngine
         KE_ASSERT_MSG(m_size < _toSize, "Simple pool is meant to only grow");
 
         {
-            auto* newHotData = static_cast<HotDataItem*>(m_allocator.allocate(_toSize * sizeof(HotDataItem)));
+            auto* newHotData = static_cast<HotDataItem*>(m_allocator.allocate(_toSize * sizeof(HotDataItem), alignof(HotDataItem)));
 
             if (m_hotData != nullptr)
             {
@@ -194,7 +194,7 @@ namespace KryneEngine
 
         if constexpr (kHasColdData)
         {
-            auto* newColdData = static_cast<ColdDataStruct*>(m_allocator.allocate(_toSize * sizeof(ColdDataStruct)));
+            auto* newColdData = static_cast<ColdDataStruct*>(m_allocator.allocate(_toSize * sizeof(ColdDataStruct), alignof(ColdDataStruct)));
 
             if (m_coldData != nullptr)
             {
