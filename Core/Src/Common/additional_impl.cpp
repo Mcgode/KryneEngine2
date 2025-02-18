@@ -4,7 +4,7 @@
  * @date 10/10/2021.
  */
 
-#include <cstdlib>
+#include <new>
 
 void* __cdecl operator new[](
     const size_t _size,
@@ -14,7 +14,7 @@ void* __cdecl operator new[](
     const char* /* _file */,
     int /* _line */)
 {
-    return std::malloc(_size);
+    return operator new(_size);
 }
 
 void* __cdecl operator new[](
@@ -27,8 +27,8 @@ void* __cdecl operator new[](
     const char* /* _file */,
     int /* _line */)
 {
-    return reinterpret_cast<void*>(
-        reinterpret_cast<uintptr_t>(std::aligned_alloc(_alignment, _size)) + _alignmentOffset);
+    void* ptr = operator new(_size, std::align_val_t(_alignment));
+    return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr) + _alignmentOffset);
 }
 
 void __cdecl operator delete(
@@ -39,10 +39,10 @@ void __cdecl operator delete(
     const char* /* _file */,
     int /* _line */)
 {
-  if (_p != nullptr)
-  {
-    ::operator delete(_p);
-  }
+    if (_p != nullptr)
+    {
+        operator delete(_p);
+    }
 }
 
 void __cdecl operator delete[](
@@ -53,8 +53,8 @@ void __cdecl operator delete[](
     const char* /* _file */,
     int /* _line */)
 {
-  if (_p != nullptr)
-  {
-    ::operator delete[](_p);
-  }
+    if (_p != nullptr)
+    {
+        operator delete[](_p);
+    }
 }
