@@ -49,6 +49,16 @@ namespace KryneEngine
             return new (Allocate<T>()) T(_args...);
         }
 
+        template <class T>
+        void Delete(T* _ptr)
+        {
+            if (_ptr)
+            {
+                _ptr->~T();
+                deallocate(_ptr);
+            }
+        }
+
         void set_name(const char*) {}
 
         void SetAllocator(IAllocator* _allocator) { m_allocator = _allocator; }
