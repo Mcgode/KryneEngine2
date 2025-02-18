@@ -254,7 +254,7 @@ int main()
     appInfo.m_applicationName += " - Metal";
 #endif
 
-    Window mainWindow(appInfo);
+    Window mainWindow(appInfo, AllocatorInstance());
     GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
     // Declare resources

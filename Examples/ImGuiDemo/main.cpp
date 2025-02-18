@@ -54,7 +54,7 @@ void MainFunc(void* _fibersManagerPtr)
     appInfo.m_api = KryneEngine::GraphicsCommon::Api::Metal_3;
     appInfo.m_applicationName += " - Metal";
 #endif
-    Window mainWindow(appInfo);
+    Window mainWindow(appInfo, AllocatorInstance());
     GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
     DynamicArray<RenderPassHandle> renderPassHandles;
