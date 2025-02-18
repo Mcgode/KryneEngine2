@@ -17,8 +17,23 @@
 
 namespace KryneEngine
 {
-    MetalResources::MetalResources() = default;
+    MetalResources::MetalResources(AllocatorInstance _allocator)
+        : m_buffers(_allocator)
+        , m_textures(_allocator)
+        , m_samplers(_allocator)
+        , m_textureSrvs(_allocator)
+        , m_renderTargetViews(_allocator)
+        , m_renderPasses(_allocator)
+        , m_libraries(_allocator)
+        , m_graphicsPso(_allocator)
+    {}
+
     MetalResources::~MetalResources() = default;
+
+    AllocatorInstance MetalResources::GetAllocator() const
+    {
+        return m_textures.GetAllocator();
+    }
 
     BufferHandle MetalResources::CreateBuffer(MTL::Device& _device, const BufferCreateDesc& _desc)
     {
@@ -243,7 +258,8 @@ namespace KryneEngine
 
         coldData->m_colorFormats.clear(true);
 
-        for (u8 i = 0u; i < _desc.m_colorAttachments.size(); i++)
+        hotData->m_systemRtvs.set_overflow_allocator(GetAllocator());
+        for (auto i = 0u; i < _desc.m_colorAttachments.size(); i++)
         {
             MTL::RenderPassColorAttachmentDescriptor* attachment =
                 hotData->m_descriptor->colorAttachments()->object(i);
@@ -254,7 +270,7 @@ namespace KryneEngine
             KE_ASSERT_FATAL(texture != nullptr);
             if (rtvHotData->m_isSystemTexture)
             {
-                hotData->m_systemRtvs.push_back({ attachmentDesc.m_rtv, i });
+                hotData->m_systemRtvs.push_back({ attachmentDesc.m_rtv, static_cast<u8>(i) });
             }
 
             attachment->setTexture(texture);

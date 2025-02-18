@@ -25,13 +25,23 @@ namespace KryneEngine
         u32 m_packedIndex;
     };
 
-    MetalArgumentBufferManager::MetalArgumentBufferManager() = default;
+    MetalArgumentBufferManager::MetalArgumentBufferManager(AllocatorInstance _allocator)
+        : m_argumentDescriptors(_allocator)
+        , m_argumentBufferSets(_allocator)
+        , m_pipelineLayouts(_allocator)
+    {}
+
     MetalArgumentBufferManager::~MetalArgumentBufferManager() = default;
 
     void MetalArgumentBufferManager::Init(u8 _inFlightFrameCount, u8 _frameIndex)
     {
         m_inFlightFrameCount = _inFlightFrameCount;
-        m_multiFrameTracker.Init(_inFlightFrameCount, _frameIndex);
+        m_multiFrameTracker.Init(GetAllocator(), _inFlightFrameCount, _frameIndex);
+    }
+
+    AllocatorInstance MetalArgumentBufferManager::GetAllocator() const
+    {
+        return m_argumentDescriptors.GetAllocator();
     }
 
     DescriptorSetLayoutHandle MetalArgumentBufferManager::CreateArgumentDescriptor(
@@ -41,6 +51,7 @@ namespace KryneEngine
         const GenPool::Handle handle = m_argumentDescriptors.Allocate();
         auto [hot, cold] = m_argumentDescriptors.GetAll(handle);
 
+        hot->m_argDescriptors.SetAllocator(GetAllocator());
         hot->m_argDescriptors.Resize(_desc.m_bindings.size());
         hot->m_argDescriptors.InitAll(nullptr);
 
@@ -144,10 +155,11 @@ namespace KryneEngine
         // If no descriptor set is included in shader, takes buffer index 0.
         // If there's any set, will take the last set index, and add +1.
         // Push constant buffer index can vary between stages.
-
+        hot->m_pushConstantsData.set_overflow_allocator(GetAllocator());
         for (auto pushConstantDesc : _desc.m_pushConstants)
         {
             auto& data = hot->m_pushConstantsData.emplace_back();
+            data.m_data.set_overflow_allocator(GetAllocator());
             for (const ShaderVisibility visibility: testedVisibilities)
             {
                 if (BitUtils::EnumHasAny(pushConstantDesc.m_visibility, visibility))
@@ -159,6 +171,7 @@ namespace KryneEngine
             }
         }
 
+        hot->m_setVisibilities.set_overflow_allocator(GetAllocator());
         for (size_t i = 0; i < _desc.m_descriptorSets.size(); i++)
         {
             const auto& set = _desc.m_descriptorSets[i];

@@ -11,6 +11,7 @@
 #include "Graphics/Metal/MetalArgumentBufferManager.hpp"
 #include "Graphics/Metal/MetalHeaders.hpp"
 #include "Graphics/Metal/MetalResources.hpp"
+#include "Graphics/Metal/MetalSwapChain.hpp"
 #include "Graphics/Metal/MetalTypes.hpp"
 #include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
 #include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
@@ -36,6 +37,7 @@ namespace KryneEngine
     {
     public:
         MetalGraphicsContext(
+            AllocatorInstance _allocator,
             const GraphicsCommon::ApplicationInfo& _appInfo,
             const Window* _window,
             u64 _initialFrameId);
@@ -51,9 +53,10 @@ namespace KryneEngine
         [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_applicationInfo; }
 
     private:
+        AllocatorInstance m_allocator;
         const GraphicsCommon::ApplicationInfo m_applicationInfo;
         NsPtr<MTL::Device> m_device;
-        eastl::unique_ptr<MetalSwapChain> m_swapChain;
+        MetalSwapChain m_swapChain;
 
         NsPtr<MTL::CommandQueue> m_graphicsQueue;
         NsPtr<MTL::CommandQueue> m_computeQueue;

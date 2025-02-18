@@ -32,8 +32,11 @@ namespace KryneEngine
         friend class MetalArgumentBufferManager;
 
     public:
-        MetalResources();
+        explicit MetalResources(AllocatorInstance _allocator);
         ~MetalResources();
+
+    private:
+        [[nodiscard]] AllocatorInstance GetAllocator() const;
 
     public:
         BufferHandle CreateBuffer(MTL::Device& _device, const BufferCreateDesc& _desc);

@@ -25,14 +25,14 @@ namespace KryneEngine
             const u8 frameIndex = _frameId % m_frameContextCount;
             MetalFrameContext& frameContext = m_frameContexts[frameIndex];
 
-            if (m_swapChain != nullptr)
+            if (m_applicationInfo.m_features.m_present)
             {
                 if (frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.empty())
                 {
                     KE_ZoneScoped("Begin graphics command buffer for present operation");
                     frameContext.BeginGraphicsCommandList(*m_graphicsQueue);
                 }
-                m_swapChain->Present(
+                m_swapChain.Present(
                     &frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.back(),
                     frameIndex);
             }
@@ -44,10 +44,10 @@ namespace KryneEngine
                 frameContext.m_ioAllocationSet.Commit(frameContext.m_enhancedCommandBufferErrors);
             }
 
-            if (m_swapChain)
+            if (m_applicationInfo.m_features.m_present)
             {
                 KE_ZoneScoped("Retrieve next drawable");
-                m_swapChain->UpdateNextDrawable(frameIndex, m_resources);
+                m_swapChain.UpdateNextDrawable(frameIndex, m_resources);
             }
         }
 
@@ -86,7 +86,7 @@ namespace KryneEngine
     eastl::vector<TextureMemoryFootprint> MetalGraphicsContext::FetchTextureSubResourcesMemoryFootprints(
         const TextureDesc& _desc)
     {
-        eastl::vector<TextureMemoryFootprint> result {};
+        eastl::vector<TextureMemoryFootprint> result { m_allocator };
 
         const size_t pixelByteSize = MetalConverters::GetPixelByteSize(_desc.m_format);
         size_t currentOffset = 0;
@@ -198,22 +198,22 @@ namespace KryneEngine
 
     RenderTargetViewHandle MetalGraphicsContext::GetPresentRenderTargetView(u8 _swapChainIndex) const
     {
-        VERIFY_OR_RETURN(m_swapChain != nullptr, { GenPool::kInvalidHandle });
+        VERIFY_OR_RETURN(m_applicationInfo.m_features.m_present, { GenPool::kInvalidHandle });
 
-        return m_swapChain->m_rtvs[_swapChainIndex];
+        return m_swapChain.m_rtvs[_swapChainIndex];
     }
 
     TextureHandle MetalGraphicsContext::GetPresentTexture(u8 _swapChainIndex) const
     {
-        VERIFY_OR_RETURN(m_swapChain != nullptr, { GenPool::kInvalidHandle });
+        VERIFY_OR_RETURN(m_applicationInfo.m_features.m_present, { GenPool::kInvalidHandle });
 
-        return m_swapChain->m_textures[_swapChainIndex];
+        return m_swapChain.m_textures[_swapChainIndex];
     }
 
     u32 MetalGraphicsContext::GetCurrentPresentImageIndex() const
     {
-        VERIFY_OR_RETURN(m_swapChain != nullptr, 0);
-        return m_swapChain->m_index;
+        VERIFY_OR_RETURN(m_applicationInfo.m_features.m_present, 0);
+        return m_swapChain.m_index;
     }
 
     RenderPassHandle MetalGraphicsContext::CreateRenderPass(const RenderPassDesc& _desc)

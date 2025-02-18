@@ -24,7 +24,9 @@ namespace KryneEngine
         friend class MetalGraphicsContext;
 
     public:
-        MetalSwapChain(
+
+        void Init(
+            AllocatorInstance _allocator,
             MTL::Device& _device,
             const GraphicsCommon::ApplicationInfo& _appInfo,
             const Window* _window,

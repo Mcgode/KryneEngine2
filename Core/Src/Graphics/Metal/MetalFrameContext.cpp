@@ -12,10 +12,14 @@
 namespace KryneEngine
 {
     MetalFrameContext::MetalFrameContext(
-        bool _graphicsAvailable, bool _computeAvailable, bool _ioAvailable, bool _validationLayers)
-        : m_graphicsAllocationSet(_graphicsAvailable)
-        , m_computeAllocationSet(_computeAvailable)
-        , m_ioAllocationSet(_ioAvailable)
+        AllocatorInstance _allocator,
+        bool _graphicsAvailable,
+        bool _computeAvailable,
+        bool _ioAvailable,
+        bool _validationLayers)
+        : m_graphicsAllocationSet(_allocator, _graphicsAvailable)
+        , m_computeAllocationSet(_allocator, _computeAvailable)
+        , m_ioAllocationSet(_allocator, _ioAvailable)
         , m_enhancedCommandBufferErrors(_validationLayers)
     {}
 
@@ -56,8 +60,9 @@ namespace KryneEngine
         m_ioAllocationSet.Wait();
     }
 
-    MetalFrameContext::AllocationSet::AllocationSet(bool _available)
-        : m_available(_available)
+    MetalFrameContext::AllocationSet::AllocationSet(AllocatorInstance _allocator, bool _available)
+        : m_usedCommandBuffers(_allocator)
+        , m_available(_available)
     {
         if (_available)
         {

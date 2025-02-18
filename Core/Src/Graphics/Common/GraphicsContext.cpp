@@ -68,7 +68,7 @@ namespace KryneEngine
     {
         auto* blob = new (_allocator.Allocate<GraphicsContextBlob>()) GraphicsContextBlob {
             .m_interface = {},
-            .m_implementation = Implementation(_appInfo, _window, kInitialFrameId),
+            .m_implementation = Implementation(_allocator, _appInfo, _window, kInitialFrameId),
         };
         blob->m_interface.m_allocator = _allocator;
         blob->m_interface.m_frameId = kInitialFrameId;
