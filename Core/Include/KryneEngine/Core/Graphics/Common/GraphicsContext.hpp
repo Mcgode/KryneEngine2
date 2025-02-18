@@ -40,7 +40,10 @@ namespace KryneEngine
     class GraphicsContext
     {
     public:
-        static GraphicsContext* Create(const GraphicsCommon::ApplicationInfo& _appInfo, Window* _window);
+        static GraphicsContext* Create(
+            const GraphicsCommon::ApplicationInfo& _appInfo,
+            Window* _window,
+            AllocatorInstance _allocator);
         static void Destroy(GraphicsContext* _context);
 
         [[nodiscard]] inline u64 GetFrameId() const
@@ -62,6 +65,7 @@ namespace KryneEngine
 
     private:
 
+        AllocatorInstance m_allocator;
         const Window* m_window;
 
         static constexpr u64 kInitialFrameId = 1;

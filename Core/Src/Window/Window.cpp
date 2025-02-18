@@ -38,7 +38,7 @@ namespace KryneEngine
         }
         glfwSetWindowUserPointer(m_glfwWindow, this);
 
-        m_graphicsContext = GraphicsContext::Create(_appInfo, this);
+        m_graphicsContext = GraphicsContext::Create(_appInfo, this, AllocatorInstance());
 
         {
             KE_ZoneScoped("Input management init");

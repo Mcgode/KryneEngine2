@@ -38,7 +38,7 @@ int main()
     appInfo.m_api = GraphicsCommon::Api::Metal_3;
     appInfo.m_applicationName += " - Metal";
 #endif
-    auto* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
+    auto* graphicsContext = GraphicsContext::Create(appInfo, nullptr, AllocatorInstance());
 
     RenderGraph::RenderGraph renderGraph {};
     RenderGraph::Builder& builder = renderGraph.BeginFrame(*graphicsContext);

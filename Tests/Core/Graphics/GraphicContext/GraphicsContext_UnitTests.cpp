@@ -27,7 +27,7 @@ namespace KryneEngine::Tests::Graphics
         // -----------------------------------------------------------------------
 
         {
-            auto* context = GraphicsContext::Create(appInfo, nullptr);
+            auto* context = GraphicsContext::Create(appInfo, nullptr, AllocatorInstance());
             GraphicsContext::Destroy(context);
         }
 
@@ -55,21 +55,21 @@ namespace KryneEngine::Tests::Graphics
 
         {
             appInfo.m_displayOptions.m_tripleBuffering = GraphicsCommon::SoftEnable::Disabled;
-            GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
+            GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr, AllocatorInstance());
             EXPECT_EQ(graphicsContext->GetFrameContextCount(), 2);
             GraphicsContext::Destroy(graphicsContext);
         }
 
         {
             appInfo.m_displayOptions.m_tripleBuffering = GraphicsCommon::SoftEnable::TryEnable;
-            GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
+            GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr, AllocatorInstance());
             EXPECT_EQ(graphicsContext->GetFrameContextCount(), 2);
             GraphicsContext::Destroy(graphicsContext);
         }
 
         {
             appInfo.m_displayOptions.m_tripleBuffering = GraphicsCommon::SoftEnable::ForceEnabled;
-            GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
+            GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr, AllocatorInstance());
             EXPECT_EQ(graphicsContext->GetFrameContextCount(), 2);
             GraphicsContext::Destroy(graphicsContext);
         }
@@ -89,7 +89,7 @@ namespace KryneEngine::Tests::Graphics
 
         ScopedAssertCatcher catcher;
         const GraphicsCommon::ApplicationInfo appInfo = DefaultAppInfo();
-        GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr);
+        GraphicsContext* graphicsContext = GraphicsContext::Create(appInfo, nullptr, AllocatorInstance());
 
         // -----------------------------------------------------------------------
         // Execute
