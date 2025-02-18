@@ -38,9 +38,15 @@ namespace KryneEngine
         void deallocate(void* _ptr, size_t _size = 0);
 
         template <class T>
-        inline T* allocate(size_t _count = 1)
+        inline T* Allocate(size_t _count = 1)
         {
             return static_cast<T*>(allocate(_count * sizeof(T), alignof(T)));
+        }
+
+        template <class T, class... Args>
+        inline T* New(Args... _args)
+        {
+            return new (Allocate<T>()) T(_args...);
         }
 
         void set_name(const char*) {}
