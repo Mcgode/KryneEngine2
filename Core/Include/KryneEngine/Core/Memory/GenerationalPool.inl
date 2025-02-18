@@ -10,25 +10,27 @@
 
 namespace KryneEngine
 {
-    template<class HotDataStruct, class ColdDataStruct>
-    GenerationalPool<HotDataStruct, ColdDataStruct>::GenerationalPool()
+    template<class HotDataStruct, class ColdDataStruct, class Allocator>
+    GenerationalPool<HotDataStruct, ColdDataStruct, Allocator>::GenerationalPool(const Allocator& _allocator)
+        : m_allocator(_allocator)
     {
+        m_availableIndices.set_allocator(_allocator);
         _Grow(kInitialSize);
     }
 
-    template<class HotDataStruct, class ColdDataStruct>
-    GenerationalPool<HotDataStruct, ColdDataStruct>::~GenerationalPool()
+    template<class HotDataStruct, class ColdDataStruct, class Allocator>
+    GenerationalPool<HotDataStruct, ColdDataStruct, Allocator>::~GenerationalPool()
     {
-        delete[] m_hotDataArray;
+        m_allocator.deallocate(m_hotDataArray, m_size * sizeof(HotData));
 
         if constexpr (kHasColdData)
         {
-            delete[] m_coldDataArray;
+            m_allocator.deallocate(m_coldDataArray, m_size);
         }
     }
 
-    template<class HotDataStruct, class ColdDataStruct>
-    void GenerationalPool<HotDataStruct, ColdDataStruct>::_Grow(u64 _toSize)
+    template<class HotDataStruct, class ColdDataStruct, class Allocator>
+    void GenerationalPool<HotDataStruct, ColdDataStruct, Allocator>::_Grow(u64 _toSize)
     {
         KE_ASSERT_MSG(_toSize > m_size, "Generational pools were designed with a grow-only approach in mind.");
 
@@ -36,7 +38,7 @@ namespace KryneEngine
                       "Generational pool maximum growable size is %ull. Consider changing GenPool::IndexType to a bigger type.",
                       kMaxSize);
 
-        auto* newHotArray = new HotData[_toSize];
+        auto* newHotArray = static_cast<HotData*>(m_allocator.allocate(sizeof(HotData) * _toSize, alignof(HotData)));
         // Copy old array
         if (m_hotDataArray != nullptr)
         {
@@ -44,14 +46,14 @@ namespace KryneEngine
                 reinterpret_cast<void*>(newHotArray),
                 reinterpret_cast<void*>(m_hotDataArray),
                 m_size * sizeof(HotData));
-            delete[] m_hotDataArray;
+            m_allocator.deallocate(m_hotDataArray, m_size * sizeof(HotData));
         }
         memset(reinterpret_cast<void*>(newHotArray + m_size), 0, (_toSize - m_size) * sizeof(HotData));
         m_hotDataArray = newHotArray;
 
         if constexpr (kHasColdData)
         {
-            auto* newColdArray = new ColdDataStruct[_toSize];
+            auto* newColdArray = static_cast<ColdDataStruct*>(m_allocator.allocate(sizeof(ColdDataStruct) * _toSize, alignof(ColdDataStruct)));
             // Copy old array
             if (m_coldDataArray != nullptr)
             {
@@ -59,7 +61,7 @@ namespace KryneEngine
                     reinterpret_cast<void*>(newColdArray),
                     reinterpret_cast<void*>(m_coldDataArray),
                     m_size * sizeof(ColdDataStruct));
-                delete[] m_coldDataArray;
+                m_allocator.deallocate(m_coldDataArray, m_size * sizeof(ColdDataStruct));
             }
             memset(reinterpret_cast<void*>(newColdArray + m_size), 0, (_toSize - m_size) * sizeof(ColdDataStruct));
             m_coldDataArray = newColdArray;
@@ -72,8 +74,8 @@ namespace KryneEngine
         m_size = _toSize;
     }
 
-    template<class HotDataStruct, class ColdDataStruct>
-    inline HotDataStruct *GenerationalPool<HotDataStruct, ColdDataStruct>::Get(GenPool::Handle _handle)
+    template<class HotDataStruct, class ColdDataStruct, class Allocator>
+    inline HotDataStruct *GenerationalPool<HotDataStruct, ColdDataStruct, Allocator>::Get(GenPool::Handle _handle)
     {
         VERIFY_OR_RETURN(_handle.m_index < m_size, nullptr);
 
@@ -85,8 +87,8 @@ namespace KryneEngine
         return &hotData.m_userHotData;
     }
 
-    template<class HotDataStruct, class ColdDataStruct>
-    inline eastl::pair<HotDataStruct *, ColdDataStruct *> GenerationalPool<HotDataStruct, ColdDataStruct>::GetAll(GenPool::Handle _handle)
+    template<class HotDataStruct, class ColdDataStruct, class Allocator>
+    inline eastl::pair<HotDataStruct *, ColdDataStruct *> GenerationalPool<HotDataStruct, ColdDataStruct, Allocator>::GetAll(GenPool::Handle _handle)
     {
         auto* hotData = Get(_handle);
         if (hotData == nullptr)
@@ -103,8 +105,8 @@ namespace KryneEngine
         }
     }
 
-    template <class HotDataStruct, class ColdDataStruct>
-    const HotDataStruct* GenerationalPool<HotDataStruct, ColdDataStruct>::Get(GenPool::Handle _handle) const
+    template <class HotDataStruct, class ColdDataStruct, class Allocator>
+    const HotDataStruct* GenerationalPool<HotDataStruct, ColdDataStruct, Allocator>::Get(GenPool::Handle _handle) const
     {
         KE_ASSERT(_handle.m_index < m_size);
 
@@ -116,8 +118,8 @@ namespace KryneEngine
         return &hotData.m_userHotData;
     }
 
-    template <class HotDataStruct, class ColdDataStruct>
-    eastl::pair<const HotDataStruct*, const ColdDataStruct*>GenerationalPool<HotDataStruct, ColdDataStruct>::GetAll(GenPool::Handle _handle) const
+    template <class HotDataStruct, class ColdDataStruct, class Allocator>
+    eastl::pair<const HotDataStruct*, const ColdDataStruct*>GenerationalPool<HotDataStruct, ColdDataStruct, Allocator>::GetAll(GenPool::Handle _handle) const
     {
         const HotDataStruct* hotData = Get(_handle);
         if (hotData == nullptr)
@@ -134,8 +136,8 @@ namespace KryneEngine
         }
     }
 
-    template<class HotDataStruct, class ColdDataStruct>
-    GenPool::Handle GenerationalPool<HotDataStruct, ColdDataStruct>::Allocate()
+    template<class HotDataStruct, class ColdDataStruct, class Allocator>
+    GenPool::Handle GenerationalPool<HotDataStruct, ColdDataStruct, Allocator>::Allocate()
     {
         if (m_availableIndices.empty())
         {
@@ -150,8 +152,8 @@ namespace KryneEngine
         return { index, m_hotDataArray[index].m_generation };
     }
 
-    template<class HotDataStruct, class ColdDataStruct>
-    bool GenerationalPool<HotDataStruct, ColdDataStruct>::Free(const GenPool::Handle &_handle,
+    template<class HotDataStruct, class ColdDataStruct, class Allocator>
+    bool GenerationalPool<HotDataStruct, ColdDataStruct, Allocator>::Free(const GenPool::Handle &_handle,
                                                                HotDataStruct *_hotCopy,
                                                                ColdDataStruct *_coldCopy)
     {

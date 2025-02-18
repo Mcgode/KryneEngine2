@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "DynamicArray.hpp"
+#include "KryneEngine/Core/Memory/DynamicArray.hpp"
 
 namespace KryneEngine
 {
@@ -53,7 +53,7 @@ namespace KryneEngine
         bool operator==(GenPool::Handle _other) const { return m_handle == _other; }            \
     }
 
-    template <class HotDataStruct, class ColdDataStruct = void>
+    template <class HotDataStruct, class ColdDataStruct = void, class Allocator = AllocatorInstance>
     class GenerationalPool
     {
         struct HotData
@@ -66,17 +66,19 @@ namespace KryneEngine
         static constexpr u64 kMaxSize = 1 << 16;
         static constexpr bool kHasColdData = !eastl::is_same<void, ColdDataStruct>::value;
 
+        Allocator m_allocator {};
+
         HotData* m_hotDataArray = nullptr;
         ColdDataStruct* m_coldDataArray = nullptr;
 
         u64 m_size = 0;
 
-        eastl::vector<GenPool::IndexType> m_availableIndices;
+        eastl::vector<GenPool::IndexType, Allocator> m_availableIndices;
 
         void _Grow(u64 _toSize);
 
     public:
-        GenerationalPool();
+        explicit GenerationalPool(const Allocator &_allocator = Allocator());
 
         ~GenerationalPool();
 
@@ -100,6 +102,9 @@ namespace KryneEngine
                   ColdDataStruct *_coldCopy = nullptr);
 
         [[nodiscard]] size_t GetSize() const { return m_size; }
+
+        [[nodiscard]] const Allocator& GetAllocator() const { return m_allocator; }
+        void SetAllocator(const Allocator &_allocator) { m_allocator = _allocator; }
     };
 
 } // KryneEngine
