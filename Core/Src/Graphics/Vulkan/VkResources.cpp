@@ -19,7 +19,18 @@
 
 namespace KryneEngine
 {
-    VkResources::VkResources()  = default;
+    VkResources::VkResources(AllocatorInstance _allocator)
+        : m_buffers(_allocator)
+        , m_textures(_allocator)
+        , m_imageViews(_allocator)
+        , m_samplers(_allocator)
+        , m_renderTargetViews(_allocator)
+        , m_renderPasses(_allocator)
+        , m_shaderModules(_allocator)
+        , m_pipelineLayouts(_allocator)
+        , m_pipelines(_allocator)
+    {}
+
     VkResources::~VkResources() = default;
 
     void VkResources::InitAllocator(

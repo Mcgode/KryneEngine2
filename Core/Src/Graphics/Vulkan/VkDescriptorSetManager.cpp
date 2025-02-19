@@ -26,14 +26,22 @@ namespace KryneEngine
         u32 m_packed;
     };
 
-    VkDescriptorSetManager::VkDescriptorSetManager() = default;
+    VkDescriptorSetManager::VkDescriptorSetManager(AllocatorInstance _allocator)
+        : m_descriptorSetLayouts(_allocator)
+        , m_descriptorSetPools(_allocator)
+        , m_descriptorSets(_allocator)
+        , m_tmpWriteOps(_allocator)
+        , m_tmpWrites(_allocator)
+        , m_tmpDescriptorData(_allocator)
+    {}
+
     VkDescriptorSetManager::~VkDescriptorSetManager() = default;
 
     void VkDescriptorSetManager::Init(u8 _frameCount, u8 _frameIndex)
     {
         KE_ZoneScopedFunction("VkDescriptorSetManager::Init");
         m_frameCount = _frameCount;
-        m_multiFrameTracker.Init(_frameCount, _frameIndex);
+        m_multiFrameTracker.Init(GetAllocator(), _frameCount, _frameIndex);
     }
 
     DescriptorSetLayoutHandle VkDescriptorSetManager::CreateDescriptorSetLayout(
@@ -87,6 +95,7 @@ namespace KryneEngine
         auto* data = m_descriptorSetLayouts.Get(handle);
         data->m_layout = layout;
         data->m_poolSizes.clear();
+        data->m_poolSizes.set_allocator(GetAllocator());
         for (auto [type, count]: countPerType)
         {
             data->m_poolSizes.push_back(VkDescriptorPoolSize { type, static_cast<u32>(count * m_frameCount) });
@@ -215,6 +224,11 @@ namespace KryneEngine
         _ProcessUpdates(m_multiFrameTracker.GetData(), _device, _resources, _frameIndex);
 
         m_multiFrameTracker.ClearData();
+    }
+
+    AllocatorInstance VkDescriptorSetManager::GetAllocator() const
+    {
+        return m_descriptorSetLayouts.GetAllocator();
     }
 
     void VkDescriptorSetManager::_ProcessUpdates(

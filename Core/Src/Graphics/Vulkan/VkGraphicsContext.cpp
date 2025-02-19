@@ -55,7 +55,7 @@ namespace KryneEngine
 
     namespace
     {
-        static const eastl::vector<const char*> kValidationLayerNames = {
+        constexpr eastl::array<const char*> kValidationLayerNames = {
                 "VK_LAYER_KHRONOS_validation"
         };
 
@@ -104,8 +104,17 @@ namespace KryneEngine
         }
     }
 
-    VkGraphicsContext::VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo, Window* _window, u64 _frameId)
+    VkGraphicsContext::VkGraphicsContext(
+        AllocatorInstance _allocator,
+        const GraphicsCommon::ApplicationInfo& _appInfo,
+        Window* _window,
+        u64 _frameId)
         : m_appInfo(_appInfo)
+        , m_allocator(_allocator)
+        , m_surface(_allocator)
+        , m_swapChain(_allocator)
+        , m_resources(_allocator)
+        , m_descriptorSetManager(_allocator)
     {
         KE_ZoneScopedFunction("VkGraphicsContext::VkGraphicsContext");
 
@@ -157,14 +166,14 @@ namespace KryneEngine
 
         if (m_appInfo.m_features.m_present)
         {
-            m_surface = eastl::make_unique<VkSurface>(m_instance, _window->GetGlfwWindow());
+            m_surface.Init(m_instance, _window->GetGlfwWindow());
         }
 
         _SelectPhysicalDevice();
 
         if (m_appInfo.m_features.m_present)
         {
-            m_surface->UpdateCapabilities(m_physicalDevice);
+            m_surface.UpdateCapabilities(m_physicalDevice);
         }
 
         _CreateDevice();
@@ -177,14 +186,12 @@ namespace KryneEngine
         m_resources.m_debugHandler = m_debugHandler;
 #endif
 
-        m_descriptorSetManager = eastl::make_unique<VkDescriptorSetManager>();
-
         if (m_appInfo.m_features.m_present)
         {
-            m_swapChain = eastl::make_unique<VkSwapChain>(
+            m_swapChain.Init(
                     m_appInfo,
                     m_device,
-                    *m_surface,
+                    m_surface,
                     m_resources,
                     _window->GetGlfwWindow(),
                     m_queueIndices,
@@ -192,10 +199,10 @@ namespace KryneEngine
                     nullptr);
 
 #if !defined(KE_FINAL)
-            m_swapChain->SetDebugHandler(m_debugHandler, m_device);
+            m_swapChain.SetDebugHandler(m_debugHandler, m_device);
 #endif
 
-            m_frameContextCount = m_swapChain->m_renderTargetViews.Size();
+            m_frameContextCount = m_swapChain.m_renderTargetViews.Size();
         }
         else
         {
@@ -217,7 +224,7 @@ namespace KryneEngine
 #endif
         }
 
-        m_descriptorSetManager->Init(m_frameContextCount, _frameId % m_frameContextCount);
+        m_descriptorSetManager.Init(m_frameContextCount, _frameId % m_frameContextCount);
     }
 
     VkGraphicsContext::~VkGraphicsContext()
@@ -228,12 +235,10 @@ namespace KryneEngine
         }
         m_frameContexts.Clear();
 
-        if (m_swapChain != nullptr)
+        if (m_appInfo.m_features.m_present)
         {
-            m_swapChain->Destroy(m_device, m_resources);
-            m_swapChain.reset();
-            m_surface->Destroy(m_instance);
-            m_surface.reset();
+            m_swapChain.Destroy(m_device, m_resources);
+            m_surface.Destroy(m_instance);
         }
 
         m_resources.DestroyAllocator();
@@ -255,12 +260,12 @@ namespace KryneEngine
 
         const u8 frameIndex = _frameId % m_frameContextCount;
         auto& frameContext = m_frameContexts[frameIndex];
-        eastl::fixed_vector<VkSemaphore, VkFrameContext::kMaxQueueCount> queueSemaphores;
+        eastl::fixed_vector<VkSemaphore, VkFrameContext::kMaxQueueCount> queueSemaphores(m_allocator);
 
         VkSemaphore imageAvailableSemaphore;
-        if (m_swapChain != nullptr)
+        if (m_appInfo.m_features.m_present)
         {
-            imageAvailableSemaphore = m_swapChain->m_imageAvailableSemaphores[frameIndex];
+            imageAvailableSemaphore = m_swapChain.m_imageAvailableSemaphores[frameIndex];
         }
 
         // Submit command buffers
@@ -282,7 +287,7 @@ namespace KryneEngine
                     {
                         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 
-                        .waitSemaphoreCount = m_swapChain != nullptr ? 1u : 0u,
+                        .waitSemaphoreCount = m_appInfo.m_features.m_present ? 1u : 0u,
                         .pWaitSemaphores = &imageAvailableSemaphore,
                         .pWaitDstStageMask = stages, // Only need image for render target output
 
@@ -304,8 +309,8 @@ namespace KryneEngine
 	    }
 
         // Present image
-        if (m_swapChain != nullptr) {
-            m_swapChain->Present(m_presentQueue, queueSemaphores);
+        if (m_appInfo.m_features.m_present) {
+            m_swapChain.Present(m_presentQueue, queueSemaphores);
         }
 
         FrameMark;
@@ -321,12 +326,12 @@ namespace KryneEngine
             nextFrameContext.m_transferCommandPoolSet.Reset();
         }
 
-        m_descriptorSetManager->NextFrame(m_device, m_resources, nextFrameContextIndex);
+        m_descriptorSetManager.NextFrame(m_device, m_resources, nextFrameContextIndex);
 
         // Acquire next image
-        if (m_swapChain != nullptr)
+        if (m_appInfo.m_features.m_present)
         {
-            m_swapChain->AcquireNextImage(m_device, nextFrameContextIndex);
+            m_swapChain.AcquireNextImage(m_device, nextFrameContextIndex);
         }
     }
 
@@ -378,7 +383,7 @@ namespace KryneEngine
         u32 glfwCount;
         const char** ppGlfwExtensions = glfwGetRequiredInstanceExtensions(&glfwCount);
 
-        eastl::vector<const char *> result(ppGlfwExtensions, ppGlfwExtensions + glfwCount);
+        eastl::vector<const char *> result(ppGlfwExtensions, ppGlfwExtensions + glfwCount, m_allocator);
 
         if (_appInfo.m_features.m_validationLayers)
         {
@@ -470,7 +475,7 @@ namespace KryneEngine
         DynamicArray<VkPhysicalDevice> availablePhysicalDevices;
         VkHelperFunctions::VkArrayFetch(availablePhysicalDevices, vkEnumeratePhysicalDevices, m_instance);
 
-        eastl::vector<VkPhysicalDevice> suitableDevices;
+        eastl::vector<VkPhysicalDevice> suitableDevices(m_allocator);
         eastl::copy_if(availablePhysicalDevices.begin(), availablePhysicalDevices.end(),
                        eastl::back_inserter(suitableDevices),
                        [this](const VkPhysicalDevice& _physicalDevice)
@@ -482,7 +487,7 @@ namespace KryneEngine
             bool suitable = true;
 
             auto placeholderQueueIndices = QueueIndices();
-            suitable &= _SelectQueues(m_appInfo, _physicalDevice, m_surface->GetSurface(), placeholderQueueIndices);
+            suitable &= _SelectQueues(m_appInfo, _physicalDevice, m_surface.GetSurface(), placeholderQueueIndices);
 
             for (const auto& extension: extensions)
             {
@@ -515,17 +520,17 @@ namespace KryneEngine
         }
     }
 
-    bool
-    VkGraphicsContext::_SelectQueues(const GraphicsCommon::ApplicationInfo &_appInfo,
-                                     const VkPhysicalDevice &_physicalDevice,
-                                     const VkSurfaceKHR &_surface,
-                                     QueueIndices &_indices)
+    bool VkGraphicsContext::_SelectQueues(
+        const GraphicsCommon::ApplicationInfo &_appInfo,
+        const VkPhysicalDevice &_physicalDevice,
+        const VkSurfaceKHR &_surface,
+        QueueIndices &_indices)
     {
         KE_ZoneScopedFunction("VkGraphicsContext::_SelectQueues");
 
         DynamicArray<VkQueueFamilyProperties> familyProperties;
         VkHelperFunctions::VkArrayFetch(familyProperties, vkGetPhysicalDeviceQueueFamilyProperties, _physicalDevice);
-        eastl::vector_map<u32, u32> indices;
+        eastl::vector_map<u32, u32> indices(m_allocator);
 
         bool foundAll = true;
 
@@ -650,12 +655,12 @@ namespace KryneEngine
     {
         KE_ZoneScopedFunction("VkGraphicsContext::_CreateDevice");
 
-        eastl::vector<VkDeviceQueueCreateInfo> queueCreateInfo;
-        eastl::vector<eastl::vector<float>> queuePriorities;
+        eastl::vector<VkDeviceQueueCreateInfo> queueCreateInfo(m_allocator);
+        eastl::vector<eastl::vector<float>> queuePriorities(m_allocator);
 
-        KE_ASSERT(_SelectQueues(m_appInfo, m_physicalDevice, m_surface->GetSurface(), m_queueIndices));
+        KE_ASSERT(_SelectQueues(m_appInfo, m_physicalDevice, m_surface.GetSurface(), m_queueIndices));
         {
-            const auto createQueueInfo = [&queueCreateInfo, &queuePriorities](QueueIndices::Pair _index, float _priority)
+            const auto createQueueInfo = [&](QueueIndices::Pair _index, float _priority)
             {
                 if (_index.IsInvalid())
                 {
@@ -670,7 +675,7 @@ namespace KryneEngine
                 if (!alreadyInserted)
                 {
                     it = queueCreateInfo.emplace(queueCreateInfo.end());
-                    queuePriorities.push_back();
+                    queuePriorities.push_back().set_allocator(m_allocator);
                     it->sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
                     it->flags = 0;
                     it->queueFamilyIndex = _index.m_familyIndex;
@@ -793,7 +798,7 @@ namespace KryneEngine
 
     eastl::vector_set<eastl::string> VkGraphicsContext::_GetRequiredDeviceExtensions() const
     {
-        eastl::vector_set<eastl::string> result;
+        eastl::vector_set<eastl::string> result(m_allocator);
 
         if (m_appInfo.m_features.m_present)
         {
@@ -839,7 +844,7 @@ namespace KryneEngine
     {
         KE_ZoneScopedFunction("VkGraphicsContext::FetchTextureSubResourcesMemoryFootprints");
 
-        eastl::vector<TextureMemoryFootprint> footprints;
+        eastl::vector<TextureMemoryFootprint> footprints(m_allocator);
 
         u64 cumulatedOffset = 0;
         for (u32 sliceIndex = 0; sliceIndex < _desc.m_arraySize; sliceIndex++)
@@ -893,22 +898,22 @@ namespace KryneEngine
 
     RenderTargetViewHandle VkGraphicsContext::GetPresentRenderTargetView(u8 _index)
     {
-        return (m_swapChain != nullptr)
-                ? m_swapChain->m_renderTargetViews[_index]
+        return (m_appInfo.m_features.m_present)
+                ? m_swapChain.m_renderTargetViews[_index]
                 : RenderTargetViewHandle { GenPool::kInvalidHandle };
     }
 
     TextureHandle VkGraphicsContext::GetPresentTexture(u8 _swapChainIndex)
     {
-        return (m_swapChain != nullptr)
-            ? m_swapChain->m_renderTargetTextures[_swapChainIndex]
+        return (m_appInfo.m_features.m_present)
+            ? m_swapChain.m_renderTargetTextures[_swapChainIndex]
             : TextureHandle { GenPool::kInvalidHandle };
     }
 
     u32 VkGraphicsContext::GetCurrentPresentImageIndex() const
     {
-        return (m_swapChain != nullptr)
-                ? m_swapChain->m_imageIndex
+        return (m_appInfo.m_features.m_present)
+                ? m_swapChain.m_imageIndex
                 : 0;
     }
 
@@ -1115,9 +1120,9 @@ namespace KryneEngine
         }
         else
         {
-            eastl::vector<VkMemoryBarrier> globalMemoryBarriers {};
-            eastl::vector<VkBufferMemoryBarrier> bufferMemoryBarriers {};
-            eastl::vector<VkImageMemoryBarrier> imageMemoryBarriers {};
+            eastl::vector<VkMemoryBarrier> globalMemoryBarriers(m_allocator);
+            eastl::vector<VkBufferMemoryBarrier> bufferMemoryBarriers(m_allocator);
+            eastl::vector<VkImageMemoryBarrier> imageMemoryBarriers(m_allocator);
 
             globalMemoryBarriers.reserve(_globalMemoryBarriers.size());
             bufferMemoryBarriers.reserve(_bufferMemoryBarriers.size());
@@ -1249,19 +1254,19 @@ namespace KryneEngine
         const DescriptorSetDesc& _desc,
         u32* _bindingIndices)
     {
-        return m_descriptorSetManager->CreateDescriptorSetLayout(
+        return m_descriptorSetManager.CreateDescriptorSetLayout(
             _desc,
             _bindingIndices, m_device);
     }
 
     DescriptorSetHandle VkGraphicsContext::CreateDescriptorSet(DescriptorSetLayoutHandle _layout)
     {
-        return m_descriptorSetManager->CreateDescriptorSet(_layout, m_device);
+        return m_descriptorSetManager.CreateDescriptorSet(_layout, m_device);
     }
 
     PipelineLayoutHandle VkGraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
     {
-        return m_resources.CreatePipelineLayout(_desc, m_device, m_descriptorSetManager.get());
+        return m_resources.CreatePipelineLayout(_desc, m_device, &m_descriptorSetManager);
     }
 
     GraphicsPipelineHandle VkGraphicsContext::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc)
@@ -1281,12 +1286,12 @@ namespace KryneEngine
 
     bool VkGraphicsContext::DestroyDescriptorSet(DescriptorSetHandle _set)
     {
-        return m_descriptorSetManager->DestroyDescriptorSet(_set, m_device);
+        return m_descriptorSetManager.DestroyDescriptorSet(_set, m_device);
     }
 
     bool VkGraphicsContext::DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout)
     {
-        return m_descriptorSetManager->DestroyDescriptorSetLayout(_layout, m_device);
+        return m_descriptorSetManager.DestroyDescriptorSetLayout(_layout, m_device);
     }
 
     bool VkGraphicsContext::FreeShaderModule(ShaderModuleHandle _module)
@@ -1299,7 +1304,7 @@ namespace KryneEngine
         const eastl::span<const DescriptorSetWriteInfo>& _writes,
         u64 _frameId)
     {
-        return m_descriptorSetManager->UpdateDescriptorSet(
+        return m_descriptorSetManager.UpdateDescriptorSet(
             _descriptorSet, _writes, m_device, m_resources, _frameId % m_frameContextCount);
     }
 
@@ -1423,7 +1428,7 @@ namespace KryneEngine
         {
             if (_unchanged == nullptr || !_unchanged[i])
             {
-                VERIFY_OR_RETURN_VOID(m_descriptorSetManager->m_descriptorSetPools.Get(_sets[i].m_handle) != nullptr);
+                VERIFY_OR_RETURN_VOID(m_descriptorSetManager.m_descriptorSetPools.Get(_sets[i].m_handle) != nullptr);
                 const u64 offset = m_frameContextCount * _sets[i].m_handle.m_index + frameIndex;
 
                 vkCmdBindDescriptorSets(
@@ -1432,7 +1437,7 @@ namespace KryneEngine
                     *pLayout,
                     i,
                     1,
-                    m_descriptorSetManager->m_descriptorSets.begin() + offset,
+                    m_descriptorSetManager.m_descriptorSets.begin() + offset,
                     0,
                     nullptr);
             }

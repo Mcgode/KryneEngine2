@@ -10,18 +10,18 @@
 #include <EASTL/vector_set.h>
 
 #include "Graphics/Vulkan/CommonStructures.hpp"
-#include "Graphics/Vulkan/VkTypes.hpp"
+#include "Graphics/Vulkan/VkDescriptorSetManager.hpp"
 #include "Graphics/Vulkan/VkFrameContext.hpp"
 #include "Graphics/Vulkan/VkResources.hpp"
+#include "Graphics/Vulkan/VkSurface.hpp"
+#include "Graphics/Vulkan/VkSwapChain.hpp"
+#include "Graphics/Vulkan/VkTypes.hpp"
 #include "KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp"
 #include "KryneEngine/Core/Graphics/Common/Texture.hpp"
 
 namespace KryneEngine
 {
     class VkDebugHandler;
-    class VkDescriptorSetManager;
-    class VkSurface;
-    class VkSwapChain;
     class Window;
 
     struct BufferMapping;
@@ -33,7 +33,11 @@ namespace KryneEngine
     class VkGraphicsContext
     {
     public:
-        explicit VkGraphicsContext(const GraphicsCommon::ApplicationInfo& _appInfo, Window* _window, u64 _frameId);
+        explicit VkGraphicsContext(
+            AllocatorInstance _allocator,
+            const GraphicsCommon::ApplicationInfo& _appInfo,
+            Window* _window,
+            u64 _frameId);
 
         virtual ~VkGraphicsContext();
 
@@ -49,14 +53,15 @@ namespace KryneEngine
 
     private:
         const GraphicsCommon::ApplicationInfo m_appInfo;
+        AllocatorInstance m_allocator;
 
         VkInstance m_instance;
         VkDebugUtilsMessengerEXT m_debugMessenger;
         VkPhysicalDevice m_physicalDevice;
         VkDevice m_device;
 
-        eastl::unique_ptr<VkSurface> m_surface;
-        eastl::unique_ptr<VkSwapChain> m_swapChain;
+        VkSurface m_surface;
+        VkSwapChain m_swapChain;
 
         VkCommonStructures::QueueIndices m_queueIndices {};
         VkQueue m_graphicsQueue;
@@ -92,8 +97,11 @@ namespace KryneEngine
         [[nodiscard]] eastl::vector_set<eastl::string> _GetRequiredDeviceExtensions() const;
         void _SelectPhysicalDevice();
 
-        static bool _SelectQueues(const GraphicsCommon::ApplicationInfo &_appInfo, const VkPhysicalDevice &_physicalDevice,
-                                  const VkSurfaceKHR &_surface, VkCommonStructures::QueueIndices &_indices);
+        bool _SelectQueues(
+            const GraphicsCommon::ApplicationInfo &_appInfo,
+            const VkPhysicalDevice &_physicalDevice,
+            const VkSurfaceKHR &_surface,
+            VkCommonStructures::QueueIndices &_indices);
 
         void _CreateDevice();
         void _RetrieveQueues(const VkCommonStructures::QueueIndices &_queueIndices);
@@ -237,8 +245,8 @@ namespace KryneEngine
         void DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc);
 
     private:
-        VkResources m_resources {};
-        eastl::unique_ptr<VkDescriptorSetManager> m_descriptorSetManager;
+        VkResources m_resources;
+        VkDescriptorSetManager m_descriptorSetManager;
     };
 }
 

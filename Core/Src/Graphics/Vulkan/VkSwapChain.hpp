@@ -26,7 +26,9 @@ namespace KryneEngine
         friend class VkGraphicsContext;
 
     public:
-        VkSwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
+        explicit VkSwapChain(AllocatorInstance _allocator);
+
+        void Init(const GraphicsCommon::ApplicationInfo &_appInfo,
                     VkDevice _device,
                     const VkSurface &_surface,
                     VkResources &_resources,

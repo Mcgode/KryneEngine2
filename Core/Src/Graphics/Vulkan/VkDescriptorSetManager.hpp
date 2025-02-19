@@ -21,7 +21,7 @@ namespace KryneEngine
     public:
         friend class VkGraphicsContext;
 
-        VkDescriptorSetManager();
+        explicit VkDescriptorSetManager(AllocatorInstance _allocator);
         ~VkDescriptorSetManager();
 
         void Init(u8 _frameCount, u8 _frameIndex);
@@ -78,6 +78,8 @@ namespace KryneEngine
             VkDescriptorBufferInfo m_bufferImageInfo;
         };
         eastl::vector<DescriptorData> m_tmpDescriptorData;
+
+        [[nodiscard]] AllocatorInstance GetAllocator() const;
 
         void _ProcessUpdates(
             const eastl::vector<WriteOp>& _writes,

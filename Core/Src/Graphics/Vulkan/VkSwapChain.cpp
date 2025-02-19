@@ -18,7 +18,13 @@
 
 namespace KryneEngine
 {
-    VkSwapChain::VkSwapChain(
+    VkSwapChain::VkSwapChain(AllocatorInstance _allocator)
+        : m_renderTargetTextures(_allocator)
+        , m_renderTargetViews(_allocator)
+        , m_imageAvailableSemaphores(_allocator)
+    {}
+
+    void VkSwapChain::Init(
             const GraphicsCommon::ApplicationInfo &_appInfo,
             VkDevice _device, const VkSurface &_surface,
             VkResources &_resources, GLFWwindow *_window,
