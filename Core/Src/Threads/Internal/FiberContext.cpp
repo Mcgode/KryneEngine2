@@ -6,6 +6,8 @@
 
 #include "FiberContext.hpp"
 
+#include <EASTL/allocator.h>
+
 #include "KryneEngine/Core/Common/Assert.hpp"
 #include "KryneEngine/Core/Threads/FibersManager.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"
@@ -74,12 +76,14 @@ namespace KryneEngine
                 m_availableBigContextsIds.m_priorityQueue.push(i + kSmallStackCount);
             }
 
-            m_smallStacks = static_cast<SmallStack*>(std::aligned_alloc(
-                kStackAlignment,
-                sizeof(SmallStack) * static_cast<size_t>(kSmallStackCount)));
-            m_bigStacks = static_cast<BigStack*>(std::aligned_alloc(
-                kStackAlignment,
-                sizeof(BigStack) * static_cast<size_t>(kBigStackCount)));
+            AllocatorInstance allocator {};
+
+            m_smallStacks = static_cast<SmallStack*>(allocator.allocate(
+                sizeof(SmallStack) * static_cast<size_t>(kSmallStackCount),
+                kStackAlignment));
+            m_bigStacks = static_cast<BigStack*>(allocator.allocate(
+                sizeof(BigStack) * static_cast<size_t>(kBigStackCount),
+                kStackAlignment));
 
             for (u32 i = 0; i < m_contexts.size(); i++)
             {
@@ -108,8 +112,9 @@ namespace KryneEngine
 
     FiberContextAllocator::~FiberContextAllocator()
     {
-        std::free(m_smallStacks);
-        std::free(m_bigStacks);
+        AllocatorInstance allocator {};
+        allocator.deallocate(m_smallStacks);
+        allocator.deallocate(m_bigStacks);
     }
 
     bool FiberContextAllocator::Allocate(bool _bigStack, u16 &id_)
