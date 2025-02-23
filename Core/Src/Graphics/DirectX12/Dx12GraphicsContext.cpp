@@ -745,10 +745,12 @@ namespace KryneEngine
         {
             eastl::fixed_vector<D3D12_BARRIER_GROUP, 3> barrierGroups;
 
+            DynamicArray<D3D12_GLOBAL_BARRIER> globalMemoryBarriers(m_allocator, _globalMemoryBarriers.size());
+            DynamicArray<D3D12_BUFFER_BARRIER> bufferMemoryBarriers(m_allocator, _bufferMemoryBarriers.size());
+            DynamicArray<D3D12_TEXTURE_BARRIER> textureMemoryBarriers(m_allocator, _textureMemoryBarriers.size());
+
             if (!_globalMemoryBarriers.empty())
             {
-                DynamicArray<D3D12_GLOBAL_BARRIER> globalMemoryBarriers(m_allocator, _globalMemoryBarriers.size());
-
                 for (auto i = 0u; i < globalMemoryBarriers.Size(); i++)
                 {
                     const GlobalMemoryBarrier& barrier = _globalMemoryBarriers[i];
@@ -770,8 +772,6 @@ namespace KryneEngine
 
             if (!_bufferMemoryBarriers.empty())
             {
-                DynamicArray<D3D12_BUFFER_BARRIER> bufferMemoryBarriers(m_allocator, _bufferMemoryBarriers.size());
-
                 for (auto i = 0u; i < bufferMemoryBarriers.Size(); i++)
                 {
                     const BufferMemoryBarrier& barrier = _bufferMemoryBarriers[i];
@@ -797,8 +797,6 @@ namespace KryneEngine
 
             if (!_textureMemoryBarriers.empty())
             {
-                DynamicArray<D3D12_TEXTURE_BARRIER> textureMemoryBarriers(m_allocator, _textureMemoryBarriers.size());
-
                 for (auto i = 0u; i < textureMemoryBarriers.Size(); i++)
                 {
                     const TextureMemoryBarrier& barrier = _textureMemoryBarriers[i];
