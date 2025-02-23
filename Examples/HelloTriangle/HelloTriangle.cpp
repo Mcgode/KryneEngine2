@@ -98,12 +98,16 @@ void PreparePso(
                 .m_elements = {
                     // Position element
                     VertexLayoutElement {
+                        .m_semanticName = KryneEngine::VertexLayoutElement::SemanticName::Position,
+                        .m_semanticIndex = 0,
                         .m_format = KryneEngine::TextureFormat::RGB32_Float,
                         .m_offset = 0,
                         .m_location = 0,
                     },
                     // Color element
                     VertexLayoutElement {
+                        .m_semanticName = KryneEngine::VertexLayoutElement::SemanticName::Color,
+                        .m_semanticIndex = 0,
                         .m_format = KryneEngine::TextureFormat::RGB32_Float,
                         .m_offset = sizeof(float3),
                         .m_location = 1,
