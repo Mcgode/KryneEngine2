@@ -209,7 +209,7 @@ namespace KryneEngine::Tests
         // Teardown
         // -----------------------------------------------------------------------
 
-        std::free(stack);
+        StdAlloc::Free(stack);
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 }
