@@ -30,20 +30,25 @@ namespace KryneEngine
         {
             Resize(_count);
         }
+
         DynamicArray(const Allocator& _allocator, size_t _count)
             : m_allocator(_allocator)
-            , DynamicArray(_count)
-        {}
+        {
+            Resize(_count);
+        }
 
         DynamicArray(size_t _count, const T& _value)
         {
             Resize(_count);
             SetAll(_value);
         }
+
         DynamicArray(const Allocator& _allocator, size_t _count, const T& _value)
             : m_allocator(_allocator)
-            , DynamicArray(_count, _value)
-        {}
+        {
+            Resize(_count);
+            SetAll(_value);
+        }
 
         DynamicArray(const std::initializer_list<T>& _initializerList)
         {
@@ -55,10 +60,18 @@ namespace KryneEngine
                 *valuePtr = *it;
             }
         }
+
         DynamicArray(const Allocator& _allocator, const std::initializer_list<T>& _initializerList)
             : m_allocator(_allocator)
-            , DynamicArray(_initializerList)
-        {}
+        {
+            Resize(_initializerList.size());
+
+            auto it = _initializerList.begin();
+            for (Ptr valuePtr = begin(); valuePtr != end(); valuePtr++, it++)
+            {
+                *valuePtr = *it;
+            }
+        }
 
         DynamicArray(const DynamicArray& _other)
         {
