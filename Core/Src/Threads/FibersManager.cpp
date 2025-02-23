@@ -8,6 +8,7 @@
 
 #include "KryneEngine/Core/Common/Assert.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"
+#include "KryneEngine/Core/Threads/FiberJob.hpp"
 #include "KryneEngine/Core/Threads/FiberThread.hpp"
 #include "KryneEngine/Core/Threads/FiberTls.inl"
 #include "Threads/Internal/FiberContext.hpp"
@@ -100,10 +101,10 @@ namespace KryneEngine
         m_waitVariable.notify_one();
     }
 
-    bool FibersManager::_RetrieveNextJob(Job&job_, u16 _fiberIndex)
+    bool FibersManager::_RetrieveNextJob(Job& job_, u16 _fiberIndex)
     {
         auto& consumerTokens = m_jobConsumerTokens.Load(_fiberIndex);
-        for (s64 i = 0; i < (s64)kJobQueuesCount; i++)
+        for (s64 i = 0; i < static_cast<s64>(kJobQueuesCount); i++)
         {
             if (m_jobQueues[i].try_dequeue(consumerTokens[i], job_))
             {
