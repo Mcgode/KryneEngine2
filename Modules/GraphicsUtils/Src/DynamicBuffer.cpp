@@ -105,7 +105,7 @@ namespace KryneEngine::Modules::GraphicsUtils
         if (m_gpuBuffer == GenPool::kInvalidHandle)
         {
             BufferMemoryBarrier memoryBarrier {
-                .m_stagesSrc = BarrierSyncStageFlags::None,
+                .m_stagesSrc = BarrierSyncStageFlags::All,
                 .m_stagesDst = BarrierSyncStageFlags::All,
                 .m_accessSrc = BarrierAccessFlags::All,
                 .m_accessDst = _accessFlags,
