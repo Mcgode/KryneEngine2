@@ -6,25 +6,6 @@
 
 #pragma once
 
-#if defined(_WIN32)
-    #define CONTEXT_SWITCH_WINDOWS_FIBERS 1
-#elif defined(__APPLE__)
-#   define CONTEXT_SWITCH_UCONTEXT 1
-#elif __linux__ || defined(__APPLE__) || __unix__
-    #define CONTEXT_SWITCH_ABI_SYS_V 1
-#else
-#error Unsupported ABI
-#endif
-
-#if CONTEXT_SWITCH_ABI_WINDOWS
-    #include <emmintrin.h>
-#endif
-
-#if defined(CONTEXT_SWITCH_UCONTEXT)
-#   define _XOPEN_SOURCE
-#   include <ucontext.h>
-#endif
-
 #include <EASTL/array.h>
 #include <EASTL/priority_queue.h>
 #include <boost/context/detail/fcontext.hpp>

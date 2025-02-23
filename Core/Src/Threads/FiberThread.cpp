@@ -11,10 +11,6 @@
 #include "KryneEngine/Core/Threads/HelperFunctions.hpp"
 #include "Threads/Internal/FiberContext.hpp"
 
-#if CONTEXT_SWITCH_WINDOWS_FIBERS
-#	include <KryneEngine/Core/Platform/Windows.h>
-#endif
-
 namespace KryneEngine
 {
     thread_local FiberThread::ThreadIndex FiberThread::sThreadIndex = 0;
@@ -37,10 +33,6 @@ namespace KryneEngine
                 FibersManager::s_manager = _fiberManager;
                 sThreadIndex = _threadIndex;
                 sIsThread = true;
-
-#if CONTEXT_SWITCH_WINDOWS_FIBERS
-                context.m_winFiber = ConvertThreadToFiber(nullptr);
-#endif
             }
 
             while (!m_shouldStop)
