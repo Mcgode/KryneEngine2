@@ -8,9 +8,11 @@
 
 #include <EASTL/unique_ptr.h>
 
+#include "Graphics/DirectX12/Dx12DescriptorSetManager.hpp"
 #include "Graphics/DirectX12/Dx12FrameContext.hpp"
 #include "Graphics/DirectX12/Dx12Headers.hpp"
 #include "Graphics/DirectX12/Dx12Resources.h"
+#include "Graphics/DirectX12/Dx12SwapChain.hpp"
 #include "Graphics/DirectX12/Dx12Types.hpp"
 #include "KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp"
 #include "KryneEngine/Core/Graphics/Common/Texture.hpp"
@@ -49,6 +51,7 @@ namespace KryneEngine
         [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_appInfo; }
 
     private:
+        AllocatorInstance m_allocator;
         GraphicsCommon::ApplicationInfo m_appInfo;
 
         ComPtr<ID3D12Device> m_device;
@@ -57,7 +60,7 @@ namespace KryneEngine
         ComPtr<ID3D12CommandQueue> m_computeQueue;
         ComPtr<ID3D12CommandQueue> m_copyQueue;
 
-        eastl::unique_ptr<Dx12SwapChain> m_swapChain;
+        Dx12SwapChain m_swapChain;
 
         u8 m_frameContextCount;
         DynamicArray<Dx12FrameContext> m_frameContexts;
@@ -205,7 +208,7 @@ namespace KryneEngine
 
     private:
         Dx12Resources m_resources;
-        eastl::unique_ptr<Dx12DescriptorSetManager> m_descriptorSetManager;
+        Dx12DescriptorSetManager m_descriptorSetManager;
         RenderPassHandle m_currentRenderPass;
     };
 } // KryneEngine

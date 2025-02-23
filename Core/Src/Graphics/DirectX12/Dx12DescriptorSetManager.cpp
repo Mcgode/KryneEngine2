@@ -20,6 +20,13 @@ namespace KryneEngine
         u32 m_packed;
     };
 
+    Dx12DescriptorSetManager::Dx12DescriptorSetManager(AllocatorInstance _allocator)
+        : m_cbvSrvUavGpuDescriptorHeaps(_allocator)
+        , m_samplerGpuDescriptorHeaps(_allocator)
+        , m_descriptorSetLayout(_allocator)
+        , m_descriptorSets(_allocator)
+    {}
+
     void Dx12DescriptorSetManager::Init(ID3D12Device* _device, u8 _frameContextCount, u8 _currentFrame)
     {
         KE_ZoneScopedFunction("Dx12DescriptorSetManager::Init");
@@ -58,7 +65,7 @@ namespace KryneEngine
             }
         }
 
-        m_multiFrameUpdateTracker.Init(_frameContextCount, _currentFrame);
+        m_multiFrameUpdateTracker.Init(m_cbvSrvUavGpuDescriptorHeaps.GetAllocator(), _frameContextCount, _currentFrame);
     }
 
     DescriptorSetLayoutHandle Dx12DescriptorSetManager::CreateDescriptorSetLayout(

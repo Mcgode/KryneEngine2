@@ -33,7 +33,7 @@ namespace KryneEngine
         friend class Dx12DescriptorSetManager;
 
     public:
-        Dx12Resources();
+        Dx12Resources(AllocatorInstance _allocator);
         ~Dx12Resources();
 
         void InitAllocator(ID3D12Device* _device, IDXGIAdapter* _adapter);
@@ -66,7 +66,7 @@ namespace KryneEngine
 
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(
             const PipelineLayoutDesc& _desc,
-            Dx12DescriptorSetManager* _setManager,
+            Dx12DescriptorSetManager& _setManager,
             ID3D12Device* _device);
         bool DestroyPipelineLayout(PipelineLayoutHandle _layout);
 

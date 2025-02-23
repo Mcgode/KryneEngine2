@@ -4,6 +4,7 @@
  * @date 23/02/2024.
  */
 
+#include <bit>
 #include <D3D12MemAlloc.h>
 
 #include "Graphics/DirectX12/Dx12DescriptorSetManager.hpp"
@@ -17,7 +18,18 @@
 
 namespace KryneEngine
 {
-    Dx12Resources::Dx12Resources() = default;
+    Dx12Resources::Dx12Resources(AllocatorInstance _allocator)
+        : m_buffers(_allocator)
+        , m_textures(_allocator)
+        , m_cbvSrvUav(_allocator)
+        , m_samplers(_allocator)
+        , m_renderTargetViews(_allocator)
+        , m_renderPasses(_allocator)
+        , m_rootSignatures(_allocator)
+        , m_shaderBytecodes(_allocator)
+        , m_pipelineStateObjects(_allocator)
+    {}
+
     Dx12Resources::~Dx12Resources() = default;
 
     void Dx12Resources::InitAllocator(ID3D12Device* _device, IDXGIAdapter* _adapter)
@@ -543,7 +555,7 @@ namespace KryneEngine
 
     PipelineLayoutHandle Dx12Resources::CreatePipelineLayout(
         const PipelineLayoutDesc& _desc,
-        Dx12DescriptorSetManager* _setManager,
+        Dx12DescriptorSetManager& _setManager,
         ID3D12Device* _device)
     {
         KE_ZoneScopedFunction("Dx12Resources::CreatePipelineLayout");
@@ -556,7 +568,7 @@ namespace KryneEngine
         {
             auto layout = _desc.m_descriptorSets[setIndex];
 
-            const Dx12DescriptorSetManager::LayoutData* layoutData = _setManager->GetDescriptorSetLayoutData(layout);
+            const Dx12DescriptorSetManager::LayoutData* layoutData = _setManager.GetDescriptorSetLayoutData(layout);
 
             u32 rangesCount = 0;
             const u32 rangesOffset = ranges.size();

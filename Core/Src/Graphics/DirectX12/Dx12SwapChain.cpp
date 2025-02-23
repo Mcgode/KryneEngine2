@@ -8,6 +8,7 @@
 #include "Graphics/DirectX12/Dx12SwapChain.hpp"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
 #include "Graphics/DirectX12/Dx12GraphicsContext.hpp"
@@ -17,11 +18,22 @@
 
 namespace KryneEngine
 {
-    Dx12SwapChain::Dx12SwapChain(const GraphicsCommon::ApplicationInfo &_appInfo,
+    Dx12SwapChain::Dx12SwapChain(KryneEngine::AllocatorInstance _allocator)
+        : m_renderTargetTextures(_allocator)
+        , m_renderTargetViews(_allocator)
+    {}
+
+    Dx12SwapChain::~Dx12SwapChain()
+    {
+        KE_ASSERT(m_swapChain == nullptr);
+    }
+
+    void Dx12SwapChain::Init(
+        const GraphicsCommon::ApplicationInfo &_appInfo,
         const Window* _processWindow,
-                                 IDXGIFactory4 *_factory,
-                                 ID3D12Device *_device,
-                                 ID3D12CommandQueue *_directQueue,
+        IDXGIFactory4 *_factory,
+        ID3D12Device *_device,
+        ID3D12CommandQueue *_directQueue,
         KryneEngine::Dx12Resources& _resources)
     {
         KE_ZoneScopedFunction("Dx12SwapChain::Dx12SwapChain");
@@ -90,11 +102,6 @@ namespace KryneEngine
                 m_renderTargetViews.Init(i, _resources.CreateRenderTargetView(rtvDesc, _device));
             }
         }
-    }
-
-    Dx12SwapChain::~Dx12SwapChain()
-    {
-        KE_ASSERT(m_swapChain == nullptr);
     }
 
     void Dx12SwapChain::Present() const
