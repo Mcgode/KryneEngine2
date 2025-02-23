@@ -7,7 +7,7 @@
 #include "Files/FileWatcher.hpp"
 
 #if defined(_WIN32)
-#	include <Platform/Windows.h>
+#	include <KryneEngine/Core/Platform/Windows.h>
 #endif
 
 #if defined(__APPLE__)

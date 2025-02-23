@@ -12,7 +12,7 @@
 #include "Threads/Internal/FiberContext.hpp"
 
 #if CONTEXT_SWITCH_WINDOWS_FIBERS
-#	include <Platform/Windows.h>
+#	include <KryneEngine/Core/Platform/Windows.h>
 #endif
 
 namespace KryneEngine

@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 
 #if defined(_WIN32)
-#   include <Platform/Windows.h>
+#   include <KryneEngine/Core/Platform/Windows.h>
 #endif
 
 #include "../../../Core/Src/Threads/Internal/FiberContext.hpp"
