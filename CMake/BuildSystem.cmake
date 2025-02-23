@@ -19,6 +19,7 @@ if (${TOTAL_BUILD_ARGS_LENGTH} GREATER_EQUAL 2)
 
     if (Arg STREQUAL "MTL")
         set(GraphicsApi "MTL")
+        add_language(OBJC OBJCXX)
     endif()
 endif()
 
