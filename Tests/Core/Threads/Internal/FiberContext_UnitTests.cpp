@@ -11,6 +11,7 @@
 #endif
 
 #include "../../../Core/Src/Threads/Internal/FiberContext.hpp"
+#include <KryneEngine/Core/Platform/StdAlloc.hpp>
 
 #include "Utils/AssertUtils.hpp"
 
@@ -189,7 +190,7 @@ namespace KryneEngine::Tests
         };
 
         constexpr size_t stackSize = 1 << 16;
-        void* stack = std::aligned_alloc(16, stackSize);
+        void* stack = StdAlloc::MemAlign(16, stackSize);
 
         std::thread startThread(
             [&](){
