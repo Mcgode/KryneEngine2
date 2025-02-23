@@ -16,6 +16,8 @@ namespace KryneEngine::Math
     using XsimdArch128 = xsimd::sse4_1;
 #elif XSMID_WITH_SSE3
     using XsimdArch128 = xsimd::sse3;
+#elif XSIMD_WITH_SSE2
+    using XsimdArch128 = xsimd::sse2;
 #elif XSIMD_WITH_SSE
     using XsimdArch128 = xsimd::sse;
 #elif XSIMD_WITH_NEON64
