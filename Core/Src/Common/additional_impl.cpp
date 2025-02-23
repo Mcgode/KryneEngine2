@@ -4,7 +4,9 @@
  * @date 10/10/2021.
  */
 
-#include <new>
+#include <cstdint>
+
+#include "KryneEngine/Core/Platform/StdAlloc.hpp"
 
 void* __cdecl operator new[](
     const size_t _size,
@@ -14,7 +16,7 @@ void* __cdecl operator new[](
     const char* /* _file */,
     int /* _line */)
 {
-    return operator new(_size);
+    return KryneEngine::StdAlloc::Malloc(_size);
 }
 
 void* __cdecl operator new[](
@@ -27,7 +29,7 @@ void* __cdecl operator new[](
     const char* /* _file */,
     int /* _line */)
 {
-    void* ptr = operator new(_size, std::align_val_t(_alignment));
+    void* ptr = KryneEngine::StdAlloc::MemAlign(_size, _alignment);
     return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr) + _alignmentOffset);
 }
 
@@ -41,7 +43,7 @@ void __cdecl operator delete(
 {
     if (_p != nullptr)
     {
-        operator delete(_p);
+        KryneEngine::StdAlloc::Free(_p);
     }
 }
 
@@ -55,6 +57,6 @@ void __cdecl operator delete[](
 {
     if (_p != nullptr)
     {
-        operator delete[](_p);
+        KryneEngine::StdAlloc::Free(_p);
     }
 }

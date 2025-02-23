@@ -6,7 +6,7 @@
 
 #include "KryneEngine/Core/Memory/Allocators/Allocator.hpp"
 
-#include <EASTL/allocator.h>
+#include "KryneEngine/Core/Platform/StdAlloc.hpp"
 
 namespace KryneEngine
 {
@@ -18,21 +18,22 @@ namespace KryneEngine
         }
         else
         {
-            return ::new((char*)nullptr, _flags, 0, __FILE__, __LINE__) std::byte[_size];
+            return StdAlloc::Malloc(_size);
         }
     }
 
     void* AllocatorInstance::allocate(size_t _size, size_t _alignment, size_t _alignmentOffset, int _flags)
     {
+        void* ptr;
         if (m_allocator)
         {
-            return reinterpret_cast<void*>(
-                reinterpret_cast<uintptr_t>(m_allocator->Allocate(_size, _alignment)) + _alignmentOffset);
+            ptr = m_allocator->Allocate(_size, _alignment);
         }
         else
         {
-            return ::new(_alignment, _alignmentOffset, (char*)nullptr, _flags, 0, __FILE__, __LINE__) std::byte[_size];
+            ptr = StdAlloc::MemAlign(_size, _alignment);
         }
+        return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr) + _alignmentOffset);
     }
 
     void AllocatorInstance::deallocate(void* _ptr, size_t _size)
@@ -43,7 +44,7 @@ namespace KryneEngine
         }
         else
         {
-            operator delete[](_ptr);
+            StdAlloc::Free(_ptr);
         }
     }
 } // namespace KryneEngine
