@@ -65,6 +65,7 @@ namespace KryneEngine::GLFW
             MAP(GLFW_KEY_BACKSLASH, BackSlash);
             MAP(GLFW_KEY_GRAVE_ACCENT, GraveAccent);
             MAP(GLFW_KEY_ESCAPE, Escape);
+            MAP(GLFW_KEY_ENTER, Enter);
             MAP(GLFW_KEY_TAB, Tab);
             MAP(GLFW_KEY_BACKSPACE, Backspace);
             MAP(GLFW_KEY_INSERT, Insert);
