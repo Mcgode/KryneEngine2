@@ -70,6 +70,12 @@ set(MemorySrc
         Include/KryneEngine/Core/Memory/Allocators/Allocator.hpp
 )
 
+set(PlatformSrc
+        Include/KryneEngine/Core/Platform/Windows.h
+        Src/Platform/StdAlloc.cpp
+        Include/KryneEngine/Core/Platform/StdAlloc.hpp
+)
+
 set(ProfilingSrc
         Include/KryneEngine/Core/Profiling/TracyHeader.hpp
 )
@@ -170,7 +176,16 @@ elseif (GraphicsApi STREQUAL "MTL")
         )
 endif()
 
-add_library(KryneEngine_Core ${CommonSrc} ${FilesSrc} ${GraphicsFiles} ${MathSrc} ${MemorySrc} ${ProfilingSrc} ${ThreadsSrc} ${WindowSrc})
+add_library(KryneEngine_Core
+        ${CommonSrc}
+        ${FilesSrc}
+        ${GraphicsFiles}
+        ${MathSrc}
+        ${MemorySrc}
+        ${PlatformSrc}
+        ${ProfilingSrc}
+        ${ThreadsSrc}
+        ${WindowSrc})
 target_link_libraries(KryneEngine_Core EASTL glfw glm Tracy::TracyClient moodycamel Boost::context xsimd)
 
 if (GraphicsApi STREQUAL "VK")
