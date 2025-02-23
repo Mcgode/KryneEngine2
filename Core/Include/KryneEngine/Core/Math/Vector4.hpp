@@ -45,6 +45,11 @@ namespace KryneEngine::Math
         Vector4Base operator-(const Vector4Base& _other) const;
         Vector4Base operator*(const Vector4Base& _other) const;
         Vector4Base operator/(const Vector4Base& _other) const;
+        T& operator[](size_t _index);
+        const T& operator[](size_t _index) const;
+
+        T* GetPtr();
+        const T* GetPtr() const;
 
         bool operator==(const Vector4Base& _other) const;
 

@@ -106,6 +106,32 @@ namespace KryneEngine::Math
     }
 
     template <typename T, size_t Alignment>
+    T& Vector4Base<T, Alignment>::operator[](size_t _index)
+    {
+        _index = eastl::min<size_t>(3u, _index);
+        return (&x)[_index];
+    }
+
+    template <typename T, size_t Alignment>
+    const T& Vector4Base<T, Alignment>::operator[](size_t _index) const
+    {
+        _index = eastl::min<size_t>(3u, _index);
+        return (&x)[_index];
+    }
+
+    template <typename T, size_t Alignment>
+    T* Vector4Base<T, Alignment>::GetPtr()
+    {
+        return &x;
+    }
+
+    template <typename T, size_t Alignment>
+    const T* Vector4Base<T, Alignment>::GetPtr() const
+    {
+        return &x;
+    }
+
+    template <typename T, size_t Alignment>
     bool Vector4Base<T, Alignment>::operator==(const Vector4Base& _other) const
     {
         if constexpr (Alignment == 16)
