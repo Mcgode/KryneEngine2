@@ -94,7 +94,7 @@ namespace KryneEngine
 
     D3D12_BARRIER_ACCESS Dx12Converters::ToDx12BarrierAccess(BarrierAccessFlags _flags)
     {
-        D3D12_BARRIER_ACCESS flags = D3D12_BARRIER_ACCESS_NO_ACCESS;
+        D3D12_BARRIER_ACCESS flags = D3D12_BARRIER_ACCESS_COMMON;
 
         if (BitUtils::EnumHasAny(_flags, BarrierAccessFlags::None))
         {
