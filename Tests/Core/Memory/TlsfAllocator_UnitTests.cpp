@@ -88,7 +88,7 @@ namespace KryneEngine::Tests
         // Teardown
         // -----------------------------------------------------------------------
 
-        delete allocator;
+        TlsfAllocator::Destroy(allocator);
     }
 
     TEST(TlsfAllocator, SingleAllocate)
@@ -150,7 +150,7 @@ namespace KryneEngine::Tests
         // Teardown
         // -----------------------------------------------------------------------
 
-        delete allocator;
+        TlsfAllocator::Destroy(allocator);
     }
 
     TEST(TlsfAllocator, InvalidAllocations)
@@ -184,7 +184,7 @@ namespace KryneEngine::Tests
         // Teardown
         // -----------------------------------------------------------------------
 
-        delete allocator;
+        TlsfAllocator::Destroy(allocator);
     }
 
     TEST(TlsfAllocator, SingleFree)
@@ -249,7 +249,7 @@ namespace KryneEngine::Tests
         // Teardown
         // -----------------------------------------------------------------------
 
-        delete allocator;
+        TlsfAllocator::Destroy(allocator);
     }
 
     TEST(TlsfAllocator, AdvancedBlockMerge)
@@ -324,7 +324,7 @@ namespace KryneEngine::Tests
         // Teardown
         // -----------------------------------------------------------------------
 
-        delete allocator;
+        TlsfAllocator::Destroy(allocator);
     }
 
     TEST(TlsfAllocator, AlignedAlloc)
@@ -358,7 +358,7 @@ namespace KryneEngine::Tests
         // Teardown
         // -----------------------------------------------------------------------
 
-        delete allocator;
+        TlsfAllocator::Destroy(allocator);
     }
 
     TEST(TlsfAllocator, MultiHeapDestruction)
@@ -385,11 +385,8 @@ namespace KryneEngine::Tests
         containedAllocator->AddHeap();
         containedAllocator->AddHeap();
 
-        // Call destructor, should remove all added heaps
-        containedAllocator->~TlsfAllocator();
-
-        // Deallocate TLSF allocator
-        containingAllocator->Free(containedAllocator, containedHeapSize);
+        // Call destructor, should remove all added heaps and deallocate the initial heap
+        TlsfAllocator::Destroy(containedAllocator);
 
         EXPECT_EQ(firstBlock->GetSize(), allFreeSize);
 
@@ -397,7 +394,7 @@ namespace KryneEngine::Tests
         // Teardown
         // -----------------------------------------------------------------------
 
-        delete containingAllocator;
+        TlsfAllocator::Destroy(containingAllocator);
     }
 
     TEST(TlsfAllocator, AutoGrowth)
@@ -432,6 +429,6 @@ namespace KryneEngine::Tests
         // Teardown
         // -----------------------------------------------------------------------
 
-        delete allocator;
+        TlsfAllocator::Destroy(allocator);
     }
 }

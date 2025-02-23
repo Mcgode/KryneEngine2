@@ -162,6 +162,14 @@ namespace KryneEngine
         return allocator;
     }
 
+    void TlsfAllocator::Destroy(TlsfAllocator* _allocator)
+    {
+        VERIFY_OR_RETURN_VOID(_allocator != nullptr);
+
+        _allocator->~TlsfAllocator();
+        _allocator->m_parentAllocator.deallocate(_allocator, _allocator->m_heapSize);
+    }
+
     bool TlsfAllocator::AddHeap()
     {
         HeapLink* lastHeap = &m_nextHeap;
