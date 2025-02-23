@@ -97,6 +97,8 @@ namespace KryneEngine
             &allocation,
             IID_PPV_ARGS(&buffer)));
 
+        allocation->SetPrivateData(reinterpret_cast<void*>(_desc.m_desc.m_size));
+
 #if !defined(KE_FINAL)
         Dx12SetName(buffer, _desc.m_desc.m_debugName.c_str());
 #endif

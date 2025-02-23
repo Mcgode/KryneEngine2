@@ -199,7 +199,7 @@ void PrepareBuffers(
                 .m_desc = {
                     .m_size = _vertexBufferView.m_size + _indexBufferView.m_size,
 #if !defined(KE_FINAL)
-    .m_debugName = "Staging buffer",
+                    .m_debugName = "Staging buffer",
 #endif
                 },
                 .m_usage = MemoryUsage::StageEveryFrame_UsageType | MemoryUsage::TransferSrcBuffer
