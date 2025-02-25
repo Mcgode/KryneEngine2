@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include "KryneEngine/Core/Platform/StdAlloc.hpp"
+#include "KryneEngine/Core/Memory/Allocators/DefaultHeapHeapAllocationTracker.hpp"
 
 namespace KryneEngine
 {
@@ -19,7 +20,11 @@ namespace KryneEngine
         }
         else
         {
-            return StdAlloc::Malloc(_size);
+            void* ptr = StdAlloc::Malloc(_size);
+#if KE_TRACK_DEFAULT_HEAP_ALLOCATIONS
+            DefaultHeapHeapAllocationTracker::GetInstance().RegisterAllocation(ptr, _size, 0);
+#endif
+            return ptr;
         }
     }
 
@@ -33,6 +38,9 @@ namespace KryneEngine
         else
         {
             ptr = StdAlloc::MemAlign(_size, _alignment);
+#if KE_TRACK_DEFAULT_HEAP_ALLOCATIONS
+            DefaultHeapHeapAllocationTracker::GetInstance().RegisterAllocation(ptr, _size, _alignment);
+#endif
         }
         return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr) + _alignmentOffset);
     }
@@ -45,6 +53,9 @@ namespace KryneEngine
         }
         else
         {
+#if KE_TRACK_DEFAULT_HEAP_ALLOCATIONS
+            DefaultHeapHeapAllocationTracker::GetInstance().RegisterDeallocation(_ptr);
+#endif
             StdAlloc::Free(_ptr);
         }
     }
