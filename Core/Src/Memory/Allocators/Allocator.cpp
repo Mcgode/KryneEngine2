@@ -6,6 +6,7 @@
 
 #include "KryneEngine/Core/Memory/Allocators/Allocator.hpp"
 
+#include <cstdint>
 #include "KryneEngine/Core/Platform/StdAlloc.hpp"
 
 namespace KryneEngine

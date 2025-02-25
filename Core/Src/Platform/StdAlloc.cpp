@@ -6,7 +6,7 @@
 
 #include "KryneEngine/Core/Platform/StdAlloc.hpp"
 
-#include <malloc.h>
+#include <new>
 
 namespace KryneEngine::StdAlloc
 {
@@ -22,7 +22,7 @@ namespace KryneEngine::StdAlloc
         return _aligned_malloc(_size, _alignment);
 #else
         void* ptr = nullptr;
-        posix_memalign(&ptr, _size, _alignment);
+        posix_memalign(&ptr, _alignment, _size);
         return ptr;
 #endif
     }

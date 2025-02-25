@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 namespace KryneEngine::StdAlloc
 {
     void* Malloc(size_t _size);
