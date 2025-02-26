@@ -123,11 +123,7 @@ namespace KryneEngine
         KE_AUTO_RELEASE_POOL;
         for (auto& commandListData : m_usedCommandBuffers)
         {
-            if (commandListData.m_encoder != nullptr)
-            {
-                commandListData.m_encoder->endEncoding();
-                commandListData.m_encoder.reset();
-            }
+            KE_ASSERT(commandListData.m_encoder == nullptr);
             commandListData.m_commandBuffer->commit();
             commandListData.m_commandBuffer->release();
         }

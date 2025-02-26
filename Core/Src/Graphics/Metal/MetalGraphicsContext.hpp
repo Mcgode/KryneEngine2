@@ -98,7 +98,7 @@ namespace KryneEngine
         bool DestroyRenderPass(RenderPassHandle _handle);
 
         CommandList BeginGraphicsCommandList(u64 _frameId);
-        void EndGraphicsCommandList(u64 _frameId);
+        void EndGraphicsCommandList(CommandList _commandList, u64 _frameId);
 
         void BeginRenderPass(CommandList _commandList, RenderPassHandle _handle);
         void EndRenderPass(CommandList _commandList);

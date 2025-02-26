@@ -103,7 +103,7 @@ void MainFunc(void* _pAllocator)
 
         graphicsContext->EndRenderPass(commandList);
 
-        graphicsContext->EndGraphicsCommandList();
+        graphicsContext->EndGraphicsCommandList(commandList);
     }
     while (graphicsContext->EndFrame());
 

@@ -47,7 +47,7 @@ namespace KryneEngine
 
         VERIFY_OR_RETURN(m_commandAllocator != nullptr, nullptr);
 
-        m_mutex.ManualLock();
+        const auto lock = m_mutex.AutoLock();
 
         if (m_availableCommandLists.empty())
         {
@@ -69,15 +69,19 @@ namespace KryneEngine
         return m_usedCommandLists.back();
     }
 
-    void Dx12FrameContext::CommandAllocationSet::EndCommandList()
+    void Dx12FrameContext::CommandAllocationSet::EndCommandList(CommandList _commandList)
     {
         KE_ZoneScopedFunction("Dx12FrameContext::CommandAllocationSet::EndCommandList");
 
         VERIFY_OR_RETURN_VOID(m_commandAllocator != nullptr);
 
-        Dx12Assert(m_usedCommandLists.back()->Close());
+        const auto lock = m_mutex.AutoLock();
 
-        m_mutex.ManualUnlock();
+        const auto it = eastl::find(m_usedCommandLists.begin(), m_usedCommandLists.end(), _commandList);
+        if (KE_VERIFY(it != m_usedCommandLists.end()))
+        {
+            Dx12Assert(_commandList->Close());
+        }
     }
 
     void Dx12FrameContext::CommandAllocationSet::Destroy()

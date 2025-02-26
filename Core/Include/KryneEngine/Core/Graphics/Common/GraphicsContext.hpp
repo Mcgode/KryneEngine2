@@ -104,7 +104,7 @@ namespace KryneEngine
         bool DestroyRenderPass(RenderPassHandle _handle);
 
         CommandListHandle BeginGraphicsCommandList();
-        void EndGraphicsCommandList();
+        void EndGraphicsCommandList(CommandListHandle _commandList);
 
         void BeginRenderPass(CommandListHandle _commandList, RenderPassHandle _handle);
         void EndRenderPass(CommandListHandle _commandList);

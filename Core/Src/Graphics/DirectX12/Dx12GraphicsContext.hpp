@@ -149,7 +149,7 @@ namespace KryneEngine
         }
 
         CommandList BeginGraphicsCommandList(u64 _frameId);
-        void EndGraphicsCommandList(u64 _frameId);
+        void EndGraphicsCommandList(CommandList _commandList, u64 _frameId);
 
         void BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass);
         void EndRenderPass(CommandList _commandList);

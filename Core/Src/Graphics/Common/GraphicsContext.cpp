@@ -260,9 +260,11 @@ namespace KryneEngine
         return reinterpret_cast<CommandListHandle>(GetImplementation(this).BeginGraphicsCommandList(m_frameId));
     }
 
-    void GraphicsContext::EndGraphicsCommandList()
+    void GraphicsContext::EndGraphicsCommandList(CommandListHandle _commandList)
     {
-        GetImplementation(this).EndGraphicsCommandList(m_frameId);
+        GetImplementation(this).EndGraphicsCommandList(
+            reinterpret_cast<CommandList>(_commandList),
+            m_frameId);
     }
 
     void GraphicsContext::BeginRenderPass(CommandListHandle _commandList, RenderPassHandle _handle)

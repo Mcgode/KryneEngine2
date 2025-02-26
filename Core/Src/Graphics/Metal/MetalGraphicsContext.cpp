@@ -10,6 +10,7 @@
 #include "Graphics/Metal/MetalFrameContext.hpp"
 #include "Graphics/Metal/MetalSwapChain.hpp"
 #include "KryneEngine/Core/Graphics/Common/Drawing.hpp"
+#include "KryneEngine/Core/Graphics/Common/GraphicsContext.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"
 
 namespace KryneEngine
@@ -356,8 +357,15 @@ namespace KryneEngine
         return m_frameContexts[frameIndex].BeginGraphicsCommandList(*m_graphicsQueue);
     }
 
-    void MetalGraphicsContext::EndGraphicsCommandList(u64 _frameId)
-    {}
+    void MetalGraphicsContext::EndGraphicsCommandList(CommandList _commandList, u64 _frameId)
+    {
+        KE_ASSERT(_commandList != nullptr);
+        if (_commandList->m_encoder != nullptr)
+        {
+            _commandList->m_encoder->endEncoding();
+            _commandList->m_encoder = nullptr;
+        }
+    }
 
     void MetalGraphicsContext::PlaceMemoryBarriers(
         CommandList _commandList,

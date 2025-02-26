@@ -89,7 +89,7 @@ namespace KryneEngine::Tests::Graphics
                 .m_bufferDst = dstBuffer,
             });
 
-        graphicsContext->EndGraphicsCommandList();
+        graphicsContext->EndGraphicsCommandList(commandList);
         graphicsContext->EndFrame();
         graphicsContext->WaitForLastFrame();
 
@@ -224,7 +224,7 @@ namespace KryneEngine::Tests::Graphics
                 .m_bufferDst = dstBuffer,
             });
 
-        graphicsContext->EndGraphicsCommandList();
+        graphicsContext->EndGraphicsCommandList(commandList);
         graphicsContext->EndFrame();
         graphicsContext->WaitForLastFrame();
 
@@ -399,7 +399,7 @@ namespace KryneEngine::Tests::Graphics
                 .m_bufferDst = dstBuffer,
             });
 
-        graphicsContext->EndGraphicsCommandList();
+        graphicsContext->EndGraphicsCommandList(commandList);
         graphicsContext->EndFrame();
         graphicsContext->WaitForLastFrame();
 

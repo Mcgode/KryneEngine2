@@ -382,11 +382,11 @@ namespace KryneEngine
         return list;
     }
 
-    void Dx12GraphicsContext::EndGraphicsCommandList(u64 _frameId)
+    void Dx12GraphicsContext::EndGraphicsCommandList(CommandList _commandList, u64 _frameId)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::EndGraphicsCommand");
 
-        m_frameContexts[_frameId % m_frameContextCount].EndDirectCommandList();
+        m_frameContexts[_frameId % m_frameContextCount].EndDirectCommandList(_commandList);
     }
 
     void Dx12GraphicsContext::BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass)

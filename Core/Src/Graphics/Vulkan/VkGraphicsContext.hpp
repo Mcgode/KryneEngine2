@@ -184,9 +184,9 @@ namespace KryneEngine
             return m_frameContexts[_frameId % m_frameContextCount].BeginGraphicsCommandBuffer(m_device);
         }
 
-        void EndGraphicsCommandList(u64 _frameId)
+        void EndGraphicsCommandList(CommandList _commandList, u64 _frameId)
         {
-            m_frameContexts[_frameId % m_frameContextCount].EndGraphicsCommandBuffer();
+            m_frameContexts[_frameId % m_frameContextCount].EndGraphicsCommandBuffer(_commandList);
         }
 
         void BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass);

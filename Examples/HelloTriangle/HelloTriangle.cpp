@@ -235,7 +235,7 @@ void PrepareBuffers(
                     .m_offsetSrc = _vertexBufferView.m_size,
                 });
 
-            _graphicsContext.EndGraphicsCommandList();
+            _graphicsContext.EndGraphicsCommandList(commandList);
         }
 
         // Free staging buffer once everything is done.
@@ -309,7 +309,7 @@ int main()
 
         graphicsContext->EndRenderPass(commandList);
 
-        graphicsContext->EndGraphicsCommandList();
+        graphicsContext->EndGraphicsCommandList(commandList);
     }
     while (graphicsContext->EndFrame());
 }
