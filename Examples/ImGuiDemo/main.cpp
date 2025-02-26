@@ -40,11 +40,13 @@ void Job1(void*)
     std::cout << "Counter value: " << counter << std::endl;
 }
 
-void MainFunc(AllocatorInstance* _pAllocator)
+void MainFunc(void* _pAllocator)
 {
-    auto appInfo = GraphicsCommon::ApplicationInfo();
-    //        appInfo.m_features.m_validationLayers = false;
-    appInfo.m_applicationName = "Basic Example - Kryne Engine 2";
+    AllocatorInstance allocator = *static_cast<AllocatorInstance*>(_pAllocator);
+
+    auto appInfo = GraphicsCommon::ApplicationInfo {
+        .m_applicationName { "ImGuiDemo - Kryne Engine 2", allocator }
+    };
 #if defined(KE_GRAPHICS_API_VK)
     appInfo.m_api = GraphicsCommon::Api::Vulkan_1_3;
     appInfo.m_applicationName += " - Vulkan";
@@ -55,10 +57,10 @@ void MainFunc(AllocatorInstance* _pAllocator)
     appInfo.m_api = KryneEngine::GraphicsCommon::Api::Metal_3;
     appInfo.m_applicationName += " - Metal";
 #endif
-    Window mainWindow(appInfo, *_pAllocator);
+    Window mainWindow(appInfo, allocator);
     GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
-    DynamicArray<RenderPassHandle> renderPassHandles;
+    DynamicArray<RenderPassHandle> renderPassHandles(allocator);
     renderPassHandles.Resize(graphicsContext->GetFrameContextCount());
     for (auto i = 0u; i < renderPassHandles.Size(); i++)
     {
