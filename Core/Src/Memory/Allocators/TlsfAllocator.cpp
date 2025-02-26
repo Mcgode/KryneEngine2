@@ -398,6 +398,7 @@ namespace KryneEngine
     {
         TlsfHeap::BlockHeader* next = NextBlock(_block);
         next->SetPrevFree();
+        next->m_previousPhysicalBlock = _block;
         _block->SetFree();
     }
 
