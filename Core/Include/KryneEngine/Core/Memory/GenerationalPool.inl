@@ -67,6 +67,7 @@ namespace KryneEngine
             m_coldDataArray = newColdArray;
         }
 
+        m_availableIndices.reserve(_toSize - m_size);
         for (u64 i = _toSize; i > m_size; i--)
         {
             m_availableIndices.push_back(i - 1);
