@@ -327,8 +327,13 @@ namespace KryneEngine
 
     eastl::pair<u8, u8> TlsfAllocator::MappingSearch(u64 _desiredSize)
     {
-        // Round up instead of rounding down
-        _desiredSize += (1 << (BitUtils::GetMostSignificantBit(_desiredSize) - TlsfHeap::kSlCountPot)) - 1;
+        // Since _desired_size is aligned to base alignment, no need to round up, as the SL slots cover all the possible
+        // sizes
+        if (_desiredSize >= TlsfHeap::kSmallBlockSize)
+        {
+            // Round up instead of rounding down
+            _desiredSize += (1 << (BitUtils::GetMostSignificantBit(_desiredSize) - TlsfHeap::kSlCountPot)) - 1;
+        }
         return MappingInsert(_desiredSize);
     }
 
