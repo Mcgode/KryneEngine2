@@ -34,11 +34,12 @@ namespace KryneEngine::Modules::ImGui
         float2 m_translate;
     };
 
-    Context::Context(Window* _window, RenderPassHandle _renderPass)
     Context::Context(Window* _window, RenderPassHandle _renderPass, AllocatorInstance _allocator)
         : m_vsBytecode(_allocator)
         , m_fsBytecode(_allocator)
         , m_setIndices(_allocator)
+        , m_dynamicVertexBuffer(_allocator)
+        , m_dynamicIndexBuffer(_allocator)
     {
         KE_ZoneScopedFunction("Modules::ImGui::ContextContext");
 
