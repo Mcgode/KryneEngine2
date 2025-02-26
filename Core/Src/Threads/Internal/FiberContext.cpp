@@ -68,11 +68,13 @@ namespace KryneEngine
             const auto smallLock = m_availableSmallContextsIds.m_spinLock.AutoLock();
             const auto bigLock = m_availableBigContextsIds.m_spinLock.AutoLock();
 
+            m_availableSmallContextsIds.m_priorityQueue.get_container().reserve(kSmallStackCount);
             for (u16 i = 0; i < kSmallStackCount; i++)
             {
                 m_availableSmallContextsIds.m_priorityQueue.push(i);
             }
 
+            m_availableBigContextsIds.m_priorityQueue.get_container().reserve(kBigStackCount);
             for (u16 i = 0; i < kBigStackCount; i++)
             {
                 m_availableBigContextsIds.m_priorityQueue.push(i + kSmallStackCount);
