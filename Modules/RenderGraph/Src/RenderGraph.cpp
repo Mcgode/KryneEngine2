@@ -36,7 +36,7 @@ namespace KryneEngine::Modules::RenderGraph
         m_builder->PrintBuildResult();
 
         PassExecutionData passExecutionData = {
-            .m_commandList = {},
+            .m_commandList = _graphicsContext.BeginGraphicsCommandList(),
         };
 
         for (size_t i = 0; i < m_builder->m_declaredPasses.size(); i++)
@@ -57,6 +57,8 @@ namespace KryneEngine::Modules::RenderGraph
             m_currentFramePassPerformance.emplace(pass.m_name, duration);
             m_currentFrameTotalDuration += duration;
         }
+
+        _graphicsContext.EndGraphicsCommandList(passExecutionData.m_commandList);
 
         eastl::swap(m_previousFramePassPerformance, m_currentFramePassPerformance);
         m_currentFramePassPerformance.clear();
