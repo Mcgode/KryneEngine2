@@ -29,7 +29,7 @@ namespace KryneEngine::Tests
         // Execute
         // -----------------------------------------------------------------------
 
-        EXPECT_NO_THROW(FiberContextAllocator allocator);
+        EXPECT_NO_THROW(FiberContextAllocator allocator { AllocatorInstance() });
 
         // -----------------------------------------------------------------------
         // Teardown
@@ -45,7 +45,7 @@ namespace KryneEngine::Tests
         // -----------------------------------------------------------------------
 
         ScopedAssertCatcher catcher;
-        FiberContextAllocator allocator;
+        FiberContextAllocator allocator { AllocatorInstance() };
 
         // -----------------------------------------------------------------------
         // Execute
@@ -75,7 +75,7 @@ namespace KryneEngine::Tests
         // -----------------------------------------------------------------------
 
         ScopedAssertCatcher catcher;
-        FiberContextAllocator allocator;
+        FiberContextAllocator allocator { AllocatorInstance() };
 
         // -----------------------------------------------------------------------
         // Execute
@@ -120,7 +120,7 @@ namespace KryneEngine::Tests
         // -----------------------------------------------------------------------
 
         ScopedAssertCatcher catcher;
-        FiberContextAllocator allocator;
+        FiberContextAllocator allocator { AllocatorInstance() };
 
         // -----------------------------------------------------------------------
         // Execute
