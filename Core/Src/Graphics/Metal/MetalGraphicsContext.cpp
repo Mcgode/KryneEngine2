@@ -83,6 +83,16 @@ namespace KryneEngine
         return _frameId < m_frameContexts[frameIndex].m_frameId;
     }
 
+    bool MetalGraphicsContext::HasDedicatedTransferQueue() const
+    {
+        return m_ioQueue.get() != nullptr;
+    }
+
+    bool MetalGraphicsContext::HasDedicatedComputeQueue() const
+    {
+        return m_computeQueue.get() != nullptr;
+    }
+
     eastl::vector<TextureMemoryFootprint> MetalGraphicsContext::FetchTextureSubResourcesMemoryFootprints(
         const TextureDesc& _desc)
     {

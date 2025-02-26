@@ -50,6 +50,9 @@ namespace KryneEngine
 
         [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_appInfo; }
 
+        [[nodiscard]] bool HasDedicatedTransferQueue() const;
+        [[nodiscard]] bool HasDedicatedComputeQueue() const;
+
     private:
         AllocatorInstance m_allocator;
         GraphicsCommon::ApplicationInfo m_appInfo;

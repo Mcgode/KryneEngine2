@@ -213,6 +213,16 @@ namespace KryneEngine
         }
     }
 
+    bool Dx12GraphicsContext::HasDedicatedTransferQueue() const
+    {
+        return m_copyQueue != nullptr;
+    }
+
+    bool Dx12GraphicsContext::HasDedicatedComputeQueue() const
+    {
+        return m_computeQueue != nullptr;
+    }
+
     void Dx12GraphicsContext::_CreateDevice(IDXGIFactory4* _factory4)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::_CreateDevice");

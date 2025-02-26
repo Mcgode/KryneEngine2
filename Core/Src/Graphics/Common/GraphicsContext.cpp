@@ -130,6 +130,16 @@ namespace KryneEngine
 #endif
     }
 
+    bool GraphicsContext::HasDedicatedTransferQueue() const
+    {
+        return GetImplementation(this).HasDedicatedTransferQueue();
+    }
+
+    bool GraphicsContext::HasDedicatedComputeQueue() const
+    {
+        return GetImplementation(this).HasDedicatedComputeQueue();
+    }
+
     BufferHandle GraphicsContext::CreateBuffer(const BufferCreateDesc& _desc)
     {
         return GetImplementation(this).CreateBuffer(_desc);

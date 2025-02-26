@@ -63,6 +63,9 @@ namespace KryneEngine
         [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const;
         [[nodiscard]] static const char* GetShaderFileExtension();
 
+        [[nodiscard]] bool HasDedicatedTransferQueue() const;
+        [[nodiscard]] bool HasDedicatedComputeQueue() const;
+
     private:
 
         AllocatorInstance m_allocator;

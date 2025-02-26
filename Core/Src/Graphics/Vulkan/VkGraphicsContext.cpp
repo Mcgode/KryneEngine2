@@ -349,6 +349,15 @@ namespace KryneEngine
         m_frameContexts[frameIndex].WaitForFences(m_device, _frameId);
     }
 
+    bool VkGraphicsContext::HasDedicatedTransferQueue() const
+    {
+        return m_transferQueue != VK_NULL_HANDLE;
+    }
+    bool VkGraphicsContext::HasDedicatedComputeQueue() const
+    {
+        return m_computeQueue != VK_NULL_HANDLE;
+    }
+
     void VkGraphicsContext::_PrepareValidationLayers(VkInstanceCreateInfo& _createInfo)
     {
          DynamicArray<VkLayerProperties> availableLayers;
