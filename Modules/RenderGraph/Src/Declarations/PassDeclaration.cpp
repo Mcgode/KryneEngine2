@@ -8,13 +8,14 @@
 
 namespace KryneEngine::Modules::RenderGraph
 {
-    PassDeclaration::PassDeclaration(PassType _type)
+    PassDeclaration::PassDeclaration(PassType _type, size_t _id)
         : m_type(_type)
+        , m_name(eastl::string().sprintf("Pass %zu", _id))
     {}
 
     PassDeclarationBuilder& PassDeclarationBuilder::SetName(const eastl::string_view& _name)
     {
-        m_item.m_name = _name;
+        m_item.m_name = StringHash(_name);
         return *this;
     }
 

@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <KryneEngine/Core/Common/StringHelpers.hpp>
+
 #include "KryneEngine/Modules/RenderGraph/Declarations/PassAttachmentDeclaration.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
@@ -24,13 +26,13 @@ namespace KryneEngine::Modules::RenderGraph
     struct PassDeclaration
     {
     public:
-        explicit PassDeclaration(PassType _type);
+        explicit PassDeclaration(PassType _type, size_t _id);
 
         using ExecuteFunction = eastl::function<void(RenderGraph&, PassExecutionData&)>;
 
     public:
         PassType m_type;
-        eastl::string m_name;
+        StringHash m_name;
         eastl::fixed_vector<PassAttachmentDeclaration, RenderPassDesc::kMaxSupportedColorAttachments, false> m_colorAttachments = {};
         eastl::optional<PassAttachmentDeclaration> m_depthAttachment;
         eastl::vector<SimplePoolHandle> m_readDependencies;

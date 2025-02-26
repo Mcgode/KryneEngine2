@@ -23,7 +23,7 @@ namespace KryneEngine::Modules::RenderGraph
 
     PassDeclarationBuilder Builder::DeclarePass(PassType _type)
     {
-        return { m_declaredPasses.emplace_back(_type), *this };
+        return { m_declaredPasses.emplace_back(_type, m_declaredPasses.size()), *this };
     }
 
     Builder& Builder::DeclareTargetResource(SimplePoolHandle _resource)
@@ -45,7 +45,7 @@ namespace KryneEngine::Modules::RenderGraph
         for (const PassDeclaration& pass : m_declaredPasses)
         {
             indent.push_back('\t');
-            std::cout << "- [" << index <<  "] '" << pass.m_name.c_str() << "' - ";
+            std::cout << "- [" << index <<  "] '" << pass.m_name.m_string.c_str() << "' - ";
             switch(pass.m_type)
             {
             case PassType::Render:
@@ -314,14 +314,14 @@ namespace KryneEngine::Modules::RenderGraph
             {
                 std::cout
                     << eastl::string{}.sprintf(R"(  "[%lld] %s" -> "[%lld] %s";)",
-                                               i, m_declaredPasses[i].m_name.c_str(),
-                                               child, m_declaredPasses[child].m_name.c_str()).c_str()
+                                               i, m_declaredPasses[i].m_name.m_string.c_str(),
+                                               child, m_declaredPasses[child].m_name.m_string.c_str()).c_str()
                     << std::endl;
             }
             if (node.m_children.empty())
             {
                 std::cout
-                    << eastl::string{}.sprintf(R"(  "[%lld] %s";)", i, m_declaredPasses[i].m_name.c_str()).c_str()
+                    << eastl::string{}.sprintf(R"(  "[%lld] %s";)", i, m_declaredPasses[i].m_name.m_string.c_str()).c_str()
                     << std::endl;
             }
         }
@@ -345,14 +345,14 @@ namespace KryneEngine::Modules::RenderGraph
                 }
                 std::cout
                     << eastl::string{}.sprintf(R"(  "[%lld] %s" -> "[%lld] %s";)",
-                                               i, m_declaredPasses[i].m_name.c_str(),
-                                               child, m_declaredPasses[child].m_name.c_str()).c_str()
+                                               i, m_declaredPasses[i].m_name.m_string.c_str(),
+                                               child, m_declaredPasses[child].m_name.m_string.c_str()).c_str()
                     << std::endl;
             }
             if (node.m_children.empty())
             {
                 std::cout
-                    << eastl::string{}.sprintf(R"(  "[%lld] %s";)", i, m_declaredPasses[i].m_name.c_str()).c_str()
+                    << eastl::string{}.sprintf(R"(  "[%lld] %s";)", i, m_declaredPasses[i].m_name.m_string.c_str()).c_str()
                     << std::endl;
             }
         }
@@ -424,7 +424,7 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(
                                       R"("[%lld] %s";)",
                                       renderPasses[0],
-                                      m_declaredPasses[renderPasses[0]].m_name.c_str()).c_str()
+                                      m_declaredPasses[renderPasses[0]].m_name.m_string.c_str()).c_str()
                 << std::endl;
         }
         for (size_t i = 1; i < renderPasses.size(); i++)
@@ -434,9 +434,9 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(
                                       R"("[%lld] %s" -> "[%lld] %s";)",
                                       renderPasses[i - 1],
-                                      m_declaredPasses[renderPasses[i - 1]].m_name.c_str(),
+                                      m_declaredPasses[renderPasses[i - 1]].m_name.m_string.c_str(),
                                       renderPasses[i],
-                                      m_declaredPasses[renderPasses[i]].m_name.c_str()).c_str()
+                                      m_declaredPasses[renderPasses[i]].m_name.m_string.c_str()).c_str()
                 << std::endl;
         }
         std::cout << "\t}" << std::endl;
@@ -449,7 +449,7 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(
                                       R"("[%lld] %s";)",
                                       computePasses[0],
-                                      m_declaredPasses[computePasses[0]].m_name.c_str()).c_str()
+                                      m_declaredPasses[computePasses[0]].m_name.m_string.c_str()).c_str()
                 << std::endl;
         }
         for (size_t i = 1; i < computePasses.size(); i++)
@@ -459,9 +459,9 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(
                                       R"("[%lld] %s" -> "[%lld] %s";)",
                                       computePasses[i - 1],
-                                      m_declaredPasses[computePasses[i - 1]].m_name.c_str(),
+                                      m_declaredPasses[computePasses[i - 1]].m_name.m_string.c_str(),
                                       computePasses[i],
-                                      m_declaredPasses[computePasses[i]].m_name.c_str()).c_str()
+                                      m_declaredPasses[computePasses[i]].m_name.m_string.c_str()).c_str()
                 << std::endl;
         }
         std::cout << "\t}" << std::endl;
@@ -474,7 +474,7 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(
                                       R"("[%lld] %s";)",
                                       transferPasses[0],
-                                      m_declaredPasses[transferPasses[0]].m_name.c_str()).c_str()
+                                      m_declaredPasses[transferPasses[0]].m_name.m_string.c_str()).c_str()
                 << std::endl;
         }
         for (size_t i = 1; i < transferPasses.size(); i++)
@@ -484,9 +484,9 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(
                                       R"("[%lld] %s" -> "[%lld] %s";)",
                                       transferPasses[i - 1],
-                                      m_declaredPasses[transferPasses[i - 1]].m_name.c_str(),
+                                      m_declaredPasses[transferPasses[i - 1]].m_name.m_string.c_str(),
                                       transferPasses[i],
-                                      m_declaredPasses[transferPasses[i]].m_name.c_str()).c_str()
+                                      m_declaredPasses[transferPasses[i]].m_name.m_string.c_str()).c_str()
                 << std::endl;
         }
         std::cout << "\t}" << std::endl;
@@ -500,9 +500,9 @@ namespace KryneEngine::Modules::RenderGraph
                     << eastl::string().sprintf(
                                           R"("[%lld] %s" -> "[%lld] %s";)",
                                           dependencyPair.first,
-                                          m_declaredPasses[dependencyPair.first].m_name.c_str(),
+                                          m_declaredPasses[dependencyPair.first].m_name.m_string.c_str(),
                                           dependencyPair.second,
-                                          m_declaredPasses[dependencyPair.second].m_name.c_str()).c_str()
+                                          m_declaredPasses[dependencyPair.second].m_name.m_string.c_str()).c_str()
                     << std::endl;
             }
         }
