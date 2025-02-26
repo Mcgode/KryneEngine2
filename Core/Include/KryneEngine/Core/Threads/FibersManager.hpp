@@ -28,7 +28,7 @@ namespace KryneEngine
     public:
         using Job = FiberJob*;
 
-        explicit FibersManager(s32 _requestedThreadCount);
+        explicit FibersManager(s32 _requestedThreadCount, AllocatorInstance _allocatorInstance);
 
         ~FibersManager();
 
@@ -97,7 +97,7 @@ namespace KryneEngine
         FiberTls<Job> m_nextJob;
         FiberTls<FiberContext> m_baseContexts;
 
-        eastl::unique_ptr<FiberContextAllocator> m_contextAllocator;
+        FiberContextAllocator* m_contextAllocator;
 
         SyncCounterPool m_syncCounterPool {};
 

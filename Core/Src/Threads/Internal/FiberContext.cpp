@@ -59,10 +59,12 @@ namespace KryneEngine
         }
     }
 
-    FiberContextAllocator::FiberContextAllocator()
+    FiberContextAllocator::FiberContextAllocator(AllocatorInstance _allocator)
     {
-        {
+        m_availableSmallContextsIds.m_priorityQueue.get_container().set_allocator(_allocator);
+        m_availableBigContextsIds.m_priorityQueue.get_container().set_allocator(_allocator);
 
+        {
             const auto smallLock = m_availableSmallContextsIds.m_spinLock.AutoLock();
             const auto bigLock = m_availableBigContextsIds.m_spinLock.AutoLock();
 
@@ -76,12 +78,10 @@ namespace KryneEngine
                 m_availableBigContextsIds.m_priorityQueue.push(i + kSmallStackCount);
             }
 
-            AllocatorInstance allocator {};
-
-            m_smallStacks = static_cast<SmallStack*>(allocator.allocate(
+            m_smallStacks = static_cast<SmallStack*>(_allocator.allocate(
                 sizeof(SmallStack) * static_cast<size_t>(kSmallStackCount),
                 kStackAlignment));
-            m_bigStacks = static_cast<BigStack*>(allocator.allocate(
+            m_bigStacks = static_cast<BigStack*>(_allocator.allocate(
                 sizeof(BigStack) * static_cast<size_t>(kBigStackCount),
                 kStackAlignment));
 

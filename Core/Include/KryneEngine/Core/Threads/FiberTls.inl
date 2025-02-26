@@ -10,16 +10,16 @@
 
 namespace KryneEngine
 {
-    template<class T>
-    inline void FiberTls<T>::Init(const FibersManager *_fibersManager, const T &_value)
+    template<class T, class Allocator>
+    inline void FiberTls<T, Allocator>::Init(const FibersManager *_fibersManager, const T &_value)
     {
         m_array.Resize(_fibersManager->GetFiberThreadCount());
         m_array.InitAll(_value);
     }
 
-    template<class T>
+    template<class T, class Allocator>
     template<typename F>
-    void FiberTls<T>::InitFunc(const FibersManager *_fibersManager, F _initFunction)
+    void FiberTls<T, Allocator>::InitFunc(const FibersManager *_fibersManager, F _initFunction)
     {
         m_array.Resize(_fibersManager->GetFiberThreadCount());
 
@@ -29,8 +29,8 @@ namespace KryneEngine
         }
     }
 
-    template<class T>
-    inline T& FiberTls<T>::Load()
+    template<class T, class Allocator>
+    inline T& FiberTls<T, Allocator>::Load()
     {
         KE_ASSERT(FiberThread::IsFiberThread());
 

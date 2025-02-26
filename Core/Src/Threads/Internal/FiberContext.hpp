@@ -31,7 +31,7 @@ namespace KryneEngine
     struct FiberContextAllocator
     {
     public:
-        FiberContextAllocator();
+        explicit FiberContextAllocator(AllocatorInstance _allocator);
 
         ~FiberContextAllocator();
 

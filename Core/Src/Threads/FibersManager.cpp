@@ -17,11 +17,17 @@ namespace KryneEngine
 {
     thread_local FibersManager* FibersManager::s_manager = nullptr;
 
-    FibersManager::FibersManager(s32 _requestedThreadCount)
+    FibersManager::FibersManager(s32 _requestedThreadCount, AllocatorInstance _allocator)
+        : m_fiberThreads(_allocator)
+        , m_jobProducerTokens(_allocator)
+        , m_jobConsumerTokens(_allocator)
+        , m_currentJobs(_allocator)
+        , m_nextJob(_allocator)
+        , m_baseContexts(_allocator)
     {
         KE_ZoneScopedFunction("FibersManager::FibersManager()");
 
-        m_contextAllocator = eastl::make_unique<FiberContextAllocator>();
+        m_contextAllocator = _allocator.New<FiberContextAllocator>(_allocator);
 
         u16 fiberThreadCount;
         if (_requestedThreadCount <= 0)
