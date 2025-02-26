@@ -6,7 +6,10 @@
 
 #pragma once
 
+#include <EASTL/hash_map.h>
 #include <EASTL/unique_ptr.h>
+
+#include <KryneEngine/Core/Common/StringHelpers.hpp>
 
 namespace KryneEngine
 {
@@ -33,5 +36,10 @@ namespace KryneEngine::Modules::RenderGraph
     private:
         eastl::unique_ptr<Registry> m_registry;
         eastl::unique_ptr<Builder> m_builder;
+
+        eastl::hash_map<StringHash, u64> m_previousFramePassPerformance;
+        eastl::hash_map<StringHash, u64> m_currentFramePassPerformance;
+        u64 m_previousFrameTotalDuration = 0;
+        u64 m_currentFrameTotalDuration = 0;
     };
 } // namespace KryneEngine::Modules::RenderGraph

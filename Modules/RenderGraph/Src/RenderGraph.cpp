@@ -46,9 +46,23 @@ namespace KryneEngine::Modules::RenderGraph
                 continue;
             }
 
-            KE_ASSERT(m_builder->m_declaredPasses[i].m_executeFunction != nullptr);
-            m_builder->m_declaredPasses[i].m_executeFunction(*this, passExecutionData);
+            const PassDeclaration& pass = m_builder->m_declaredPasses[i];
+
+            std::chrono::time_point start = std::chrono::steady_clock::now();
+            KE_ASSERT(pass.m_executeFunction != nullptr);
+            pass.m_executeFunction(*this, passExecutionData);
+            std::chrono::time_point end = std::chrono::steady_clock::now();
+
+            const u64 duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+            m_currentFramePassPerformance.emplace(pass.m_name, duration);
+            m_currentFrameTotalDuration += duration;
         }
+
+        eastl::swap(m_previousFramePassPerformance, m_currentFramePassPerformance);
+        m_currentFramePassPerformance.clear();
+
+        m_previousFrameTotalDuration = m_currentFrameTotalDuration;
+        m_currentFrameTotalDuration = 0;
 
         m_builder.reset();
     }
