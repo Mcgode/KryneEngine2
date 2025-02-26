@@ -12,7 +12,7 @@
 
 namespace KryneEngine
 {
-    void* AllocatorInstance::allocate(size_t _size, int _flags)
+    void* AllocatorInstance::allocate(size_t _size, int _flags) const
     {
         if (m_allocator)
         {
@@ -28,7 +28,7 @@ namespace KryneEngine
         }
     }
 
-    void* AllocatorInstance::allocate(size_t _size, size_t _alignment, size_t _alignmentOffset, int _flags)
+    void* AllocatorInstance::allocate(size_t _size, size_t _alignment, size_t _alignmentOffset, int _flags) const
     {
         void* ptr;
         if (m_allocator)
@@ -45,7 +45,7 @@ namespace KryneEngine
         return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr) + _alignmentOffset);
     }
 
-    void AllocatorInstance::deallocate(void* _ptr, size_t _size)
+    void AllocatorInstance::deallocate(void* _ptr, size_t _size) const
     {
         if (m_allocator)
         {
