@@ -37,8 +37,9 @@ namespace KryneEngine::Modules::ImGui
          *
          * @param _window The Window object associated with the Context.
          * @param _renderPass The RenderPassHandle object used for building the ImGui PSO.
+         * @param _allocator The memory allocator instance for this context
          */
-        explicit Context(Window* _window, RenderPassHandle _renderPass);
+        Context(Window* _window, RenderPassHandle _renderPass, AllocatorInstance _allocator);
 
         ~Context();
 
@@ -105,7 +106,7 @@ namespace KryneEngine::Modules::ImGui
 
         eastl::chrono::time_point<eastl::chrono::steady_clock> m_timePoint;
 
-        eastl::unique_ptr<Input> m_input;
+        Input* m_input;
 
         void _InitPso(GraphicsContext* _graphicsContext, RenderPassHandle _renderPass);
     };

@@ -79,7 +79,7 @@ void MainFunc(void* _pAllocator)
         renderPassHandles[i] = graphicsContext->CreateRenderPass(desc);
     }
 
-    KEModules::ImGui::Context imGuiContext{&mainWindow, renderPassHandles[0]};
+    KEModules::ImGui::Context imGuiContext { &mainWindow, renderPassHandles[0], allocator };
 
     do
     {

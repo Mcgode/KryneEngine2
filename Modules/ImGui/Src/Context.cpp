@@ -35,6 +35,10 @@ namespace KryneEngine::Modules::ImGui
     };
 
     Context::Context(Window* _window, RenderPassHandle _renderPass)
+    Context::Context(Window* _window, RenderPassHandle _renderPass, AllocatorInstance _allocator)
+        : m_vsBytecode(_allocator)
+        , m_fsBytecode(_allocator)
+        , m_setIndices(_allocator)
     {
         KE_ZoneScopedFunction("Modules::ImGui::ContextContext");
 
@@ -52,7 +56,7 @@ namespace KryneEngine::Modules::ImGui
                 .m_desc = {
                     .m_size = kInitialSize * sizeof(VertexEntry),
 #if !defined(KE_FINAL)
-                    .m_debugName = "ImGuiContext/DynamicVertexBuffer"
+                    .m_debugName { "ImGuiContext/DynamicVertexBuffer", _allocator }
 #endif
                 },
                 .m_usage = MemoryUsage::StageEveryFrame_UsageType
@@ -70,7 +74,7 @@ namespace KryneEngine::Modules::ImGui
                 .m_desc = {
                     .m_size = kInitialSize * sizeof(u32),
 #if !defined(KE_FINAL)
-                    .m_debugName = "ImGuiContext/DynamicIndexBuffer"
+                    .m_debugName { "ImGuiContext/DynamicIndexBuffer", _allocator }
 #endif
                 },
                 .m_usage = MemoryUsage::StageEveryFrame_UsageType
@@ -83,14 +87,17 @@ namespace KryneEngine::Modules::ImGui
                 graphicsContext->GetFrameContextCount());
         }
 
-        m_input = eastl::make_unique<Input>(_window);
+        m_input = _allocator.New<Input>(_window);
 
         _InitPso(graphicsContext, _renderPass);
 
         m_timePoint = eastl::chrono::steady_clock::now();
     }
 
-    Context::~Context() { KE_ASSERT_MSG(m_context == nullptr, "ImGui module was not shut down"); }
+    Context::~Context()
+    {
+        KE_ASSERT_MSG(m_context == nullptr, "ImGui module was not shut down");
+    }
 
     void Context::Shutdown(Window* _window)
     {
@@ -132,6 +139,7 @@ namespace KryneEngine::Modules::ImGui
 
         // Unregister input callbacks.
         m_input->Shutdown(_window);
+        m_vsBytecode.get_allocator().Delete(m_input);
 
         ::ImGui::DestroyContext(m_context);
         m_context = nullptr;
@@ -515,11 +523,13 @@ namespace KryneEngine::Modules::ImGui
                 KE_VERIFY(file.read(_vec.data(), _vec.size()));
             };
 
+            AllocatorInstance allocator = m_vsBytecode.get_allocator();
+
             readShaderFile(
-                eastl::string("Shaders/ImGui/ImGui_vs_MainVS.") + GraphicsContext::GetShaderFileExtension(),
+                eastl::string("Shaders/ImGui/ImGui_vs_MainVS.", allocator) + GraphicsContext::GetShaderFileExtension(),
                 m_vsBytecode);
             readShaderFile(
-                eastl::string("Shaders/ImGui/ImGui_ps_MainPS.") + GraphicsContext::GetShaderFileExtension(),
+                eastl::string("Shaders/ImGui/ImGui_ps_MainPS.", allocator) + GraphicsContext::GetShaderFileExtension(),
                 m_fsBytecode);
 
             m_vsModule = _graphicsContext->RegisterShaderModule(m_vsBytecode.data(), m_vsBytecode.size());
