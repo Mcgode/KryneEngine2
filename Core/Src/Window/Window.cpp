@@ -45,7 +45,7 @@ namespace KryneEngine
         {
             KE_ZoneScoped("Input management init");
 
-            m_inputManager = m_allocator.New<InputManager>(this);
+            m_inputManager = m_allocator.New<InputManager>(this, _allocator);
 
             glfwSetWindowFocusCallback(m_glfwWindow, WindowFocusCallback);
         }
