@@ -151,6 +151,7 @@ namespace KryneEngine
         }
         // Make sure to end and join all the fiber threads before anything else.
         m_fiberThreads.Clear();
+        m_fiberThreads.GetAllocator().Delete(m_contextAllocator);
     }
 
     FiberJob *FibersManager::GetCurrentJob()
