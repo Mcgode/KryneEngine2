@@ -4,12 +4,13 @@
  * @date 13/11/2024.
  */
 
-#include <iostream>
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
+#include "KryneEngine/Core/Threads/FibersManager.hpp"
 #include <KryneEngine/Modules/RenderGraph/Builder.hpp>
 #include <KryneEngine/Modules/RenderGraph/Registry.hpp>
 #include <KryneEngine/Modules/RenderGraph/RenderGraph.hpp>
+#include <iostream>
 
 using namespace KryneEngine;
 using namespace KryneEngine::Modules;
@@ -24,6 +25,8 @@ void ExecuteUploadConstantBuffer(
 int main()
 {
     TracySetProgramName("Render graph demo");
+
+    FibersManager fibersManager(0, AllocatorInstance());
 
     GraphicsCommon::ApplicationInfo appInfo {};
     appInfo.m_features.m_present = false;
@@ -128,7 +131,7 @@ int main()
                 .Done()
             .DeclareTargetResource(readbackBuffer);
 
-        renderGraph.SubmitFrame(*graphicsContext);
+        renderGraph.SubmitFrame(*graphicsContext, fibersManager);
     }
 
     return 0;

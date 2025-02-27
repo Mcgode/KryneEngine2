@@ -7,13 +7,13 @@
 #pragma once
 
 #include <KryneEngine/Core/Common/StringHelpers.hpp>
+#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 
 #include "KryneEngine/Modules/RenderGraph/Declarations/PassAttachmentDeclaration.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
 {
     class RenderGraph;
-    struct PassExecutionData;
 
     enum class PassType
     {
@@ -21,6 +21,11 @@ namespace KryneEngine::Modules::RenderGraph
         Compute,
         Transfer,
         COUNT,
+    };
+
+    struct PassExecutionData
+    {
+        CommandListHandle m_commandList;
     };
 
     struct PassDeclaration
