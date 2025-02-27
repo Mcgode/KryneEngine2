@@ -198,22 +198,26 @@ namespace KryneEngine
         newJob = nullptr;
     }
 
-    SyncCounterId FibersManager::InitAndBatchJobs(FiberJob *_jobArray,
-                                                  FiberJob::JobFunc *_jobFunc,
-                                                  void *_userData,
-                                                  u32 _count,
-                                                  FiberJob::Priority _priority,
-                                                  bool _useBigStack)
+    SyncCounterId FibersManager::InitAndBatchJobs(
+        u32 _jobCount,
+        FiberJob* _jobArray,
+        FiberJob::JobFunc* _jobFunc,
+        void* _pUserData,
+        size_t _userDataSize,
+        FiberJob::Priority _priority,
+        bool _useBigStack)
     {
-        const auto syncCounter = m_syncCounterPool.AcquireCounter(_count);
+        const auto syncCounter = m_syncCounterPool.AcquireCounter(_jobCount);
 
         VERIFY_OR_RETURN(syncCounter != kInvalidSyncCounterId, kInvalidSyncCounterId);
 
-        for (u32 i = 0; i < _count; i++)
+        auto pUserData = reinterpret_cast<uintptr_t>(_pUserData);
+
+        for (u32 i = 0; i < _jobCount; i++)
         {
             auto& job = _jobArray[i];
             job.m_functionPtr = _jobFunc;
-            job.m_userData = _userData;
+            job.m_userData = reinterpret_cast<void*>(pUserData + _userDataSize * i);
             job.m_priority = _priority;
             job.m_bigStack = _useBigStack;
             job.m_associatedCounterId = syncCounter;
@@ -221,6 +225,25 @@ namespace KryneEngine
         }
 
         return syncCounter;
+    }
+
+    SyncCounterId FibersManager::InitAndBatchJobs(
+        FiberJob *_jobArray,
+        FiberJob::JobFunc *_jobFunc,
+        void *_userData,
+        u32 _jobCount,
+        FiberJob::Priority _priority,
+        bool _useBigStack)
+    {
+        // We reuse the InitAndBatchJobs, but we just make sure there is no per-job shift by setting the data size to 0
+        return InitAndBatchJobs(
+            _jobCount,
+            _jobArray,
+            _jobFunc,
+            &_userData,
+            0,
+            _priority,
+            _useBigStack);
     }
 
     SyncCounterPool::AutoSyncCounter FibersManager::AcquireAutoSyncCounter(u32 _count)
