@@ -26,6 +26,8 @@ int main()
 {
     TracySetProgramName("Render graph demo");
 
+    KE_ZoneScoped("Render graph demo");
+
     FibersManager fibersManager(0, AllocatorInstance());
 
     GraphicsCommon::ApplicationInfo appInfo {};
@@ -130,9 +132,15 @@ int main()
                 .WriteDependency(readbackBuffer)
                 .Done()
             .DeclareTargetResource(readbackBuffer);
+    }
+
+    {
+        KE_ZoneScoped("Execute render graph");
 
         renderGraph.SubmitFrame(*graphicsContext, fibersManager);
     }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     return 0;
 }
