@@ -34,7 +34,7 @@ namespace KryneEngine
         BufferHandle m_buffer;
         bool m_pureWrite;
 
-        explicit BufferMapping(BufferHandle _buffer, u64 _size = ~0, u64 _offset = 0, bool _pureWrite = true)
+        explicit BufferMapping(BufferHandle _buffer, u64 _size = ~0ull, u64 _offset = 0, bool _pureWrite = true)
             : m_buffer(_buffer)
             , m_size(_size)
             , m_offset(_offset)
