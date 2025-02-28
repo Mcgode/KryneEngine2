@@ -34,9 +34,14 @@ namespace KryneEngine::Modules::RenderGraph
         [[nodiscard]] Builder& BeginFrame(GraphicsContext& _graphicsContext);
         void SubmitFrame(GraphicsContext& _graphicsContext, FibersManager& _fibersManager);
 
+        [[nodiscard]] double GetTargetTimePerCommandList() const { return m_targetTimePerCommandList; }
+        void SetTargetTimePerCommandList(double _milliseconds) { m_targetTimePerCommandList = _milliseconds; }
+
     private:
         eastl::unique_ptr<Registry> m_registry;
         eastl::unique_ptr<Builder> m_builder;
+
+        double m_targetTimePerCommandList = 1.0;
 
         struct JobData
         {

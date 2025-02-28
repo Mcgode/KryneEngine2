@@ -31,17 +31,22 @@ namespace KryneEngine::Modules::RenderGraph
     {
         m_builder->PrintBuildResult();
 
-        PassExecutionData passExecutionData = {
-            .m_commandList = _graphicsContext.BeginGraphicsCommandList(),
+        const auto initJobData = [&](JobData& _jobData, u32 _start) {
+            _jobData.m_renderGraph = this;
+            _jobData.m_graphicsContext = &_graphicsContext;
+            _jobData.m_passExecutionData = PassExecutionData {
+                .m_commandList = _graphicsContext.BeginGraphicsCommandList()
+            };
+            _jobData.m_passRangeStart = _start;
+            _jobData.m_passRangeCount = 0;
         };
 
-        JobData& currentJob = m_jobs.emplace_back();
+        JobData* currentJob = nullptr;
 
-        currentJob.m_renderGraph = this;
-        currentJob.m_graphicsContext = &_graphicsContext;
-        currentJob.m_passExecutionData = passExecutionData;
-        currentJob.m_passRangeStart = 0;
-        currentJob.m_passRangeCount = 0;
+        constexpr double maxOverfillRatio = 1.25; // Accept up to 25% longer command list from one long pass.
+        const u64 maxOverfillDuration = static_cast<u64>(m_targetTimePerCommandList * maxOverfillRatio * 1'000'000);
+        const u64 targetDuration = static_cast<u64>(m_targetTimePerCommandList * 1'000'000);
+        u64 cumulativeDuration = 0;
 
         for (size_t i = 0; i < m_builder->m_declaredPasses.size(); i++)
         {
@@ -51,10 +56,33 @@ namespace KryneEngine::Modules::RenderGraph
             }
 
             const PassDeclaration& pass = m_builder->m_declaredPasses[i];
-            currentJob.m_passRangeCount = i - currentJob.m_passRangeStart + 1;
+            const u64 estimatedPassDuration = m_previousFramePassPerformance[pass.m_name];
+
+            // Prevent the current job from overfilling beyond a certain threshold.
+            if (cumulativeDuration + estimatedPassDuration > maxOverfillDuration)
+            {
+                cumulativeDuration = 0;
+                currentJob = nullptr;
+            }
+
+            if (currentJob == nullptr)
+            {
+                currentJob = &m_jobs.emplace_back();
+                initJobData(*currentJob, i);
+            }
+
+            currentJob->m_passRangeCount = i - currentJob->m_passRangeStart + 1;
+            cumulativeDuration += estimatedPassDuration;
 
             // Reserve entry in map, so that duration saving is thread-safe
             m_currentFramePassPerformance.emplace(pass.m_name, 0);
+
+            // If beyond the target duration, move to the next job
+            if (cumulativeDuration > targetDuration)
+            {
+                cumulativeDuration = 0;
+                currentJob = nullptr;
+            }
         }
 
         // Execute the last job in this thread/fiber, schedule the other ones for dispatch.
