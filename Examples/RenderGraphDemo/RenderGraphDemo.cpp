@@ -15,11 +15,52 @@
 using namespace KryneEngine;
 using namespace KryneEngine::Modules;
 
-void ExecuteUploadConstantBuffer(
-    [[maybe_unused]] RenderGraph::RenderGraph& _renderGraph,
-    [[maybe_unused]] RenderGraph::PassExecutionData& _passExecutionData)
+void ExecuteUploadData(
+    RenderGraph::RenderGraph& _renderGraph,
+    RenderGraph::PassExecutionData& _passExecutionData)
 {
+    KE_ZoneScopedFunction(__FUNCTION__);
     std::cout << "Uploading constant buffer" << std::endl;
+}
+
+void ExecuteGBufferPass(
+    RenderGraph::RenderGraph& _renderGraph,
+    RenderGraph::PassExecutionData& _passExecutionData)
+{
+    KE_ZoneScopedFunction(__FUNCTION__);
+    std::cout << "GBuffer pass" << std::endl;
+}
+
+void ExecuteDeferredShadowPass(
+    RenderGraph::RenderGraph& _renderGraph,
+    RenderGraph::PassExecutionData& _passExecutionData)
+{
+    KE_ZoneScopedFunction(__FUNCTION__);
+    std::cout << "Deferred shadow pass" << std::endl;
+}
+
+void ExecuteDeferredGiPass(
+    RenderGraph::RenderGraph& _renderGraph,
+    RenderGraph::PassExecutionData& _passExecutionData)
+{
+    KE_ZoneScopedFunction(__FUNCTION__);
+    std::cout << "Deferred GI pass" << std::endl;
+}
+
+void ExecuteDeferredShadingPass(
+    RenderGraph::RenderGraph& _renderGraph,
+    RenderGraph::PassExecutionData& _passExecutionData)
+{
+    KE_ZoneScopedFunction(__FUNCTION__);
+    sleep(1);
+    std::cout << "Deferred shading pass" << std::endl;
+}
+
+void ExecuteSkyPass(
+    RenderGraph::RenderGraph& _renderGraph,
+    RenderGraph::PassExecutionData& _passExecutionData)
+{
+    std::cout << "Sky pass" << std::endl;
 }
 
 int main()
@@ -75,11 +116,12 @@ int main()
         builder
             .DeclarePass(RenderGraph::PassType::Transfer)
                 .SetName("Upload data")
-                .SetExecuteFunction(ExecuteUploadConstantBuffer)
+                .SetExecuteFunction(ExecuteUploadData)
                 .WriteDependency(frameCBuffer)
                 .Done()
             .DeclarePass(RenderGraph::PassType::Render)
                 .SetName("GBuffer pass")
+                .SetExecuteFunction(ExecuteGBufferPass)
                 .AddColorAttachment(gBufferAlbedo)
                     .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
                     .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
@@ -97,12 +139,14 @@ int main()
                 .Done()
             .DeclarePass(RenderGraph::PassType::Compute)
                 .SetName("Deferred shadow pass")
+                .SetExecuteFunction(ExecuteDeferredShadowPass)
                 .ReadDependency(frameCBuffer)
                 .ReadDependency(gBufferDepth)
                 .WriteDependency(deferredShadow)
                 .Done()
             .DeclarePass(RenderGraph::PassType::Compute)
                 .SetName("Deferred 'GI' pass")
+                .SetExecuteFunction(ExecuteDeferredGiPass)
                 .ReadDependency(frameCBuffer)
                 .ReadDependency(gBufferAlbedo)
                 .ReadDependency(gBufferNormal)
@@ -111,6 +155,7 @@ int main()
                 .Done()
             .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
                 .SetName("Deferred shading pass")
+                .SetExecuteFunction(ExecuteDeferredShadingPass)
                 .AddColorAttachment(swapChainTexture)
                     .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
                     .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
@@ -124,6 +169,7 @@ int main()
                 .Done()
             .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
                 .SetName("Sky pass")
+                .SetExecuteFunction(ExecuteSkyPass)
                 .AddColorAttachment(swapChainTexture)
                     .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
                     .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
