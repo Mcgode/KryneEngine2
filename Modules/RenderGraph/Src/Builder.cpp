@@ -207,7 +207,7 @@ namespace KryneEngine::Modules::RenderGraph
             _indent.push_back('\t');
             for (auto& attachment : _pass.m_colorAttachments)
             {
-                PrintResource(_pass.m_depthAttachment->m_texture, _indent);
+                PrintResource(attachment.m_texture, _indent);
                 _indent.push_back('\t');
                 std::cout << _indent;
                 switch (attachment.m_loadOperation)
