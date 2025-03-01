@@ -102,8 +102,11 @@ namespace KryneEngine::Modules::RenderGraph
             {
                 DynamicArray<FiberJob> fiberJobs(m_jobs.size() - 1);
                 fiberJobs.InitAll();
-                const SyncCounterId jobsCounter =
-                    _fibersManager.InitAndBatchJobs(fiberJobs.Size(), fiberJobs.Data(), ExecuteJob, m_jobs.data());
+                const SyncCounterId jobsCounter = _fibersManager.InitAndBatchJobs(
+                    fiberJobs.Size(),
+                    fiberJobs.Data(),
+                    ExecuteJob,
+                    m_jobs.data());
                 ExecuteJob(&m_jobs.back());
                 _fibersManager.WaitForCounterAndReset(jobsCounter);
             }
