@@ -131,6 +131,7 @@ namespace KryneEngine
         }
 
         [[nodiscard]] const Allocator& GetAllocator() const { return m_allocator; }
+        [[nodiscard]] Allocator& GetAllocator() { return m_allocator; }
         void SetAllocator(const Allocator& _allocator) { m_allocator = _allocator; }
 
         void Resize(size_t _count)
