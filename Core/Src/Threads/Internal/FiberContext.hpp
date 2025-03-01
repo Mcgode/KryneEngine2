@@ -16,7 +16,7 @@
 #include "KryneEngine/Core/Threads/SpinLock.hpp"
 
 // These macros are defined by GCC and/or clang
-#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer) || 1
+#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)
 #   define HAS_ASAN
 #endif
 
