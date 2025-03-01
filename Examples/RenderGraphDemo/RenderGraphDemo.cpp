@@ -50,25 +50,23 @@ int main()
 
     KryneEngine::SimplePoolHandle
         swapChainTexture,
-        csTexture,
-        texGenBuffer,
         frameCBuffer,
-        lightsBuffer,
-        lightingAtlas,
-        lightingAtlasSrv,
-        readbackBuffer;
+        gBufferAlbedo,
+        gBufferNormal,
+        gBufferDepth,
+        deferredShadow,
+        deferredGi;
 
     {
         KE_ZoneScoped("Registration");
 
         swapChainTexture = renderGraph.GetRegistry().RegisterRawTexture({}, "Swapchain buffer");
-        csTexture = renderGraph.GetRegistry().RegisterRawTexture({}, "Compute shader texture");
-        texGenBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Texture generation buffer");
         frameCBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Frame constant buffer");
-        lightsBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Lights buffer");
-        lightingAtlas = renderGraph.GetRegistry().RegisterRawTexture({}, "Lighting atlas");
-        lightingAtlasSrv = renderGraph.GetRegistry().RegisterTextureSrv({}, lightingAtlas, "Lighting atlas SRV");
-        readbackBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Readback buffer");
+        gBufferAlbedo = renderGraph.GetRegistry().RegisterRawTexture({}, "GBuffer albedo");
+        gBufferNormal = renderGraph.GetRegistry().RegisterRawTexture({}, "GBuffer normal");
+        gBufferDepth = renderGraph.GetRegistry().RegisterRawTexture({}, "GBuffer depth");
+        deferredShadow = renderGraph.GetRegistry().RegisterRawTexture({}, "Deferred shadow");
+        deferredGi = renderGraph.GetRegistry().RegisterRawTexture({}, "Deferred GI");
     }
 
     {
@@ -76,62 +74,63 @@ int main()
 
         builder
             .DeclarePass(RenderGraph::PassType::Transfer)
-                .SetName("Upload constant buffer")
+                .SetName("Upload data")
                 .SetExecuteFunction(ExecuteUploadConstantBuffer)
                 .WriteDependency(frameCBuffer)
                 .Done()
-            .DeclarePass(RenderGraph::PassType::Compute)
-                .SetName("Recompute generative buffer")
-                .SetExecuteFunction([](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
-                .ReadDependency(texGenBuffer)
-                .WriteDependency(texGenBuffer)
-                .Done()
-            .DeclarePass(RenderGraph::PassType::Compute)
-                .SetName("Texture generation")
-                .SetExecuteFunction( [](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
-                .ReadDependency(texGenBuffer)
-                .ReadDependency(frameCBuffer)
-                .WriteDependency(csTexture)
-                .Done()
-            .DeclarePass(RenderGraph::PassType::Compute)
-                .SetName("Light dispatch")
-                .SetExecuteFunction([](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
-                .ReadDependency(frameCBuffer)
-                .WriteDependency(lightsBuffer)
-                .Done()
             .DeclarePass(RenderGraph::PassType::Render)
-                .SetName("Light atlas draw")
-                .SetExecuteFunction( [](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
-                .AddColorAttachment(lightingAtlas)
-                    .SetLoadOperation(KryneEngine::RenderPassDesc::Attachment::LoadOperation::DontCare)
+                .SetName("GBuffer pass")
+                .AddColorAttachment(gBufferAlbedo)
+                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
+                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                     .Done()
-                .ReadDependency(lightsBuffer)
+                .AddColorAttachment(gBufferNormal)
+                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
+                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                    .Done()
+                .SetDepthAttachment(gBufferDepth)
+                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Clear)
+                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                    .SetClearDepthStencil(0.f, 0)
+                    .Done()
+                .ReadDependency(frameCBuffer)
                 .Done()
-            .DeclarePass(RenderGraph::PassType::Render)
-                .SetName("Final draw")
-                .SetExecuteFunction( [](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
+            .DeclarePass(RenderGraph::PassType::Compute)
+                .SetName("Deferred shadow pass")
+                .ReadDependency(gBufferDepth)
+                .WriteDependency(deferredShadow)
+                .Done()
+            .DeclarePass(RenderGraph::PassType::Compute)
+                .SetName("Deferred 'GI' pass")
+                .ReadDependency(gBufferAlbedo)
+                .ReadDependency(gBufferNormal)
+                .ReadDependency(gBufferDepth)
+                .WriteDependency(deferredGi)
+                .Done()
+            .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
+                .SetName("Deferred shading pass")
                 .AddColorAttachment(swapChainTexture)
-                    .SetLoadOperation(KryneEngine::RenderPassDesc::Attachment::LoadOperation::Clear)
-                    .SetStoreOperation(KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store)
-                    .SetClearColor({ 0, 1, 1, 1 })
+                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
+                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                     .Done()
-                .ReadDependency(frameCBuffer)
-                .ReadDependency(csTexture)
-                .ReadDependency(lightingAtlasSrv)
+                .ReadDependency(gBufferAlbedo)
+                .ReadDependency(gBufferNormal)
+                .ReadDependency(gBufferDepth)
+                .ReadDependency(deferredShadow)
+                .ReadDependency(deferredGi)
                 .Done()
-            .DeclarePass(RenderGraph::PassType::Compute)
-                .SetName("Discard pass")
-                .SetExecuteFunction([](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
-                .ReadDependency(lightingAtlasSrv)
-                .ReadDependency(csTexture)
+            .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
+                .SetName("Sky pass")
+                .AddColorAttachment(swapChainTexture)
+                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
+                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                    .Done()
+                .SetDepthAttachment(gBufferDepth)
+                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
+                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::DontCare)
+                    .Done()
                 .Done()
-            .DeclarePass(RenderGraph::PassType::Transfer)
-                .SetName("Read back result")
-                .SetExecuteFunction([](RenderGraph::RenderGraph&, RenderGraph::PassExecutionData&){})
-                .ReadDependency(swapChainTexture)
-                .WriteDependency(readbackBuffer)
-                .Done()
-            .DeclareTargetResource(readbackBuffer);
+            .DeclareTargetResource(swapChainTexture);
     }
 
     {
