@@ -74,7 +74,11 @@ namespace KryneEngine
 
             m_currentJobs.Init(this, nullptr);
             m_nextJob.Init(this, nullptr);
-            m_baseContexts.Init(this, {});
+            m_baseContexts.InitFunc(
+                this,
+                [](FiberContext& _context) {
+                    ::new(&_context) FiberContext();
+                });
 
             for (u32 i = 0; i < fiberThreadCount; i++)
             {

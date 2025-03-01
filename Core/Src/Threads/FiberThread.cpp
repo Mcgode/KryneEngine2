@@ -25,8 +25,11 @@ namespace KryneEngine
             tracy::SetThreadName(m_name.c_str());
 
             {
-                auto& context = _fiberManager->m_baseContexts.Load(_threadIndex);
+                FiberContext& context = _fiberManager->m_baseContexts.Load(_threadIndex);
                 TracyFiberEnter(context.m_name.c_str());
+
+                // Mark current fiber context as running.
+                context.m_mutex.ManualLock();
 
                 KE_ASSERT(Threads::DisableThreadSignals());
 

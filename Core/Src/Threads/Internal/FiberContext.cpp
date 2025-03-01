@@ -29,6 +29,9 @@ namespace KryneEngine
     {
         TracyFiberLeave;
 
+        // Make sure the next fiber is indeed paused before executing it
+        _new->m_mutex.ManualLock();
+
 #if defined(HAS_ASAN)
         // This pointer will live on this stack frame.
         void *fake_stack_save = nullptr;
@@ -46,6 +49,7 @@ namespace KryneEngine
         {
             auto* fiberContext = static_cast<FiberContext*>(t.data);
             fiberContext->m_context = t.fctx;
+            fiberContext->m_mutex.ManualUnlock(); // Mark previous fiber as free to be used again.
         }
 
 #if defined(HAS_ASAN)
@@ -70,6 +74,7 @@ namespace KryneEngine
         {
             auto* fiberContext = static_cast<FiberContext*>(_transfer.data);
             fiberContext->m_context = _transfer.fctx;
+            fiberContext->m_mutex.ManualUnlock(); // Mark previous fiber as free to be used again.
 
 #if defined(HAS_ASAN)
             __sanitizer_finish_switch_fiber(

@@ -9,8 +9,10 @@
 #include <EASTL/array.h>
 #include <EASTL/priority_queue.h>
 #include <boost/context/detail/fcontext.hpp>
+
 #include "KryneEngine/Core/Common/Types.hpp"
 #include "KryneEngine/Core/Common/Utils/Alignment.hpp"
+#include "KryneEngine/Core/Threads/LightweightMutex.hpp"
 #include "KryneEngine/Core/Threads/SpinLock.hpp"
 
 // These macros are defined by GCC and/or clang
@@ -26,6 +28,7 @@ namespace KryneEngine
 
         boost::context::detail::fcontext_t m_context {};
         eastl::string m_name {};
+        LightweightMutex m_mutex {};
 #if defined(HAS_ASAN)
         const void* m_stackBottom = nullptr;
         size_t m_stackSize = 0;
