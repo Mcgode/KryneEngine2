@@ -12,6 +12,16 @@
 #include "KryneEngine/Core/Threads/FibersManager.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"
 
+#if defined(HAS_ASAN)
+extern "C" {
+    void __sanitizer_start_switch_fiber(void** fake_stack_save,
+                                        const void* stack_bottom,
+                                        size_t stack_size);
+    void __sanitizer_finish_switch_fiber(void* fake_stack_save,
+                                         const void** stack_bottom_old,
+                                         size_t* stack_size_old);
+}
+#endif
 
 namespace KryneEngine
 {
@@ -19,27 +29,54 @@ namespace KryneEngine
     {
         TracyFiberLeave;
 
+#if defined(HAS_ASAN)
+        // This pointer will live on this stack frame.
+        void *fake_stack_save = nullptr;
+        __sanitizer_start_switch_fiber(
+            &fake_stack_save,
+            _new->m_stackBottom,
+            _new->m_stackSize);
+#endif
+
         const boost::context::detail::transfer_t t = boost::context::detail::jump_fcontext(
             _new->m_context,
             this);
 
         if (KE_VERIFY(t.data != nullptr))
         {
-            static_cast<FiberContext*>(t.data)->m_context = t.fctx;
+            auto* fiberContext = static_cast<FiberContext*>(t.data);
+            fiberContext->m_context = t.fctx;
         }
+
+#if defined(HAS_ASAN)
+        // When we return from the context switch we indicate that to ASAN.
+        __sanitizer_finish_switch_fiber(
+            fake_stack_save,
+            nullptr,
+            nullptr);
+#endif
 
         TracyFiberEnter(m_name.c_str());
     }
 
     void FiberContext::RunFiber(boost::context::detail::transfer_t _transfer)
     {
+
         const auto fibersManager = FibersManager::GetInstance();
         VERIFY_OR_RETURN_VOID(fibersManager != nullptr);
         fibersManager->_OnContextSwitched();
 
         if (KE_VERIFY(_transfer.data != nullptr))
         {
-            static_cast<FiberContext*>(_transfer.data)->m_context = _transfer.fctx;
+            auto* fiberContext = static_cast<FiberContext*>(_transfer.data);
+            fiberContext->m_context = _transfer.fctx;
+
+#if defined(HAS_ASAN)
+            __sanitizer_finish_switch_fiber(
+                nullptr,
+                &fiberContext->m_stackBottom,
+                &fiberContext->m_stackSize);
+#endif
         }
 
         while (true)
@@ -98,6 +135,10 @@ namespace KryneEngine
                         sizeof(SmallStack),
                         FiberContext::RunFiber);
                     context.m_name.sprintf("Fiber %d", i);
+#if defined(HAS_ASAN)
+                    context.m_stackBottom = m_smallStacks + i,
+                    context.m_stackSize = sizeof(SmallStack);
+#endif
                 }
                 else
                 {
@@ -107,6 +148,10 @@ namespace KryneEngine
                         sizeof(BigStack),
                         FiberContext::RunFiber);
                     context.m_name.sprintf("Big Fiber %d", index);
+#if defined(HAS_ASAN)
+                    context.m_stackBottom = m_bigStacks + index;
+                    context.m_stackSize = sizeof(BigStack);
+#endif
                 }
             }
         }

@@ -13,6 +13,11 @@
 #include "KryneEngine/Core/Common/Utils/Alignment.hpp"
 #include "KryneEngine/Core/Threads/SpinLock.hpp"
 
+// These macros are defined by GCC and/or clang
+#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer) || 1
+#   define HAS_ASAN
+#endif
+
 namespace KryneEngine
 {
     struct FiberContext
@@ -21,6 +26,10 @@ namespace KryneEngine
 
         boost::context::detail::fcontext_t m_context {};
         eastl::string m_name {};
+#if defined(HAS_ASAN)
+        const void* m_stackBottom = nullptr;
+        size_t m_stackSize = 0;
+#endif
 
         void SwapContext(FiberContext *_new);
 
