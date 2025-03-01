@@ -50,7 +50,6 @@ namespace KryneEngine
 
         [[nodiscard]] SyncCounterId InitAndBatchJobs(
             u32 _jobCount,
-            FiberJob* _jobArray,
             FiberJob::JobFunc* _jobFunc,
             void* _pUserData,
             size_t _userDataSize,
@@ -58,7 +57,6 @@ namespace KryneEngine
             bool _useBigStack = false);
 
         [[nodiscard]] SyncCounterId InitAndBatchJobs(
-            FiberJob* _jobArray,
             FiberJob::JobFunc* _jobFunc,
             void* _userData,
             u32 _jobCount = 1,
@@ -68,7 +66,6 @@ namespace KryneEngine
         template <class T>
         [[nodiscard]] SyncCounterId InitAndBatchJobs(
             u32 _jobCount,
-            FiberJob* _jobArray,
             FiberJob::JobFunc* _jobFunc,
             T* _userData,
             FiberJob::Priority _priority = FiberJob::Priority::Medium,
@@ -76,7 +73,6 @@ namespace KryneEngine
         {
             return InitAndBatchJobs(
                 _jobCount,
-                _jobArray,
                 _jobFunc,
                 reinterpret_cast<void*>(_userData),
                 sizeof(T),

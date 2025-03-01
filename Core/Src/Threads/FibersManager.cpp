@@ -196,6 +196,8 @@ namespace KryneEngine
 
             m_contextAllocator->Free(oldJob->m_contextId);
             oldJob->_ResetContext();
+
+            m_fiberThreads.GetAllocator().Delete(oldJob);
         }
 
         oldJob = newJob;
@@ -204,7 +206,6 @@ namespace KryneEngine
 
     SyncCounterId FibersManager::InitAndBatchJobs(
         u32 _jobCount,
-        FiberJob* _jobArray,
         FiberJob::JobFunc* _jobFunc,
         void* _pUserData,
         size_t _userDataSize,
@@ -217,22 +218,23 @@ namespace KryneEngine
 
         auto pUserData = reinterpret_cast<uintptr_t>(_pUserData);
 
+        AllocatorInstance allocator = m_fiberThreads.GetAllocator();
+
         for (u32 i = 0; i < _jobCount; i++)
         {
-            FiberJob& job = _jobArray[i];
-            job.m_functionPtr = _jobFunc;
-            job.m_userData = reinterpret_cast<void*>(pUserData + _userDataSize * i);
-            job.m_priority = _priority;
-            job.m_bigStack = _useBigStack;
-            job.m_associatedCounterId = syncCounter;
-            QueueJob(&job);
+            auto* job = allocator.New<FiberJob>();
+            job->m_functionPtr = _jobFunc;
+            job->m_userData = reinterpret_cast<void*>(pUserData + _userDataSize * i);
+            job->m_priority = _priority;
+            job->m_bigStack = _useBigStack;
+            job->m_associatedCounterId = syncCounter;
+            QueueJob(job);
         }
 
         return syncCounter;
     }
 
     SyncCounterId FibersManager::InitAndBatchJobs(
-        FiberJob *_jobArray,
         FiberJob::JobFunc *_jobFunc,
         void *_userData,
         u32 _jobCount,
@@ -242,7 +244,6 @@ namespace KryneEngine
         // We reuse the InitAndBatchJobs, but we just make sure there is no per-job shift by setting the data size to 0
         return InitAndBatchJobs(
             _jobCount,
-            _jobArray,
             _jobFunc,
             _userData,
             0,
@@ -283,8 +284,7 @@ namespace KryneEngine
                 FibersManager::GetInstance()->WaitForCounter(data->m_syncCounterId);
                 data->m_waitVariable.notify_one();
             };
-            FiberJob waitAndWakeJob;
-            SyncCounterId id = InitAndBatchJobs(&waitAndWakeJob, jobFunction, &data);
+            SyncCounterId id = InitAndBatchJobs(jobFunction, &data);
 
             std::unique_lock<LockableBase(std::mutex)> lock(waitMutex);
             data.m_waitVariable.wait(lock);
