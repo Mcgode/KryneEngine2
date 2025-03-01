@@ -116,6 +116,27 @@ namespace KryneEngine::Math
     }
 
     template <typename T, size_t Alignment>
+    void Vector2Base<T, Alignment>::Normalize()
+        requires std::is_floating_point_v<T>
+    {
+        const T length = std::sqrt(Dot(*this, *this));
+        if (length > 0.0f)
+        {
+            x /= length;
+            y /= length;
+        }
+    }
+
+    template <typename T, size_t Alignment>
+    Vector2Base<T, Alignment> Vector2Base<T, Alignment>::Normalized() const
+        requires std::is_floating_point_v<T>
+    {
+        Vector2Base result(*this);
+        result.Normalize();
+        return result;
+    }
+
+    template <typename T, size_t Alignment>
     T Dot(const Vector2Base<T, Alignment>& _a, const Vector2Base<T, Alignment>& _b)
     {
         if constexpr (Alignment == 16)
