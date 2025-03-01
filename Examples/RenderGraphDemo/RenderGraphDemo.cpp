@@ -87,7 +87,6 @@ int main()
     auto* graphicsContext = GraphicsContext::Create(appInfo, nullptr, AllocatorInstance());
 
     RenderGraph::RenderGraph renderGraph {};
-    RenderGraph::Builder& builder = renderGraph.BeginFrame(*graphicsContext);
 
     KryneEngine::SimplePoolHandle
         swapChainTexture,
@@ -110,86 +109,90 @@ int main()
         deferredGi = renderGraph.GetRegistry().RegisterRawTexture({}, "Deferred GI");
     }
 
+    do
     {
-        KE_ZoneScoped("Build render graph");
+        RenderGraph::Builder& builder = renderGraph.BeginFrame(*graphicsContext);
 
-        builder
-            .DeclarePass(RenderGraph::PassType::Transfer)
-                .SetName("Upload data")
-                .SetExecuteFunction(ExecuteUploadData)
-                .WriteDependency(frameCBuffer)
-                .Done()
-            .DeclarePass(RenderGraph::PassType::Render)
-                .SetName("GBuffer pass")
-                .SetExecuteFunction(ExecuteGBufferPass)
-                .AddColorAttachment(gBufferAlbedo)
-                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
-                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+        {
+            KE_ZoneScoped("Build render graph");
+
+            builder
+                .DeclarePass(RenderGraph::PassType::Transfer)
+                    .SetName("Upload data")
+                    .SetExecuteFunction(ExecuteUploadData)
+                    .WriteDependency(frameCBuffer)
                     .Done()
-                .AddColorAttachment(gBufferNormal)
-                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
-                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                .DeclarePass(RenderGraph::PassType::Render)
+                    .SetName("GBuffer pass")
+                    .SetExecuteFunction(ExecuteGBufferPass)
+                    .AddColorAttachment(gBufferAlbedo)
+                        .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
+                        .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                        .Done()
+                    .AddColorAttachment(gBufferNormal)
+                        .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
+                        .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                        .Done()
+                    .SetDepthAttachment(gBufferDepth)
+                        .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Clear)
+                        .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                        .SetClearDepthStencil(0.f, 0)
+                        .Done()
+                    .ReadDependency(frameCBuffer)
                     .Done()
-                .SetDepthAttachment(gBufferDepth)
-                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Clear)
-                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
-                    .SetClearDepthStencil(0.f, 0)
+                .DeclarePass(RenderGraph::PassType::Compute)
+                    .SetName("Deferred shadow pass")
+                    .SetExecuteFunction(ExecuteDeferredShadowPass)
+                    .ReadDependency(frameCBuffer)
+                    .ReadDependency(gBufferDepth)
+                    .WriteDependency(deferredShadow)
                     .Done()
-                .ReadDependency(frameCBuffer)
-                .Done()
-            .DeclarePass(RenderGraph::PassType::Compute)
-                .SetName("Deferred shadow pass")
-                .SetExecuteFunction(ExecuteDeferredShadowPass)
-                .ReadDependency(frameCBuffer)
-                .ReadDependency(gBufferDepth)
-                .WriteDependency(deferredShadow)
-                .Done()
-            .DeclarePass(RenderGraph::PassType::Compute)
-                .SetName("Deferred 'GI' pass")
-                .SetExecuteFunction(ExecuteDeferredGiPass)
-                .ReadDependency(frameCBuffer)
-                .ReadDependency(gBufferAlbedo)
-                .ReadDependency(gBufferNormal)
-                .ReadDependency(gBufferDepth)
-                .WriteDependency(deferredGi)
-                .Done()
-            .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
-                .SetName("Deferred shading pass")
-                .SetExecuteFunction(ExecuteDeferredShadingPass)
-                .AddColorAttachment(swapChainTexture)
-                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
-                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                .DeclarePass(RenderGraph::PassType::Compute)
+                    .SetName("Deferred 'GI' pass")
+                    .SetExecuteFunction(ExecuteDeferredGiPass)
+                    .ReadDependency(frameCBuffer)
+                    .ReadDependency(gBufferAlbedo)
+                    .ReadDependency(gBufferNormal)
+                    .ReadDependency(gBufferDepth)
+                    .WriteDependency(deferredGi)
                     .Done()
-                .ReadDependency(frameCBuffer)
-                .ReadDependency(gBufferAlbedo)
-                .ReadDependency(gBufferNormal)
-                .ReadDependency(gBufferDepth)
-                .ReadDependency(deferredShadow)
-                .ReadDependency(deferredGi)
-                .Done()
-            .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
-                .SetName("Sky pass")
-                .SetExecuteFunction(ExecuteSkyPass)
-                .AddColorAttachment(swapChainTexture)
-                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
-                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
+                    .SetName("Deferred shading pass")
+                    .SetExecuteFunction(ExecuteDeferredShadingPass)
+                    .AddColorAttachment(swapChainTexture)
+                        .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
+                        .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                        .Done()
+                    .ReadDependency(frameCBuffer)
+                    .ReadDependency(gBufferAlbedo)
+                    .ReadDependency(gBufferNormal)
+                    .ReadDependency(gBufferDepth)
+                    .ReadDependency(deferredShadow)
+                    .ReadDependency(deferredGi)
                     .Done()
-                .SetDepthAttachment(gBufferDepth)
-                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
-                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::DontCare)
+                .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
+                    .SetName("Sky pass")
+                    .SetExecuteFunction(ExecuteSkyPass)
+                    .AddColorAttachment(swapChainTexture)
+                        .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
+                        .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                        .Done()
+                    .SetDepthAttachment(gBufferDepth)
+                        .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
+                        .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::DontCare)
+                        .Done()
+                    .ReadDependency(frameCBuffer)
                     .Done()
-                .ReadDependency(frameCBuffer)
-                .Done()
-            .DeclareTargetResource(swapChainTexture);
+                .DeclareTargetResource(swapChainTexture);
+        }
+
+        {
+            KE_ZoneScoped("Execute render graph");
+
+            renderGraph.SubmitFrame(*graphicsContext, fibersManager);
+        }
     }
-
-    {
-        KE_ZoneScoped("Execute render graph");
-
-        renderGraph.SubmitFrame(*graphicsContext, fibersManager);
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    while (!graphicsContext->EndFrame());
 
     return 0;
 }
