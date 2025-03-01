@@ -34,7 +34,7 @@ namespace KryneEngine
                     frameContext.BeginGraphicsCommandList(*m_graphicsQueue);
                 }
                 m_swapChain.Present(
-                    &frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.back(),
+                    frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.back(),
                     frameIndex);
             }
 
