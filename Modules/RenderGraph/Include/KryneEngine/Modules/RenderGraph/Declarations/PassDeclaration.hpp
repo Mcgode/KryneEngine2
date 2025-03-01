@@ -54,6 +54,7 @@ namespace KryneEngine::Modules::RenderGraph
     public:
         PassDeclarationBuilder& SetName(const eastl::string_view& _name);
         PassAttachmentDeclarationBuilder AddColorAttachment(SimplePoolHandle _texture);
+        PassAttachmentDeclarationBuilder SetDepthAttachment(SimplePoolHandle _texture);
         PassDeclarationBuilder& ReadDependency(SimplePoolHandle _resource);
         PassDeclarationBuilder& WriteDependency(SimplePoolHandle _resource);
         PassDeclarationBuilder& SetExecuteFunction(PassDeclaration::ExecuteFunction&& _function);

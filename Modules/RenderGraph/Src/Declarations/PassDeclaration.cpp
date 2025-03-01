@@ -24,6 +24,12 @@ namespace KryneEngine::Modules::RenderGraph
         return { m_item.m_colorAttachments.emplace_back(_texture), *this };
     }
 
+    PassAttachmentDeclarationBuilder PassDeclarationBuilder::SetDepthAttachment(SimplePoolHandle _texture)
+    {
+        m_item.m_depthAttachment.emplace(_texture);
+        return { m_item.m_depthAttachment.value(), *this};
+    }
+
     PassDeclarationBuilder& PassDeclarationBuilder::ReadDependency(SimplePoolHandle _resource)
     {
         m_item.m_readDependencies.push_back(_resource);
