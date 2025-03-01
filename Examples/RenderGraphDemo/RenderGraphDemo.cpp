@@ -52,7 +52,6 @@ void ExecuteDeferredShadingPass(
     RenderGraph::PassExecutionData& _passExecutionData)
 {
     KE_ZoneScopedFunction(__FUNCTION__);
-    sleep(1);
     std::cout << "Deferred shading pass" << std::endl;
 }
 
