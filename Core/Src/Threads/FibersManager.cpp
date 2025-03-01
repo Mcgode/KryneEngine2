@@ -240,7 +240,7 @@ namespace KryneEngine
             _jobCount,
             _jobArray,
             _jobFunc,
-            &_userData,
+            _userData,
             0,
             _priority,
             _useBigStack);
