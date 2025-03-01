@@ -85,11 +85,11 @@ namespace KryneEngine
 
             TracyFiberEnter(job->m_context->m_name.c_str());
 
-            if (KE_VERIFY(job->m_status == FiberJob::Status::PendingStart))
+            if (KE_VERIFY(job->m_status.load(std::memory_order_acquire) == FiberJob::Status::PendingStart))
             {
-                job->m_status = FiberJob::Status::Running;
+                job->m_status.store(FiberJob::Status::Running, std::memory_order_release);
                 job->m_functionPtr(job->m_userData);
-                job->m_status = FiberJob::Status::Finished;
+                job->m_status.store(FiberJob::Status::Finished, std::memory_order_release);
             }
 
             fibersManager->YieldJob();

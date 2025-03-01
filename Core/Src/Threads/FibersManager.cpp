@@ -166,7 +166,7 @@ namespace KryneEngine
 
         if (currentJob != nullptr && currentJob->GetStatus() == FiberJob::Status::Running)
         {
-            currentJob->m_status = FiberJob::Status::Paused;
+            currentJob->m_status.store(FiberJob::Status::Paused, std::memory_order_release);
             QueueJob(currentJob);
         }
 
@@ -215,7 +215,7 @@ namespace KryneEngine
 
         for (u32 i = 0; i < _jobCount; i++)
         {
-            auto& job = _jobArray[i];
+            FiberJob& job = _jobArray[i];
             job.m_functionPtr = _jobFunc;
             job.m_userData = reinterpret_cast<void*>(pUserData + _userDataSize * i);
             job.m_priority = _priority;
