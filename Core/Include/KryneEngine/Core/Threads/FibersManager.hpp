@@ -78,7 +78,7 @@ namespace KryneEngine
                 _jobCount,
                 _jobArray,
                 _jobFunc,
-                _userData,
+                reinterpret_cast<void*>(_userData),
                 sizeof(T),
                 _priority,
                 _useBigStack);
