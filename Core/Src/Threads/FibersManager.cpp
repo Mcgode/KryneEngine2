@@ -258,9 +258,6 @@ namespace KryneEngine
             auto* currentJob = GetCurrentJob();
             if (!m_syncCounterPool.AddWaitingJob(_syncCounter, currentJob))
             {
-                // Manually pause here, to avoid auto re-queueing when yielding.
-                currentJob->m_status = FiberJob::Status::Paused;
-
                 YieldJob();
             }
         }

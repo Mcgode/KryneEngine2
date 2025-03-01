@@ -45,15 +45,23 @@ namespace KryneEngine
             return true;
         }
         const auto lock = entry.m_mutex.AutoLock();
+
         if (entry.m_counter == 0)
         {
-            FibersManager::GetInstance()->QueueJob(_newJob);
+            // By the time we locked, the counter was decremented to 0.
+            // We can thus continue the job, no need to suspend and queue it
+            return true;
         }
         else
         {
+            // Manually pause here, to avoid auto re-queueing when yielding.
+            // The status update is performed here, to avoid a data race.
+            _newJob->m_status.store(FiberJob::Status::Paused, std::memory_order_release);
+
             m_entries[_id].m_waitingJobs.push_back(_newJob);
+
+            return false;
         }
-        return false;
     }
 
     u32 SyncCounterPool::DecrementCounterValue(SyncCounterId _id)

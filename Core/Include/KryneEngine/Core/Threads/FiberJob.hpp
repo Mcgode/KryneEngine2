@@ -73,6 +73,7 @@ namespace KryneEngine
         friend class FibersManager;
         friend class FiberThread;
         friend class FiberContext;
+        friend class SyncCounterPool;
 
     public:
         typedef void (JobFunc)(void*);
