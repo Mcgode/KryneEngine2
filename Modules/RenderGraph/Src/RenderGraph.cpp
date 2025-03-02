@@ -41,9 +41,10 @@ namespace KryneEngine::Modules::RenderGraph
             const auto initJobData = [&](JobData& _jobData, u32 _start)
             {
                 _jobData.m_renderGraph = this;
-                _jobData.m_graphicsContext = &_graphicsContext;
-                _jobData.m_passExecutionData =
-                    PassExecutionData{.m_commandList = _graphicsContext.BeginGraphicsCommandList()};
+                _jobData.m_passExecutionData = PassExecutionData {
+                    .m_graphicsContext = &_graphicsContext,
+                    .m_commandList = _graphicsContext.BeginGraphicsCommandList()
+                };
                 _jobData.m_passRangeStart = _start;
                 _jobData.m_passRangeCount = 0;
             };
@@ -150,6 +151,6 @@ namespace KryneEngine::Modules::RenderGraph
             jobData->m_renderGraph->m_currentFrameTotalDuration.fetch_add(duration, std::memory_order_relaxed);
         }
 
-        jobData->m_graphicsContext->EndGraphicsCommandList(jobData->m_passExecutionData.m_commandList);
+        jobData->m_passExecutionData.m_graphicsContext->EndGraphicsCommandList(jobData->m_passExecutionData.m_commandList);
     }
 } // namespace KryneEngine::Modules::RenderGraph

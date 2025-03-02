@@ -46,7 +46,6 @@ namespace KryneEngine::Modules::RenderGraph
         struct JobData
         {
             RenderGraph* m_renderGraph;
-            GraphicsContext* m_graphicsContext;
             PassExecutionData m_passExecutionData;
             u32 m_passRangeStart;
             u32 m_passRangeCount;

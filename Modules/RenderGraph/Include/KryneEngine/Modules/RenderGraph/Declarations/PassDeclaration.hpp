@@ -25,6 +25,7 @@ namespace KryneEngine::Modules::RenderGraph
 
     struct PassExecutionData
     {
+        GraphicsContext* m_graphicsContext;
         CommandListHandle m_commandList;
     };
 
