@@ -546,7 +546,7 @@ namespace KryneEngine
                 dsDesc.m_stencilRef = 0;
             }
 
-            hot->m_staticState.m_depthStencilHash = StringHash::Murmur2Hash64(&dsDesc, sizeof(DepthStencilStateDesc));
+            hot->m_staticState.m_depthStencilHash = Hashing::Hash64(&dsDesc);
 
             NsPtr stateDesc { MTL::DepthStencilDescriptor::alloc()->init() };
             stateDesc->setDepthWriteEnabled(dsDesc.m_depthWrite);
