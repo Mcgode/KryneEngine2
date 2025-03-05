@@ -78,7 +78,7 @@ namespace KryneEngine::Modules::RenderGraph
         m_resources.AddRef(_textureResource);
 
         const SimplePoolHandle handle = m_resources.AllocateAndInit(Resource {
-            .m_type = ResourceType::TextureSrv,
+            .m_type = ResourceType::RenderTargetView,
             .m_renderTargetViewData = {
                 .m_renderTargetView = _rtv,
                 .m_textureResource = _textureResource,
