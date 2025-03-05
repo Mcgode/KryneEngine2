@@ -156,7 +156,7 @@ namespace KryneEngine::Modules::RenderGraph
 
     RenderPassHandle RenderGraph::FetchRenderPass(
         GraphicsContext& _graphicsContext,
-        const PassDeclaration& _passDeclaration)
+        PassDeclaration& _passDeclaration)
     {
         const u64 hash = _passDeclaration.GetRenderPassHash();
 

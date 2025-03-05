@@ -37,7 +37,7 @@ namespace KryneEngine::Modules::RenderGraph
         [[nodiscard]] double GetTargetTimePerCommandList() const { return m_targetTimePerCommandList; }
         void SetTargetTimePerCommandList(double _milliseconds) { m_targetTimePerCommandList = _milliseconds; }
 
-        RenderPassHandle FetchRenderPass(GraphicsContext& _graphicsContext, const PassDeclaration& _passDeclaration);
+        RenderPassHandle FetchRenderPass(GraphicsContext& _graphicsContext, PassDeclaration& _passDeclaration);
         void ResetRenderPassCache();
 
     private:
