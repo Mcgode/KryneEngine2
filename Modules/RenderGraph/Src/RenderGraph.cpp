@@ -63,7 +63,7 @@ namespace KryneEngine::Modules::RenderGraph
                     continue;
                 }
 
-                const PassDeclaration& pass = m_builder->m_declaredPasses[i];
+                PassDeclaration& pass = m_builder->m_declaredPasses[i];
                 const u64 estimatedPassDuration = m_previousFramePassPerformance[pass.m_name];
 
                 // Prevent the current job from overfilling beyond a certain threshold.
@@ -81,6 +81,12 @@ namespace KryneEngine::Modules::RenderGraph
 
                 currentJob->m_passRangeCount = i - currentJob->m_passRangeStart + 1;
                 cumulativeDuration += estimatedPassDuration;
+
+                // Make sure to cache the render pass.
+                if (pass.m_type == PassType::Render)
+                {
+                    FetchRenderPass(_graphicsContext, pass);
+                }
 
                 // Reserve entry in map, so that duration saving is thread-safe
                 m_currentFramePassPerformance.emplace(pass.m_name, 0);
@@ -141,10 +147,28 @@ namespace KryneEngine::Modules::RenderGraph
 
             const PassDeclaration& pass = jobData->m_renderGraph->m_builder->m_declaredPasses[i];
 
-            std::chrono::time_point start = std::chrono::steady_clock::now();
+            const std::chrono::time_point start = std::chrono::steady_clock::now();
+
+            if (pass.m_type == PassType::Render)
+            {
+                auto it = jobData->m_renderGraph->m_renderPassCache.find(pass.m_renderPassHash.value());
+                KE_ASSERT(it != jobData->m_renderGraph->m_renderPassCache.end());
+
+                jobData->m_passExecutionData.m_graphicsContext->BeginRenderPass(
+                    jobData->m_passExecutionData.m_commandList,
+                    it->second);
+            }
+
             KE_ASSERT(pass.m_executeFunction != nullptr);
             pass.m_executeFunction(*jobData->m_renderGraph, jobData->m_passExecutionData);
-            std::chrono::time_point end = std::chrono::steady_clock::now();
+
+            if (pass.m_type == PassType::Render)
+            {
+                jobData->m_passExecutionData.m_graphicsContext->EndRenderPass(
+                    jobData->m_passExecutionData.m_commandList);
+            }
+
+            const std::chrono::time_point end = std::chrono::steady_clock::now();
 
             const u64 duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             jobData->m_renderGraph->m_currentFramePassPerformance.find(pass.m_name)->second = duration;
