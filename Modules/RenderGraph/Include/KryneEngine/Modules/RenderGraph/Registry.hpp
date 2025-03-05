@@ -28,8 +28,15 @@ namespace KryneEngine::Modules::RenderGraph
             TextureSrvHandle _textureSrv,
             SimplePoolHandle _textureResource,
             const eastl::string_view& _name = {});
+        SimplePoolHandle RegisterRenderTargetView(
+            RenderTargetViewHandle _rtv,
+            SimplePoolHandle _textureResource,
+            const eastl::string_view& _name = {});
 
         [[nodiscard]] SimplePoolHandle GetUnderlyingResource(SimplePoolHandle _resource) const;
+
+        [[nodiscard]] bool IsRenderTargetView(SimplePoolHandle _resource) const;
+        [[nodiscard]] RenderTargetViewHandle GetRenderTargetView(SimplePoolHandle _resource) const;
 
     private:
         SimplePool<Resource, void, true> m_resources;

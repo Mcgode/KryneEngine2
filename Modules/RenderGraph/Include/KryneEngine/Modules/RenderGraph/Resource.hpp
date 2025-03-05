@@ -16,6 +16,7 @@ namespace KryneEngine::Modules::RenderGraph
         RawBuffer,
         Sampler,
         TextureSrv,
+        RenderTargetView,
     };
 
     struct RawTextureData
@@ -39,6 +40,12 @@ namespace KryneEngine::Modules::RenderGraph
         SimplePoolHandle m_textureResource;
     };
 
+    struct RenderTargetViewData
+    {
+        RenderTargetViewHandle m_renderTargetView;
+        SimplePoolHandle m_textureResource;
+    };
+
     struct Resource
     {
         ResourceType m_type;
@@ -47,6 +54,7 @@ namespace KryneEngine::Modules::RenderGraph
             RawBufferData m_rawBufferData;
             SamplerData m_samplerData;
             TextureSrvData m_textureSrvData;
+            RenderTargetViewData m_renderTargetViewData;
         };
 #if !defined(KE_FINAL)
         eastl::string m_name;

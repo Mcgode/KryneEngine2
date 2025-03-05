@@ -9,7 +9,7 @@
 namespace KryneEngine::Modules::RenderGraph
 {
     PassAttachmentDeclaration::PassAttachmentDeclaration(SimplePoolHandle _texture)
-        : m_texture(_texture)
+        : m_rtv(_texture)
     {}
 
     PassAttachmentDeclarationBuilder& PassAttachmentDeclarationBuilder::SetLoadOperation(const RenderPassDesc::Attachment::LoadOperation _operation)

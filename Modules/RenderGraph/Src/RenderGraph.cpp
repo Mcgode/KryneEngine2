@@ -174,7 +174,7 @@ namespace KryneEngine::Modules::RenderGraph
                 .m_storeOperation = attachment.m_storeOperation,
                 .m_initialLayout = attachment.m_layoutBefore,
                 .m_finalLayout = attachment.m_layoutAfter,
-                .m_rtv = { GenPool::kInvalidHandle },
+                .m_rtv = m_registry->GetRenderTargetView(attachment.m_rtv),
                 .m_clearColor = attachment.m_clearColor,
             });
         }
@@ -190,7 +190,7 @@ namespace KryneEngine::Modules::RenderGraph
             desc.m_depthStencilAttachment.value().m_storeOperation = attachment.m_storeOperation;
             desc.m_depthStencilAttachment.value().m_initialLayout = attachment.m_layoutBefore;
             desc.m_depthStencilAttachment.value().m_finalLayout = attachment.m_layoutAfter;
-            desc.m_depthStencilAttachment.value().m_rtv = { GenPool::kInvalidHandle };
+            desc.m_depthStencilAttachment.value().m_rtv = m_registry->GetRenderTargetView(attachment.m_rtv);
             desc.m_depthStencilAttachment.value().m_clearColor = float4(attachment.m_clearDepth, 0.0f, 0.0f, 0.0f);
         }
 

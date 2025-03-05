@@ -125,13 +125,13 @@ namespace KryneEngine::Modules::RenderGraph
         {
             for (const auto& colorAttachment: _passDeclaration.m_colorAttachments)
             {
-                handleResourceRead(colorAttachment.m_texture);
-                handleResourceWrite(m_registry.GetUnderlyingResource(colorAttachment.m_texture));
+                handleResourceRead(colorAttachment.m_rtv);
+                handleResourceWrite(m_registry.GetUnderlyingResource(colorAttachment.m_rtv));
             }
             if (_passDeclaration.m_depthAttachment.has_value())
             {
-                handleResourceRead(_passDeclaration.m_depthAttachment->m_texture);
-                handleResourceWrite(m_registry.GetUnderlyingResource(_passDeclaration.m_depthAttachment->m_texture));
+                handleResourceRead(_passDeclaration.m_depthAttachment->m_rtv);
+                handleResourceWrite(m_registry.GetUnderlyingResource(_passDeclaration.m_depthAttachment->m_rtv));
             }
         }
     }
@@ -207,7 +207,7 @@ namespace KryneEngine::Modules::RenderGraph
             _indent.push_back('\t');
             for (auto& attachment : _pass.m_colorAttachments)
             {
-                PrintResource(attachment.m_texture, _indent);
+                PrintResource(attachment.m_rtv, _indent);
                 _indent.push_back('\t');
                 std::cout << _indent;
                 switch (attachment.m_loadOperation)
@@ -244,7 +244,7 @@ namespace KryneEngine::Modules::RenderGraph
         {
             std::cout << _indent << "Depth/stencil attachment:" << std::endl;
             _indent.push_back('\t');
-            PrintResource(_pass.m_depthAttachment->m_texture, _indent);
+            PrintResource(_pass.m_depthAttachment->m_rtv, _indent);
             _indent.push_back('\t');
             std::cout << _indent;
             switch (_pass.m_depthAttachment.value().m_loadOperation)

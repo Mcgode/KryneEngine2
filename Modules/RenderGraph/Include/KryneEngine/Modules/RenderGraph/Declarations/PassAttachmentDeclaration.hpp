@@ -19,7 +19,7 @@ namespace KryneEngine::Modules::RenderGraph
         explicit PassAttachmentDeclaration(SimplePoolHandle _texture);
 
     public:
-        SimplePoolHandle m_texture;
+        SimplePoolHandle m_rtv;
         union
         {
             float4 m_clearColor { 0 };
