@@ -7,7 +7,7 @@
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 #include <KryneEngine/Core/Window/Window.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
-#include "KryneEngine/Core/Threads/FibersManager.hpp"
+#include <KryneEngine/Core/Threads/FibersManager.hpp>
 #include <KryneEngine/Modules/RenderGraph/Builder.hpp>
 #include <KryneEngine/Modules/RenderGraph/Registry.hpp>
 #include <KryneEngine/Modules/RenderGraph/RenderGraph.hpp>
@@ -97,10 +97,14 @@ int main()
 
     KryneEngine::SimplePoolHandle
         swapChainTexture,
+        swapChainRtv,
         frameCBuffer,
         gBufferAlbedo,
+        gBufferAlbedoRtv,
         gBufferNormal,
+        gBufferNormalRtv,
         gBufferDepth,
+        gBufferDepthRtv,
         deferredShadow,
         deferredGi;
 
@@ -108,10 +112,14 @@ int main()
         KE_ZoneScoped("Registration");
 
         swapChainTexture = renderGraph.GetRegistry().RegisterRawTexture({}, "Swapchain buffer");
+        swapChainRtv = renderGraph.GetRegistry().RegisterRenderTargetView({}, swapChainTexture, "Swapchain RTV");
         frameCBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Frame constant buffer");
         gBufferAlbedo = renderGraph.GetRegistry().RegisterRawTexture({}, "GBuffer albedo");
+        gBufferAlbedoRtv = renderGraph.GetRegistry().RegisterRenderTargetView({}, gBufferAlbedo, "GBuffer albedo RTV");
         gBufferNormal = renderGraph.GetRegistry().RegisterRawTexture({}, "GBuffer normal");
+        gBufferNormalRtv = renderGraph.GetRegistry().RegisterRenderTargetView({}, gBufferNormal, "GBuffer normal RTV");
         gBufferDepth = renderGraph.GetRegistry().RegisterRawTexture({}, "GBuffer depth");
+        gBufferDepthRtv = renderGraph.GetRegistry().RegisterRenderTargetView({}, gBufferDepth, "GBuffer depth RTV");
         deferredShadow = renderGraph.GetRegistry().RegisterRawTexture({}, "Deferred shadow");
         deferredGi = renderGraph.GetRegistry().RegisterRawTexture({}, "Deferred GI");
     }
@@ -132,15 +140,15 @@ int main()
                 .DeclarePass(RenderGraph::PassType::Render)
                     .SetName("GBuffer pass")
                     .SetExecuteFunction(ExecuteGBufferPass)
-                    .AddColorAttachment(gBufferAlbedo)
+                    .AddColorAttachment(gBufferAlbedoRtv)
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                         .Done()
-                    .AddColorAttachment(gBufferNormal)
+                    .AddColorAttachment(gBufferNormalRtv)
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                         .Done()
-                    .SetDepthAttachment(gBufferDepth)
+                    .SetDepthAttachment(gBufferDepthRtv)
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Clear)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                         .SetClearDepthStencil(0.f, 0)
@@ -166,7 +174,7 @@ int main()
                 .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
                     .SetName("Deferred shading pass")
                     .SetExecuteFunction(ExecuteDeferredShadingPass)
-                    .AddColorAttachment(swapChainTexture)
+                    .AddColorAttachment(swapChainRtv)
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                         .Done()
@@ -180,11 +188,11 @@ int main()
                 .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
                     .SetName("Sky pass")
                     .SetExecuteFunction(ExecuteSkyPass)
-                    .AddColorAttachment(swapChainTexture)
+                    .AddColorAttachment(swapChainRtv)
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                         .Done()
-                    .SetDepthAttachment(gBufferDepth)
+                    .SetDepthAttachment(gBufferDepthRtv)
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::DontCare)
                         .Done()
