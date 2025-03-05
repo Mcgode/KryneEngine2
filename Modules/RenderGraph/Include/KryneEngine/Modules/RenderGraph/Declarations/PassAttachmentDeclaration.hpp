@@ -20,11 +20,20 @@ namespace KryneEngine::Modules::RenderGraph
 
     public:
         SimplePoolHandle m_texture;
+        union
+        {
+            float4 m_clearColor { 0 };
+            struct {
+                float m_clearDepth;
+                u8 m_clearStencil;
+                RenderPassDesc::Attachment::LoadOperation m_stencilLoadOperation;
+                RenderPassDesc::Attachment::StoreOperation m_stencilStoreOperation;
+            };
+        };
         RenderPassDesc::Attachment::LoadOperation m_loadOperation = RenderPassDesc::Attachment::LoadOperation::Load;
         RenderPassDesc::Attachment::StoreOperation m_storeOperation = RenderPassDesc::Attachment::StoreOperation::Store;
-        float4 m_clearColor { 0 };
-        float m_clearDepth = NAN;
-        u16 m_clearStencil = ~0;
+        TextureLayout m_layoutBefore = TextureLayout::Unknown;
+        TextureLayout m_layoutAfter = TextureLayout::ColorAttachment;
     };
 
     struct PassDeclarationBuilder;

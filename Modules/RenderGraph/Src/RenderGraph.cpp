@@ -153,4 +153,54 @@ namespace KryneEngine::Modules::RenderGraph
 
         jobData->m_passExecutionData.m_graphicsContext->EndGraphicsCommandList(jobData->m_passExecutionData.m_commandList);
     }
+
+    RenderPassHandle RenderGraph::FetchRenderPass(
+        GraphicsContext& _graphicsContext,
+        const PassDeclaration& _passDeclaration)
+    {
+        const u64 hash = _passDeclaration.GetRenderPassHash();
+
+        const auto it = m_renderPassCache.find(hash);
+        if (it != m_renderPassCache.end())
+        {
+            return it->second;
+        }
+
+        RenderPassDesc desc;
+        for (const auto& attachment : _passDeclaration.m_colorAttachments)
+        {
+            desc.m_colorAttachments.push_back(RenderPassDesc::Attachment {
+                .m_loadOperation = attachment.m_loadOperation,
+                .m_storeOperation = attachment.m_storeOperation,
+                .m_initialLayout = attachment.m_layoutBefore,
+                .m_finalLayout = attachment.m_layoutAfter,
+                .m_rtv = { GenPool::kInvalidHandle },
+                .m_clearColor = attachment.m_clearColor,
+            });
+        }
+        if (_passDeclaration.m_depthAttachment.has_value())
+        {
+            const PassAttachmentDeclaration attachment = _passDeclaration.m_depthAttachment.value();
+            desc.m_depthStencilAttachment = RenderPassDesc::DepthStencilAttachment {
+                .m_stencilLoadOperation = attachment.m_stencilLoadOperation,
+                .m_stencilStoreOperation = attachment.m_stencilStoreOperation,
+                .m_stencilClearValue = attachment.m_clearStencil,
+            };
+            desc.m_depthStencilAttachment.value().m_loadOperation = attachment.m_loadOperation;
+            desc.m_depthStencilAttachment.value().m_storeOperation = attachment.m_storeOperation;
+            desc.m_depthStencilAttachment.value().m_initialLayout = attachment.m_layoutBefore;
+            desc.m_depthStencilAttachment.value().m_finalLayout = attachment.m_layoutAfter;
+            desc.m_depthStencilAttachment.value().m_rtv = { GenPool::kInvalidHandle };
+            desc.m_depthStencilAttachment.value().m_clearColor = float4(attachment.m_clearDepth, 0.0f, 0.0f, 0.0f);
+        }
+
+        const RenderPassHandle handle = _graphicsContext.CreateRenderPass(desc);
+        m_renderPassCache.emplace(hash, handle);
+        return handle;
+    }
+
+    void RenderGraph::ResetRenderPassCache()
+    {
+        m_renderPassCache.clear();
+    }
 } // namespace KryneEngine::Modules::RenderGraph

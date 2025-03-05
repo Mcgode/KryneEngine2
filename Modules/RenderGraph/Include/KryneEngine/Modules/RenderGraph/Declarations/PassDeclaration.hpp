@@ -36,6 +36,8 @@ namespace KryneEngine::Modules::RenderGraph
 
         using ExecuteFunction = eastl::function<void(RenderGraph&, PassExecutionData&)>;
 
+        [[nodiscard]] u64 GetRenderPassHash();
+
     public:
         PassType m_type;
         StringHash m_name;
@@ -43,6 +45,7 @@ namespace KryneEngine::Modules::RenderGraph
         eastl::optional<PassAttachmentDeclaration> m_depthAttachment;
         eastl::vector<SimplePoolHandle> m_readDependencies;
         eastl::vector<SimplePoolHandle> m_writeDependencies;
+        eastl::optional<u64> m_renderPassHash;
         ExecuteFunction m_executeFunction;
     };
 

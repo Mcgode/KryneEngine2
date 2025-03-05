@@ -37,6 +37,9 @@ namespace KryneEngine::Modules::RenderGraph
         [[nodiscard]] double GetTargetTimePerCommandList() const { return m_targetTimePerCommandList; }
         void SetTargetTimePerCommandList(double _milliseconds) { m_targetTimePerCommandList = _milliseconds; }
 
+        RenderPassHandle FetchRenderPass(GraphicsContext& _graphicsContext, const PassDeclaration& _passDeclaration);
+        void ResetRenderPassCache();
+
     private:
         eastl::unique_ptr<Registry> m_registry;
         eastl::unique_ptr<Builder> m_builder;
@@ -56,6 +59,8 @@ namespace KryneEngine::Modules::RenderGraph
         eastl::hash_map<StringHash, u64> m_currentFramePassPerformance;
         u64 m_previousFrameTotalDuration = 0;
         std::atomic<u64> m_currentFrameTotalDuration = 0;
+
+        eastl::hash_map<u64, RenderPassHandle> m_renderPassCache;
 
         static void ExecuteJob(void* _userData);
     };
