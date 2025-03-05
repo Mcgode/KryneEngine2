@@ -5,6 +5,7 @@
  */
 
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Window/Window.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include "KryneEngine/Core/Threads/FibersManager.hpp"
 #include <KryneEngine/Modules/RenderGraph/Builder.hpp>
@@ -77,7 +78,7 @@ int main()
     FibersManager fibersManager(0, AllocatorInstance());
 
     GraphicsCommon::ApplicationInfo appInfo {};
-    appInfo.m_features.m_present = false;
+    appInfo.m_features.m_present = true;
     appInfo.m_applicationName = "Render graph demo - Kryne Engine 2";
 #if defined(KE_GRAPHICS_API_VK)
     appInfo.m_api = GraphicsCommon::Api::Vulkan_1_3;
@@ -89,7 +90,8 @@ int main()
     appInfo.m_api = GraphicsCommon::Api::Metal_3;
     appInfo.m_applicationName += " - Metal";
 #endif
-    auto* graphicsContext = GraphicsContext::Create(appInfo, nullptr, AllocatorInstance());
+    Window mainWindow(appInfo, AllocatorInstance());
+    GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
     RenderGraph::RenderGraph renderGraph {};
 
@@ -197,7 +199,7 @@ int main()
             renderGraph.SubmitFrame(*graphicsContext, fibersManager);
         }
     }
-    while (!graphicsContext->EndFrame());
+    while (graphicsContext->EndFrame());
 
     return 0;
 }
