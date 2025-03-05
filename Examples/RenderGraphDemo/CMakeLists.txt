@@ -8,6 +8,7 @@ add_executable(RenderGraphDemo
 # Link to cpp libraries
 target_link_libraries(RenderGraphDemo
         KryneEngine_Modules_RenderGraph
+        KryneEngine_Modules_ImGui
 )
 
 # Link shader libraries and compile sample shaders

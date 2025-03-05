@@ -76,7 +76,9 @@ int main()
 
     KE_ZoneScoped("Render graph demo");
 
-    FibersManager fibersManager(0, AllocatorInstance());
+    AllocatorInstance allocator = AllocatorInstance();
+
+    FibersManager fibersManager(0, allocator);
 
     GraphicsCommon::ApplicationInfo appInfo {};
     appInfo.m_features.m_present = true;
@@ -91,14 +93,14 @@ int main()
     appInfo.m_api = GraphicsCommon::Api::Metal_3;
     appInfo.m_applicationName += " - Metal";
 #endif
-    Window mainWindow(appInfo, AllocatorInstance());
+    Window mainWindow(appInfo, allocator);
     GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
+
+    Modules::ImGui::Context* imGuiContext = nullptr;
 
     RenderGraph::RenderGraph renderGraph {};
 
     KryneEngine::SimplePoolHandle
-        swapChainTexture,
-        swapChainRtv,
         frameCBuffer,
         gBufferAlbedo,
         gBufferAlbedoRtv,
@@ -109,11 +111,24 @@ int main()
         deferredShadow,
         deferredGi;
 
+    DynamicArray<SimplePoolHandle> swapChainTextures(allocator, graphicsContext->GetFrameContextCount());
+    DynamicArray<SimplePoolHandle> swapChainRtvs(allocator, graphicsContext->GetFrameContextCount());
+
     {
         KE_ZoneScoped("Registration");
 
-        swapChainTexture = renderGraph.GetRegistry().RegisterRawTexture({}, "Swapchain buffer");
-        swapChainRtv = renderGraph.GetRegistry().RegisterRenderTargetView({}, swapChainTexture, "Swapchain RTV");
+        for (auto i = 0u; i < graphicsContext->GetFrameContextCount(); i++)
+        {
+            eastl::string name;
+
+            swapChainTextures[i] = renderGraph.GetRegistry().RegisterRawTexture(
+                graphicsContext->GetPresentTexture(i),
+                name.sprintf("Swapchain buffer %u", i));
+            swapChainRtvs[i] = renderGraph.GetRegistry().RegisterRenderTargetView(
+                graphicsContext->GetPresentRenderTargetView(i),
+                swapChainTextures[i],
+                name.sprintf("Swapchain RTV %u", i));
+        }
         frameCBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Frame constant buffer");
         gBufferAlbedo = renderGraph.GetRegistry().RegisterRawTexture({}, "GBuffer albedo");
         gBufferAlbedoRtv = renderGraph.GetRegistry().RegisterRenderTargetView({}, gBufferAlbedo, "GBuffer albedo RTV");
@@ -129,16 +144,25 @@ int main()
     {
         RenderGraph::Builder& builder = renderGraph.BeginFrame(*graphicsContext);
 
+        SimplePoolHandle swapChainTexture = swapChainTextures[graphicsContext->GetCurrentPresentImageIndex()];
+        SimplePoolHandle swapChainRtv = swapChainRtvs[graphicsContext->GetCurrentPresentImageIndex()];
+
         {
             KE_ZoneScoped("Build render graph");
+
+            const auto transferExecuteFunction = [&](RenderGraph::RenderGraph& _renderGraph, RenderGraph::PassExecutionData _passData)
+            {
+                ExecuteUploadData(_renderGraph, _passData);
+                imGuiContext->NewFrame(&mainWindow, _passData.m_commandList);
+            };
 
             builder
                 .DeclarePass(RenderGraph::PassType::Transfer)
                     .SetName("Upload data")
-                    .SetExecuteFunction(ExecuteUploadData)
+                    .SetExecuteFunction(transferExecuteFunction)
                     .WriteDependency(frameCBuffer)
                     .Done()
-                .DeclarePass(RenderGraph::PassType::Render)
+                .DeclarePass(RenderGraph::PassType::Compute) // TODO: fix when render targets are created
                     .SetName("GBuffer pass")
                     .SetExecuteFunction(ExecuteGBufferPass)
                     .AddColorAttachment(gBufferAlbedoRtv)
@@ -186,7 +210,7 @@ int main()
                     .ReadDependency(deferredShadow)
                     .ReadDependency(deferredGi)
                     .Done()
-                .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
+                .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Compute) // TODO: fix when render targets are created
                     .SetName("Sky pass")
                     .SetExecuteFunction(ExecuteSkyPass)
                     .AddColorAttachment(swapChainRtv)
@@ -203,12 +227,49 @@ int main()
         }
 
         {
+            KE_ZoneScoped("Build ImGui pass");
+
+            const auto executeFunction = [&](
+                                             RenderGraph::RenderGraph& _renderGraph,
+                                             RenderGraph::PassExecutionData& _passData)
+            {
+                imGuiContext->PrepareToRenderFrame(graphicsContext, _passData.m_commandList);
+                imGuiContext->RenderFrame(graphicsContext, _passData.m_commandList);
+            };
+
+            RenderGraph::PassDeclaration& imguiPass = builder
+                .DeclarePass(RenderGraph::PassType::Render)
+                .SetName("ImGui pass")
+                .SetExecuteFunction(executeFunction)
+                .AddColorAttachment(swapChainRtv)
+                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
+                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                    .Done()
+                .GetItem();
+
+            if (imGuiContext == nullptr)
+            {
+                KE_ZoneScoped("Init ImGui context");
+
+                imGuiContext = allocator.New<Modules::ImGui::Context>(
+                    &mainWindow,
+                    renderGraph.FetchRenderPass(*graphicsContext, imguiPass),
+                    allocator);
+            }
+        }
+
+        {
             KE_ZoneScoped("Execute render graph");
 
             renderGraph.SubmitFrame(*graphicsContext, fibersManager);
         }
     }
     while (graphicsContext->EndFrame());
+
+    if (imGuiContext)
+    {
+        allocator.Delete(imGuiContext);
+    }
 
     return 0;
 }
