@@ -15,6 +15,8 @@ public:                                                                         
                                                                                            \
     ownerType& Done() { return m_owner; }                                                  \
                                                                                            \
+    dataType& GetItem() { return m_item; }                                                 \
+                                                                                           \
 private:                                                                                   \
     dataType& m_item;                                                                      \
     ownerType& m_owner
