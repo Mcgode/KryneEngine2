@@ -146,7 +146,7 @@ namespace KryneEngine::Modules::ImGui
         m_context = nullptr;
     }
 
-    void Context::NewFrame(Window* _window, CommandListHandle _commandList)
+    void Context::NewFrame(Window* _window)
     {
         KE_ZoneScopedFunction("Modules::ImGui::ContextNewFrame");
 
@@ -195,7 +195,8 @@ namespace KryneEngine::Modules::ImGui
                 .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::TransferDstImage | MemoryUsage::SampledImage,
             };
 
-            m_stagingFrame = graphicsContext->GetFrameId();
+            m_stagingData = m_vsBytecode.get_allocator().New<StagingData>(data, textureCreateDesc, graphicsContext->GetFrameId());
+
             m_fontsStagingHandle = graphicsContext->CreateStagingBuffer(
                 fontsTextureDesc,
                 textureCreateDesc.m_footprintPerSubResource);
@@ -250,7 +251,34 @@ namespace KryneEngine::Modules::ImGui
             }
 
             io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontTextureSrvHandle.m_handle)));
+        }
 
+        if (m_stagingData != nullptr && graphicsContext->IsFrameExecuted(m_stagingData->m_stagingFrame))
+        {
+            graphicsContext->DestroyBuffer(m_fontsStagingHandle);
+            m_fontsStagingHandle = GenPool::kInvalidHandle;
+
+            m_vsBytecode.get_allocator().Delete(m_stagingData);
+            m_stagingData = nullptr;
+        }
+
+        const auto currentTimePoint =  eastl::chrono::steady_clock::now();
+        const eastl::chrono::duration<double> interval = currentTimePoint - m_timePoint;
+        m_timePoint = currentTimePoint;
+
+        io.DeltaTime = static_cast<float>(interval.count());
+
+        ::ImGui::NewFrame();
+    }
+
+    void Context::PrepareToRenderFrame(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
+    {
+        KE_ZoneScopedFunction("Modules::ImGui::ContextPrepareToRenderFrame");
+
+        ::ImGui::Render();
+
+        if (m_stagingData != nullptr && m_stagingData->m_stagingFrame != _graphicsContext->GetFrameId())
+        {
             {
                 BufferMemoryBarrier stagingBufferBarrier {
                     .m_stagesSrc = BarrierSyncStageFlags::None,
@@ -272,20 +300,20 @@ namespace KryneEngine::Modules::ImGui
                     .m_layoutDst = TextureLayout::TransferDst,
                 };
 
-                graphicsContext->PlaceMemoryBarriers(
+                _graphicsContext->PlaceMemoryBarriers(
                     _commandList,
                     {},
                     { &stagingBufferBarrier, 1 },
                     { &textureMemoryBarrier, 1 });
             }
 
-            graphicsContext->SetTextureData(
+            _graphicsContext->SetTextureData(
                 _commandList,
                 m_fontsStagingHandle,
                 m_fontsTextureHandle,
-                textureCreateDesc.m_footprintPerSubResource[0],
-                { textureCreateDesc.m_desc, 0 },
-                data);
+                m_stagingData->m_fontsTextureDesc.m_footprintPerSubResource[0],
+                { m_stagingData->m_fontsTextureDesc.m_desc, 0 },
+                m_stagingData->m_data);
 
             {
                 // Don't care about staging buffer state any more, they've outlived their usefulness
@@ -300,34 +328,13 @@ namespace KryneEngine::Modules::ImGui
                     .m_layoutDst = TextureLayout::ShaderResource,
                 };
 
-                graphicsContext->PlaceMemoryBarriers(
+                _graphicsContext->PlaceMemoryBarriers(
                     _commandList,
                     {},
                     {},
                     { &textureMemoryBarrier, 1 });
             }
         }
-
-        if (m_fontsStagingHandle != GenPool::kInvalidHandle && graphicsContext->IsFrameExecuted(m_stagingFrame))
-        {
-            graphicsContext->DestroyBuffer(m_fontsStagingHandle);
-            m_fontsStagingHandle = GenPool::kInvalidHandle;
-        }
-
-        const auto currentTimePoint =  eastl::chrono::steady_clock::now();
-        const eastl::chrono::duration<double> interval = currentTimePoint - m_timePoint;
-        m_timePoint = currentTimePoint;
-
-        io.DeltaTime = static_cast<float>(interval.count());
-
-        ::ImGui::NewFrame();
-    }
-
-    void Context::PrepareToRenderFrame(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
-    {
-        KE_ZoneScopedFunction("Modules::ImGui::ContextPrepareToRenderFrame");
-
-        ::ImGui::Render();
 
         ImDrawData* drawData = ::ImGui::GetDrawData();
 

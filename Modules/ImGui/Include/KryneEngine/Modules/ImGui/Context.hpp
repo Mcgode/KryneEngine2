@@ -61,7 +61,7 @@ namespace KryneEngine::Modules::ImGui
          * @param _window The Window object.
          * @param _commandList The command list.
          */
-        void NewFrame(Window* _window, CommandListHandle _commandList);
+        void NewFrame(Window* _window);
 
         /**
          * @brief Prepares the rendering context for a new frame by updating the vertex and index buffers.
@@ -82,8 +82,14 @@ namespace KryneEngine::Modules::ImGui
         void RenderFrame(GraphicsContext* _graphicsContext, CommandListHandle _commandList);
 
     private:
+        struct StagingData {
+            u8* m_data = nullptr;
+            TextureCreateDesc m_fontsTextureDesc {};
+            u64 m_stagingFrame = 0;
+        };
+
         ImGuiContext* m_context;
-        u64 m_stagingFrame = 0;
+        StagingData* m_stagingData = nullptr;
         BufferHandle m_fontsStagingHandle { GenPool::kInvalidHandle };
         TextureHandle m_fontsTextureHandle { GenPool::kInvalidHandle };
         TextureSrvHandle m_fontTextureSrvHandle{ GenPool::kInvalidHandle };

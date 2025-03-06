@@ -31,9 +31,8 @@ void Job1(void*)
     auto* fibersManager = FibersManager::GetInstance();
 
     static constexpr u32 kCount = 1'000;
-    FiberJob counterJobs[kCount];
 
-    const auto syncCounter = fibersManager->InitAndBatchJobs(counterJobs, Job0, &counter, kCount);
+    const auto syncCounter = fibersManager->InitAndBatchJobs(Job0, &counter, kCount);
 
     fibersManager->WaitForCounterAndReset(syncCounter);
 
@@ -87,7 +86,7 @@ void MainFunc(void* _pAllocator)
 
         CommandListHandle commandList = graphicsContext->BeginGraphicsCommandList();
 
-        imGuiContext.NewFrame(&mainWindow, commandList);
+        imGuiContext.NewFrame(&mainWindow);
 
         {
             static bool open;
@@ -127,8 +126,7 @@ int main()
     {
         auto fibersManager = FibersManager(0, allocator);
 
-        FiberJob testJob;
-        const auto syncCounter = fibersManager.InitAndBatchJobs(&testJob, Job1, nullptr);
+        const auto syncCounter = fibersManager.InitAndBatchJobs(Job1, nullptr);
 
 #if !defined(__APPLE__)
         FiberJob mainJob;
