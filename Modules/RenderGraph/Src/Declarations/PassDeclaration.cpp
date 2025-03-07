@@ -36,7 +36,7 @@ namespace KryneEngine::Modules::RenderGraph
 
     PassAttachmentDeclarationBuilder PassDeclarationBuilder::AddColorAttachment(SimplePoolHandle _texture)
     {
-        return { m_item.m_colorAttachments.emplace_back(_texture), *this };
+        return { m_item.m_colorAttachments.emplace_back(_texture), this };
     }
 
     PassAttachmentDeclarationBuilder PassDeclarationBuilder::SetDepthAttachment(SimplePoolHandle _texture)
@@ -46,7 +46,7 @@ namespace KryneEngine::Modules::RenderGraph
         m_item.m_depthAttachment.value().m_clearStencil = ~0;
         m_item.m_depthAttachment.value().m_stencilLoadOperation = RenderPassDesc::Attachment::LoadOperation::DontCare;
         m_item.m_depthAttachment.value().m_stencilStoreOperation = RenderPassDesc::Attachment::StoreOperation::DontCare;
-        return { m_item.m_depthAttachment.value(), *this};
+        return { m_item.m_depthAttachment.value(), this};
     }
 
     PassDeclarationBuilder& PassDeclarationBuilder::ReadDependency(SimplePoolHandle _resource)

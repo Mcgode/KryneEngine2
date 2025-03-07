@@ -24,7 +24,7 @@ namespace KryneEngine::Modules::RenderGraph
 
     PassDeclarationBuilder Builder::DeclarePass(PassType _type)
     {
-        return { m_declaredPasses.emplace_back(_type, m_declaredPasses.size()), *this };
+        return { m_declaredPasses.emplace_back(_type, m_declaredPasses.size()), this };
     }
 
     Builder& Builder::DeclareTargetResource(SimplePoolHandle _resource)
@@ -191,7 +191,12 @@ namespace KryneEngine::Modules::RenderGraph
             break;
         case ResourceType::TextureSrv:
             std::cout
-                << eastl::string().sprintf(", Texture SRV, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
+                << eastl::string().sprintf(", Texture SRV, handle: Ox%x",(u32)resource.m_textureSrvData.m_textureSrv.m_handle).c_str()
+                << std::endl;
+            break;
+        case ResourceType::RenderTargetView:
+            std::cout
+                << eastl::string().sprintf(", Render target view, handle: Ox%x",(u32)resource.m_renderTargetViewData.m_renderTargetView.m_handle).c_str()
                 << std::endl;
             break;
         }
