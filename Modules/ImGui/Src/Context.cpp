@@ -410,6 +410,11 @@ namespace KryneEngine::Modules::ImGui
 
         ImDrawData* drawData = ::ImGui::GetDrawData();
 
+        if (drawData == nullptr)
+        {
+            return;
+        }
+
         // Set viewport
         {
             const Viewport viewport {
