@@ -32,7 +32,7 @@ namespace KryneEngine::Modules::RenderGraph
         [[nodiscard]] Builder& GetBuilder() const { return *m_builder; }
 
         [[nodiscard]] Builder& BeginFrame(GraphicsContext& _graphicsContext);
-        void SubmitFrame(GraphicsContext& _graphicsContext, FibersManager& _fibersManager);
+        void SubmitFrame(GraphicsContext& _graphicsContext, FibersManager* _fibersManager);
 
         [[nodiscard]] double GetTargetTimePerCommandList() const { return m_targetTimePerCommandList; }
         void SetTargetTimePerCommandList(double _milliseconds) { m_targetTimePerCommandList = _milliseconds; }

@@ -28,7 +28,7 @@ namespace KryneEngine::Modules::RenderGraph
         return *m_builder;
     }
 
-    void RenderGraph::SubmitFrame(GraphicsContext& _graphicsContext, FibersManager& _fibersManager)
+    void RenderGraph::SubmitFrame(GraphicsContext& _graphicsContext, FibersManager* _fibersManager)
     {
         {
             KE_ZoneScoped("Build and cull render DAG");
@@ -103,20 +103,27 @@ namespace KryneEngine::Modules::RenderGraph
         {
             KE_ZoneScoped("Dispatch & execute render jobs");
 
-            // Execute the last job in this thread/fiber, schedule the other ones for dispatch.
-            // Small optimization.
-            if (m_jobs.size() > 1)
+            if (_fibersManager != nullptr)
             {
-                const SyncCounterId jobsCounter = _fibersManager.InitAndBatchJobs(
-                    m_jobs.size() - 1,
-                    ExecuteJob,
-                    m_jobs.data());
-                ExecuteJob(&m_jobs.back());
-                _fibersManager.WaitForCounterAndReset(jobsCounter);
+                // Execute the last job in this thread/fiber, schedule the other ones for dispatch.
+                // Small optimization.
+                if (m_jobs.size() > 1)
+                {
+                    const SyncCounterId jobsCounter =
+                        _fibersManager->InitAndBatchJobs(m_jobs.size() - 1, ExecuteJob, m_jobs.data());
+                    ExecuteJob(&m_jobs.back());
+                    _fibersManager->WaitForCounterAndReset(jobsCounter);
+                }
+                else if (!m_jobs.empty())
+                {
+                    ExecuteJob(&m_jobs.back());
+                }
             }
-            else if (!m_jobs.empty())
-            {
-                ExecuteJob(&m_jobs.back());
+            else {
+                for (auto& job : m_jobs)
+                {
+                    ExecuteJob(&job);
+                }
             }
             m_jobs.clear();
         }
