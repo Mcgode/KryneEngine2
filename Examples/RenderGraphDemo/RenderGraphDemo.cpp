@@ -142,6 +142,28 @@ int main()
 
     do
     {
+        if (imGuiContext == nullptr)
+        {
+            KE_ZoneScoped("Init ImGui context");
+
+            // Even if it's a dummy pass, the generated render pass should match signature with the one in the render
+            // graph for the ImGui pass, so it will be reused there.
+
+            RenderGraph::PassDeclaration imguiDummyPass(KryneEngine::Modules::RenderGraph::PassType::Render, 0);
+            RenderGraph::PassDeclarationBuilder(imguiDummyPass, nullptr)
+                .AddColorAttachment(swapChainRtvs[0])
+                    .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
+                    .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                    .Done();
+
+            imGuiContext = allocator.New<Modules::ImGui::Context>(
+                &mainWindow,
+                renderGraph.FetchRenderPass(*graphicsContext, imguiDummyPass),
+                allocator);
+        }
+
+        imGuiContext->NewFrame(&mainWindow);
+
         RenderGraph::Builder& builder = renderGraph.BeginFrame(*graphicsContext);
 
         SimplePoolHandle swapChainTexture = swapChainTextures[graphicsContext->GetCurrentPresentImageIndex()];
@@ -153,7 +175,7 @@ int main()
             const auto transferExecuteFunction = [&](RenderGraph::RenderGraph& _renderGraph, RenderGraph::PassExecutionData _passData)
             {
                 ExecuteUploadData(_renderGraph, _passData);
-                imGuiContext->NewFrame(&mainWindow, _passData.m_commandList);
+                imGuiContext->PrepareToRenderFrame(graphicsContext, _passData.m_commandList);
             };
 
             builder
@@ -233,29 +255,17 @@ int main()
                                              RenderGraph::RenderGraph& _renderGraph,
                                              RenderGraph::PassExecutionData& _passData)
             {
-                imGuiContext->PrepareToRenderFrame(graphicsContext, _passData.m_commandList);
                 imGuiContext->RenderFrame(graphicsContext, _passData.m_commandList);
             };
 
-            RenderGraph::PassDeclaration& imguiPass = builder
+            builder
                 .DeclarePass(RenderGraph::PassType::Render)
                 .SetName("ImGui pass")
                 .SetExecuteFunction(executeFunction)
                 .AddColorAttachment(swapChainRtv)
                     .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
                     .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
-                    .Done()
-                .GetItem();
-
-            if (imGuiContext == nullptr)
-            {
-                KE_ZoneScoped("Init ImGui context");
-
-                imGuiContext = allocator.New<Modules::ImGui::Context>(
-                    &mainWindow,
-                    renderGraph.FetchRenderPass(*graphicsContext, imguiPass),
-                    allocator);
-            }
+                    .Done();
         }
 
         {
