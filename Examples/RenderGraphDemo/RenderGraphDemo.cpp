@@ -271,7 +271,7 @@ int main()
         {
             KE_ZoneScoped("Execute render graph");
 
-            renderGraph.SubmitFrame(*graphicsContext, fibersManager);
+            renderGraph.SubmitFrame(*graphicsContext, nullptr);
         }
     }
     while (graphicsContext->EndFrame());
