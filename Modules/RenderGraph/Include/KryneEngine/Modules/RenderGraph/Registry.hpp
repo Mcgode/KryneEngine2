@@ -9,6 +9,12 @@
 #include <KryneEngine/Core/Graphics/Common/Handles.hpp>
 #include <KryneEngine/Core/Memory/SimplePool.hpp>
 
+namespace KryneEngine
+{
+    class GraphicsContext;
+    struct TextureCreateDesc;
+}
+
 namespace KryneEngine::Modules::RenderGraph
 {
     struct Resource;
@@ -32,6 +38,10 @@ namespace KryneEngine::Modules::RenderGraph
             RenderTargetViewHandle _rtv,
             SimplePoolHandle _textureResource,
             const eastl::string_view& _name = {});
+
+        SimplePoolHandle CreateRawTexture(
+            GraphicsContext* _graphicsContext,
+            const TextureCreateDesc& _desc);
 
         [[nodiscard]] SimplePoolHandle GetUnderlyingResource(SimplePoolHandle _resource) const;
 

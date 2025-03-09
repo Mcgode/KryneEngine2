@@ -7,6 +7,7 @@
 #include "KryneEngine/Modules/RenderGraph/Registry.hpp"
 
 #include <KryneEngine/Core/Memory/SimplePool.inl>
+#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 
 #include "KryneEngine/Modules/RenderGraph/Resource.hpp"
 
@@ -92,6 +93,23 @@ namespace KryneEngine::Modules::RenderGraph
 #endif
         });
         return handle;
+    }
+
+    SimplePoolHandle Registry::CreateRawTexture(
+        GraphicsContext* _graphicsContext,
+        const TextureCreateDesc& _desc)
+    {
+        TextureHandle texture = _graphicsContext->CreateTexture(_desc);
+        return m_resources.AllocateAndInit(Resource {
+            .m_type = ResourceType::RawTexture,
+            .m_owned = true,
+            .m_rawTextureData = {
+                .m_texture = texture,
+            },
+#if !defined(KE_FINAL)
+            .m_name = _desc.m_desc.m_debugName.data(),
+#endif
+        });
     }
 
     SimplePoolHandle Registry::GetUnderlyingResource(SimplePoolHandle _resource) const
