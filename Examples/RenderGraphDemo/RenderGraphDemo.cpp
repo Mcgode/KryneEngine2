@@ -117,6 +117,8 @@ int main()
     {
         KE_ZoneScoped("Registration");
 
+        const uint3 dimensions(appInfo.m_displayOptions.m_width, appInfo.m_displayOptions.m_height, 1);
+
         for (auto i = 0u; i < graphicsContext->GetFrameContextCount(); i++)
         {
             eastl::string name;
@@ -129,15 +131,76 @@ int main()
                 swapChainTextures[i],
                 name.sprintf("Swapchain RTV %u", i));
         }
+
         frameCBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Frame constant buffer");
-        gBufferAlbedo = renderGraph.GetRegistry().RegisterRawTexture({}, "GBuffer albedo");
+
+        gBufferAlbedo = renderGraph.GetRegistry().CreateRawTexture(
+            graphicsContext,
+            {
+                .m_desc = {
+                    .m_dimensions = dimensions,
+                    .m_format = KryneEngine::TextureFormat::RGBA8_UNorm,
+#if !defined(KE_FINAL)
+                    .m_debugName = "GBuffer albedo",
+#endif
+                },
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ColorTargetImage | MemoryUsage::ReadImage,
+            });
         gBufferAlbedoRtv = renderGraph.GetRegistry().RegisterRenderTargetView({}, gBufferAlbedo, "GBuffer albedo RTV");
-        gBufferNormal = renderGraph.GetRegistry().RegisterRawTexture({}, "GBuffer normal");
+
+        gBufferNormal = renderGraph.GetRegistry().CreateRawTexture(
+            graphicsContext,
+            {
+                .m_desc = {
+                    .m_dimensions = dimensions,
+                    .m_format = KryneEngine::TextureFormat::RGBA8_UNorm, // TODO: Implement RGB10A2 format support
+#if !defined(KE_FINAL)
+                    .m_debugName = "GBuffer normal",
+#endif
+                },
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ColorTargetImage | MemoryUsage::ReadImage,
+            });
         gBufferNormalRtv = renderGraph.GetRegistry().RegisterRenderTargetView({}, gBufferNormal, "GBuffer normal RTV");
-        gBufferDepth = renderGraph.GetRegistry().RegisterRawTexture({}, "GBuffer depth");
+
+        gBufferDepth = renderGraph.GetRegistry().CreateRawTexture(
+            graphicsContext,
+            {
+                .m_desc = {
+                    .m_dimensions = dimensions,
+                    .m_format = KryneEngine::TextureFormat::D32F,
+                    .m_planes = TexturePlane::Depth,
+#if !defined(KE_FINAL)
+                    .m_debugName = "GBuffer depth"
+#endif
+                },
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::DepthStencilTargetImage | MemoryUsage::ReadImage,
+            });
         gBufferDepthRtv = renderGraph.GetRegistry().RegisterRenderTargetView({}, gBufferDepth, "GBuffer depth RTV");
-        deferredShadow = renderGraph.GetRegistry().RegisterRawTexture({}, "Deferred shadow");
-        deferredGi = renderGraph.GetRegistry().RegisterRawTexture({}, "Deferred GI");
+
+        deferredShadow = renderGraph.GetRegistry().CreateRawTexture(
+            graphicsContext,
+            {
+                .m_desc = {
+                    .m_dimensions = dimensions,
+                    .m_format = KryneEngine::TextureFormat::R8_UNorm,
+#if !defined(KE_FINAL)
+                    .m_debugName = "Deferred shadow",
+#endif
+                },
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ReadWriteImage,
+            });
+        deferredGi = renderGraph.GetRegistry().CreateRawTexture(
+            graphicsContext,
+            {
+                .m_desc = {
+                    .m_dimensions = dimensions,
+                    .m_format = KryneEngine::TextureFormat::RGBA32_Float, // TODO: Implement RGBA16F support
+#if !defined(KE_FINAL)
+                    .m_debugName = "Deferred GI",
+#endif
+                },
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ReadWriteImage,
+            });
     }
 
     do
