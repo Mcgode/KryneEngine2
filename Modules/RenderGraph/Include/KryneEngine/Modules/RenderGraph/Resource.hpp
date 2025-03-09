@@ -49,6 +49,7 @@ namespace KryneEngine::Modules::RenderGraph
     struct Resource
     {
         ResourceType m_type;
+        bool m_owned;
         union {
             RawTextureData m_rawTextureData;
             RawBufferData m_rawBufferData;

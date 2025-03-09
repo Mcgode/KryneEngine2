@@ -19,6 +19,7 @@ namespace KryneEngine::Modules::RenderGraph
     {
         const SimplePoolHandle handle = m_resources.AllocateAndInit(Resource {
             .m_type = ResourceType::RawTexture,
+            .m_owned = false,
             .m_rawTextureData = {
                 .m_texture = _texture,
             },
@@ -33,6 +34,7 @@ namespace KryneEngine::Modules::RenderGraph
     {
         const SimplePoolHandle handle = m_resources.AllocateAndInit(Resource {
             .m_type = ResourceType::RawBuffer,
+            .m_owned = false,
             .m_rawBufferData = {
                 .m_buffer = _buffer,
             },
@@ -55,6 +57,7 @@ namespace KryneEngine::Modules::RenderGraph
 
         const SimplePoolHandle handle = m_resources.AllocateAndInit(Resource {
             .m_type = ResourceType::TextureSrv,
+            .m_owned = false,
             .m_textureSrvData = {
                 .m_textureSrv = _textureSrv,
                 .m_textureResource = _textureResource,
@@ -79,6 +82,7 @@ namespace KryneEngine::Modules::RenderGraph
 
         const SimplePoolHandle handle = m_resources.AllocateAndInit(Resource {
             .m_type = ResourceType::RenderTargetView,
+            .m_owned = false,
             .m_renderTargetViewData = {
                 .m_renderTargetView = _rtv,
                 .m_textureResource = _textureResource,
