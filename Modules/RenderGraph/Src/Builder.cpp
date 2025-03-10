@@ -111,13 +111,13 @@ namespace KryneEngine::Modules::RenderGraph
             }
         };
 
-        for (SimplePoolHandle resource: _passDeclaration.m_readDependencies)
+        for (const Dependency& dependency: _passDeclaration.m_readDependencies)
         {
-            handleResourceRead(resource);
+            handleResourceRead(dependency.m_resource);
         }
-        for (SimplePoolHandle resource: _passDeclaration.m_writeDependencies)
+        for (const Dependency& dependency: _passDeclaration.m_writeDependencies)
         {
-            handleResourceWrite(m_registry.GetUnderlyingResource(resource));
+            handleResourceWrite(m_registry.GetUnderlyingResource(dependency.m_resource));
         }
 
         // Render targets are to be marked as implicit READ/WRITE dependencies
@@ -290,12 +290,12 @@ namespace KryneEngine::Modules::RenderGraph
         {
             std::cout << _indent << "Read dependencies:" << std::endl;
             _indent.push_back('\t');
-            for (SimplePoolHandle resource: _pass.m_readDependencies)
+            for (const Dependency& dependency: _pass.m_readDependencies)
             {
-                const auto versionIt = m_resourceVersions.find(m_registry.GetUnderlyingResource(resource));
+                const auto versionIt = m_resourceVersions.find(m_registry.GetUnderlyingResource(dependency.m_resource));
                 const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second.first : 0;
 
-                PrintResource(resource, _indent);
+                PrintResource(dependency.m_resource, _indent);
                 _indent.push_back('\t');
                 std::cout << _indent << "Version " << version << std::endl;
                 _indent.pop_back();
@@ -307,12 +307,12 @@ namespace KryneEngine::Modules::RenderGraph
         {
             std::cout << _indent << "Write dependencies:" << std::endl;
             _indent.push_back('\t');
-            for (SimplePoolHandle resource: _pass.m_writeDependencies)
+            for (const Dependency& dependency: _pass.m_writeDependencies)
             {
-                const auto versionIt = m_resourceVersions.find(resource);
+                const auto versionIt = m_resourceVersions.find(dependency.m_resource);
                 const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second.first : 0;
 
-                PrintResource(resource, _indent);
+                PrintResource(dependency.m_resource, _indent);
                 _indent.push_back('\t');
                 std::cout << _indent << "Version " << version << std::endl;
                 _indent.pop_back();

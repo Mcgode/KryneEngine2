@@ -9,6 +9,7 @@
 #include <KryneEngine/Core/Common/StringHelpers.hpp>
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 
+#include "KryneEngine/Modules/RenderGraph/Declarations/Dependency.hpp"
 #include "KryneEngine/Modules/RenderGraph/Declarations/PassAttachmentDeclaration.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
@@ -43,8 +44,8 @@ namespace KryneEngine::Modules::RenderGraph
         StringHash m_name;
         eastl::fixed_vector<PassAttachmentDeclaration, RenderPassDesc::kMaxSupportedColorAttachments, false> m_colorAttachments = {};
         eastl::optional<PassAttachmentDeclaration> m_depthAttachment;
-        eastl::vector<SimplePoolHandle> m_readDependencies;
-        eastl::vector<SimplePoolHandle> m_writeDependencies;
+        eastl::vector<Dependency> m_readDependencies;
+        eastl::vector<Dependency> m_writeDependencies;
         eastl::optional<u64> m_renderPassHash;
         ExecuteFunction m_executeFunction;
     };
@@ -59,8 +60,8 @@ namespace KryneEngine::Modules::RenderGraph
         PassDeclarationBuilder& SetName(const eastl::string_view& _name);
         PassAttachmentDeclarationBuilder AddColorAttachment(SimplePoolHandle _texture);
         PassAttachmentDeclarationBuilder SetDepthAttachment(SimplePoolHandle _texture);
-        PassDeclarationBuilder& ReadDependency(SimplePoolHandle _resource);
-        PassDeclarationBuilder& WriteDependency(SimplePoolHandle _resource);
+        PassDeclarationBuilder& ReadDependency(const Dependency& _dependency);
+        PassDeclarationBuilder& WriteDependency(const Dependency& _dependency);
         PassDeclarationBuilder& SetExecuteFunction(PassDeclaration::ExecuteFunction&& _function);
     };
 } // namespace KryneEngine::Module::RenderGraph

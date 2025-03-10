@@ -49,15 +49,15 @@ namespace KryneEngine::Modules::RenderGraph
         return { m_item.m_depthAttachment.value(), this};
     }
 
-    PassDeclarationBuilder& PassDeclarationBuilder::ReadDependency(SimplePoolHandle _resource)
+    PassDeclarationBuilder& PassDeclarationBuilder::ReadDependency(const Dependency& _dependency)
     {
-        m_item.m_readDependencies.push_back(_resource);
+        m_item.m_readDependencies.push_back(_dependency);
         return *this;
     }
 
-    PassDeclarationBuilder& PassDeclarationBuilder::WriteDependency(SimplePoolHandle _resource)
+    PassDeclarationBuilder& PassDeclarationBuilder::WriteDependency(const Dependency& _dependency)
     {
-        m_item.m_writeDependencies.push_back(_resource);
+        m_item.m_writeDependencies.emplace_back(_dependency);
         return *this;
     }
 
