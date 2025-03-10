@@ -12,6 +12,7 @@ add_library(KryneEngine_Modules_RenderGraph STATIC
         Include/KryneEngine/Modules/RenderGraph/Resource.hpp
         Src/RenderGraph.cpp
         Include/KryneEngine/Modules/RenderGraph/RenderGraph.hpp
+        Include/KryneEngine/Modules/RenderGraph/Descriptors/RenderTargetViewDesc.hpp
 )
 
 target_link_libraries(KryneEngine_Modules_RenderGraph KryneEngine_Core)

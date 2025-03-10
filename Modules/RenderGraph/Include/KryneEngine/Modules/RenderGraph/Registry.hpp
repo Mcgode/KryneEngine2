@@ -17,6 +17,7 @@ namespace KryneEngine
 
 namespace KryneEngine::Modules::RenderGraph
 {
+    struct RenderTargetViewDesc;
     struct Resource;
 
     class Registry
@@ -42,6 +43,11 @@ namespace KryneEngine::Modules::RenderGraph
         SimplePoolHandle CreateRawTexture(
             GraphicsContext* _graphicsContext,
             const TextureCreateDesc& _desc);
+        SimplePoolHandle CreateRenderTargetView(
+            GraphicsContext* _graphicsContext,
+            const RenderTargetViewDesc& _desc,
+            eastl::string_view _name = {});
+
 
         [[nodiscard]] SimplePoolHandle GetUnderlyingResource(SimplePoolHandle _resource) const;
 

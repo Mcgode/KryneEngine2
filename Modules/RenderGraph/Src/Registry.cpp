@@ -8,7 +8,9 @@
 
 #include <KryneEngine/Core/Memory/SimplePool.inl>
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp>
 
+#include "KryneEngine/Modules/RenderGraph/Descriptors/RenderTargetViewDesc.hpp"
 #include "KryneEngine/Modules/RenderGraph/Resource.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
@@ -108,6 +110,40 @@ namespace KryneEngine::Modules::RenderGraph
             },
 #if !defined(KE_FINAL)
             .m_name = _desc.m_desc.m_debugName.data(),
+#endif
+        });
+    }
+
+    SimplePoolHandle Registry::CreateRenderTargetView(
+        GraphicsContext* _graphicsContext,
+        const RenderTargetViewDesc& _desc,
+        eastl::string_view _name)
+    {
+        Resource& resource = m_resources.Get(_desc.m_textureResource);
+        VERIFY_OR_RETURN(resource.m_type == ResourceType::RawTexture, ~0ull);
+
+        const KryneEngine::RenderTargetViewDesc desc {
+            .m_texture = resource.m_rawTextureData.m_texture,
+            .m_format = _desc.m_format,
+            .m_type = _desc.m_type,
+            .m_plane = _desc.m_plane,
+            .m_arrayRangeStart = _desc.m_arrayRangeStart,
+            .m_arrayRangeSize = _desc.m_arrayRangeSize,
+            .m_mipLevel = _desc.m_mipLevel,
+#if !defined(KE_FINAL)
+            .m_debugName = _name.data(),
+#endif
+        };
+
+        return m_resources.AllocateAndInit(Resource {
+            .m_type = ResourceType::RenderTargetView,
+            .m_owned = true,
+            .m_renderTargetViewData = {
+                .m_renderTargetView = _graphicsContext->CreateRenderTargetView(desc),
+                .m_textureResource = _desc.m_textureResource,
+            },
+#if !defined(KE_FINAL)
+            .m_name = _name.data(),
 #endif
         });
     }
