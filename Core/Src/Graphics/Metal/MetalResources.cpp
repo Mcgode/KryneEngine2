@@ -209,13 +209,17 @@ namespace KryneEngine
 
     RenderTargetViewHandle MetalResources::RegisterRtv(const RenderTargetViewDesc& _desc)
     {
-        KE_ERROR("Not fully implemented yet");
-        return { GenPool::kInvalidHandle };
+        MTL::Texture* texture = m_textures.Get(_desc.m_texture.m_handle)->m_texture.get();
+        return RegisterRtv(_desc, texture);
     }
 
     bool MetalResources::UnregisterRtv(RenderTargetViewHandle _handle)
     {
-        return m_renderTargetViews.Free(_handle.m_handle);
+        RtvHotData hotData;
+        bool freed = m_renderTargetViews.Free(_handle.m_handle, &hotData);
+        if (freed)
+            hotData.m_texture.reset();
+        return freed;
     }
 
     RenderTargetViewHandle MetalResources::RegisterRtv(
