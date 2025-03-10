@@ -261,11 +261,19 @@ int main()
                 imGuiContext->PrepareToRenderFrame(graphicsContext, _passData.m_commandList);
             };
 
+            const RenderGraph::Dependency frameCBufferReadDep {
+                .m_resource = frameCBuffer,
+                .m_targetAccessFlags = BarrierAccessFlags::ConstantBuffer,
+            };
+
             builder
                 .DeclarePass(RenderGraph::PassType::Transfer)
                     .SetName("Upload data")
                     .SetExecuteFunction(transferExecuteFunction)
-                    .WriteDependency(frameCBuffer)
+                    .WriteDependency({
+                        .m_resource = frameCBuffer,
+                        .m_targetAccessFlags = BarrierAccessFlags::TransferDst,
+                    })
                     .Done()
                 .DeclarePass(RenderGraph::PassType::Render)
                     .SetName("GBuffer pass")
@@ -283,23 +291,53 @@ int main()
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                         .SetClearDepthStencil(0.f, 0)
                         .Done()
-                    .ReadDependency(frameCBuffer)
+                    .ReadDependency(frameCBufferReadDep)
                     .Done()
                 .DeclarePass(RenderGraph::PassType::Compute)
                     .SetName("Deferred shadow pass")
                     .SetExecuteFunction(ExecuteDeferredShadowPass)
-                    .ReadDependency(frameCBuffer)
-                    .ReadDependency(gBufferDepth)
-                    .WriteDependency(deferredShadow)
+                    .ReadDependency(frameCBufferReadDep)
+                    .ReadDependency({
+                        .m_resource = gBufferDepth,
+                        .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
+                        .m_targetAccessFlags = BarrierAccessFlags::UnorderedAccess,
+                        .m_targetLayout = TextureLayout::UnorderedAccess,
+                    })
+                    .WriteDependency({
+                        .m_resource = deferredShadow,
+                        .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
+                        .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
+                        .m_targetLayout = TextureLayout::ShaderResource,
+                    })
                     .Done()
                 .DeclarePass(RenderGraph::PassType::Compute)
                     .SetName("Deferred 'GI' pass")
                     .SetExecuteFunction(ExecuteDeferredGiPass)
-                    .ReadDependency(frameCBuffer)
-                    .ReadDependency(gBufferAlbedo)
-                    .ReadDependency(gBufferNormal)
-                    .ReadDependency(gBufferDepth)
-                    .WriteDependency(deferredGi)
+                    .ReadDependency(frameCBufferReadDep)
+                    .ReadDependency({
+                        .m_resource = gBufferAlbedo,
+                        .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
+                        .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
+                        .m_targetLayout = TextureLayout::ShaderResource,
+                    })
+                    .ReadDependency({
+                        .m_resource = gBufferNormal,
+                        .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
+                        .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
+                        .m_targetLayout = TextureLayout::ShaderResource,
+                    })
+                    .ReadDependency({
+                        .m_resource = gBufferDepth,
+                        .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
+                        .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
+                        .m_targetLayout = TextureLayout::ShaderResource,
+                    })
+                    .WriteDependency({
+                        .m_resource = deferredGi,
+                        .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
+                        .m_targetAccessFlags = BarrierAccessFlags::UnorderedAccess,
+                        .m_targetLayout = TextureLayout::UnorderedAccess,
+                    })
                     .Done()
                 .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
                     .SetName("Deferred shading pass")
@@ -308,12 +346,36 @@ int main()
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                         .Done()
-                    .ReadDependency(frameCBuffer)
-                    .ReadDependency(gBufferAlbedo)
-                    .ReadDependency(gBufferNormal)
-                    .ReadDependency(gBufferDepth)
-                    .ReadDependency(deferredShadow)
-                    .ReadDependency(deferredGi)
+                    .ReadDependency({
+                        .m_resource = gBufferAlbedo,
+                        .m_targetSyncStage = BarrierSyncStageFlags::FragmentShading,
+                        .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
+                        .m_targetLayout = TextureLayout::ShaderResource,
+                    })
+                    .ReadDependency({
+                        .m_resource = gBufferNormal,
+                        .m_targetSyncStage = BarrierSyncStageFlags::FragmentShading,
+                        .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
+                        .m_targetLayout = TextureLayout::ShaderResource,
+                    })
+                    .ReadDependency({
+                        .m_resource = gBufferDepth,
+                        .m_targetSyncStage = BarrierSyncStageFlags::FragmentShading,
+                        .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
+                        .m_targetLayout = TextureLayout::ShaderResource,
+                    })
+                    .ReadDependency({
+                        .m_resource = deferredShadow,
+                        .m_targetSyncStage = BarrierSyncStageFlags::FragmentShading,
+                        .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
+                        .m_targetLayout = TextureLayout::ShaderResource,
+                    })
+                    .ReadDependency({
+                        .m_resource = deferredGi,
+                        .m_targetSyncStage = BarrierSyncStageFlags::FragmentShading,
+                        .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
+                        .m_targetLayout = TextureLayout::ShaderResource,
+                    })
                     .Done()
                 .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
                     .SetName("Sky pass")
@@ -326,7 +388,7 @@ int main()
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::DontCare)
                         .Done()
-                    .ReadDependency(frameCBuffer)
+                    .ReadDependency(frameCBufferReadDep)
                     .Done()
                 .DeclareTargetResource(swapChainTexture);
         }
