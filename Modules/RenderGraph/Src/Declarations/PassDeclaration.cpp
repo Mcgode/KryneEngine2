@@ -42,7 +42,7 @@ namespace KryneEngine::Modules::RenderGraph
     PassAttachmentDeclarationBuilder PassDeclarationBuilder::SetDepthAttachment(SimplePoolHandle _texture)
     {
         m_item.m_depthAttachment.emplace(_texture);
-        m_item.m_depthAttachment.value().m_clearDepth = NAN;
+        m_item.m_depthAttachment.value().m_clearDepth = 1.f;
         m_item.m_depthAttachment.value().m_clearStencil = ~0;
         m_item.m_depthAttachment.value().m_stencilLoadOperation = RenderPassDesc::Attachment::LoadOperation::DontCare;
         m_item.m_depthAttachment.value().m_stencilStoreOperation = RenderPassDesc::Attachment::StoreOperation::DontCare;
