@@ -10,6 +10,7 @@
 #include <KryneEngine/Core/Threads/FibersManager.hpp>
 #include <KryneEngine/Modules/ImGui/Context.hpp>
 #include <KryneEngine/Modules/RenderGraph/Builder.hpp>
+#include <KryneEngine/Modules/RenderGraph/Descriptors/RenderTargetViewDesc.hpp>
 #include <KryneEngine/Modules/RenderGraph/Registry.hpp>
 #include <KryneEngine/Modules/RenderGraph/RenderGraph.hpp>
 #include <iostream>
@@ -146,7 +147,13 @@ int main()
                 },
                 .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ColorTargetImage | MemoryUsage::ReadImage,
             });
-        gBufferAlbedoRtv = renderGraph.GetRegistry().RegisterRenderTargetView({}, gBufferAlbedo, "GBuffer albedo RTV");
+        gBufferAlbedoRtv = renderGraph.GetRegistry().CreateRenderTargetView(
+            graphicsContext,
+            RenderGraph::RenderTargetViewDesc {
+                .m_textureResource = gBufferAlbedo,
+                .m_format = KryneEngine::TextureFormat::RGBA8_UNorm,
+            },
+            "GBuffer albedo RTV");
 
         gBufferNormal = renderGraph.GetRegistry().CreateRawTexture(
             graphicsContext,
@@ -160,7 +167,13 @@ int main()
                 },
                 .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ColorTargetImage | MemoryUsage::ReadImage,
             });
-        gBufferNormalRtv = renderGraph.GetRegistry().RegisterRenderTargetView({}, gBufferNormal, "GBuffer normal RTV");
+        gBufferNormalRtv = renderGraph.GetRegistry().CreateRenderTargetView(
+            graphicsContext,
+            RenderGraph::RenderTargetViewDesc {
+                .m_textureResource = gBufferNormal,
+                .m_format = KryneEngine::TextureFormat::RGBA8_UNorm, // TODO: Implement RGB10A2 format support
+            },
+            "GBuffer normal RTV");
 
         gBufferDepth = renderGraph.GetRegistry().CreateRawTexture(
             graphicsContext,
@@ -175,7 +188,14 @@ int main()
                 },
                 .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::DepthStencilTargetImage | MemoryUsage::ReadImage,
             });
-        gBufferDepthRtv = renderGraph.GetRegistry().RegisterRenderTargetView({}, gBufferDepth, "GBuffer depth RTV");
+        gBufferDepthRtv = renderGraph.GetRegistry().CreateRenderTargetView(
+            graphicsContext,
+            RenderGraph::RenderTargetViewDesc {
+                .m_textureResource = gBufferDepth,
+                .m_format = KryneEngine::TextureFormat::D32F,
+                .m_plane = TexturePlane::Depth,
+            },
+            "GBuffer depth RTV");
 
         deferredShadow = renderGraph.GetRegistry().CreateRawTexture(
             graphicsContext,
@@ -247,7 +267,7 @@ int main()
                     .SetExecuteFunction(transferExecuteFunction)
                     .WriteDependency(frameCBuffer)
                     .Done()
-                .DeclarePass(RenderGraph::PassType::Compute) // TODO: fix when render targets are created
+                .DeclarePass(RenderGraph::PassType::Render)
                     .SetName("GBuffer pass")
                     .SetExecuteFunction(ExecuteGBufferPass)
                     .AddColorAttachment(gBufferAlbedoRtv)
@@ -295,7 +315,7 @@ int main()
                     .ReadDependency(deferredShadow)
                     .ReadDependency(deferredGi)
                     .Done()
-                .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Compute) // TODO: fix when render targets are created
+                .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
                     .SetName("Sky pass")
                     .SetExecuteFunction(ExecuteSkyPass)
                     .AddColorAttachment(swapChainRtv)
