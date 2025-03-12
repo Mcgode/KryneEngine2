@@ -26,6 +26,7 @@ namespace KryneEngine::Modules::RenderGraph
     class Builder
     {
         friend class RenderGraph;
+        friend class ResourceStateTracker;
 
     public:
         explicit Builder(Registry& _registry);
