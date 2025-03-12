@@ -22,5 +22,6 @@ namespace KryneEngine::Modules::RenderGraph
         eastl::optional<BarrierAccessFlags> m_finalAccessFlags {};
         TextureLayout m_targetLayout = TextureLayout::Unknown;
         eastl::optional<TextureLayout> m_finalLayout {};
+        TexturePlane m_planes = TexturePlane::Color;
     };
 }

@@ -60,6 +60,7 @@ namespace KryneEngine::Modules::RenderGraph
                             .m_texture = _registry.GetResource(underlyingResource).m_rawTextureData.m_texture,
                             .m_layoutSrc = previousState.m_layout,
                             .m_layoutDst = dependency.m_targetLayout,
+                            .m_planes = dependency.m_planes,
                         });
                     }
                     else
