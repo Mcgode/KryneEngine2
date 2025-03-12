@@ -102,7 +102,10 @@ namespace KryneEngine::Modules::RenderGraph
                         ? _attachment.m_readOnly
                               ? TextureLayout::DepthStencilReadOnly
                               : TextureLayout::DepthStencilAttachment
-                        : TextureLayout::ColorAttachment;
+                        : _attachment.m_storeOperation == RenderPassDesc::Attachment::StoreOperation::Store
+                            ? TextureLayout::Present // If last render pass stores color, it is likely presenting. This
+                                                     // approach is not the best, and will likely encounter edge cases.
+                            : TextureLayout::ColorAttachment;
 
                 // Update layoutBefore based on previous state
                 if (it == m_trackedStates.end())
