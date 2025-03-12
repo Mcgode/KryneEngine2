@@ -12,12 +12,14 @@
 
 #include "KryneEngine/Modules/RenderGraph/Builder.hpp"
 #include "KryneEngine/Modules/RenderGraph/Registry.hpp"
+#include "KryneEngine/Modules/RenderGraph/Utils/ResourceStateTracker.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
 {
     RenderGraph::RenderGraph()
     {
         m_registry = eastl::make_unique<Registry>();
+        m_resourceStateTracker = eastl::make_unique<ResourceStateTracker>();
     }
 
     RenderGraph::~RenderGraph() = default;
@@ -37,6 +39,8 @@ namespace KryneEngine::Modules::RenderGraph
 
         {
             KE_ZoneScoped("Prepare render jobs");
+
+            m_resourceStateTracker->Process(*m_builder, *m_registry);
 
             const auto initJobData = [&](JobData& _jobData, u32 _start)
             {
@@ -155,6 +159,13 @@ namespace KryneEngine::Modules::RenderGraph
             const PassDeclaration& pass = jobData->m_renderGraph->m_builder->m_declaredPasses[i];
 
             const std::chrono::time_point start = std::chrono::steady_clock::now();
+
+            const ResourceStateTracker::PassBarriers barriers = jobData->m_renderGraph->m_resourceStateTracker->GetPassBarriers(i);
+            jobData->m_passExecutionData.m_graphicsContext->PlaceMemoryBarriers(
+                jobData->m_passExecutionData.m_commandList,
+                {},
+                barriers.m_bufferMemoryBarriers,
+                barriers.m_textureMemoryBarriers);
 
             if (pass.m_type == PassType::Render)
             {

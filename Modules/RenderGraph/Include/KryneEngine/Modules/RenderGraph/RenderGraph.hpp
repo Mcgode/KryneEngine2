@@ -21,6 +21,7 @@ namespace KryneEngine::Modules::RenderGraph
 {
     class Builder;
     class Registry;
+    class ResourceStateTracker;
 
     class RenderGraph
     {
@@ -61,6 +62,8 @@ namespace KryneEngine::Modules::RenderGraph
         std::atomic<u64> m_currentFrameTotalDuration = 0;
 
         eastl::hash_map<u64, RenderPassHandle> m_renderPassCache;
+
+        eastl::unique_ptr<ResourceStateTracker> m_resourceStateTracker;
 
         static void ExecuteJob(void* _userData);
     };
