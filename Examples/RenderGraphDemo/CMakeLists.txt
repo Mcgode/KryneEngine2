@@ -4,6 +4,10 @@ add_executable(RenderGraphDemo
     RenderGraphDemo.cpp
         Scene/TorusKnotMeshGenerator.cpp
         Scene/TorusKnotMeshGenerator.hpp
+        Scene/SceneManager.cpp
+        Scene/SceneManager.hpp
+        Scene/Torus.cpp
+        Scene/Torus.hpp
         )
 
 # Link to cpp libraries
