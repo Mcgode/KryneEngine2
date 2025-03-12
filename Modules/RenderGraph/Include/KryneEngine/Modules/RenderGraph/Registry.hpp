@@ -51,6 +51,8 @@ namespace KryneEngine::Modules::RenderGraph
 
         [[nodiscard]] SimplePoolHandle GetUnderlyingResource(SimplePoolHandle _resource) const;
 
+        [[nodiscard]] const Resource& GetResource(SimplePoolHandle _resource) const;
+
         [[nodiscard]] bool IsRenderTargetView(SimplePoolHandle _resource) const;
         [[nodiscard]] RenderTargetViewHandle GetRenderTargetView(SimplePoolHandle _resource) const;
 

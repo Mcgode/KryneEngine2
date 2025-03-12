@@ -165,6 +165,11 @@ namespace KryneEngine::Modules::RenderGraph
         }
     }
 
+    const Resource& Registry::GetResource(SimplePoolHandle _resource) const
+    {
+        return m_resources.Get( _resource);
+    }
+
     bool Registry::IsRenderTargetView(SimplePoolHandle _resource) const
     {
         return m_resources.Get(_resource).m_type == ResourceType::RenderTargetView;
