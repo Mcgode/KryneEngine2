@@ -29,7 +29,7 @@ namespace KryneEngine::Samples::RenderGraphDemo::TorusKnotMeshGenerator
 
     static constexpr size_t kVertexSize = sizeof(VertexPositionType) + sizeof(VertexNormalType);
 
-    static TorusKnotMesh GenerateMesh(
+    TorusKnotMesh GenerateMesh(
         u32 _tubularSegments,
         u32 _radialSegments,
         float _knotRadius,

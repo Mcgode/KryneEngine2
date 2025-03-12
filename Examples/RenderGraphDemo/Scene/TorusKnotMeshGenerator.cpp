@@ -5,7 +5,8 @@
  */
 
 #include "TorusKnotMeshGenerator.hpp"
-#include "KryneEngine/Core/Math/Vector3.hpp"
+
+#include "KryneEngine/Core/Math/Vector3.inl"
 
 namespace
 {
