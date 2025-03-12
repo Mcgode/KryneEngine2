@@ -312,8 +312,8 @@ int main()
                     .ReadDependency({
                         .m_resource = gBufferDepth,
                         .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
-                        .m_targetAccessFlags = BarrierAccessFlags::UnorderedAccess,
-                        .m_targetLayout = TextureLayout::UnorderedAccess,
+                        .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
+                        .m_targetLayout = TextureLayout::ShaderResource,
                     })
                     .WriteDependency({
                         .m_resource = deferredShadow,
