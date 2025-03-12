@@ -36,5 +36,11 @@ namespace KryneEngine::Modules::RenderGraph
         m_item.m_clearStencil = _clearStencil;
         return *this;
     }
+
+    PassAttachmentDeclarationBuilder& PassAttachmentDeclarationBuilder::SetReadOnlyDepthStencil(bool _readOnly)
+    {
+        m_item.m_readOnly = _readOnly;
+        return *this;
+    }
 } // namespace KryneEngine::Modules::RenderGraph
 

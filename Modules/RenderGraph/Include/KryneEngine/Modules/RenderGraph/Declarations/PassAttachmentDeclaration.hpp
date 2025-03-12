@@ -28,6 +28,7 @@ namespace KryneEngine::Modules::RenderGraph
                 u8 m_clearStencil;
                 RenderPassDesc::Attachment::LoadOperation m_stencilLoadOperation;
                 RenderPassDesc::Attachment::StoreOperation m_stencilStoreOperation;
+                bool m_readOnly;
             };
         };
         RenderPassDesc::Attachment::LoadOperation m_loadOperation = RenderPassDesc::Attachment::LoadOperation::Load;
@@ -47,6 +48,7 @@ namespace KryneEngine::Modules::RenderGraph
         PassAttachmentDeclarationBuilder& SetStoreOperation(RenderPassDesc::Attachment::StoreOperation _operation);
         PassAttachmentDeclarationBuilder& SetClearColor(const float4& _clearColor);
         PassAttachmentDeclarationBuilder& SetClearDepthStencil(float _clearDepth, u16 _clearStencil = ~0);
+        PassAttachmentDeclarationBuilder& SetReadOnlyDepthStencil(bool _readOnly = true);
     };
 
 } // namespace KryneEngine::Modules::RenderGraph
