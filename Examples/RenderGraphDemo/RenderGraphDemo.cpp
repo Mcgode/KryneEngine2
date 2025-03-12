@@ -318,8 +318,8 @@ int main()
                     .WriteDependency({
                         .m_resource = deferredShadow,
                         .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
-                        .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
-                        .m_targetLayout = TextureLayout::ShaderResource,
+                        .m_targetAccessFlags = BarrierAccessFlags::UnorderedAccess,
+                        .m_targetLayout = TextureLayout::UnorderedAccess,
                     })
                     .Done()
                 .DeclarePass(RenderGraph::PassType::Compute)
