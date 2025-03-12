@@ -15,9 +15,10 @@
 #include <KryneEngine/Modules/RenderGraph/RenderGraph.hpp>
 #include <iostream>
 
+#include "Scene/SceneManager.hpp"
+
 using namespace KryneEngine;
 using namespace KryneEngine::Modules;
-
 void ExecuteUploadData(
     RenderGraph::RenderGraph& _renderGraph,
     RenderGraph::PassExecutionData& _passExecutionData)
@@ -25,6 +26,7 @@ void ExecuteUploadData(
     KE_ZoneScopedFunction(__FUNCTION__);
     std::cout << "Uploading constant buffer" << std::endl;
 }
+using namespace KryneEngine::Samples::RenderGraphDemo;
 
 void ExecuteGBufferPass(
     RenderGraph::RenderGraph& _renderGraph,
@@ -94,6 +96,7 @@ int main()
     Modules::ImGui::Context* imGuiContext = nullptr;
 
     RenderGraph::RenderGraph renderGraph {};
+    SceneManager sceneManager(allocator);
 
     KryneEngine::SimplePoolHandle
         frameCBuffer,
