@@ -133,7 +133,17 @@ int main()
                 name.sprintf("Swapchain RTV %u", i));
         }
 
-        frameCBuffer = renderGraph.GetRegistry().RegisterRawBuffer({}, "Frame constant buffer");
+        frameCBuffer = renderGraph.GetRegistry().RegisterRawBuffer(
+            graphicsContext->CreateBuffer({
+                .m_desc = {
+                    .m_size = 256,
+#if !defined(KE_FINAL)
+                    .m_debugName = "Frame constant buffer",
+#endif
+                },
+                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ConstantBuffer | MemoryUsage::TransferDstBuffer,
+            }),
+            "Frame constant buffer");
 
         gBufferAlbedo = renderGraph.GetRegistry().CreateRawTexture(
             graphicsContext,
