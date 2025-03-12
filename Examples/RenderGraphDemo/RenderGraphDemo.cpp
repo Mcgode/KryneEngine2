@@ -19,13 +19,6 @@
 
 using namespace KryneEngine;
 using namespace KryneEngine::Modules;
-void ExecuteUploadData(
-    RenderGraph::RenderGraph& _renderGraph,
-    RenderGraph::PassExecutionData& _passExecutionData)
-{
-    KE_ZoneScopedFunction(__FUNCTION__);
-    std::cout << "Uploading constant buffer" << std::endl;
-}
 using namespace KryneEngine::Samples::RenderGraphDemo;
 
 void ExecuteGBufferPass(
@@ -266,7 +259,7 @@ int main()
 
             const auto transferExecuteFunction = [&](RenderGraph::RenderGraph& _renderGraph, RenderGraph::PassExecutionData _passData)
             {
-                ExecuteUploadData(_renderGraph, _passData);
+                sceneManager.ExecuteTransfers(_passData);
                 imGuiContext->PrepareToRenderFrame(graphicsContext, _passData.m_commandList);
             };
 
