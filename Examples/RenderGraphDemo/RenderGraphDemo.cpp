@@ -438,6 +438,7 @@ int main()
 
     if (imGuiContext)
     {
+        imGuiContext->Shutdown(&mainWindow);
         allocator.Delete(imGuiContext);
     }
 
