@@ -251,11 +251,11 @@ namespace KryneEngine::VkHelperFunctions
         {
             flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
         }
-        if (BitUtils::EnumHasAny(_usage, MemoryUsage::SampledImage))
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::SampledImage | MemoryUsage::ReadImage))
         {
             flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
         }
-        if (BitUtils::EnumHasAny(_usage, MemoryUsage::ReadWriteImage))
+        if (BitUtils::EnumHasAny(_usage, MemoryUsage::WriteImage))
         {
             flags |= VK_IMAGE_USAGE_STORAGE_BIT;
         }
