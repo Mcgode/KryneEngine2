@@ -24,7 +24,6 @@ void ExecuteUploadData(
 {
     KE_ZoneScopedFunction(__FUNCTION__);
     std::cout << "Uploading constant buffer" << std::endl;
-    std::this_thread::sleep_for(std::chrono::microseconds(50));
 }
 
 void ExecuteGBufferPass(
@@ -33,7 +32,6 @@ void ExecuteGBufferPass(
 {
     KE_ZoneScopedFunction(__FUNCTION__);
     std::cout << "GBuffer pass" << std::endl;
-    std::this_thread::sleep_for(std::chrono::microseconds(700));
 }
 
 void ExecuteDeferredShadowPass(
@@ -42,7 +40,6 @@ void ExecuteDeferredShadowPass(
 {
     KE_ZoneScopedFunction(__FUNCTION__);
     std::cout << "Deferred shadow pass" << std::endl;
-    std::this_thread::sleep_for(std::chrono::microseconds(1500));
 }
 
 void ExecuteDeferredGiPass(
@@ -51,7 +48,6 @@ void ExecuteDeferredGiPass(
 {
     KE_ZoneScopedFunction(__FUNCTION__);
     std::cout << "Deferred GI pass" << std::endl;
-    std::this_thread::sleep_for(std::chrono::microseconds(250));
 }
 
 void ExecuteDeferredShadingPass(
@@ -60,7 +56,6 @@ void ExecuteDeferredShadingPass(
 {
     KE_ZoneScopedFunction(__FUNCTION__);
     std::cout << "Deferred shading pass" << std::endl;
-    std::this_thread::sleep_for(std::chrono::microseconds(400));
 }
 
 void ExecuteSkyPass(
@@ -68,7 +63,6 @@ void ExecuteSkyPass(
     RenderGraph::PassExecutionData& _passExecutionData)
 {
     std::cout << "Sky pass" << std::endl;
-    std::this_thread::sleep_for(std::chrono::microseconds(300));
 }
 
 int main()
