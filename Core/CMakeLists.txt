@@ -56,6 +56,7 @@ set(MathSrc
         Include/KryneEngine/Core/Math/XSimdUtils.hpp
         Include/KryneEngine/Core/Math/Hashing.hpp
         Src/Math/Hashing.cpp
+        Include/KryneEngine/Core/Math/Vector3.inl
 )
 
 set(MemorySrc
