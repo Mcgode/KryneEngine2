@@ -709,7 +709,7 @@ namespace KryneEngine
 
         void* ptr;
         Dx12Assert(allocation->GetResource()->Map(0, &range, &ptr));
-        _mapping.m_ptr = (u8*)ptr + _mapping.m_offset;
+        _mapping.m_ptr = static_cast<std::byte*>(ptr) + _mapping.m_offset;
     }
 
     void Dx12GraphicsContext::UnmapBuffer(BufferMapping& _mapping)

@@ -28,7 +28,7 @@ namespace KryneEngine
 
     struct BufferMapping
     {
-        void* m_ptr = nullptr;
+        std::byte* m_ptr = nullptr;
         u64 m_size;
         u64 m_offset;
         BufferHandle m_buffer;

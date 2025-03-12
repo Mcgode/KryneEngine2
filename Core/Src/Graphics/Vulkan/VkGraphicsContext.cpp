@@ -992,13 +992,13 @@ namespace KryneEngine
 
         if (coldData->m_info.pMappedData != nullptr)
         {
-            _mapping.m_ptr = (u8*)coldData->m_info.pMappedData + _mapping.m_offset;
+            _mapping.m_ptr = static_cast<std::byte*>(coldData->m_info.pMappedData) + _mapping.m_offset;
         }
         else
         {
             void* ptr;
             vmaMapMemory(m_resources.m_allocator, coldData->m_allocation, &ptr);
-            _mapping.m_ptr = (u8*)ptr + _mapping.m_offset;
+            _mapping.m_ptr = static_cast<std::byte*>(ptr) + _mapping.m_offset;
         }
     }
 

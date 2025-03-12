@@ -319,7 +319,7 @@ namespace KryneEngine
         KE_ASSERT(_mapping.m_size == ~0ull || buffer->length() >= _mapping.m_offset + _mapping.m_size);
         _mapping.m_size = eastl::min(_mapping.m_size, buffer->length() - _mapping.m_offset);
 
-        _mapping.m_ptr = static_cast<u8*>(buffer->contents()) + _mapping.m_offset;
+        _mapping.m_ptr = static_cast<std::byte*>(buffer->contents()) + _mapping.m_offset;
     }
 
     void MetalGraphicsContext::UnmapBuffer(BufferMapping& _mapping)
