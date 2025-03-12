@@ -2,8 +2,9 @@
 # Set up Render graph demo executable
 add_executable(RenderGraphDemo
     RenderGraphDemo.cpp
-        TorusKnotMeshGenerator.cpp
-        TorusKnotMeshGenerator.hpp)
+        Scene/TorusKnotMeshGenerator.cpp
+        Scene/TorusKnotMeshGenerator.hpp
+        )
 
 # Link to cpp libraries
 target_link_libraries(RenderGraphDemo
