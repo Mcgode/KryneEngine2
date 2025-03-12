@@ -248,6 +248,8 @@ int main()
                     .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
                     .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                     .Done();
+            imguiDummyPass.m_colorAttachments[0].m_layoutBefore = TextureLayout::ColorAttachment;
+            imguiDummyPass.m_colorAttachments[0].m_layoutAfter = TextureLayout::ColorAttachment;
 
             imGuiContext = allocator.New<Modules::ImGui::Context>(
                 &mainWindow,
