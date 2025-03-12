@@ -314,6 +314,7 @@ int main()
                         .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
                         .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
                         .m_targetLayout = TextureLayout::ShaderResource,
+                        .m_planes = TexturePlane::Depth,
                     })
                     .WriteDependency({
                         .m_resource = deferredShadow,
@@ -343,6 +344,7 @@ int main()
                         .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
                         .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
                         .m_targetLayout = TextureLayout::ShaderResource,
+                        .m_planes = TexturePlane::Depth,
                     })
                     .WriteDependency({
                         .m_resource = deferredGi,
@@ -375,6 +377,7 @@ int main()
                         .m_targetSyncStage = BarrierSyncStageFlags::FragmentShading,
                         .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
                         .m_targetLayout = TextureLayout::ShaderResource,
+                        .m_planes = TexturePlane::Depth,
                     })
                     .ReadDependency({
                         .m_resource = deferredShadow,
