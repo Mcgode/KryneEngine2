@@ -60,5 +60,18 @@ namespace KryneEngine::Modules::RenderGraph
 #if !defined(KE_FINAL)
         eastl::string m_name;
 #endif
+
+        [[nodiscard]] bool IsTexture() const
+        {
+            switch (m_type)
+            {
+                case ResourceType::RawTexture:
+                case ResourceType::TextureSrv:
+                case ResourceType::RenderTargetView:
+                    return true;
+                default:
+                    return false;
+            }
+        }
     };
 } // namespace KryneEngine::Modules::RenderGraph
