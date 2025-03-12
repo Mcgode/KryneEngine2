@@ -6,11 +6,13 @@
 
 #pragma once
 
-#include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
+#include <KryneEngine/Core/Memory/UniquePtr.hpp>
 #include <KryneEngine/Modules/RenderGraph/Declarations/PassDeclaration.hpp>
 
 namespace KryneEngine::Samples::RenderGraphDemo
 {
+    class TorusKnot;
+
     class SceneManager
     {
     public:
@@ -21,5 +23,6 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
     private:
         AllocatorInstance m_allocator;
+        UniquePtr<TorusKnot> m_torusKnot;
     };
 }
