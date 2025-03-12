@@ -16,7 +16,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
     SceneManager::~SceneManager() = default;
 
-    void SceneManager::ExecuteTransfers(Modules::RenderGraph::PassExecutionData& _passExecutionData)
+    void SceneManager::ExecuteTransfers(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
     {
         KE_ZoneScopedFunction("SceneManager::ExecuteTransfers");
     }

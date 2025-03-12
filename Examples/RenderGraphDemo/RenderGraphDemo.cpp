@@ -259,7 +259,7 @@ int main()
 
             const auto transferExecuteFunction = [&](RenderGraph::RenderGraph& _renderGraph, RenderGraph::PassExecutionData _passData)
             {
-                sceneManager.ExecuteTransfers(_passData);
+                sceneManager.ExecuteTransfers(graphicsContext, _passData.m_commandList);
                 imGuiContext->PrepareToRenderFrame(graphicsContext, _passData.m_commandList);
             };
 
