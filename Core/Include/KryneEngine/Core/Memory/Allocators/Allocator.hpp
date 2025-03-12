@@ -69,4 +69,21 @@ namespace KryneEngine
     private:
         IAllocator* m_allocator = nullptr;
     };
+
+    template <class T>
+    struct AllocatorInstanceDeleter final
+    {
+    public:
+        AllocatorInstanceDeleter(AllocatorInstance _allocator = {})
+            : m_allocator(_allocator)
+        {}
+
+        void operator()(T* _ptr) const noexcept
+        {
+            m_allocator.Delete<T>(_ptr);
+        }
+
+    private:
+        AllocatorInstance m_allocator;
+    };
 } // namespace KryneEngine
