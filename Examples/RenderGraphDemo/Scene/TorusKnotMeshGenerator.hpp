@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <KryneEngine/Core/Common/Types.hpp>
-#include <KryneEngine/Core/Math/Vector.hpp>
+#include "KryneEngine/Core/Common/Types.hpp"
+#include "KryneEngine/Core/Math/Vector.hpp"
 
 namespace KryneEngine::Samples::RenderGraphDemo::TorusKnotMeshGenerator
 {
