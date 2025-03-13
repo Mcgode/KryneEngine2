@@ -149,8 +149,8 @@ namespace KryneEngine::Math
                     w * w + x * x - y * y - z * z),
                 std::asin(2.0f * (y * z + w * x)),
                 std::atan2(
-                    w * w - x * x + y * y - z * z,
-                    -2.0f * (x * y - w * z))
+                    -2.0f * (x * y - w * z),
+                    w * w - x * x + y * y - z * z)
             );
         }
         else if constexpr (Order == EulerOrder::YXZ)
