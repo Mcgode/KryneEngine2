@@ -62,9 +62,9 @@ namespace KryneEngine::Tests::Math
         PerformBasicEulerToQuaternionTest<EulerOrder::ZXY>();
         PerformBasicEulerToQuaternionTest<EulerOrder::ZYX>();
 
-        constexpr float x = M_PI * 0.8f;
-        constexpr float y = M_PI * 0.6f;
-        constexpr float z = M_PI * 0.2f;
+        constexpr float x = M_PI * 1.8f;
+        constexpr float y = M_PI * 0.8f;
+        constexpr float z = M_PI * -0.3f;
 
         const Quaternion qx = Quaternion().FromAxisAngle(float3(1, 0, 0), x);
         const Quaternion qy = Quaternion().FromAxisAngle(float3(0, 1, 0), y);
