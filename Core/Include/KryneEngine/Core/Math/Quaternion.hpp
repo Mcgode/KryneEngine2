@@ -49,13 +49,14 @@ namespace KryneEngine::Math
 
         template <class U, size_t Alignment>
             requires std::is_convertible_v<U, T>
-        void FromAxisAngle(Vector3Base<T, Alignment> _axis, U _angle)
+        QuaternionBase& FromAxisAngle(Vector3Base<T, Alignment> _axis, U _angle)
         {
             w = std::cos(_angle * .5f);
             const T s = std::sin(_angle * .5f);
             x =  _axis.x * s;
             y =  _axis.y * s;
             z =  _axis.z * s;
+            return *this;
         }
 
         void operator*=(const QuaternionBase& _other)
