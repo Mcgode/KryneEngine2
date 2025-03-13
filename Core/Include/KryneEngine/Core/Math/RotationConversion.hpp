@@ -71,11 +71,11 @@ namespace KryneEngine::Math
         }
         else if constexpr (Order == EulerOrder::YZX)
         {
-            // ypW = cp * cy;
-            // ypX = sp * cy;
-            // ypY = sp * sy;
-            // ypZ = cp * sy;
-            result.w = cx * cy * cz - sx * sy * cz;
+            // zxW = cz * cx;
+            // zxX = cz * sx;
+            // zxY = sz * sx;
+            // zxZ = sz * cx;
+            result.w = cx * cy * cz - sx * sy * sz;
             result.x = sx * cy * cz + cx * sy * sz;
             result.y = sx * cy * sz + cx * sy * cz;
             result.z = cx * cy * sz - sx * sy * cz;
