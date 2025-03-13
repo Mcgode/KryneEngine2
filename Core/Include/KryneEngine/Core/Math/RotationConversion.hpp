@@ -32,9 +32,9 @@ namespace KryneEngine::Math
              *  The code
          */
 
-        const T cx = std::cos(_x * .5f), sy = std::sin(_x * .5f);
-        const T cy = std::cos(_y * .5f), sz = std::sin(_y * .5f);
-        const T cz = std::cos(_z * .5f), sx = std::sin(_z * .5f);
+        const T cx = std::cos(_x * .5f), sx = std::sin(_x * .5f);
+        const T cy = std::cos(_y * .5f), sy = std::sin(_y * .5f);
+        const T cz = std::cos(_z * .5f), sz = std::sin(_z * .5f);
 
         if constexpr (Order == EulerOrder::XYZ)
         {
