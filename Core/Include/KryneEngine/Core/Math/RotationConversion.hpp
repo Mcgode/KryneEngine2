@@ -38,10 +38,10 @@ namespace KryneEngine::Math
 
         if constexpr (Order == EulerOrder::XYZ)
         {
-            // yzW = cy * cz;
-            // yzX = cy * cz;
-            // yzY = cy * cz;
-            // yzZ = cy * cz;
+            // yzW =  cy * cz;
+            // yzX =  sy * sz;
+            // yzY =  sy * cz;
+            // yzZ =  cy * sz;
             result.w = cx * cy * cz - sx * sy * sz;
             result.x = cx * sy * sz + sx * cy * cz;
             result.y = cx * sy * cz - sx * cy * sz;
