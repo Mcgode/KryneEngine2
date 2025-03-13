@@ -58,7 +58,97 @@ namespace KryneEngine::Math
             z =  _axis.z * s;
         }
 
+        void operator*=(const QuaternionBase& _other)
+        {
+            w = w * _other.w - x * _other.x - y * _other.y - z * _other.z;
+            x = w * _other.x + x * _other.w + y * _other.z - z * _other.y;
+            y = w * _other.y - x * _other.z + y * _other.w + z * _other.x;
+            z = w * _other.z + x * _other.y - y * _other.x + z * _other.w;
+        }
 
+        T Length2() const
+        {
+            return w * w + x * x + y * y + z * z;
+        }
+        T Length() const
+        {
+            return std::sqrt(Length2());
+        }
+
+        QuaternionBase Normalize()
+        {
+            const T length = Length();
+            w /= length;
+            x /= length;
+            y /= length;
+            z /= length;
+            return *this;
+        }
+        QuaternionBase& Conjugate()
+        {
+            x = -x;
+            y = -y;
+            z = -z;
+            return *this;
+        }
+        QuaternionBase& Inverse() const
+        {
+            return Conjugate();
+        }
+
+        static T Dot(const QuaternionBase& _a, const QuaternionBase& _b)
+        {
+            return _a.w * _b.w + _a.x * _b.x + _a.y * _b.y + _a.z * _b.z;
+        }
+
+        QuaternionBase& Slerp(const QuaternionBase& _other, T _t)
+        {
+            if (_t == 0)
+            {
+                return *this;
+            }
+            else if (_t == 1)
+            {
+                *this = _other;
+                return *this;
+            }
+
+            const T cosHalfTheta = Dot(*this, _other);
+
+            // If _a == _b or _a = -_b, then theta = 0, we can return a
+            if (std::abs(cosHalfTheta) >= 1.0f)
+                return *this;
+
+            if (cosHalfTheta < 0)
+            {
+                w = -w;
+                x = -x;
+                y = -y;
+                z = -z;
+                cosHalfTheta = -cosHalfTheta;
+            }
+
+            const T halfTheta = std::acos(cosHalfTheta);
+            const T sinHalfTheta = std::sqrt(1.0f - cosHalfTheta * cosHalfTheta);
+
+            // If theta = 180°, result is not clearly defined, as we could rotate around any angle
+            if (std::abs(sinHalfTheta) < kQuaternionEpsilon)
+            {
+                w = 0.5 * w + 0.5 * _other.w;
+                x = 0.5 * x + 0.5 * _other.x;
+                y = 0.5 * y + 0.5 * _other.y;
+                z = 0.5 * z + 0.5 * _other.z;
+                return *this;
+            }
+
+            const T ratioA = std::sin((1.0f - _t) * halfTheta) / sinHalfTheta;
+            const T ratioB = std::sin(_t * halfTheta) / sinHalfTheta;
+            w = ratioA * w + ratioB * _other.w;
+            x = ratioA * x + ratioB * _other.x;
+            y = ratioA * y + ratioB * _other.y;
+            z = ratioA * z + ratioB * _other.z;
+            return *this;
+        }
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCInconsistentNamingInspection"
@@ -67,6 +157,8 @@ namespace KryneEngine::Math
         T y;
         T z;
 #pragma clang diagnostic pop
+
+        static constexpr T kQuaternionEpsilon = T(1e-6f);
     };
 
     using Quaternion = QuaternionBase<float>;
