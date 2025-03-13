@@ -59,12 +59,13 @@ namespace KryneEngine::Math
             return *this;
         }
 
-        void operator*=(const QuaternionBase& _other)
+        QuaternionBase operator*(const QuaternionBase& _other) const
         {
-            w = w * _other.w - x * _other.x - y * _other.y - z * _other.z;
-            x = w * _other.x + x * _other.w + y * _other.z - z * _other.y;
-            y = w * _other.y - x * _other.z + y * _other.w + z * _other.x;
-            z = w * _other.z + x * _other.y - y * _other.x + z * _other.w;
+            return QuaternionBase(
+                w * _other.w - x * _other.x - y * _other.y - z * _other.z,
+                w * _other.x + x * _other.w + y * _other.z - z * _other.y,
+                w * _other.y - x * _other.z + y * _other.w + z * _other.x,
+                w * _other.z + x * _other.y - y * _other.x + z * _other.w);
         }
 
         bool operator==(const QuaternionBase& _other) const
