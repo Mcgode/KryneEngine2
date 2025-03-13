@@ -8,6 +8,7 @@
 
 #include "KryneEngine/Core/Math/CoordinateSystem.hpp"
 #include "KryneEngine/Core/Math/Quaternion.hpp"
+#include "Vector4.hpp"
 
 namespace KryneEngine::Math
 {
@@ -114,5 +115,95 @@ namespace KryneEngine::Math
     QuaternionBase<T> FromEulerAngles(const Vector3Base<U, Alignment>& _eulerAngles)
     {
         return FromEulerAngles<T, U, Order>(_eulerAngles.x, _eulerAngles.y, _eulerAngles.z);
+    }
+
+    template <class T, class U, size_t Alignment = sizeof(T), EulerOrder Order = kDefaultEulerOrder>
+        requires std::is_convertible_v<U, T>
+    Vector3Base<T, Alignment> ToEulerAngles(const QuaternionBase<U>& _quaternion)
+    {
+        // Based on: https://stackoverflow.com/a/27496984
+
+        // Aliases for shorter operations
+        const U x = _quaternion.x,
+                y = _quaternion.y,
+                z = _quaternion.z,
+                w = _quaternion.w;
+
+        if constexpr (Order == EulerOrder::XYZ)
+        {
+            return Vector3Base<T, Alignment>(
+                std::atan2(
+                    -2.0f * (x * y - w * z),
+                    w * w + x * x - y * y - z * z),
+                std::asin(2.0f * (x * z + w * y)),
+                std::atan2(
+                    -2.0f * (y * z - w * x),
+                    w * w - x * x - y * y + z * z)
+            );
+        }
+        else if constexpr (Order == EulerOrder::XZY)
+        {
+            return Vector3Base<T, Alignment>(
+                std::atan2(
+                    2.0f * (x * z + w * y),
+                    w * w + x * x - y * y - z * z),
+                std::asin(2.0f * (y * z + w * x)),
+                std::atan2(
+                    w * w - x * x + y * y - z * z,
+                    -2.0f * (x * y - w * z))
+            );
+        }
+        else if constexpr (Order == EulerOrder::YXZ)
+        {
+            return Vector3Base<T, Alignment>(
+                std::atan2(
+                    2.0f * (x * y + w * z),
+                    w * w - x * x + y * y - z * z),
+                std::asin(-2.0f * (y * z - w * x)),
+                std::atan2(
+                    2.0f * (x * z + w * y),
+                    w * w - x * x - y * y + z * z)
+            );
+        }
+        else if constexpr (Order == EulerOrder::YZX)
+        {
+            return Vector3Base<T, Alignment>(
+                std::atan2(
+                    -2.0f * (y * z - w * x),
+                    w * w - x * x + y * y - z * z),
+                std::asin(2.0f * (x * y + w * z)),
+                std::atan2(
+                    -2.0f * (x * z - w * y),
+                    w * w + x * x - y * y - z * z)
+            );
+        }
+        else if constexpr (Order == EulerOrder::ZXY)
+        {
+            return Vector3Base<T, Alignment>(
+                std::atan2(
+                    -2.0f * (x * z - w * y),
+                    w * w - x * x - y * y + z * z),
+                std::asin(2.0f * (y * z + w * x)),
+                std::atan2(
+                    -2.0f * (x * y - w * z),
+                    w * w - x * x + y * y - z * z)
+            );
+        }
+        else if constexpr (Order == EulerOrder::ZYX)
+        {
+            return Vector3Base<T, Alignment>(
+                std::atan2(
+                    2.0f * (y * z + w * x),
+                    w * w - x * x - y * y + z * z),
+                std::asin(-2.0f * (x * z - w * y)),
+                std::atan2(
+                    2.0f * (x * y + w * z),
+                    w * w + x * x - y * y - z * z)
+            );
+        }
+        else
+        {
+            static_assert( false, "Invalid EulerOrder");
+        }
     }
 }
