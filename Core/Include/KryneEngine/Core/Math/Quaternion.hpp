@@ -67,6 +67,14 @@ namespace KryneEngine::Math
             z = w * _other.z + x * _other.y - y * _other.x + z * _other.w;
         }
 
+        bool operator==(const QuaternionBase& _other) const
+        {
+            return std::abs(w - _other.w) < kQuaternionEpsilon
+                && std::abs(x - _other.x) < kQuaternionEpsilon
+                && std::abs(y - _other.y) < kQuaternionEpsilon
+                && std::abs(z - _other.z) < kQuaternionEpsilon;
+        }
+
         T Length2() const
         {
             return w * w + x * x + y * y + z * z;
