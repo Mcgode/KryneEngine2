@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "KryneEngine/Core/Math/CoordinateSystem.hpp"
 #include "KryneEngine/Core/Math/Quaternion.hpp"
 
 namespace KryneEngine::Math
