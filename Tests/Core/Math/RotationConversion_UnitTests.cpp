@@ -146,4 +146,39 @@ namespace KryneEngine::Tests::Math
             EXPECT_EQ(qz * qy * qx, resultZyx);
         }
     }
+
+    TEST(RotationConversion, QuaternionToEuler)
+    {
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        constexpr auto testBijectiveTransform = [](float _x, float _y, float _z)
+        {
+            const float3 euler = float3(_x, _y, _z) * float3(M_PI);
+
+            const float3 eulerXyz = ToEulerAngles<float, float, 4, EulerOrder::XYZ>(
+                FromEulerAngles<float, float, 4, EulerOrder::XYZ>(euler));
+            const float3 eulerXzy = ToEulerAngles<float, float, 4, EulerOrder::XZY>(
+                FromEulerAngles<float, float, 4, EulerOrder::XZY>(euler));
+            const float3 eulerYxz = ToEulerAngles<float, float, 4, EulerOrder::YXZ>(
+                FromEulerAngles<float, float, 4, EulerOrder::YXZ>(euler));
+            const float3 eulerYzx = ToEulerAngles<float, float, 4, EulerOrder::YZX>(
+                FromEulerAngles<float, float, 4, EulerOrder::YZX>(euler));
+            const float3 eulerZxy = ToEulerAngles<float, float, 4, EulerOrder::ZXY>(
+                FromEulerAngles<float, float, 4, EulerOrder::ZXY>(euler));
+            const float3 eulerZyx = ToEulerAngles<float, float, 4, EulerOrder::ZYX>(
+                FromEulerAngles<float, float, 4, EulerOrder::ZYX>(euler));
+
+            EXPECT_EQ(euler, eulerXyz);
+            EXPECT_EQ(euler, eulerXzy);
+            EXPECT_EQ(euler, eulerYxz);
+            EXPECT_EQ(euler, eulerYzx);
+            EXPECT_EQ(euler, eulerZxy);
+            EXPECT_EQ(euler, eulerZyx);
+        };
+
+        testBijectiveTransform(0, 0, 0);
+        testBijectiveTransform(-0.2f, 0.8f, -0.7f);
+    }
 }
