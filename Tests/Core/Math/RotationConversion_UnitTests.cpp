@@ -179,6 +179,6 @@ namespace KryneEngine::Tests::Math
         };
 
         testBijectiveTransform(0, 0, 0);
-        testBijectiveTransform(-0.2f, 0.8f, -0.7f);
+        testBijectiveTransform(-0.2f, 0.23f, -0.41f);
     }
 }
