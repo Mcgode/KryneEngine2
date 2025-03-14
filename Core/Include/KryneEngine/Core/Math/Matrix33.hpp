@@ -13,17 +13,17 @@
 
 namespace KryneEngine::Math
 {
-    template<class T, size_t Alignment, bool RowMajor>
-    struct alignas(Alignment) Matrix33Base
+    template<class T, bool SimdOptimal, bool RowMajor>
+    struct Matrix33Base
     {
         Matrix33Base();
         ~Matrix33Base() = default;
 
-        Matrix33Base(const Matrix33Base<T, Alignment, RowMajor>& _other) = default;
-        Matrix33Base(Matrix33Base<T, Alignment, RowMajor>&& _other) = default;
+        Matrix33Base(const Matrix33Base& _other) = default;
+        Matrix33Base(Matrix33Base&& _other) = default;
 
-        Matrix33Base<T, Alignment, RowMajor>& operator=(const Matrix33Base<T, Alignment, RowMajor>& _other) = default;
-        Matrix33Base<T, Alignment, RowMajor>& operator=(Matrix33Base<T, Alignment, RowMajor>&& _other) = default;
+        Matrix33Base& operator=(const Matrix33Base& _other) = default;
+        Matrix33Base& operator=(Matrix33Base&& _other) = default;
 
         Matrix33Base(T _a11, T _a12, T _a13, T _a21, T _a22, T _a23, T _a31, T _a32, T _a33);
 
@@ -48,15 +48,18 @@ namespace KryneEngine::Math
          * @note Requires that the type `U` is implicitly convertible to the type `T` of
          * the matrix through a constraint using `eastl::is_convertible_v<U, T>`.
          */
-        template<class U, size_t VAlign>
+        template<class U, bool VSimdOptimal>
         requires eastl::is_convertible_v<U, T>
-        Matrix33Base(const Vector3Base<U, VAlign>& _v1, const Vector3Base<U, VAlign>& _v2, const Vector3Base<U, VAlign>& _v3)
-            : m_vectors { _v1, _v2, _v3 }
+        Matrix33Base(
+            const Vector3Base<U, VSimdOptimal>& _v1,
+            const Vector3Base<U, VSimdOptimal>& _v2,
+            const Vector3Base<U, VSimdOptimal>& _v3)
+                : m_vectors { _v1, _v2, _v3 }
         {}
 
-        template<class U, size_t OtherAlignment>
+        template<class U, bool OtherSimdOptimal>
         requires eastl::is_convertible_v<U, T>
-        Matrix33Base(const Matrix33Base<U, OtherAlignment, RowMajor>& _other)
+        explicit Matrix33Base(const Matrix33Base<U, OtherSimdOptimal, RowMajor>& _other)
             : m_vectors { _other.m_vectors[0], _other.m_vectors[1], _other.m_vectors[2] }
         {}
 
@@ -66,9 +69,9 @@ namespace KryneEngine::Math
         T& Get(size_t _row, size_t _col);
         const T& Get(size_t _row, size_t _col) const;
 
-        Matrix33Base<T, Alignment, RowMajor> operator+(const Matrix33Base<T, Alignment, RowMajor>& _other) const;
-        Matrix33Base<T, Alignment, RowMajor> operator-(const Matrix33Base<T, Alignment, RowMajor>& _other) const;
-        Matrix33Base<T, Alignment, RowMajor> operator*(const Matrix33Base<T, Alignment, RowMajor>& _other) const;
+        Matrix33Base operator+(const Matrix33Base& _other) const;
+        Matrix33Base operator-(const Matrix33Base& _other) const;
+        Matrix33Base operator*(const Matrix33Base& _other) const;
 
         /**
          * Performs an in-place transposition of the 3x3 matrix.
@@ -79,17 +82,17 @@ namespace KryneEngine::Math
          *
          * @return A reference to the transposed matrix.
          */
-        Matrix33Base<T, Alignment, RowMajor>& Transpose();
+        Matrix33Base& Transpose();
 
-        template <class U, size_t OtherAlignment>
+        template <class U, bool OtherSimdOptimal>
         requires eastl::is_convertible_v<U, T>
-        static Matrix33Base<T, Alignment, RowMajor> Convert(const Matrix33Base<U, OtherAlignment, !RowMajor>& _other)
+        static Matrix33Base Convert(const Matrix33Base<U, OtherSimdOptimal, !RowMajor>& _other)
         {
-            Matrix33Base<U, OtherAlignment, !RowMajor> transposed = _other;
+            Matrix33Base<U, OtherSimdOptimal, !RowMajor> transposed = _other;
             transposed.Transpose();
-            return Matrix33Base<T, Alignment, RowMajor>(transposed.m_vectors[0], transposed.m_vectors[1], transposed.m_vectors[2]);
+            return Matrix33Base(transposed.m_vectors[0], transposed.m_vectors[1], transposed.m_vectors[2]);
         }
 
-        Vector3Base<T, Alignment> m_vectors[3];
+        Vector3Base<T, SimdOptimal> m_vectors[3];
     };
 }
