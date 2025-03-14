@@ -56,7 +56,6 @@ set(MathSrc
         Include/KryneEngine/Core/Math/XSimdUtils.hpp
         Include/KryneEngine/Core/Math/Hashing.hpp
         Src/Math/Hashing.cpp
-        Include/KryneEngine/Core/Math/Vector3.inl
         Include/KryneEngine/Core/Math/Quaternion.hpp
         Include/KryneEngine/Core/Math/CoordinateSystem.hpp
         Include/KryneEngine/Core/Math/RotationConversion.hpp
