@@ -8,6 +8,8 @@
 
 #include <xsimd/xsimd.hpp>
 
+#include "KryneEngine/Core/Common/Utils/Alignment.hpp"
+
 namespace KryneEngine::Math
 {
 #if XSMID_WITH_SSE4_2
@@ -26,7 +28,7 @@ namespace KryneEngine::Math
     using XsimdArch128 = xsimd::neon;
 #else
     // Fall back to basic scalar operations
-    using XsimdArch128 = xsimd::generic;
+    using XsimdArch128 = xsimd::unavailable;
 #endif
 
 #if XSIMD_WITH_AVX
@@ -50,4 +52,40 @@ namespace KryneEngine::Math
     // Fall back to 256 bits SIMD
     using XsimdArch512 = XsimdArch256;
 #endif
+
+    template <class T, class Container>
+    struct SimdOperability
+    {
+        using OptimalArch = std::conditional_t<(sizeof(Container) == 32), XsimdArch256, XsimdArch128>;
+        static constexpr size_t kBatchSize = xsimd::batch<T, OptimalArch>::size;
+        static constexpr size_t kBatchCount = kBatchSize < 4 ? 1 : 4 / kBatchSize;
+        static constexpr bool kSimdOperable =
+            kBatchSize != 0 && Alignment::IsAligned(sizeof(Container), OptimalArch::alignment());
+    };
+
+    template<bool Aligned, class T, class A>
+    xsimd::batch<T, A> XsimdLoad(const T* _ptr)
+    {
+        if constexpr (Aligned)
+        {
+            return xsimd::load_aligned(_ptr);
+        }
+        else
+        {
+            return xsimd::load_unaligned(_ptr);
+        }
+    }
+
+    template<bool Aligned, class T, class A>
+    void XsimdStore(T* _ptr, const xsimd::batch<T, A>& _batch)
+    {
+        if constexpr (Aligned)
+        {
+            _batch.store_aligned(_ptr);
+        }
+        else
+        {
+            _batch.store_unaligned(_ptr);
+        }
+    }
 }
