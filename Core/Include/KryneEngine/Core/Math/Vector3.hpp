@@ -53,6 +53,9 @@ namespace KryneEngine::Math
         Vector3Base operator*(const Vector3Base& _other) const;
         Vector3Base operator/(const Vector3Base& _other) const;
 
+        T& operator[](size_t _index);
+        const T& operator[](size_t _index) const;
+
         bool operator==(const Vector3Base& _other) const;
 
         void Normalize() requires std::is_floating_point_v<T>;

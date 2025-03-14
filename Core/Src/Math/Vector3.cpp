@@ -105,6 +105,18 @@ namespace KryneEngine::Math
     }
 
     template <typename T, size_t Alignment>
+    T& Vector3Base<T, Alignment>::operator[](size_t _index)
+    {
+        return reinterpret_cast<T*>(this)[_index];
+    }
+
+    template <typename T, size_t Alignment>
+    const T& Vector3Base<T, Alignment>::operator[](size_t _index) const
+    {
+        return reinterpret_cast<const T*>(this)[_index];
+    }
+
+    template <typename T, size_t Alignment>
     bool Vector3Base<T, Alignment>::operator==(const Vector3Base& _other) const
     {
         if constexpr (Alignment == 16)
