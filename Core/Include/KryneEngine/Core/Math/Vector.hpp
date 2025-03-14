@@ -36,10 +36,10 @@ namespace KryneEngine
     using uint2_simd = Math::Vector2Base<u32, 16>;
     using double2_simd = Math::Vector2Base<double, 16>;
 
-    using float3_simd = Math::Vector3Base<float, 16>;
-    using int3_simd = Math::Vector3Base<s32, 16>;
-    using uint3_simd = Math::Vector3Base<u32, 16>;
-    using double3_simd = Math::Vector3Base<double, 32>;
+    using float3_simd = Math::Vector3Base<float, true>;
+    using int3_simd = Math::Vector3Base<s32, true>;
+    using uint3_simd = Math::Vector3Base<u32, true>;
+    using double3_simd = Math::Vector3Base<double, true>;
 
     using float4_simd = Math::Vector4Base<float, true>;
     using int4_simd = Math::Vector4Base<s32, true>;
