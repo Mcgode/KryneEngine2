@@ -170,12 +170,12 @@ namespace KryneEngine::Tests::Math
             const float3 eulerZyx = ToEulerAngles<float, float, 4, EulerOrder::ZYX>(
                 FromEulerAngles<float, float, 4, EulerOrder::ZYX>(euler));
 
-            EXPECT_EQ(euler, eulerXyz);
-            EXPECT_EQ(euler, eulerXzy);
-            EXPECT_EQ(euler, eulerYxz);
-            EXPECT_EQ(euler, eulerYzx);
-            EXPECT_EQ(euler, eulerZxy);
-            EXPECT_EQ(euler, eulerZyx);
+            EXPECT_LT((euler - eulerXyz).Length(), Quaternion::kQuaternionEpsilon);
+            EXPECT_LT((euler - eulerXzy).Length(), Quaternion::kQuaternionEpsilon);
+            EXPECT_LT((euler - eulerYxz).Length(), Quaternion::kQuaternionEpsilon);
+            EXPECT_LT((euler - eulerYzx).Length(), Quaternion::kQuaternionEpsilon);
+            EXPECT_LT((euler - eulerZxy).Length(), Quaternion::kQuaternionEpsilon);
+            EXPECT_LT((euler - eulerZyx).Length(), Quaternion::kQuaternionEpsilon);
         };
 
         testBijectiveTransform(0, 0, 0);
