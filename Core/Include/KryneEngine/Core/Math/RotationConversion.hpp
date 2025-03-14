@@ -12,8 +12,39 @@
 
 namespace KryneEngine::Math
 {
+    // ============================================================================
+    //    DECLARATIONS
+    // ============================================================================
+
     template <class T, class U, EulerOrder Order = kDefaultEulerOrder>
     requires std::is_convertible_v<U, T>
+    QuaternionBase<T> FromEulerAngles(U _x, U _y, U _z);
+
+    template <class T, class U, size_t Alignment, EulerOrder Order = kDefaultEulerOrder>
+        requires std::is_convertible_v<U, T>
+    QuaternionBase<T> FromEulerAngles(const Vector3Base<U, Alignment>& _eulerAngles)
+    {
+        return FromEulerAngles<T, U, Order>(_eulerAngles.x, _eulerAngles.y, _eulerAngles.z);
+    }
+
+    template <class T, size_t Alignment, bool RowMajor, class U>
+        requires std::is_convertible_v<U, T>
+    Matrix33Base<T, Alignment, RowMajor> ToMatrix33(const QuaternionBase<U>& _quaternion);
+
+    template <class T, size_t VectorAlignment, class U, size_t MatrixAlignment, bool RowMajor, EulerOrder Order = kDefaultEulerOrder>
+        requires std::is_convertible_v<U, T>
+    Vector3Base<T, VectorAlignment> ToEulerAngles(const Matrix33Base<U, MatrixAlignment, RowMajor>& _matrix);
+
+    template <class T, class U, size_t Alignment = sizeof(T), EulerOrder Order = kDefaultEulerOrder>
+        requires std::is_convertible_v<U, T>
+    Vector3Base<T, Alignment> ToEulerAngles(const QuaternionBase<U>& _quaternion);
+
+    // ============================================================================
+    //    IMPLEMENTATIONS
+    // ============================================================================
+
+    template <class T, class U, EulerOrder Order>
+        requires std::is_convertible_v<U, T>
     QuaternionBase<T> FromEulerAngles(U _x, U _y, U _z)
     {
         QuaternionBase<T> result;
@@ -110,18 +141,122 @@ namespace KryneEngine::Math
         return result;
     }
 
-    template <class T, class U, size_t Alignment, EulerOrder Order = kDefaultEulerOrder>
+    template <class T, size_t VectorAlignment, class U, size_t MatrixAlignment, bool RowMajor, EulerOrder Order>
         requires std::is_convertible_v<U, T>
-    QuaternionBase<T> FromEulerAngles(const Vector3Base<U, Alignment>& _eulerAngles)
+    Vector3Base<T, VectorAlignment> ToEulerAngles(const Matrix33Base<U, MatrixAlignment, RowMajor>& _matrix)
     {
-        return FromEulerAngles<T, U, Order>(_eulerAngles.x, _eulerAngles.y, _eulerAngles.z);
+        Vector3Base<T, VectorAlignment> result;
+        constexpr T threshold = 1.0 - QuaternionBase<T>::kQuaternionEpsilon;
+        const T& m11 = _matrix.Get(0, 0),
+                m12 = _matrix.Get(0, 1),
+                m13 = _matrix.Get(0, 2),
+                m21 = _matrix.Get(1, 0),
+                m22 = _matrix.Get(1, 1),
+                m23 = _matrix.Get(1, 2),
+                m31 = _matrix.Get(2, 0),
+                m32 = _matrix.Get(2, 1),
+                m33 = _matrix.Get(2, 2);
+
+
+        if constexpr (Order == EulerOrder::XYZ)
+        {
+            result.y = std::asin(m13);
+            if (std::abs(m13) < threshold)
+            {
+                result.x = std::atan2(-m23, m33);
+                result.z = std::atan2(-m12, m11);
+            }
+            else
+            {
+                result.x = std::atan2(m32, m22);
+                result.z = 0;
+            }
+        }
+        else if constexpr (Order == EulerOrder::XZY)
+        {
+            result.y = std::asin(-m12);
+            if (std::abs(m12) < 1.0f - threshold)
+            {
+                result.x = std::atan2(m32, m22);
+                result.z = std::atan2(m13, m11);
+            }
+            else
+            {
+                result.x = std::atan2(-m23, m33);
+                result.z = 0;
+            }
+        }
+        else if constexpr (Order == EulerOrder::YXZ)
+        {
+            result.y = std::asin(-m23);
+            if (std::abs(m23) < threshold)
+            {
+                result.x = std::atan2(m13, m33);
+                result.z = std::atan2(m21, m22);
+            }
+            else
+            {
+                result.x = std::atan2(-m31, m11);
+                result.z = 0;
+            }
+        }
+        else if constexpr (Order == EulerOrder::YZX)
+        {
+            result.y = std::asin(m21);
+            if (std::abs(m21) < threshold)
+            {
+                result.x = std::atan2(-m23, m22);
+                result.z = std::atan2(-m31, m11);
+            }
+            else
+            {
+                result.x = std::atan2(m13, m33);
+                result.z = 0;
+            }
+        }
+        else if constexpr (Order == EulerOrder::ZXY)
+        {
+            result.y = std::asin(m32);
+            if (std::abs(m32) < threshold)
+            {
+                result.x = std::atan2(-m32, m33);
+                result.z = std::atan2(-m12, m22);
+            }
+            else
+            {
+                result.x = std::atan2(m21, m11);
+                result.z = 0;
+            }
+        }
+        else if constexpr (Order == EulerOrder::ZYX)
+        {
+            result.y = std::asin(-m31);
+            if (std::abs(m31) < threshold)
+            {
+                result.x = std::atan2(m32, m33);
+                result.z = std::atan2(m21, m11);
+            }
+            else
+            {
+                result.x = std::atan2(-m12, m22);
+                result.z = 0;
+            }
+        }
+        else
+        {
+            static_assert( false, "Invalid EulerOrder");
+        }
+        return result;
     }
 
-    template <class T, class U, size_t Alignment = sizeof(T), EulerOrder Order = kDefaultEulerOrder>
+    template <class T, class U, size_t Alignment, EulerOrder Order>
         requires std::is_convertible_v<U, T>
     Vector3Base<T, Alignment> ToEulerAngles(const QuaternionBase<U>& _quaternion)
     {
         // Based on: https://stackoverflow.com/a/27496984
+
+        //        return ToEulerAngles<T, Alignment, U, Alignment, true, Order>(
+        //            ToMatrix33<T, Alignment, true>(_quaternion));
 
         // Aliases for shorter operations
         const U x = _quaternion.x,
@@ -205,5 +340,20 @@ namespace KryneEngine::Math
         {
             static_assert( false, "Invalid EulerOrder");
         }
+    }
+
+    template <class T, size_t Alignment, bool RowMajor, class U>
+        requires std::is_convertible_v<U, T>
+    Matrix33Base<T, Alignment, RowMajor> ToMatrix33(const QuaternionBase<U>& _quaternion)
+    {
+        const T x(_quaternion.x);
+        const T y(_quaternion.y);
+        const T z(_quaternion.z);
+        const T w(_quaternion.w);
+
+        return Matrix33Base<T, Alignment, RowMajor>(
+            1.0f - 2.0f * (y * y + z * z),  2.0f * (x * y - z * w),         2.0f * (x * z + y * w),
+            2.0f * (x * y + z * w),         1.0f - 2.0f * (x * x + z * z),  2.0f * (y * z - x * w),
+            2.0f * (x * z - y * w),         2.0f * (y * z + x * w),         1.0f - 2.0f * (x * x + y * y));
     }
 }
