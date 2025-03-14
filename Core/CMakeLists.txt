@@ -60,6 +60,9 @@ set(MathSrc
         Include/KryneEngine/Core/Math/Quaternion.hpp
         Include/KryneEngine/Core/Math/CoordinateSystem.hpp
         Include/KryneEngine/Core/Math/RotationConversion.hpp
+        Src/Math/Matrix33.cpp
+        Include/KryneEngine/Core/Math/Matrix33.hpp
+        Include/KryneEngine/Core/Math/Matrix.hpp
 )
 
 set(MemorySrc
