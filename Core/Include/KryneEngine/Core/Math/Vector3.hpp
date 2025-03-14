@@ -59,7 +59,7 @@ namespace KryneEngine::Math
         bool operator==(const Vector3Base& _other) const;
 
         T LengthSquared() const;
-        T Length() const { return std::sqrt(LengthSquared()); }
+        T Length() const;
 
         void Normalize() requires std::is_floating_point_v<T>;
         Vector3Base Normalized() const requires std::is_floating_point_v<T>;

@@ -146,6 +146,12 @@ namespace KryneEngine::Math
     }
 
     template <typename T, size_t Alignment>
+    T Vector3Base<T, Alignment>::Length() const
+    {
+        return sqrt(LengthSquared());
+    }
+
+    template <typename T, size_t Alignment>
     void Vector3Base<T, Alignment>::Normalize()
         requires std::is_floating_point_v<T>
     {
