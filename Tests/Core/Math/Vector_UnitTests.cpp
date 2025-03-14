@@ -103,6 +103,18 @@ namespace KryneEngine::Tests::Math
             EXPECT_EQ(vecA, vecB);
         }
 
+        {
+            const double4 vecA { 1 };
+            const double4 vecB { 1 };
+            EXPECT_EQ(vecA, vecB);
+        }
+
+        {
+            const double4_simd vecA { 1 };
+            const double4_simd vecB { 1 };
+            EXPECT_EQ(vecA, vecB);
+        }
+
         // -----------------------------------------------------------------------
         // Teardown
         // -----------------------------------------------------------------------
@@ -168,6 +180,20 @@ namespace KryneEngine::Tests::Math
 
             const float4_simd result = vecA + vecB;
             EXPECT_EQ(result, float4_simd(2, 3, 4, 5));
+        }
+
+        {
+            const double4 vecA { 1, 2, 3, 4 };
+            const double4 vecB { 1 };
+            const double4 result = vecA + vecB;
+            EXPECT_EQ(result, double4(2, 3, 4, 5));
+        }
+
+        {
+            const double4_simd vecA { 1, 2, 3, 4 };
+            const double4_simd vecB { 1 };
+            const double4_simd result = vecA + vecB;
+            EXPECT_EQ(result, double4_simd(2, 3, 4, 5));
         }
 
         // -----------------------------------------------------------------------
@@ -237,6 +263,22 @@ namespace KryneEngine::Tests::Math
             EXPECT_EQ(result, float4_simd(0, 1, 2, 3));
         }
 
+        {
+            const double4 vecA { 1, 2, 3, 4 };
+            const double4 vecB { 1};
+
+            const double4 result = vecA - vecB;
+            EXPECT_EQ(result, double4(0, 1, 2, 3));
+        }
+
+        {
+            const double4_simd vecA { 1, 2, 3, 4 };
+            const double4_simd vecB { 1};
+
+            const double4_simd result = vecA - vecB;
+            EXPECT_EQ(result, double4_simd(0, 1, 2, 3));
+        }
+
         // -----------------------------------------------------------------------
         // Teardown
         // -----------------------------------------------------------------------
@@ -304,6 +346,22 @@ namespace KryneEngine::Tests::Math
             EXPECT_EQ(result, float4_simd(1.5f, 3.f, 4.5f, -6.f));
         }
 
+        {
+            const double4 vecA { 1, 2, 3, -4 };
+            const double4 vecB { 1.5f };
+
+            const double4 result = vecA * vecB;
+            EXPECT_EQ(result, double4(1.5f, 3.f, 4.5f, -6.f));
+        }
+
+        {
+            const double4_simd vecA { 1, 2, 3, -4 };
+            const double4_simd vecB { 1.5f };
+
+            const double4_simd result = vecA * vecB;
+            EXPECT_EQ(result, double4_simd(1.5f, 3.f, 4.5f, -6.f));
+        }
+
         // -----------------------------------------------------------------------
         // Teardown
         // -----------------------------------------------------------------------
@@ -369,6 +427,22 @@ namespace KryneEngine::Tests::Math
 
             const float4_simd result = vecA / vecB;
             EXPECT_EQ(result, float4_simd(2, 4, 6, -8));
+        }
+
+        {
+            const double4 vecA { 1, 2, 3, -4 };
+            const double4 vecB { 0.5f };
+
+            const double4 result = vecA / vecB;
+            EXPECT_EQ(result, double4(2, 4, 6, -8));
+        }
+
+        {
+            const double4_simd vecA { 1, 2, 3, -4 };
+            const double4_simd vecB { 0.5f };
+
+            const double4_simd result = vecA / vecB;
+            EXPECT_EQ(result, double4_simd(2, 4, 6, -8));
         }
 
         // -----------------------------------------------------------------------
