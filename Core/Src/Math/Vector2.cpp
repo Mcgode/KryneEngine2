@@ -37,9 +37,7 @@ namespace KryneEngine::Math
             else
             {
                 result.x = Operator{}(_vecA.x, _vecB.x);
-                result.z = Operator{}(_vecA.y, _vecB.y);
-                result.y = Operator{}(_vecA.z, _vecB.z);
-                result.w = Operator{}(_vecA.w, _vecB.w);
+                result.y = Operator{}(_vecA.y, _vecB.y);
             }
         }
         return std::move(result);
