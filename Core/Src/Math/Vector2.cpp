@@ -161,7 +161,9 @@ namespace KryneEngine::Math
     template struct Vector2Base<float>;
     template struct Vector2Base<s32>;
     template struct Vector2Base<u32>;
+    template struct Vector2Base<double>;
     template struct Vector2Base<float, 16>;
     template struct Vector2Base<s32, 16>;
     template struct Vector2Base<u32, 16>;
+    template struct Vector2Base<double, 16>;
 } // namespace KryneEngine::Math

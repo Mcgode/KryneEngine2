@@ -229,7 +229,9 @@ namespace KryneEngine::Math
     template struct Vector4Base<float>;
     template struct Vector4Base<s32>;
     template struct Vector4Base<u32>;
+    template struct Vector4Base<double>;
     template struct Vector4Base<float, 16>;
     template struct Vector4Base<s32, 16>;
     template struct Vector4Base<u32, 16>;
+    template struct Vector4Base<double, 32>;
 } // namespace KryneEngine::Math
