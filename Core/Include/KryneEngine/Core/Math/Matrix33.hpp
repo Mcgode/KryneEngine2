@@ -14,7 +14,7 @@
 namespace KryneEngine::Math
 {
     template<class T, size_t Alignment, bool RowMajor>
-    class alignas(Alignment) Matrix33Base
+    struct alignas(Alignment) Matrix33Base
     {
         Matrix33Base();
         ~Matrix33Base() = default;

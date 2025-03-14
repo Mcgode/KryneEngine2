@@ -69,7 +69,7 @@ namespace KryneEngine::Math
         return Matrix33Base<T, Alignment, RowMajor>(
             m_vectors[0] + _other.m_vectors[0],
             m_vectors[1] + _other.m_vectors[1],
-            m_vectors[2] + _other.m_vectors[2])
+            m_vectors[2] + _other.m_vectors[2]);
     }
 
     template <class T, size_t Alignment, bool RowMajor>
@@ -108,12 +108,12 @@ namespace KryneEngine::Math
         return *this;
     }
 
-    template class Matrix33Base<float, 4, true>;
-    template class Matrix33Base<float, 16, true>;
-    template class Matrix33Base<float, 4, false>;
-    template class Matrix33Base<float, 16, false>;
-    template class Matrix33Base<double, 8, true>;
-    template class Matrix33Base<double, 32, true>;
-    template class Matrix33Base<double, 8, false>;
-    template class Matrix33Base<double, 32, false>;
+    template struct Matrix33Base<float, 4, true>;
+//    template struct Matrix33Base<float, 16, true>;
+//    template struct Matrix33Base<float, 4, false>;
+//    template struct Matrix33Base<float, 16, false>;
+//    template struct Matrix33Base<double, 8, true>;
+//    template struct Matrix33Base<double, 32, true>;
+//    template struct Matrix33Base<double, 8, false>;
+//    template struct Matrix33Base<double, 32, false>;
 }
