@@ -41,10 +41,10 @@ namespace KryneEngine
     using uint3_simd = Math::Vector3Base<u32, 16>;
     using double3_simd = Math::Vector3Base<double, 32>;
 
-    using float4_simd = Math::Vector4Base<float, 16>;
-    using int4_simd = Math::Vector4Base<s32, 16>;
-    using uint4_simd = Math::Vector4Base<u32, 16>;
-    using double4_simd = Math::Vector4Base<double, 32>;
+    using float4_simd = Math::Vector4Base<float, true>;
+    using int4_simd = Math::Vector4Base<s32, true>;
+    using uint4_simd = Math::Vector4Base<u32, true>;
+    using double4_simd = Math::Vector4Base<double, true>;
 
 #pragma clang diagnostic pop
 }

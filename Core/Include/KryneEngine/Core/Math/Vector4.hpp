@@ -9,12 +9,13 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "KryneEngine/Core/Common/Utils/Alignment.hpp"
 #include "KryneEngine/Core/Math/Vector3.hpp"
 
 namespace KryneEngine::Math
 {
-    template <typename T, size_t Alignment = sizeof(T)>
-    struct alignas(Alignment) Vector4Base
+    template <typename T, bool SimdOptimal = false>
+    struct Vector4Base
     {
         Vector4Base() = default;
 
@@ -29,9 +30,9 @@ namespace KryneEngine::Math
         requires std::is_constructible_v<T, U>
         explicit Vector4Base(U _value) : Vector4Base(_value, _value, _value, _value) {}
 
-        template <typename U, size_t A>
+        template <typename U, bool S>
         requires std::is_constructible_v<T, U>
-        explicit Vector4Base(const Vector4Base<U, A> &_other) : Vector4Base(_other.x, _other.y, _other.z, _other.w) {}
+        explicit Vector4Base(const Vector4Base<U, S> &_other) : Vector4Base(_other.x, _other.y, _other.z, _other.w) {}
 
         template <typename U0, typename U1, size_t A>
         requires std::is_constructible_v<T, U0> && std::is_constructible_v<T, U1>
@@ -56,9 +57,12 @@ namespace KryneEngine::Math
         void Normalize() requires std::is_floating_point_v<T>;
         Vector4Base Normalized() const requires std::is_floating_point_v<T>;
 
+        static constexpr size_t kSimdOptimalAlignment = Alignment::AlignUpPot(4 * sizeof(T), 4);
+        static constexpr size_t kAlignment = SimdOptimal ? kSimdOptimalAlignment : alignof(T);
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCInconsistentNamingInspection"
-        union
+        union alignas(kAlignment)
         {
             struct
             {
@@ -78,6 +82,6 @@ namespace KryneEngine::Math
 #pragma clang diagnostic pop
     };
 
-    template<typename T, size_t Alignment>
-    extern T Dot(const Vector4Base<T, Alignment>& _a, const Vector4Base<T, Alignment>& _b);
+    template<typename T, bool SimdOptimal>
+    extern T Dot(const Vector4Base<T, SimdOptimal>& _a, const Vector4Base<T, SimdOptimal>& _b);
 }
