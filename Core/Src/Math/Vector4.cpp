@@ -194,11 +194,13 @@ namespace KryneEngine::Math
 #define IMPLEMENT(type)                                                                                                 \
     template struct Vector4Base<type>;                                                                                  \
     template struct Vector4Base<type, true>;                                                                            \
-    template type Dot<type, false>(const Vector4Base<type, false>& _a, const Vector4Base<type, false>& _b);                         \
+    template type Dot<type, false>(const Vector4Base<type, false>& _a, const Vector4Base<type, false>& _b);             \
     template type Dot<type, true>(const Vector4Base<type, true>& _a, const Vector4Base<type, true>& _b)
     
     IMPLEMENT(float);
     IMPLEMENT(s32);
     IMPLEMENT(u32);
     IMPLEMENT(double);
+
+#undef IMPLEMENT
 } // namespace KryneEngine::Math
