@@ -17,6 +17,11 @@ namespace KryneEngine::Math
     template <typename T, bool SimdOptimal = false>
     struct Vector4Base
     {
+        static_assert(sizeof(T) >= 4 || !SimdOptimal, "Vector4Base element type must be at least 4 bytes to use SIMD");
+
+        static constexpr size_t kSimdOptimalAlignment = Alignment::AlignUpPot(4 * sizeof(T), 4);
+        static constexpr size_t kAlignment = SimdOptimal ? kSimdOptimalAlignment : alignof(T);
+
         Vector4Base() = default;
 
         template <typename U0, typename U1 = U0, typename U2 = U0, typename U3 = U0>
@@ -56,9 +61,6 @@ namespace KryneEngine::Math
 
         void Normalize() requires std::is_floating_point_v<T>;
         Vector4Base Normalized() const requires std::is_floating_point_v<T>;
-
-        static constexpr size_t kSimdOptimalAlignment = Alignment::AlignUpPot(4 * sizeof(T), 4);
-        static constexpr size_t kAlignment = SimdOptimal ? kSimdOptimalAlignment : alignof(T);
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCInconsistentNamingInspection"
