@@ -39,9 +39,9 @@ namespace KryneEngine::Math
         requires std::is_constructible_v<T, U>
         explicit Vector4Base(const Vector4Base<U, S> &_other) : Vector4Base(_other.x, _other.y, _other.z, _other.w) {}
 
-        template <typename U0, typename U1, size_t A>
+        template <typename U0, typename U1, bool S>
         requires std::is_constructible_v<T, U0> && std::is_constructible_v<T, U1>
-        explicit Vector4Base(const Vector3Base<U0, A>& _vec3, U1 _w = 0): Vector4Base(_vec3.x, _vec3.y, _vec3.z, _w) {}
+        explicit Vector4Base(const Vector3Base<U0, S>& _vec3, U1 _w = 0): Vector4Base(_vec3.x, _vec3.y, _vec3.z, _w) {}
 
         template <typename U0, typename U1, typename U2, size_t A>
         requires std::is_constructible_v<T, U0> && std::is_constructible_v<T, U1> && std::is_constructible_v<T, U2>
