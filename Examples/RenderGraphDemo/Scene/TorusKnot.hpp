@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Graphics/Common/GraphicsContext.hpp"
-#include "KryneEngine/Core/Graphics/Common/Handles.hpp"
+#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/Common/Handles.hpp>
+#include <KryneEngine/Core/Math/Quaternion.hpp>
 
 namespace KryneEngine::Samples::RenderGraphDemo
 {
@@ -58,5 +59,9 @@ namespace KryneEngine::Samples::RenderGraphDemo
         u64 m_transferFrameId = 0;
         size_t m_indexBufferSize = 0;
         size_t m_vertexBufferSize = 0;
+
+        float3 m_translation { 0.0f };
+        Math::Quaternion m_rotation {};
+        float3 m_scale { 1 };
     };
 }
