@@ -191,16 +191,20 @@ namespace KryneEngine::Math
         }
     }
 
+
+#define IMPLEMENT_SIMD(type, simd)                                                                                      \
+    template struct Vector4Base<type, simd>;                                                                            \
+    template type Dot<type, simd>(const Vector4Base<type, simd>& _a, const Vector4Base<type, simd>& _b)
+
 #define IMPLEMENT(type)                                                                                                 \
-    template struct Vector4Base<type>;                                                                                  \
-    template struct Vector4Base<type, true>;                                                                            \
-    template type Dot<type, false>(const Vector4Base<type, false>& _a, const Vector4Base<type, false>& _b);             \
-    template type Dot<type, true>(const Vector4Base<type, true>& _a, const Vector4Base<type, true>& _b)
-    
+    IMPLEMENT_SIMD(type, false);                                                                                        \
+    IMPLEMENT_SIMD(type, true)
+
     IMPLEMENT(float);
     IMPLEMENT(s32);
     IMPLEMENT(u32);
     IMPLEMENT(double);
 
 #undef IMPLEMENT
+#undef IMPLEMENT_SIMD
 } // namespace KryneEngine::Math

@@ -197,13 +197,14 @@ namespace KryneEngine::Math
         };
     }
 
+#define IMPLEMENT_SIMD(type, simd)                                                                                      \
+    template struct Vector3Base<type, simd>;                                                                            \
+    template type Dot<type, simd>(const Vector3Base<type, simd>& _a, const Vector3Base<type, simd>& _b);                \
+    template Vector3Base<type, simd> CrossProduct<type, simd>(const Vector3Base<type, simd>& _a, const Vector3Base<type, simd>& _b)
+
 #define IMPLEMENT(type)                                                                                                 \
-    template struct Vector3Base<type>;                                                                                  \
-    template struct Vector3Base<type, true>;                                                                            \
-    template type Dot<type, false>(const Vector3Base<type, false>& _a, const Vector3Base<type, false>& _b);             \
-    template type Dot<type, true>(const Vector3Base<type, true>& _a, const Vector3Base<type, true>& _b);                \
-    template Vector3Base<type, false> CrossProduct<type, false>(const Vector3Base<type, false>& _a, const Vector3Base<type, false>& _b); \
-    template Vector3Base<type, true> CrossProduct<type, true>(const Vector3Base<type, true>& _a, const Vector3Base<type, true>& _b)
+    IMPLEMENT_SIMD(type, false);                                                                                        \
+    IMPLEMENT_SIMD(type, true)
 
     IMPLEMENT(float);
     IMPLEMENT(s32);
@@ -211,4 +212,5 @@ namespace KryneEngine::Math
     IMPLEMENT(double);
 
 #undef IMPLEMENT
+#undef IMPLEMENT_SIMD
 } // namespace KryneEngine::Math
