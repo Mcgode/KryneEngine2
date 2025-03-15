@@ -47,9 +47,9 @@ namespace KryneEngine::Math
         QuaternionBase& operator=(const QuaternionBase& _other) = default;
         QuaternionBase& operator=(QuaternionBase&& _other) noexcept = default;
 
-        template <class U, size_t Alignment>
+        template <class U, bool SimdOptimal>
             requires std::is_convertible_v<U, T>
-        QuaternionBase& FromAxisAngle(Vector3Base<T, Alignment> _axis, U _angle)
+        QuaternionBase& FromAxisAngle(Vector3Base<T, SimdOptimal> _axis, U _angle)
         {
             w = std::cos(_angle * .5f);
             const T s = std::sin(_angle * .5f);
