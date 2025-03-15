@@ -84,6 +84,26 @@ namespace KryneEngine::Math
          */
         Matrix33Base& Transpose();
 
+        /**
+         * @brief Converts a given 3x3 matrix from a row-major type to a colum-major type, or vice versa.
+         *
+         * @details
+         * This static method performs a matrix conversion by transposing the input matrix and constructing a new matrix
+         * in the target layout and type. The operation assumes that the input matrix is in the opposite row-major/column-major
+         * layout compared to the target matrix.
+         *
+         * @tparam U The type of the elements within the input matrix to be converted. This type must be convertible to the
+         *         type of the elements of the target matrix `T`.
+         * @tparam OtherSimdOptimal Indicates whether the input matrix is optimized for SIMD operations.
+         *
+         * @param _other The input matrix to be converted to the target type and layout. This matrix must be in the opposite
+         *        row-major/column-major layout relative to the target matrix.
+         *
+         * @return A new Matrix33Base object with the specified type `T`, layout, and optimization, containing the transposed
+         *         and converted data from the input matrix.
+         *
+         * @note The input matrix's type and layout constraints are enforced through a `requires` clause using `eastl::is_convertible_v<U, T>`.
+         */
         template <class U, bool OtherSimdOptimal>
         requires eastl::is_convertible_v<U, T>
         static Matrix33Base Convert(const Matrix33Base<U, OtherSimdOptimal, !RowMajor>& _other)
