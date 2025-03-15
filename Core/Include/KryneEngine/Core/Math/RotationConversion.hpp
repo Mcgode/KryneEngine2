@@ -20,24 +20,24 @@ namespace KryneEngine::Math
     requires std::is_convertible_v<U, T>
     QuaternionBase<T> FromEulerAngles(U _x, U _y, U _z);
 
-    template <class T, class U, size_t Alignment, EulerOrder Order = kDefaultEulerOrder>
+    template <class T, class U, bool SimdOptimal, EulerOrder Order = kDefaultEulerOrder>
         requires std::is_convertible_v<U, T>
-    QuaternionBase<T> FromEulerAngles(const Vector3Base<U, Alignment>& _eulerAngles)
+    QuaternionBase<T> FromEulerAngles(const Vector3Base<U, SimdOptimal>& _eulerAngles)
     {
         return FromEulerAngles<T, U, Order>(_eulerAngles.x, _eulerAngles.y, _eulerAngles.z);
     }
 
-    template <class T, size_t Alignment, bool RowMajor, class U>
+    template <class T, bool SimdOptimal, bool RowMajor, class U>
         requires std::is_convertible_v<U, T>
-    Matrix33Base<T, Alignment, RowMajor> ToMatrix33(const QuaternionBase<U>& _quaternion);
+    Matrix33Base<T, SimdOptimal, RowMajor> ToMatrix33(const QuaternionBase<U>& _quaternion);
 
-    template <class T, size_t VectorAlignment, class U, size_t MatrixAlignment, bool RowMajor, EulerOrder Order = kDefaultEulerOrder>
+    template <class T, bool VectorSimdOptimal, class U, bool MatrixSimdOptimal, bool RowMajor, EulerOrder Order = kDefaultEulerOrder>
         requires std::is_convertible_v<U, T>
-    Vector3Base<T, VectorAlignment> ToEulerAngles(const Matrix33Base<U, MatrixAlignment, RowMajor>& _matrix);
+    Vector3Base<T, VectorSimdOptimal> ToEulerAngles(const Matrix33Base<U, MatrixSimdOptimal, RowMajor>& _matrix);
 
-    template <class T, class U, size_t Alignment = sizeof(T), EulerOrder Order = kDefaultEulerOrder>
+    template <class T, class U, bool SimdOptimal = false, EulerOrder Order = kDefaultEulerOrder>
         requires std::is_convertible_v<U, T>
-    Vector3Base<T, Alignment> ToEulerAngles(const QuaternionBase<U>& _quaternion);
+    Vector3Base<T, SimdOptimal> ToEulerAngles(const QuaternionBase<U>& _quaternion);
 
     // ============================================================================
     //    IMPLEMENTATIONS
@@ -141,11 +141,11 @@ namespace KryneEngine::Math
         return result;
     }
 
-    template <class T, size_t VectorAlignment, class U, size_t MatrixAlignment, bool RowMajor, EulerOrder Order>
+    template <class T, bool VectorSimdOptimal, class U, bool MatrixSimdOptimal, bool RowMajor, EulerOrder Order>
         requires std::is_convertible_v<U, T>
-    Vector3Base<T, VectorAlignment> ToEulerAngles(const Matrix33Base<U, MatrixAlignment, RowMajor>& _matrix)
+    Vector3Base<T, VectorSimdOptimal> ToEulerAngles(const Matrix33Base<U, MatrixSimdOptimal, RowMajor>& _matrix)
     {
-        Vector3Base<T, VectorAlignment> result;
+        Vector3Base<T, VectorSimdOptimal> result;
         constexpr T threshold = 1.0 - QuaternionBase<T>::kQuaternionEpsilon;
         const T& m11 = _matrix.Get(0, 0),
                 m12 = _matrix.Get(0, 1),
@@ -249,14 +249,14 @@ namespace KryneEngine::Math
         return result;
     }
 
-    template <class T, class U, size_t Alignment, EulerOrder Order>
+    template <class T, class U, bool SimdOptimal, EulerOrder Order>
         requires std::is_convertible_v<U, T>
-    Vector3Base<T, Alignment> ToEulerAngles(const QuaternionBase<U>& _quaternion)
+    Vector3Base<T, SimdOptimal> ToEulerAngles(const QuaternionBase<U>& _quaternion)
     {
         // Based on: https://stackoverflow.com/a/27496984
 
-        //        return ToEulerAngles<T, Alignment, U, Alignment, true, Order>(
-        //            ToMatrix33<T, Alignment, true>(_quaternion));
+        //        return ToEulerAngles<T, SimdOptimal, U, SimdOptimal, true, Order>(
+        //            ToMatrix33<T, SimdOptimal, true>(_quaternion));
 
         // Aliases for shorter operations
         const U x = _quaternion.x,
@@ -266,7 +266,7 @@ namespace KryneEngine::Math
 
         if constexpr (Order == EulerOrder::XYZ)
         {
-            return Vector3Base<T, Alignment>(
+            return Vector3Base<T, SimdOptimal>(
                 std::atan2(
                     -2.0f * (x * y - w * z),
                     w * w + x * x - y * y - z * z),
@@ -278,7 +278,7 @@ namespace KryneEngine::Math
         }
         else if constexpr (Order == EulerOrder::XZY)
         {
-            return Vector3Base<T, Alignment>(
+            return Vector3Base<T, SimdOptimal>(
                 std::atan2(
                     2.0f * (x * z + w * y),
                     w * w + x * x - y * y - z * z),
@@ -290,7 +290,7 @@ namespace KryneEngine::Math
         }
         else if constexpr (Order == EulerOrder::YXZ)
         {
-            return Vector3Base<T, Alignment>(
+            return Vector3Base<T, SimdOptimal>(
                 std::atan2(
                     2.0f * (x * y + w * z),
                     w * w - x * x + y * y - z * z),
@@ -302,7 +302,7 @@ namespace KryneEngine::Math
         }
         else if constexpr (Order == EulerOrder::YZX)
         {
-            return Vector3Base<T, Alignment>(
+            return Vector3Base<T, SimdOptimal>(
                 std::atan2(
                     -2.0f * (y * z - w * x),
                     w * w - x * x + y * y - z * z),
@@ -314,7 +314,7 @@ namespace KryneEngine::Math
         }
         else if constexpr (Order == EulerOrder::ZXY)
         {
-            return Vector3Base<T, Alignment>(
+            return Vector3Base<T, SimdOptimal>(
                 std::atan2(
                     -2.0f * (x * z - w * y),
                     w * w - x * x - y * y + z * z),
@@ -326,7 +326,7 @@ namespace KryneEngine::Math
         }
         else if constexpr (Order == EulerOrder::ZYX)
         {
-            return Vector3Base<T, Alignment>(
+            return Vector3Base<T, SimdOptimal>(
                 std::atan2(
                     2.0f * (y * z + w * x),
                     w * w - x * x - y * y + z * z),
@@ -342,16 +342,16 @@ namespace KryneEngine::Math
         }
     }
 
-    template <class T, size_t Alignment, bool RowMajor, class U>
+    template <class T, bool SimdOptimal, bool RowMajor, class U>
         requires std::is_convertible_v<U, T>
-    Matrix33Base<T, Alignment, RowMajor> ToMatrix33(const QuaternionBase<U>& _quaternion)
+    Matrix33Base<T, SimdOptimal, RowMajor> ToMatrix33(const QuaternionBase<U>& _quaternion)
     {
         const T x(_quaternion.x);
         const T y(_quaternion.y);
         const T z(_quaternion.z);
         const T w(_quaternion.w);
 
-        return Matrix33Base<T, Alignment, RowMajor>(
+        return Matrix33Base<T, SimdOptimal, RowMajor>(
             1.0f - 2.0f * (y * y + z * z),  2.0f * (x * y - z * w),         2.0f * (x * z + y * w),
             2.0f * (x * y + z * w),         1.0f - 2.0f * (x * x + z * z),  2.0f * (y * z - x * w),
             2.0f * (x * z - y * w),         2.0f * (y * z + x * w),         1.0f - 2.0f * (x * x + y * y));
