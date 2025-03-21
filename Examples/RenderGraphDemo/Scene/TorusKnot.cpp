@@ -10,6 +10,7 @@
 #include <KryneEngine/Core/Graphics/Common/Buffer.hpp>
 #include <KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp>
 #include <KryneEngine/Core/Math/RotationConversion.hpp>
+#include <KryneEngine/Core/Math/Transform.hpp>
 #include <imgui.h>
 
 #include "TorusKnotMeshGenerator.hpp"
@@ -230,6 +231,11 @@ namespace KryneEngine::Samples::RenderGraphDemo
             }
 
             dirty |= ImGui::SliderFloat3("Scale", m_scale.GetPtr(), 0.f, 10.0f);
+
+            if (dirty)
+            {
+                m_modelMatrix = Math::ComputeTransformMatrix<float4x4>(m_translation, m_rotation, m_scale);
+            }
         }
 
         if (ImGui::CollapsingHeader("Geometry parameters", ImGuiTreeNodeFlags_DefaultOpen))
