@@ -167,7 +167,7 @@ namespace KryneEngine::Math
     }
 
     template <typename T, bool SimdOptimal, bool RowMajor>
-    Matrix44Base<T, SimdOptimal, RowMajor> Matrix44Base<T, SimdOptimal, RowMajor>::Transposed()
+    Matrix44Base<T, SimdOptimal, RowMajor> Matrix44Base<T, SimdOptimal, RowMajor>::Transposed() const
     {
         Matrix44Base result { *this };
         result.Transpose();

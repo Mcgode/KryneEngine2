@@ -74,7 +74,7 @@ namespace KryneEngine::Math
         }
 
         Matrix44Base& Transpose();
-        [[nodiscard]] Matrix44Base Transposed();
+        [[nodiscard]] Matrix44Base Transposed() const;
 
         Vector4Base<T, SimdOptimal> m_vectors[4];
     };
