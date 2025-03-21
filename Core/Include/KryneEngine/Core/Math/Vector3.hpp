@@ -62,6 +62,18 @@ namespace KryneEngine::Math
         Vector3Base operator*(const Vector3Base& _other) const;
         Vector3Base operator/(const Vector3Base& _other) const;
 
+        template<class U> requires std::is_constructible_v<T, U>
+        Vector3Base operator+(U _scalar) const { return *this + Vector3Base(_scalar); }
+
+        template<class U> requires std::is_constructible_v<T, U>
+        Vector3Base operator-(U _scalar) const { return *this - Vector3Base(_scalar); }
+
+        template<class U> requires std::is_constructible_v<T, U>
+        Vector3Base operator*(U _scalar) const { return *this * Vector3Base(_scalar); }
+
+        template<class U> requires std::is_constructible_v<T, U>
+        Vector3Base operator/(U _scalar) const { return *this / Vector3Base(_scalar); }
+
         T& operator[](size_t _index);
         const T& operator[](size_t _index) const;
 
