@@ -64,6 +64,7 @@ set(MathSrc
         Include/KryneEngine/Core/Math/Matrix.hpp
         Src/Math/Matrix44.cpp
         Include/KryneEngine/Core/Math/Matrix44.hpp
+        Include/KryneEngine/Core/Math/Transform.hpp
 )
 
 set(MemorySrc
