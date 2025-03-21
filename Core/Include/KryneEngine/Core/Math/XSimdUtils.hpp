@@ -60,7 +60,7 @@ namespace KryneEngine::Math
         static constexpr size_t kBatchSize = xsimd::batch<T, OptimalArch>::size;
         static constexpr size_t kBatchCount = kBatchSize < 4 ? 1 : 4 / kBatchSize;
         static constexpr bool kSimdOperable =
-            kBatchSize != 0 && Alignment::IsAligned(sizeof(Container), OptimalArch::alignment());
+            kBatchSize > 1 && Alignment::IsAligned(sizeof(Container), OptimalArch::alignment());
     };
 
     template<bool Aligned, class T, class A>
