@@ -58,7 +58,7 @@ namespace KryneEngine::Math
     {
         using OptimalArch = std::conditional_t<(sizeof(Container) == 32), XsimdArch256, XsimdArch128>;
         static constexpr size_t kBatchSize = xsimd::batch<T, OptimalArch>::size;
-        static constexpr size_t kBatchCount = kBatchSize < 4 ? 1 : 4 / kBatchSize;
+        static constexpr size_t kBatchCount = (kBatchSize > 4 || kBatchSize == 0) ? 1 : 4 / kBatchSize;
         static constexpr bool kSimdOperable =
             kBatchSize > 1 && Alignment::IsAligned(sizeof(Container), OptimalArch::alignment());
     };
