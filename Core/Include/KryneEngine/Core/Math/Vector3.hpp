@@ -46,9 +46,9 @@ namespace KryneEngine::Math
         requires std::is_constructible_v<T, U>
         explicit Vector3Base(U _value) : Vector3Base(_value, _value, _value) {}
 
-        template <typename U, bool OtherSimdOptimal>
+        template <typename U, bool S>
         requires std::is_constructible_v<T, U>
-        explicit Vector3Base(const Vector3Base<U, OtherSimdOptimal> &_other) : Vector3Base(_other.x, _other.y, _other.z) {}
+        explicit Vector3Base(const Vector3Base<U, S> &_other) : Vector3Base(_other.x, _other.y, _other.z) {}
 
         template <typename U0, typename U1, bool S>
             requires std::is_constructible_v<T, U0> && std::is_constructible_v<T, U1>
