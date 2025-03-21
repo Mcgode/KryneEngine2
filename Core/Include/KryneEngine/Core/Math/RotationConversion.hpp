@@ -31,17 +31,17 @@ namespace KryneEngine::Math
         requires std::is_convertible_v<U, T>
     Matrix33Base<T, SimdOptimal, RowMajor> ToMatrix33(const QuaternionBase<U>& _quaternion);
 
-    template <class T, bool VectorSimdOptimal, class U, bool MatrixSimdOptimal, bool RowMajor, EulerOrder Order = kDefaultEulerOrder>
-        requires std::is_convertible_v<U, T>
-    Vector3Base<T, VectorSimdOptimal> ToEulerAngles(const Matrix33Base<U, MatrixSimdOptimal, RowMajor>& _matrix);
+    template <Vector3Type Vector3, class U, bool MatrixSimdOptimal, bool RowMajor, EulerOrder Order = kDefaultEulerOrder>
+        requires std::is_convertible_v<U, typename Vector3::ScalarType>
+    Vector3 ToEulerAngles(const Matrix33Base<U, MatrixSimdOptimal, RowMajor>& _matrix);
 
-    template <class T, class U, bool SimdOptimal = false, EulerOrder Order = kDefaultEulerOrder>
-        requires std::is_convertible_v<U, T>
-    Vector3Base<T, SimdOptimal> ToEulerAngles(const QuaternionBase<U>& _quaternion);
+    template <Vector3Type Vector3, typename U, EulerOrder Order = kDefaultEulerOrder>
+        requires std::is_convertible_v<U, typename Vector3::ScalarType>
+    Vector3 ToEulerAngles(const QuaternionBase<U>& _quaternion);
 
-    template <class T, bool SimdOptimal, class U>
-    requires std::is_convertible_v<U, T>
-    std::pair<Vector3Base<T, SimdOptimal>, T> ToAxisAngle(const QuaternionBase<U>& _quaternion);
+    template <Vector3Type Vector3, class U>
+    requires std::is_convertible_v<U, typename Vector3::ScalarType>
+    std::pair<Vector3, typename Vector3::ScalarType> ToAxisAngle(const QuaternionBase<U>& _quaternion);
 
     // ============================================================================
     //    IMPLEMENTATIONS
@@ -145,13 +145,15 @@ namespace KryneEngine::Math
         return result;
     }
 
-    template <class T, bool VectorSimdOptimal, class U, bool MatrixSimdOptimal, bool RowMajor, EulerOrder Order>
-        requires std::is_convertible_v<U, T>
-    Vector3Base<T, VectorSimdOptimal> ToEulerAngles(const Matrix33Base<U, MatrixSimdOptimal, RowMajor>& _matrix)
+    template <Vector3Type Vector3, class U, bool MatrixSimdOptimal, bool RowMajor, EulerOrder Order>
+        requires std::is_convertible_v<U, typename Vector3::ScalarType>
+    Vector3 ToEulerAngles(const Matrix33Base<U, MatrixSimdOptimal, RowMajor>& _matrix)
     {
         // Based on https://github.com/mrdoob/three.js/blob/master/src/math/Euler.js#L188
 
-        Vector3Base<T, VectorSimdOptimal> result;
+        using T = typename Vector3::ScalarType;
+
+        Vector3 result;
         constexpr T threshold = 1.0 - QuaternionBase<T>::kQuaternionEpsilon;
         const T& m11 = _matrix.Get(0, 0),
                 m12 = _matrix.Get(0, 1),
@@ -255,14 +257,14 @@ namespace KryneEngine::Math
         return result;
     }
 
-    template <class T, class U, bool SimdOptimal, EulerOrder Order>
-        requires std::is_convertible_v<U, T>
-    Vector3Base<T, SimdOptimal> ToEulerAngles(const QuaternionBase<U>& _quaternion)
+    template <Vector3Type Vector3, class U, EulerOrder Order>
+        requires std::is_convertible_v<U, typename Vector3::ScalarType>
+    Vector3 ToEulerAngles(const QuaternionBase<U>& _quaternion)
     {
         // Fast path version of Quaternion -> Rotation Matrix -> Euler angle
         // Rather than calling the two methods, we merged them into a single one, reducing the number of operations.
 
-        using Vec3 = Vector3Base<T, SimdOptimal>;
+        using T = typename Vector3::ScalarType;
 
         // Aliases for shorter operations
         const U x = _quaternion.x,
@@ -272,7 +274,7 @@ namespace KryneEngine::Math
 
         const T threshold = 1.0 - QuaternionBase<T>::kQuaternionEpsilon;
 
-        Vec3 result;
+        Vector3 result;
 
         if constexpr (Order == EulerOrder::XYZ)
         {
@@ -422,21 +424,23 @@ namespace KryneEngine::Math
             2.0f * (x * z - y * w),         2.0f * (y * z + x * w),         1.0f - 2.0f * (x * x + y * y));
     }
 
-    template <class T, bool SimdOptimal, class U>
-        requires std::is_convertible_v<U, T>
-    std::pair<Vector3Base<T, SimdOptimal>, T> ToAxisAngle(const QuaternionBase<U>& _quaternion)
+    template <Vector3Type Vector3, class U>
+        requires std::is_convertible_v<U, typename Vector3::ScalarType>
+    std::pair<Vector3, typename Vector3::ScalarType> ToAxisAngle(const QuaternionBase<U>& _quaternion)
     {
+        using T = typename Vector3::ScalarType;
+
         const T angle = 2.0 * std::acos(_quaternion.w);
         const T s = std::sqrt(1.0 - _quaternion.w * _quaternion.w);
         constexpr T epsilon = 1e-6;
 
         if (s < epsilon)
         {
-            return std::make_pair(Vector3Base<T, SimdOptimal>(1, 0, 0), angle);
+            return std::make_pair(Vector3(1, 0, 0), angle);
         }
         else
         {
-            return std::make_pair(Vector3Base<T, SimdOptimal>(_quaternion.x / s, _quaternion.y / s, _quaternion.z / s), angle);
+            return std::make_pair(Vector3(_quaternion.x / s, _quaternion.y / s, _quaternion.z / s), angle);
         }
     }
 }

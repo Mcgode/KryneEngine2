@@ -157,17 +157,17 @@ namespace KryneEngine::Tests::Math
         {
             const float3 euler = float3(_x, _y, _z) * float3(M_PI);
 
-            const float3 eulerXyz = ToEulerAngles<float, float, false, EulerOrder::XYZ>(
+            const auto eulerXyz = ToEulerAngles<float3, float, EulerOrder::XYZ>(
                 FromEulerAngles<float, float, false, EulerOrder::XYZ>(euler));
-            const float3 eulerXzy = ToEulerAngles<float, float, false, EulerOrder::XZY>(
+            const auto eulerXzy = ToEulerAngles<float3, float, EulerOrder::XZY>(
                 FromEulerAngles<float, float, false, EulerOrder::XZY>(euler));
-            const float3 eulerYxz = ToEulerAngles<float, float, false, EulerOrder::YXZ>(
+            const auto eulerYxz = ToEulerAngles<float3, float, EulerOrder::YXZ>(
                 FromEulerAngles<float, float, false, EulerOrder::YXZ>(euler));
-            const float3 eulerYzx = ToEulerAngles<float, float, false, EulerOrder::YZX>(
+            const auto eulerYzx = ToEulerAngles<float3, float, EulerOrder::YZX>(
                 FromEulerAngles<float, float, false, EulerOrder::YZX>(euler));
-            const float3 eulerZxy = ToEulerAngles<float, float, false, EulerOrder::ZXY>(
+            const auto eulerZxy = ToEulerAngles<float3, float, EulerOrder::ZXY>(
                 FromEulerAngles<float, float, false, EulerOrder::ZXY>(euler));
-            const float3 eulerZyx = ToEulerAngles<float, float, false, EulerOrder::ZYX>(
+            const auto eulerZyx = ToEulerAngles<float3, float, EulerOrder::ZYX>(
                 FromEulerAngles<float, float, false, EulerOrder::ZYX>(euler));
 
             EXPECT_LT((euler - eulerXyz).Length(), Quaternion::kQuaternionEpsilon);
