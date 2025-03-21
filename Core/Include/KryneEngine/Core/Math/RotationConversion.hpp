@@ -149,6 +149,8 @@ namespace KryneEngine::Math
         requires std::is_convertible_v<U, T>
     Vector3Base<T, VectorSimdOptimal> ToEulerAngles(const Matrix33Base<U, MatrixSimdOptimal, RowMajor>& _matrix)
     {
+        // Based on https://github.com/mrdoob/three.js/blob/master/src/math/Euler.js#L188
+
         Vector3Base<T, VectorSimdOptimal> result;
         constexpr T threshold = 1.0 - QuaternionBase<T>::kQuaternionEpsilon;
         const T& m11 = _matrix.Get(0, 0),
@@ -178,58 +180,58 @@ namespace KryneEngine::Math
         }
         else if constexpr (Order == EulerOrder::XZY)
         {
-            result.y = std::asin(-m12);
+            result.z = std::asin(-m12);
             if (std::abs(m12) < 1.0f - threshold)
             {
                 result.x = std::atan2(m32, m22);
-                result.z = std::atan2(m13, m11);
+                result.y = std::atan2(m13, m11);
             }
             else
             {
                 result.x = std::atan2(-m23, m33);
-                result.z = 0;
+                result.y = 0;
             }
         }
         else if constexpr (Order == EulerOrder::YXZ)
         {
-            result.y = std::asin(-m23);
+            result.x = std::asin(-m23);
             if (std::abs(m23) < threshold)
             {
-                result.x = std::atan2(m13, m33);
+                result.y = std::atan2(m13, m33);
                 result.z = std::atan2(m21, m22);
             }
             else
             {
-                result.x = std::atan2(-m31, m11);
+                result.y = std::atan2(-m31, m11);
                 result.z = 0;
             }
         }
         else if constexpr (Order == EulerOrder::YZX)
         {
-            result.y = std::asin(m21);
+            result.z = std::asin(m21);
             if (std::abs(m21) < threshold)
             {
                 result.x = std::atan2(-m23, m22);
-                result.z = std::atan2(-m31, m11);
+                result.y = std::atan2(-m31, m11);
             }
             else
             {
-                result.x = std::atan2(m13, m33);
-                result.z = 0;
+                result.x = 0;
+                result.y = std::atan2(m13, m33);
             }
         }
         else if constexpr (Order == EulerOrder::ZXY)
         {
-            result.y = std::asin(m32);
+            result.x = std::asin(m32);
             if (std::abs(m32) < threshold)
             {
-                result.x = std::atan2(-m32, m33);
+                result.y = std::atan2(-m31, m33);
                 result.z = std::atan2(-m12, m22);
             }
             else
             {
+                result.y = 0;
                 result.x = std::atan2(m21, m11);
-                result.z = 0;
             }
         }
         else if constexpr (Order == EulerOrder::ZYX)
@@ -242,8 +244,8 @@ namespace KryneEngine::Math
             }
             else
             {
-                result.x = std::atan2(-m12, m22);
-                result.z = 0;
+                result.x = 0;
+                result.z = std::atan2(-m12, m22);
             }
         }
         else
