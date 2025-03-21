@@ -32,7 +32,18 @@ namespace KryneEngine::Math
         template <class U, bool S>
         requires std::is_constructible_v<T, U>
         Matrix44Base(Vector4Base<U, S> _v0, Vector4Base<U, S> _v1, Vector4Base<U, S> _v2, Vector4Base<U, S> _v3)
-            : m_vectors{ _v0, _v1, _v2, _v3 }
+            : m_vectors{
+                  Vector4Base<T, SimdOptimal> { _v0 },
+                  Vector4Base<T, SimdOptimal> { _v1 },
+                  Vector4Base<T, SimdOptimal> { _v2 },
+                  Vector4Base<T, SimdOptimal> { _v3 },
+              }
+        {}
+
+        template <class U, bool S>
+        requires std::is_constructible_v<T, U>
+        explicit Matrix44Base(const Matrix44Base<U, S, RowMajor>& _other)
+            : Matrix44Base(_other.m_vectors[0], _other.m_vectors[1], _other.m_vectors[2], _other.m_vectors[3])
         {}
 
         Matrix44Base operator+(const Matrix44Base& _other) const;
