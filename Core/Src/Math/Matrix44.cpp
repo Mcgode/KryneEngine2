@@ -71,11 +71,11 @@ namespace KryneEngine::Math
                     {
                         if (j == 0)
                         {
-                            result.m_vectors[i][k] = xsimd::reduce_add(matALine * matB[k + Operability::kBatchSize * j]);
+                            result.m_vectors[i][k] = xsimd::reduce_add(matALine * matB[k]);
                         }
                         else
                         {
-                            result.m_vectors[i][k] += xsimd::reduce_add(matALine * matB[k + Operability::kBatchSize * j]);
+                            result.m_vectors[i][k] += xsimd::reduce_add(matALine * matB[k + 4 * j]);
                         }
                     }
 
