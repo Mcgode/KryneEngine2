@@ -14,6 +14,10 @@ namespace KryneEngine::Math
     template<class T, bool SimdOptimal, bool RowMajor>
     struct Matrix44Base
     {
+        using ScalarType = T;
+        static constexpr bool kSimdOptimal = SimdOptimal;
+        static constexpr bool kRowMajorLayout = RowMajor;
+
         Matrix44Base()
             : m_vectors{
                 Vector4Base<T, SimdOptimal>{ 1, 0, 0, 0 },
@@ -77,5 +81,13 @@ namespace KryneEngine::Math
         [[nodiscard]] Matrix44Base Transposed() const;
 
         Vector4Base<T, SimdOptimal> m_vectors[4];
+    };
+
+    template<class T>
+    concept Matrix44Type = requires {
+        typename T::ScalarType;
+        T::kSimdOptimal;
+        T::kRowMajorLayout;
+        std::is_same_v<Matrix44Base<typename T::ScalarType, T::kSimdOptimal, T::kRowMajorLayout>, T>;
     };
 }
