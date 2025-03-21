@@ -189,4 +189,46 @@ namespace KryneEngine::Tests::Math
             EXPECT_EQ(resultBa, double3x3_simd(expectedResultBa));
         }
     }
+
+    TEST(Matrix33, Transpose)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        const float3x3 matBase {
+            1.f, 2.f, 3.f,
+            4.f, 5.f, 6.f,
+            7.f, 8.f, 9.f
+        };
+
+        const float3x3 expected {
+            1.f, 4.f, 7.f,
+            2.f, 5.f, 8.f,
+            3.f, 6.f, 9.f
+        };
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        {
+            EXPECT_EQ(matBase.Transposed(), expected);
+        }
+
+        {
+            const float3x3_simd mat(matBase);
+            EXPECT_EQ(mat.Transposed(), float3x3_simd(expected));
+        }
+
+        {
+            const double3x3 mat(matBase);
+            EXPECT_EQ(mat.Transposed(), double3x3(expected));
+        }
+
+        {
+            const double3x3_simd mat(matBase);
+            EXPECT_EQ(mat.Transposed(), double3x3_simd(expected));
+        }
+    }
 }
