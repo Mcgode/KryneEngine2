@@ -47,6 +47,9 @@ namespace KryneEngine::Math
                    && m_vectors[3] == _other.m_vectors[3];
         }
 
+        Matrix44Base& Transpose();
+        [[nodiscard]] Matrix44Base Transposed();
+
         Vector4Base<T, SimdOptimal> m_vectors[4];
     };
 }

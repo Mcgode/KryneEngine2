@@ -56,7 +56,7 @@ namespace KryneEngine::Math
                     matB + i * Operability::kBatchSize,
                     matB + (i + 1) * Operability::kBatchSize);
             }
-            if (Operability::kBatchCount == 2)
+            if constexpr (Operability::kBatchCount == 2)
             {
                 std::swap(matB[2], matB[4]);
                 std::swap(matB[3], matB[5]);
@@ -115,6 +115,63 @@ namespace KryneEngine::Math
                 }
             };
         }
+    }
+
+    template <typename T, bool SimdOptimal, bool RowMajor>
+    Matrix44Base<T, SimdOptimal, RowMajor>& Matrix44Base<T, SimdOptimal, RowMajor>::Transpose()
+    {
+        constexpr bool alignedOps = SimdOptimal;
+        using Operability = SimdOperability<T, Matrix44Base>;
+
+        if constexpr (Operability::kSimdOperable)
+        {
+            using OptimalArch = Operability::OptimalArch;
+            xsimd::batch<T, OptimalArch> mat[4 * Operability::kBatchCount];
+            for (size_t i = 0; i < Operability::kBatchCount; ++i)
+            {
+                mat[0 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[0].GetPtr() + Operability::kBatchSize * i);
+                mat[1 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[1].GetPtr() + Operability::kBatchSize * i);
+                mat[2 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[2].GetPtr() + Operability::kBatchSize * i);
+                mat[3 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[3].GetPtr() + Operability::kBatchSize * i);
+            }
+            for (size_t i = 0; i < Operability::kBatchCount * Operability::kBatchCount; ++i)
+            {
+                xsimd::transpose(
+                    mat + i * Operability::kBatchSize,
+                    mat + (i + 1) * Operability::kBatchSize);
+            }
+            if constexpr (Operability::kBatchCount == 2)
+            {
+                std::swap(mat[2], mat[4]);
+                std::swap(mat[3], mat[5]);
+            }
+            for (auto i = 0u; i < Operability::kBatchCount; ++i)
+            {
+                XsimdStore<alignedOps, T, OptimalArch>(m_vectors[0].GetPtr() + Operability::kBatchSize * i, mat[0 + 4 * i]);
+                XsimdStore<alignedOps, T, OptimalArch>(m_vectors[1].GetPtr() + Operability::kBatchSize * i, mat[1 + 4 * i]);
+                XsimdStore<alignedOps, T, OptimalArch>(m_vectors[2].GetPtr() + Operability::kBatchSize * i, mat[2 + 4 * i]);
+                XsimdStore<alignedOps, T, OptimalArch>(m_vectors[3].GetPtr() + Operability::kBatchSize * i, mat[3 + 4 * i]);
+            }
+        }
+        else
+        {
+            std::swap(m_vectors[0][1], m_vectors[1][0]);
+            std::swap(m_vectors[0][2], m_vectors[2][0]);
+            std::swap(m_vectors[0][3], m_vectors[3][0]);
+            std::swap(m_vectors[1][2], m_vectors[2][1]);
+            std::swap(m_vectors[1][3], m_vectors[3][1]);
+            std::swap(m_vectors[2][3], m_vectors[3][2]);
+        }
+
+        return *this;
+    }
+
+    template <typename T, bool SimdOptimal, bool RowMajor>
+    Matrix44Base<T, SimdOptimal, RowMajor> Matrix44Base<T, SimdOptimal, RowMajor>::Transposed()
+    {
+        Matrix44Base result { *this };
+        result.Transpose();
+        return result;
     }
 
 #define IMPLEMENTATION_INDIVIDUAL(type, simdOptimal, rowMajor) \
