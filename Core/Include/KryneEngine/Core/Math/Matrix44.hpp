@@ -39,6 +39,14 @@ namespace KryneEngine::Math
         Matrix44Base operator-(const Matrix44Base& _other) const;
         Matrix44Base operator*(const Matrix44Base& _other) const;
 
+        bool operator==(const Matrix44Base& _other) const
+        {
+            return m_vectors[0] == _other.m_vectors[0]
+                   && m_vectors[1] == _other.m_vectors[1]
+                   && m_vectors[2] == _other.m_vectors[2]
+                   && m_vectors[3] == _other.m_vectors[3];
+        }
+
         Vector4Base<T, SimdOptimal> m_vectors[4];
     };
 }
