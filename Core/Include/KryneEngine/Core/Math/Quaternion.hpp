@@ -26,6 +26,8 @@ namespace KryneEngine::Math
     template<class T> requires (std::is_floating_point_v<T>)
     struct QuaternionBase
     {
+        using ScalarType = T;
+
         QuaternionBase()
             : w(1)
             , x(0)
@@ -169,6 +171,12 @@ namespace KryneEngine::Math
 #pragma clang diagnostic pop
 
         static constexpr T kQuaternionEpsilon = T(1e-6f);
+    };
+
+    template<class T>
+    concept QuaternionType = requires {
+        typename T::ScalarType;
+        std::is_same_v<T, QuaternionBase<typename T::ScalarType>>;
     };
 
     using Quaternion = QuaternionBase<float>;
