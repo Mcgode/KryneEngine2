@@ -54,13 +54,17 @@ namespace KryneEngine::Math
             const Vector3Base<U, VSimdOptimal>& _v1,
             const Vector3Base<U, VSimdOptimal>& _v2,
             const Vector3Base<U, VSimdOptimal>& _v3)
-                : m_vectors { _v1, _v2, _v3 }
+                : m_vectors {
+                  Vector3Base<T, SimdOptimal>{ _v1 },
+                  Vector3Base<T, SimdOptimal>{ _v2 },
+                  Vector3Base<T, SimdOptimal>{ _v3 }
+                }
         {}
 
-        template<class U, bool OtherSimdOptimal>
+        template<class U, bool S>
         requires eastl::is_convertible_v<U, T>
-        explicit Matrix33Base(const Matrix33Base<U, OtherSimdOptimal, RowMajor>& _other)
-            : m_vectors { _other.m_vectors[0], _other.m_vectors[1], _other.m_vectors[2] }
+        explicit Matrix33Base(const Matrix33Base<U, S, RowMajor>& _other)
+            : Matrix33Base(_other.m_vectors[0], _other.m_vectors[1], _other.m_vectors[2])
         {}
 
         [[nodiscard]] bool IsRowMajor() const { return RowMajor; }
