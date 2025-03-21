@@ -45,10 +45,10 @@ namespace KryneEngine::Math
 
             for (size_t i = 0; i < Operability::kBatchCount; ++i)
             {
-                matB[0 + 4 * i] = XsimdLoad<alignedOps>(_other.m_vectors[0].GetPtr() + Operability::kBatchSize * i);
-                matB[1 + 4 * i] = XsimdLoad<alignedOps>(_other.m_vectors[1].GetPtr() + Operability::kBatchSize * i);
-                matB[2 + 4 * i] = XsimdLoad<alignedOps>(_other.m_vectors[2].GetPtr() + Operability::kBatchSize * i);
-                matB[3 + 4 * i] = XsimdLoad<alignedOps>(_other.m_vectors[3].GetPtr() + Operability::kBatchSize * i);
+                matB[0 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(_other.m_vectors[0].GetPtr() + Operability::kBatchSize * i);
+                matB[1 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(_other.m_vectors[1].GetPtr() + Operability::kBatchSize * i);
+                matB[2 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(_other.m_vectors[2].GetPtr() + Operability::kBatchSize * i);
+                matB[3 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(_other.m_vectors[3].GetPtr() + Operability::kBatchSize * i);
             }
             for (size_t i = 0; i < Operability::kBatchCount * Operability::kBatchCount; ++i)
             {
@@ -81,6 +81,7 @@ namespace KryneEngine::Math
 
                 }
             }
+            return result;
         }
         else
         {
@@ -115,4 +116,19 @@ namespace KryneEngine::Math
             };
         }
     }
+
+#define IMPLEMENTATION_INDIVIDUAL(type, simdOptimal, rowMajor) \
+    template struct Matrix44Base<type, simdOptimal, rowMajor>
+
+#define IMPLEMENTATION(type)                        \
+    IMPLEMENTATION_INDIVIDUAL(type, true, true);    \
+    IMPLEMENTATION_INDIVIDUAL(type, true, false);   \
+    IMPLEMENTATION_INDIVIDUAL(type, false, false);  \
+    IMPLEMENTATION_INDIVIDUAL(type, false, true)
+
+    IMPLEMENTATION(float);
+    IMPLEMENTATION(double);
+
+#undef IMPLEMENTATION
+#undef IMPLEMENTATION_INDIVIDUAL
 }
