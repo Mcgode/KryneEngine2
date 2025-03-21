@@ -39,6 +39,10 @@ namespace KryneEngine::Math
         requires std::is_convertible_v<U, T>
     Vector3Base<T, SimdOptimal> ToEulerAngles(const QuaternionBase<U>& _quaternion);
 
+    template <class T, bool SimdOptimal, class U>
+    requires std::is_convertible_v<U, T>
+    std::pair<Vector3Base<T, SimdOptimal>, T> ToAxisAngle(const QuaternionBase<U>& _quaternion);
+
     // ============================================================================
     //    IMPLEMENTATIONS
     // ============================================================================
@@ -355,5 +359,23 @@ namespace KryneEngine::Math
             1.0f - 2.0f * (y * y + z * z),  2.0f * (x * y - z * w),         2.0f * (x * z + y * w),
             2.0f * (x * y + z * w),         1.0f - 2.0f * (x * x + z * z),  2.0f * (y * z - x * w),
             2.0f * (x * z - y * w),         2.0f * (y * z + x * w),         1.0f - 2.0f * (x * x + y * y));
+    }
+
+    template <class T, bool SimdOptimal, class U>
+        requires std::is_convertible_v<U, T>
+    std::pair<Vector3Base<T, SimdOptimal>, T> ToAxisAngle(const QuaternionBase<U>& _quaternion)
+    {
+        const T angle = 2.0 * std::acos(_quaternion.w);
+        const T s = std::sqrt(1.0 - _quaternion.w * _quaternion.w);
+        constexpr T epsilon = 1e-6;
+
+        if (s < epsilon)
+        {
+            return std::make_pair(Vector3Base<T, SimdOptimal>(1, 0, 0), angle);
+        }
+        else
+        {
+            return std::make_pair(Vector3Base<T, SimdOptimal>(_quaternion.x / s, _quaternion.y / s, _quaternion.z / s), angle);
+        }
     }
 }
