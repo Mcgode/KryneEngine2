@@ -63,5 +63,9 @@ namespace KryneEngine::Samples::RenderGraphDemo
         float3 m_translation { 0.0f };
         Math::Quaternion m_rotation {};
         float3 m_scale { 1 };
+
+        bool m_windowOpen = true;
+
+        void RenderWindow();
     };
 }

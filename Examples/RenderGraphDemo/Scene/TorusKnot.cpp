@@ -9,6 +9,8 @@
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Graphics/Common/Buffer.hpp>
 #include <KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp>
+#include <KryneEngine/Core/Math/RotationConversion.hpp>
+#include <imgui.h>
 
 #include "TorusKnotMeshGenerator.hpp"
 
@@ -34,7 +36,12 @@ namespace KryneEngine::Samples::RenderGraphDemo
             m_transferBuffer = GenPool::kInvalidHandle;
         }
 
-        if (!m_meshDirty)
+        if (m_windowOpen)
+        {
+            RenderWindow();
+        }
+
+        if (!m_meshDirty || m_transferBuffer != GenPool::kInvalidHandle)
         {
             return;
         }
@@ -91,6 +98,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         m_allocator.Delete(meshData.m_indices);
         m_allocator.Delete(meshData.m_vertices);
+
+        m_meshDirty = false;
     }
 
     void TorusKnot::ProcessTransfers(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
@@ -197,5 +206,74 @@ namespace KryneEngine::Samples::RenderGraphDemo
     {
         m_meshDirty = true;
         m_qValue = _qValue;
+    }
+
+    void TorusKnot::RenderWindow()
+    {
+        if (!ImGui::Begin("Torus knot", &m_windowOpen))
+        {
+            ImGui::End();
+            return;
+        }
+
+        if (ImGui::CollapsingHeader("Transform parameters", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            bool dirty = false;
+
+            dirty |= ImGui::SliderFloat3("Position", m_translation.GetPtr(), -25, 25);
+
+            auto euler = Math::ToEulerAngles<float3>(m_rotation) * (180. / M_PI);
+            if (ImGui::SliderFloat3("Rotation", euler.GetPtr(), -180, 180))
+            {
+                dirty = true;
+                m_rotation = Math::FromEulerAngles<float>(euler * (M_PI / 180.));
+            }
+
+            dirty |= ImGui::SliderFloat3("Scale", m_scale.GetPtr(), 0.f, 10.0f);
+        }
+
+        if (ImGui::CollapsingHeader("Geometry parameters", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            const u32 kMinPValue = 1;
+            const u32 kMaxPValue = 10;
+            m_meshDirty |= ImGui::SliderScalar(
+                "P value",
+                ImGuiDataType_U32,
+                &m_pValue,
+                &kMinPValue,
+                &kMaxPValue);
+
+            const u32 kMinQValue = 1;
+            const u32 kMaxQValue = 10;
+            m_meshDirty |= ImGui::SliderScalar(
+                "Q value",
+                ImGuiDataType_U32,
+                &m_qValue,
+                &kMinQValue,
+                &kMaxQValue);
+
+            const u32 kMinRadialSegments = 3;
+            const u32 kMaxRadialSegments = 512;
+            m_meshDirty |= ImGui::SliderScalar(
+                "Radial segments",
+                ImGuiDataType_U32,
+                &m_radialSegments,
+                &kMinRadialSegments,
+                &kMaxRadialSegments);
+
+            const u32 kMinTubularSegments = 16;
+            const u32 kMaxTubularSegments = 2048;
+            m_meshDirty |= ImGui::SliderScalar(
+                "Tubular segments",
+                ImGuiDataType_U32,
+                &m_tubularSegments,
+                &kMinTubularSegments,
+                &kMaxTubularSegments);
+
+            m_meshDirty |= ImGui::SliderFloat("Knot radius", &m_knotRadius, 0.0f, 10.0f);
+            m_meshDirty |= ImGui::SliderFloat("Tube radius", &m_tubeRadius, 0.0f, 1.0f);
+        }
+
+        ImGui::End();
     }
 }
