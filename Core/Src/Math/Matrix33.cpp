@@ -108,12 +108,18 @@ namespace KryneEngine::Math
         return *this;
     }
 
-    template struct Matrix33Base<float, false, true>;
-//    template struct Matrix33Base<float, 16, true>;
-//    template struct Matrix33Base<float, 4, false>;
-//    template struct Matrix33Base<float, 16, false>;
-//    template struct Matrix33Base<double, 8, true>;
-//    template struct Matrix33Base<double, 32, true>;
-//    template struct Matrix33Base<double, 8, false>;
-//    template struct Matrix33Base<double, 32, false>;
+#define IMPLEMENTATION_INDIVIDUAL(type, simdOptimal, rowMajor) \
+    template struct Matrix33Base<type, simdOptimal, rowMajor>
+
+#define IMPLEMENTATION(type)                        \
+    IMPLEMENTATION_INDIVIDUAL(type, true, true);    \
+    IMPLEMENTATION_INDIVIDUAL(type, true, false);   \
+    IMPLEMENTATION_INDIVIDUAL(type, false, false);  \
+    IMPLEMENTATION_INDIVIDUAL(type, false, true)
+
+    IMPLEMENTATION(float);
+    IMPLEMENTATION(double);
+
+#undef IMPLEMENTATION
+#undef IMPLEMENTATION_INDIVIDUAL
 }
