@@ -11,7 +11,7 @@
 
 namespace KryneEngine::Math
 {
-    template<typename T, bool SimdOptimal, bool RowMajor>
+    template<class T, bool SimdOptimal, bool RowMajor>
     struct Matrix44Base
     {
         Matrix44Base()
