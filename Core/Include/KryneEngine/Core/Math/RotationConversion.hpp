@@ -259,10 +259,10 @@ namespace KryneEngine::Math
         requires std::is_convertible_v<U, T>
     Vector3Base<T, SimdOptimal> ToEulerAngles(const QuaternionBase<U>& _quaternion)
     {
-        // Based on: https://stackoverflow.com/a/27496984
+        // Fast path version of Quaternion -> Rotation Matrix -> Euler angle
+        // Rather than calling the two methods, we merged them into a single one, reducing the number of operations.
 
-        //        return ToEulerAngles<T, SimdOptimal, U, SimdOptimal, true, Order>(
-        //            ToMatrix33<T, SimdOptimal, true>(_quaternion));
+        using Vec3 = Vector3Base<T, SimdOptimal>;
 
         // Aliases for shorter operations
         const U x = _quaternion.x,
@@ -270,82 +270,141 @@ namespace KryneEngine::Math
                 z = _quaternion.z,
                 w = _quaternion.w;
 
+        const T threshold = 1.0 - QuaternionBase<T>::kQuaternionEpsilon;
+
+        Vec3 result;
+
         if constexpr (Order == EulerOrder::XYZ)
         {
-            return Vector3Base<T, SimdOptimal>(
-                std::atan2(
-                    -2.0f * (x * y - w * z),
-                    w * w + x * x - y * y - z * z),
-                std::asin(2.0f * (x * z + w * y)),
-                std::atan2(
-                    -2.0f * (y * z - w * x),
-                    w * w - x * x - y * y + z * z)
-            );
+            const T sinValue = 2.0f * (x * z + y * w);
+            result.y = std::asin(sinValue);
+            if (std::abs(sinValue) < threshold)
+            {
+                result.x = std::atan2(
+                    -2.0f * (y * z - x * w),
+                    1.0f - 2.0f * (x * x + y * y));
+                result.z = std::atan2(
+                    -2.0f * (x * y - z * w),
+                    1.0f - 2.0f * (y * y + z * z));
+            }
+            else
+            {
+                result.x = std::atan2(
+                    2.0f * (y * z + x * w),
+                    1.0f - 2.0f * (x * x + z * z));
+                result.z = 0;
+            }
         }
         else if constexpr (Order == EulerOrder::XZY)
         {
-            return Vector3Base<T, SimdOptimal>(
-                std::atan2(
-                    2.0f * (x * z + w * y),
-                    w * w + x * x - y * y - z * z),
-                std::asin(2.0f * (y * z + w * x)),
-                std::atan2(
-                    -2.0f * (x * y - w * z),
-                    w * w - x * x + y * y - z * z)
-            );
+            const T sinValue = -2.0f * (x * y - z * w);
+            result.z = std::asin(sinValue);
+            if (std::abs(sinValue) < threshold)
+            {
+                result.x = std::atan2(
+                    2.0f * (y * z + x * w),
+                    1.0f - 2.0f * (x * x + z * z));
+                result.y = std::atan2(
+                    2.0f * (x * z + y * w),
+                    1.0f - 2.0f * (y * y + z * z));
+            }
+            else
+            {
+                result.x = std::atan2(
+                    -2.0f * (y * z - x * w),
+                    1.0f - 2.0f * (x * x + y * y));
+                result.y = 0;
+            }
         }
         else if constexpr (Order == EulerOrder::YXZ)
         {
-            return Vector3Base<T, SimdOptimal>(
-                std::atan2(
-                    2.0f * (x * y + w * z),
-                    w * w - x * x + y * y - z * z),
-                std::asin(-2.0f * (y * z - w * x)),
-                std::atan2(
-                    2.0f * (x * z + w * y),
-                    w * w - x * x - y * y + z * z)
-            );
+            const T sinValue = 2.0f * (y * z - x * w);
+            result.x = std::asin(-sinValue);
+            if (std::abs(sinValue) < threshold)
+            {
+                result.y = std::atan2(
+                    2.0f * (x * z + y * w),
+                    1.0f - 2.0f * (x * x + y * y));
+                result.z = std::atan2(
+                    2.0f * (x * y + z * w),
+                    1.0f - 2.0f * (x * x + z * z));
+            }
+            else
+            {
+                result.y = std::atan2(
+                    -2.0f * (x * z - y * w),
+                    1.0f - 2.0f * (y * y + z * z));
+                result.z = 0;
+            }
         }
         else if constexpr (Order == EulerOrder::YZX)
         {
-            return Vector3Base<T, SimdOptimal>(
-                std::atan2(
-                    -2.0f * (y * z - w * x),
-                    w * w - x * x + y * y - z * z),
-                std::asin(2.0f * (x * y + w * z)),
-                std::atan2(
-                    -2.0f * (x * z - w * y),
-                    w * w + x * x - y * y - z * z)
-            );
+            const T sinValue = 2.0f * (x * y + z * w);
+            result.z = std::asin(sinValue);
+            if (std::abs(sinValue) < threshold)
+            {
+                result.x = std::atan2(
+                    -2.0f * (y * z - x * w),
+                    1.0f - 2.0f * (x * x + z * z));
+                result.y = std::atan2(
+                    -2.0f * (x * z - y * w),
+                    1.0f - 2.0f * (y * y + z * z));
+            }
+            else
+            {
+                result.x = 0;
+                result.y = std::atan2(
+                    2.0f * (x * z + y * w),
+                    1.0f - 2.0f * (x * x + y * y));
+            }
         }
         else if constexpr (Order == EulerOrder::ZXY)
         {
-            return Vector3Base<T, SimdOptimal>(
-                std::atan2(
-                    -2.0f * (x * z - w * y),
-                    w * w - x * x - y * y + z * z),
-                std::asin(2.0f * (y * z + w * x)),
-                std::atan2(
-                    -2.0f * (x * y - w * z),
-                    w * w - x * x + y * y - z * z)
-            );
+            const T sinValue = 2.0f * (y * z + x * w);
+            result.x = std::asin(sinValue);
+            if (std::abs(sinValue) < threshold)
+            {
+                result.y = std::atan2(
+                    -2.0f * (x * z - y * w),
+                    1.0f - 2.0f * (x * x + y * y));
+                result.z = std::atan2(
+                    -2.0f * (x * y - z * w),
+                    1.0f - 2.0f * (x * x + z * z));
+            }
+            else
+            {
+                result.y = 0;
+                result.z = std::atan2(
+                    2.0f * (x * y + z * w),
+                    1.0f - 2.0f * (y * y + z * z));
+            }
         }
         else if constexpr (Order == EulerOrder::ZYX)
         {
-            return Vector3Base<T, SimdOptimal>(
-                std::atan2(
-                    2.0f * (y * z + w * x),
-                    w * w - x * x - y * y + z * z),
-                std::asin(-2.0f * (x * z - w * y)),
-                std::atan2(
-                    2.0f * (x * y + w * z),
-                    w * w + x * x - y * y - z * z)
-            );
+            const T sinValue = 2.0f * (x * z - y * w);
+            result.y = std::asin(-sinValue);
+            if (std::abs(sinValue) < threshold)
+            {
+                result.x = std::atan2(
+                    2.0f * (y * z + x * w),
+                    1.0f - 2.0f * (x * x + y * y));
+                result.z = std::atan2(
+                    2.0f * (x * y + z * w),
+                    1.0f - 2.0f * (y * y + z * z));
+            }
+            else
+            {
+                result.x = 0;
+                result.z = std::atan2(
+                    -2.0f * (x * y - z * w),
+                    1.0f - 2.0f * (x * x + z * z));
+            }
         }
         else
         {
             static_assert( false, "Invalid EulerOrder");
         }
+        return result;
     }
 
     template <class T, bool SimdOptimal, bool RowMajor, class U>
