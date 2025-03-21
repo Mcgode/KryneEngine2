@@ -108,6 +108,14 @@ namespace KryneEngine::Math
         return *this;
     }
 
+    template <class T, bool SimdOptimal, bool RowMajor>
+    Matrix33Base<T, SimdOptimal, RowMajor> Matrix33Base<T, SimdOptimal, RowMajor>::Transposed() const
+    {
+        Matrix33Base transposed = *this;
+        transposed.Transpose();
+        return transposed;
+    }
+
 #define IMPLEMENTATION_INDIVIDUAL(type, simdOptimal, rowMajor) \
     template struct Matrix33Base<type, simdOptimal, rowMajor>
 

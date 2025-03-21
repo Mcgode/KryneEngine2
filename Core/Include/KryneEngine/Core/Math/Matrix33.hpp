@@ -94,6 +94,7 @@ namespace KryneEngine::Math
          * @return A reference to the transposed matrix.
          */
         Matrix33Base& Transpose();
+        [[nodiscard]] Matrix33Base Transposed() const;
 
         /**
          * @brief Converts a given 3x3 matrix from a row-major type to a colum-major type, or vice versa.
