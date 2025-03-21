@@ -77,6 +77,13 @@ namespace KryneEngine::Math
         Matrix33Base operator-(const Matrix33Base& _other) const;
         Matrix33Base operator*(const Matrix33Base& _other) const;
 
+        bool operator==(const Matrix33Base& _other) const
+        {
+            return m_vectors[0] == _other.m_vectors[0]
+                   && m_vectors[1] == _other.m_vectors[1]
+                   && m_vectors[2] == _other.m_vectors[2];
+        }
+
         /**
          * Performs an in-place transposition of the 3x3 matrix.
          *
