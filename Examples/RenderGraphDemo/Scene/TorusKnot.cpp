@@ -71,7 +71,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
                 .m_debugName = "TorusKnotIndexBuffer"
 #endif
             },
-            .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::IndexBuffer,
+            .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::IndexBuffer | MemoryUsage::TransferDstBuffer,
         });
         m_vertexBuffer = _graphicsContext->CreateBuffer({
             .m_desc = {
@@ -80,7 +80,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
                 .m_debugName = "TorusKnotVertexBuffer"
 #endif
             },
-            .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::VertexBuffer,
+            .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::VertexBuffer | MemoryUsage::TransferDstBuffer,
         });
 
         BufferMapping mapping(m_transferBuffer, m_indexBufferSize + m_vertexBufferSize);
