@@ -21,6 +21,11 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
     SceneManager::~SceneManager() = default;
 
+    void SceneManager::Process(GraphicsContext* _graphicsContext)
+    {
+        m_torusKnot->Process(_graphicsContext);
+    }
+
     void SceneManager::ExecuteTransfers(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
     {
         KE_ZoneScopedFunction("SceneManager::ExecuteTransfers");

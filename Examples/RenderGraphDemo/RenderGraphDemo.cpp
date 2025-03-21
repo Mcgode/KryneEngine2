@@ -419,6 +419,11 @@ int main()
         }
 
         {
+            KE_ZoneScoped("Process scene");
+            sceneManager.Process(graphicsContext);
+        }
+
+        {
             KE_ZoneScoped("Execute render graph");
 
             renderGraph.SubmitFrame(*graphicsContext, nullptr);

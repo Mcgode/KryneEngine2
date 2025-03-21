@@ -19,6 +19,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
         explicit SceneManager(AllocatorInstance _allocator);
         ~SceneManager();
 
+        void Process(GraphicsContext* _graphicsContext);
+
         void ExecuteTransfers(GraphicsContext* _graphicsContext, CommandListHandle _commandList);
 
     private:
