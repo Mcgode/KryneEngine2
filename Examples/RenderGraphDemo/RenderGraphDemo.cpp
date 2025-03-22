@@ -89,7 +89,7 @@ int main()
     Modules::ImGui::Context* imGuiContext = nullptr;
 
     RenderGraph::RenderGraph renderGraph {};
-    SceneManager sceneManager(allocator);
+    SceneManager sceneManager(allocator, graphicsContext);
 
     KryneEngine::SimplePoolHandle
         frameCBuffer,

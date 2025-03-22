@@ -6,13 +6,14 @@
 
 #include "SceneManager.hpp"
 
+#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 
 #include "TorusKnot.hpp"
 
 namespace KryneEngine::Samples::RenderGraphDemo
 {
-    SceneManager::SceneManager(AllocatorInstance _allocator)
+    SceneManager::SceneManager(AllocatorInstance _allocator, GraphicsContext* _graphicsContext)
         : m_allocator(_allocator)
         , m_torusKnot(nullptr, m_allocator)
     {

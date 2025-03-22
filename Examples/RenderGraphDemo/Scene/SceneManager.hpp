@@ -16,7 +16,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
     class SceneManager
     {
     public:
-        explicit SceneManager(AllocatorInstance _allocator);
+        explicit SceneManager(AllocatorInstance _allocator, GraphicsContext* _graphicsContext);
         ~SceneManager();
 
         void Process(GraphicsContext* _graphicsContext);
