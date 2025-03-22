@@ -73,6 +73,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
             set = _graphicsContext->CreateDescriptorSet(m_sceneDescriptorSetLayout);
 
             const DescriptorSetWriteInfo writeInfo {
+                .m_index = m_sceneDescriptorSetIndices[0],
                 .m_descriptorData = { DescriptorSetWriteInfo::DescriptorData { .m_handle = m_sceneCbvs[i].m_handle } },
             };
             _graphicsContext->UpdateDescriptorSet(set,{ &writeInfo, 1 });
