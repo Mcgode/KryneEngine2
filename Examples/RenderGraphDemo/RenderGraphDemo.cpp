@@ -210,6 +210,35 @@ int main()
             });
     }
 
+    // Init scene PSOs
+    {
+        RenderGraph::PassDeclaration gBufferDummyPass(KryneEngine::Modules::RenderGraph::PassType::Render, 0);
+        RenderGraph::PassDeclarationBuilder(gBufferDummyPass, nullptr)
+            .AddColorAttachment(gBufferAlbedoRtv)
+                .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
+                .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                .Done()
+            .AddColorAttachment(gBufferNormalRtv)
+                .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
+                .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                .Done()
+            .SetDepthAttachment(gBufferDepthRtv)
+                .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Clear)
+                .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
+                .SetClearDepthStencil(0.f, 0)
+                .Done();
+        gBufferDummyPass.m_colorAttachments[0].m_layoutBefore = TextureLayout::ColorAttachment;
+        gBufferDummyPass.m_colorAttachments[0].m_layoutAfter = TextureLayout::ShaderResource;
+        gBufferDummyPass.m_colorAttachments[1].m_layoutBefore = TextureLayout::ColorAttachment;
+        gBufferDummyPass.m_colorAttachments[1].m_layoutAfter = TextureLayout::ShaderResource;
+        gBufferDummyPass.m_depthAttachment.value().m_layoutBefore = TextureLayout::DepthStencilAttachment;
+        gBufferDummyPass.m_depthAttachment.value().m_layoutAfter = TextureLayout::ShaderResource;
+
+        sceneManager.PreparePsos(
+            graphicsContext,
+            renderGraph.FetchRenderPass(*graphicsContext, gBufferDummyPass));
+    }
+
     do
     {
         if (imGuiContext == nullptr)
