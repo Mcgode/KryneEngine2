@@ -89,10 +89,9 @@ int main()
     Modules::ImGui::Context* imGuiContext = nullptr;
 
     RenderGraph::RenderGraph renderGraph {};
-    SceneManager sceneManager(allocator, graphicsContext);
+    SceneManager sceneManager(allocator, graphicsContext, renderGraph.GetRegistry());
 
     KryneEngine::SimplePoolHandle
-        frameCBuffer,
         gBufferAlbedo,
         gBufferAlbedoRtv,
         gBufferNormal,
@@ -122,18 +121,6 @@ int main()
                 swapChainTextures[i],
                 name.sprintf("Swapchain RTV %u", i));
         }
-
-        frameCBuffer = renderGraph.GetRegistry().RegisterRawBuffer(
-            graphicsContext->CreateBuffer({
-                .m_desc = {
-                    .m_size = 256,
-#if !defined(KE_FINAL)
-                    .m_debugName = "Frame constant buffer",
-#endif
-                },
-                .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ConstantBuffer | MemoryUsage::TransferDstBuffer,
-            }),
-            "Frame constant buffer");
 
         gBufferAlbedo = renderGraph.GetRegistry().CreateRawTexture(
             graphicsContext,
@@ -257,26 +244,14 @@ int main()
         {
             KE_ZoneScoped("Build render graph");
 
-            const auto transferExecuteFunction = [&](RenderGraph::RenderGraph& _renderGraph, RenderGraph::PassExecutionData _passData)
-            {
-                sceneManager.ExecuteTransfers(graphicsContext, _passData.m_commandList);
-                imGuiContext->PrepareToRenderFrame(graphicsContext, _passData.m_commandList);
-            };
+            sceneManager.DeclareDataTransferPass(graphicsContext, builder, imGuiContext);
 
             const RenderGraph::Dependency frameCBufferReadDep {
-                .m_resource = frameCBuffer,
+                .m_resource = sceneManager.GetSceneConstantsCbv(),
                 .m_targetAccessFlags = BarrierAccessFlags::ConstantBuffer,
             };
 
             builder
-                .DeclarePass(RenderGraph::PassType::Transfer)
-                    .SetName("Upload data")
-                    .SetExecuteFunction(transferExecuteFunction)
-                    .WriteDependency({
-                        .m_resource = frameCBuffer,
-                        .m_targetAccessFlags = BarrierAccessFlags::TransferDst,
-                    })
-                    .Done()
                 .DeclarePass(RenderGraph::PassType::Render)
                     .SetName("GBuffer pass")
                     .SetExecuteFunction(ExecuteGBufferPass)

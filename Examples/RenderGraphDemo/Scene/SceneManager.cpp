@@ -9,6 +9,9 @@
 #include <KryneEngine/Core/Graphics/Common/ResourceViews/ConstantBufferView.hpp>
 #include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
+#include <KryneEngine/Modules/ImGui/Context.hpp>
+#include <KryneEngine/Modules/RenderGraph/Builder.hpp>
+#include <KryneEngine/Modules/RenderGraph/Registry.hpp>
 
 #include "TorusKnot.hpp"
 
@@ -20,13 +23,16 @@ namespace KryneEngine::Samples::RenderGraphDemo
         float4x4 m_viewProjection;
     };
 
-    SceneManager::SceneManager(AllocatorInstance _allocator, GraphicsContext* _graphicsContext)
-        : m_allocator(_allocator)
-        , m_torusKnot(nullptr, _allocator)
-        , m_sceneConstantsBuffer(_allocator)
-        , m_sceneCbvs(_allocator)
-        , m_sceneDescriptorSetIndices(_allocator)
-        , m_sceneDescriptorSets(_allocator)
+    SceneManager::SceneManager(
+        AllocatorInstance _allocator,
+        GraphicsContext* _graphicsContext,
+        Modules::RenderGraph::Registry& _registry)
+            : m_allocator(_allocator)
+            , m_torusKnot(nullptr, _allocator)
+            , m_sceneConstantsBuffer(_allocator)
+            , m_sceneCbvs(_allocator)
+            , m_sceneDescriptorSetIndices(_allocator)
+            , m_sceneDescriptorSets(_allocator)
     {
         m_torusKnot.reset(m_allocator.New<TorusKnot>(m_allocator));
 
@@ -78,9 +84,44 @@ namespace KryneEngine::Samples::RenderGraphDemo
             };
             _graphicsContext->UpdateDescriptorSet(set,{ &writeInfo, 1 });
         }
+
+        m_cbRenderGraphHandles.Resize(_graphicsContext->GetFrameContextCount());
+        m_cbvRenderGraphHandles.Resize(_graphicsContext->GetFrameContextCount());
+        for (auto i = 0u; i < m_cbRenderGraphHandles.Size(); ++i)
+        {
+            m_cbRenderGraphHandles[i] = _registry.RegisterRawBuffer(m_sceneConstantsBuffer.GetBuffer(i));
+            m_cbvRenderGraphHandles[i] = _registry.RegisterCbv(m_sceneCbvs[i], m_cbRenderGraphHandles[i]);
+        }
     }
 
     SceneManager::~SceneManager() = default;
+
+    void SceneManager::DeclareDataTransferPass(
+        const GraphicsContext* _graphicsContext,
+        Modules::RenderGraph::Builder& _builder,
+        Modules::ImGui::Context* _imGuiContext)
+    {
+        const u8 index = _graphicsContext->GetCurrentFrameContextIndex();;
+
+        m_currentCbv = m_cbvRenderGraphHandles[index];
+
+        const auto transferExecuteFunction =
+            [this, _imGuiContext](Modules::RenderGraph::RenderGraph& _renderGraph, Modules::RenderGraph::PassExecutionData _passData)
+        {
+            ExecuteTransfers(_passData.m_graphicsContext, _passData.m_commandList);
+            _imGuiContext->PrepareToRenderFrame(_passData.m_graphicsContext, _passData.m_commandList);
+        };
+
+        _builder
+            .DeclarePass(Modules::RenderGraph::PassType::Transfer)
+            .SetName("Scene data transfer pass")
+            .SetExecuteFunction(transferExecuteFunction)
+            .WriteDependency({
+                .m_resource = m_cbRenderGraphHandles[index],
+                .m_finalSyncStage { BarrierSyncStageFlags::All },
+                .m_finalAccessFlags { BarrierAccessFlags::ConstantBuffer }
+            });
+    }
 
     void SceneManager::Process(GraphicsContext* _graphicsContext)
     {

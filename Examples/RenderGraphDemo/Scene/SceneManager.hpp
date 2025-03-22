@@ -6,9 +6,24 @@
 
 #pragma once
 
+#include "KryneEngine/Modules/ImGui/Context.hpp"
 #include <KryneEngine/Core/Memory/UniquePtr.hpp>
-#include <KryneEngine/Modules/RenderGraph/Declarations/PassDeclaration.hpp>
 #include <KryneEngine/Modules/GraphicsUtils/DynamicBuffer.hpp>
+#include <KryneEngine/Modules/RenderGraph/Declarations/PassDeclaration.hpp>
+
+namespace KryneEngine::Modules
+{
+    namespace ImGui
+    {
+        class Context;
+    }
+
+    namespace RenderGraph
+    {
+        class Builder;
+        class Registry;
+    }
+}
 
 namespace KryneEngine::Samples::RenderGraphDemo
 {
@@ -17,12 +32,22 @@ namespace KryneEngine::Samples::RenderGraphDemo
     class SceneManager
     {
     public:
-        explicit SceneManager(AllocatorInstance _allocator, GraphicsContext* _graphicsContext);
+        explicit SceneManager(
+            AllocatorInstance _allocator,
+            GraphicsContext* _graphicsContext,
+            Modules::RenderGraph::Registry& _registry);
         ~SceneManager();
+
+        void DeclareDataTransferPass(
+            const GraphicsContext* _graphicsContext,
+            Modules::RenderGraph::Builder& _builder,
+            Modules::ImGui::Context* _imGuiContext);
 
         void Process(GraphicsContext* _graphicsContext);
 
         void ExecuteTransfers(GraphicsContext* _graphicsContext, CommandListHandle _commandList);
+
+        [[nodiscard]] SimplePoolHandle GetSceneConstantsCbv() const { return m_currentCbv; }
 
     private:
         AllocatorInstance m_allocator;
@@ -33,5 +58,9 @@ namespace KryneEngine::Samples::RenderGraphDemo
         eastl::vector<u32> m_sceneDescriptorSetIndices;
         DescriptorSetLayoutHandle m_sceneDescriptorSetLayout;
         DynamicArray<DescriptorSetHandle> m_sceneDescriptorSets;
+
+        DynamicArray<SimplePoolHandle> m_cbRenderGraphHandles;
+        DynamicArray<SimplePoolHandle> m_cbvRenderGraphHandles;
+        SimplePoolHandle m_currentCbv {};
     };
 }
