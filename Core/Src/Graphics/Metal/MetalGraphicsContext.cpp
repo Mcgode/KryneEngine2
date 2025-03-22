@@ -197,6 +197,16 @@ namespace KryneEngine
         return m_resources.DestroySampler(_sampler);
     }
 
+    BufferCbvHandle MetalGraphicsContext::CreateBufferCbv(const BufferCbvDesc& _cbvDesc)
+    {
+        return m_resources.RegisterBufferCbv(_cbvDesc);
+    }
+
+    bool MetalGraphicsContext::DestroyBufferCbv(BufferCbvHandle _handle)
+    {
+        return m_resources.UnregisterBufferCbv(_handle);
+    }
+
     RenderTargetViewHandle MetalGraphicsContext::CreateRenderTargetView(const RenderTargetViewDesc& _desc)
     {
         return m_resources.RegisterRtv(_desc);

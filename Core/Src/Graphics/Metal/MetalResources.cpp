@@ -10,6 +10,7 @@
 #include "Graphics/Metal/MetalArgumentBufferManager.hpp"
 #include "KryneEngine/Core/Common/StringHelpers.hpp"
 #include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
+#include "KryneEngine/Core/Graphics/Common/ResourceViews/ConstantBufferView.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp"
 #include "KryneEngine/Core/Graphics/Common/Texture.hpp"
@@ -202,6 +203,30 @@ namespace KryneEngine
         if (m_textureSrvs.Free(_textureSrv.m_handle, &hot))
         {
             hot.m_texture.reset();
+            return true;
+        }
+        return false;
+    }
+
+    BufferCbvHandle MetalResources::RegisterBufferCbv(const BufferCbvDesc& _cbvDesc)
+    {
+        const BufferHotData* originalBuffer = m_buffers.Get(_cbvDesc.m_buffer.m_handle);
+        KE_ASSERT_FATAL(originalBuffer != nullptr);
+
+        const GenPool::Handle handle = m_bufferCbvs.Allocate();
+        BufferCbvHotData* hot = m_bufferCbvs.Get(handle);
+        hot->m_buffer = originalBuffer->m_buffer->retain();
+        hot->m_offset = _cbvDesc.m_offset;
+
+        return { handle };
+    }
+
+    bool MetalResources::UnregisterBufferCbv(BufferCbvHandle _handle)
+    {
+        BufferCbvHotData hot;
+        if (m_bufferCbvs.Free(_handle.m_handle, &hot))
+        {
+            hot.m_buffer.reset();
             return true;
         }
         return false;

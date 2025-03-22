@@ -87,6 +87,9 @@ namespace KryneEngine
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
         bool DestroySampler(SamplerHandle _sampler);
 
+        [[nodiscard]] BufferCbvHandle CreateBufferCbv(const BufferCbvDesc& _cbvDesc);
+        bool DestroyBufferCbv(BufferCbvHandle _handle);
+
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc);
         bool DestroyRenderTargetView(RenderTargetViewHandle _handle);
 

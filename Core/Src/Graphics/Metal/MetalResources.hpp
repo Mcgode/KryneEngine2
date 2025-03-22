@@ -17,6 +17,7 @@
 
 namespace KryneEngine
 {
+    struct BufferCbvDesc;
     struct BufferCreateDesc;
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
@@ -93,6 +94,19 @@ namespace KryneEngine
         };
 
         GenerationalPool<TextureSrvHotData> m_textureSrvs;
+
+    public:
+        [[nodiscard]] BufferCbvHandle RegisterBufferCbv(const BufferCbvDesc& _cbvDesc);
+        bool UnregisterBufferCbv(BufferCbvHandle _handle);
+
+    private:
+        struct BufferCbvHotData
+        {
+            NsPtr<MTL::Buffer> m_buffer;
+            size_t m_offset;
+        };
+
+        GenerationalPool<BufferCbvHotData> m_bufferCbvs;
 
     public:
         RenderTargetViewHandle RegisterRtv(const RenderTargetViewDesc& _desc);
