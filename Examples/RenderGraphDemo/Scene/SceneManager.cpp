@@ -132,6 +132,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
             _graphicsContext->GetCurrentFrameContextIndex()));
 
         sceneConstants->m_torusKnotModel = m_torusKnot->GetModelMatrix();
+        sceneConstants->m_viewProjection = float4x4();
 
         m_sceneConstantsBuffer.Unmap(_graphicsContext);
     }
