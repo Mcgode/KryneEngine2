@@ -72,6 +72,25 @@ namespace KryneEngine::Modules::RenderGraph
         return handle;
     }
 
+    SimplePoolHandle Registry::RegisterCbv(
+        BufferCbvHandle _cbv,
+        SimplePoolHandle _bufferResource,
+        const eastl::string_view& _name)
+    {
+        KE_ASSERT(m_resources.Get(_bufferResource).m_type == ResourceType::RawBuffer);
+
+        m_resources.AddRef(_bufferResource);
+        const SimplePoolHandle handle = m_resources.AllocateAndInit(Resource {
+            .m_type = ResourceType::BufferCbv,
+            .m_owned = false,
+            .m_bufferCbvData = {
+                .m_cbv = _cbv,
+                .m_bufferResource = _bufferResource,
+            }
+        });
+        return handle;
+    }
+
     SimplePoolHandle Registry::RegisterRenderTargetView(
         RenderTargetViewHandle _rtv,
         SimplePoolHandle _textureResource,
@@ -156,6 +175,8 @@ namespace KryneEngine::Modules::RenderGraph
         {
         case ResourceType::TextureSrv:
             return resource.m_textureSrvData.m_textureResource;
+        case ResourceType::BufferCbv:
+            return resource.m_bufferCbvData.m_bufferResource;
         case ResourceType::RenderTargetView:
             return resource.m_renderTargetViewData.m_textureResource;
         case ResourceType::RawTexture:

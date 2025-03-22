@@ -29,11 +29,15 @@ namespace KryneEngine::Modules::RenderGraph
         ~Registry();
 
     public:
-        SimplePoolHandle RegisterRawTexture(TextureHandle _texture, const eastl::string_view& _name = {});
-        SimplePoolHandle RegisterRawBuffer(BufferHandle _buffer, const eastl::string_view& _name = {});
+        SimplePoolHandle RegisterRawTexture(TextureHandle _texture, const eastl::string_view& _name = "");
+        SimplePoolHandle RegisterRawBuffer(BufferHandle _buffer, const eastl::string_view& _name = "");
         SimplePoolHandle RegisterTextureSrv(
             TextureSrvHandle _textureSrv,
             SimplePoolHandle _textureResource,
+            const eastl::string_view& _name = {});
+        SimplePoolHandle RegisterCbv(
+            BufferCbvHandle _cbv,
+            SimplePoolHandle _bufferResource,
             const eastl::string_view& _name = {});
         SimplePoolHandle RegisterRenderTargetView(
             RenderTargetViewHandle _rtv,

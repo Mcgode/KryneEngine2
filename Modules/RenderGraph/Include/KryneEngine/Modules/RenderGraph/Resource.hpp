@@ -16,6 +16,7 @@ namespace KryneEngine::Modules::RenderGraph
         RawBuffer,
         Sampler,
         TextureSrv,
+        BufferCbv,
         RenderTargetView,
     };
 
@@ -40,6 +41,12 @@ namespace KryneEngine::Modules::RenderGraph
         SimplePoolHandle m_textureResource;
     };
 
+    struct BufferCbvData
+    {
+        BufferCbvHandle m_cbv;
+        SimplePoolHandle m_bufferResource;
+    };
+
     struct RenderTargetViewData
     {
         RenderTargetViewHandle m_renderTargetView;
@@ -55,6 +62,7 @@ namespace KryneEngine::Modules::RenderGraph
             RawBufferData m_rawBufferData;
             SamplerData m_samplerData;
             TextureSrvData m_textureSrvData;
+            BufferCbvData m_bufferCbvData;
             RenderTargetViewData m_renderTargetViewData;
         };
 #if !defined(KE_FINAL)
