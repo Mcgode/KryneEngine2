@@ -38,6 +38,10 @@ namespace KryneEngine::Samples::RenderGraphDemo
             Modules::RenderGraph::Registry& _registry);
         ~SceneManager();
 
+        void PreparePsos(
+            GraphicsContext* _graphicsContext,
+            RenderPassHandle _dummyGBufferRenderPass);
+
         void DeclareDataTransferPass(
             const GraphicsContext* _graphicsContext,
             Modules::RenderGraph::Builder& _builder,
