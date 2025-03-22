@@ -32,17 +32,17 @@ VsOutput MainVs(const VsInput _input)
     return output;
 }
 
-typedef VsOutput PsInput;
+typedef VsOutput FsInput;
 
-struct PsOutput
+struct FsOutput
 {
     float4 albedo: SV_TARGET0;
     float4 normal: SV_TARGET1;
 };
 
-PsOutput MainPs(PsInput _input)
+FsOutput MainFs(FsInput _input)
 {
-    PsOutput output;
+    FsOutput output;
 
     output.albedo = float4(frameData.m_torusAlbedo, 0.f);
     output.normal = float4(normalize(_input.normal), 0.f);

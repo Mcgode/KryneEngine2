@@ -8,7 +8,7 @@
     },
     {
       "ShaderType": "ps_6_0",
-      "EntryPoint": "MainPs",
+      "EntryPoint": "MainFs",
       "Defines": []
     }
   ]
