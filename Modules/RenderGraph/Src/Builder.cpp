@@ -194,6 +194,11 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(", Texture SRV, handle: Ox%x",(u32)resource.m_textureSrvData.m_textureSrv.m_handle).c_str()
                 << std::endl;
             break;
+        case ResourceType::BufferCbv:
+            std::cout
+                << eastl::string().sprintf(", Buffer CBV, handle: Ox%x",(u32)resource.m_bufferCbvData.m_cbv.m_handle).c_str()
+                << std::endl;
+            break;
         case ResourceType::RenderTargetView:
             std::cout
                 << eastl::string().sprintf(", Render target view, handle: Ox%x",(u32)resource.m_renderTargetViewData.m_renderTargetView.m_handle).c_str()
