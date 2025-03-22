@@ -8,6 +8,7 @@
 
 #include <KryneEngine/Core/Memory/UniquePtr.hpp>
 #include <KryneEngine/Modules/RenderGraph/Declarations/PassDeclaration.hpp>
+#include <KryneEngine/Modules/GraphicsUtils/DynamicBuffer.hpp>
 
 namespace KryneEngine::Samples::RenderGraphDemo
 {
@@ -26,5 +27,10 @@ namespace KryneEngine::Samples::RenderGraphDemo
     private:
         AllocatorInstance m_allocator;
         UniquePtr<TorusKnot> m_torusKnot;
+
+        Modules::GraphicsUtils::DynamicBuffer m_sceneConstantsBuffer;
+        eastl::vector<u32> m_sceneDescriptorSetIndices;
+        DescriptorSetLayoutHandle m_sceneDescriptorSetLayout;
+        DescriptorSetHandle m_sceneDescriptorSet;
     };
 }
