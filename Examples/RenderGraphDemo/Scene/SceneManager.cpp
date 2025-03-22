@@ -85,11 +85,25 @@ namespace KryneEngine::Samples::RenderGraphDemo
     void SceneManager::Process(GraphicsContext* _graphicsContext)
     {
         m_torusKnot->Process(_graphicsContext);
+
+        auto* sceneConstants = static_cast<SceneConstants*>(m_sceneConstantsBuffer.Map(
+            _graphicsContext,
+            _graphicsContext->GetCurrentFrameContextIndex()));
+
+        sceneConstants->m_torusKnotModel = m_torusKnot->GetModelMatrix();
+
+        m_sceneConstantsBuffer.Unmap(_graphicsContext);
     }
 
     void SceneManager::ExecuteTransfers(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
     {
         KE_ZoneScopedFunction("SceneManager::ExecuteTransfers");
+
+        m_sceneConstantsBuffer.PrepareBuffers(
+            _graphicsContext,
+            _commandList,
+            BarrierAccessFlags::ConstantBuffer,
+            _graphicsContext->GetCurrentFrameContextIndex());
 
         m_torusKnot->ProcessTransfers(_graphicsContext, _commandList);
     }
