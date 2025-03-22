@@ -9,9 +9,11 @@
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Graphics/Common/Buffer.hpp>
 #include <KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp>
+#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
 #include <KryneEngine/Core/Math/RotationConversion.hpp>
 #include <KryneEngine/Core/Math/Transform.hpp>
 #include <imgui.h>
+#include <fstream>
 
 #include "TorusKnotMeshGenerator.hpp"
 
@@ -20,6 +22,94 @@ namespace KryneEngine::Samples::RenderGraphDemo
     TorusKnot::TorusKnot(AllocatorInstance _allocator)
         : m_allocator(_allocator)
     {}
+
+    void TorusKnot::BuildPso(
+        GraphicsContext* _graphicsContext,
+        RenderPassHandle _renderPass,
+        DescriptorSetLayoutHandle _descriptorSetLayout)
+    {
+        const auto createShaderModule = [&](const auto& _path) -> ShaderModuleHandle
+        {
+            auto path = eastl::string(_path) + "." + _graphicsContext->GetShaderFileExtension();;
+
+            std::ifstream file(path.c_str(), std::ios::binary);
+            VERIFY_OR_RETURN(file, { GenPool::kInvalidHandle });
+
+            file.seekg(0, std::ios::end);
+            const size_t size = file.tellg();
+            void* data = m_allocator.allocate(size);
+            file.seekg(0, std::ios::beg);
+
+            KE_VERIFY(file.read(reinterpret_cast<char*>(data), size));
+
+            return _graphicsContext->RegisterShaderModule(data, size);
+        };
+
+        ShaderModuleHandle vsModule = createShaderModule("Shaders/Torus_MainVs");
+        ShaderModuleHandle fsModule = createShaderModule("Shaders/Torus_MainFs");
+
+        PipelineLayoutHandle layout = _graphicsContext->CreatePipelineLayout({
+            .m_descriptorSets = {
+                _descriptorSetLayout,
+            },
+        });
+
+        const GraphicsPipelineDesc psoDesc = {
+            .m_stages = {
+                GraphicsShaderStage {
+                    .m_shaderModule = vsModule,
+                    .m_stage = GraphicsShaderStage::Stage::Vertex,
+                    .m_entryPoint = "MainVs",
+                },
+                GraphicsShaderStage {
+                    .m_shaderModule = fsModule,
+                    .m_stage = GraphicsShaderStage::Stage::Fragment,
+                    .m_entryPoint = "MainFs",
+                },
+            },
+            .m_vertexInput = {
+                .m_elements = {
+                    VertexLayoutElement {
+                        .m_semanticName = VertexLayoutElement::SemanticName::Position,
+                        .m_format = TextureFormat::RGB32_Float,
+                        .m_offset = 0,
+                        .m_location = 0,
+                    },
+                    VertexLayoutElement {
+                        .m_semanticName = VertexLayoutElement::SemanticName::Normal,
+                        .m_format = TextureFormat::RGB32_Float,
+                        .m_offset = sizeof(float3),
+                        .m_location = 1,
+                    },
+                },
+                .m_bindings = {
+                    VertexBindingDesc {
+                        .m_stride = sizeof(float3) + sizeof(float3),
+                    }
+                }
+            },
+            .m_rasterState = {},
+            .m_colorBlending = {
+                .m_attachments = {
+                    ColorAttachmentBlendDesc {},
+                    ColorAttachmentBlendDesc {}
+                }
+            },
+            .m_depthStencil = {
+                .m_depthCompare = DepthStencilStateDesc::CompareOp::Greater // Use reverse depth
+            },
+            .m_renderPass = _renderPass,
+            .m_pipelineLayout = layout,
+#if !defined(KE_FINAL)
+            .m_debugName = "TorusKnotPSO",
+#endif
+        };
+        m_pso = _graphicsContext->CreateGraphicsPipeline(psoDesc);
+
+        _graphicsContext->DestroyPipelineLayout(layout);
+        _graphicsContext->FreeShaderModule(fsModule);
+        _graphicsContext->FreeShaderModule(vsModule);
+    }
 
     void TorusKnot::Process(GraphicsContext* _graphicsContext)
     {

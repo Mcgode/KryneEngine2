@@ -18,6 +18,11 @@ namespace KryneEngine::Samples::RenderGraphDemo
     public:
         explicit TorusKnot(AllocatorInstance _allocator);
 
+        void BuildPso(
+            GraphicsContext* _graphicsContext,
+            RenderPassHandle _renderPass,
+            DescriptorSetLayoutHandle _descriptorSetLayout);
+
         void Process(GraphicsContext* _graphicsContext);
 
         void ProcessTransfers(GraphicsContext* _graphicsContext, CommandListHandle _commandList);
@@ -62,6 +67,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
         u64 m_transferFrameId = 0;
         size_t m_indexBufferSize = 0;
         size_t m_vertexBufferSize = 0;
+
+        GraphicsPipelineHandle m_pso { GenPool::kInvalidHandle };
 
         float3 m_translation { 0.0f };
         Math::Quaternion m_rotation {};
