@@ -220,6 +220,16 @@ namespace KryneEngine
         return GetImplementation(this).DestroySampler(_sampler);
     }
 
+    BufferCbvHandle GraphicsContext::CreateBufferCbv(const BufferCbvDesc& _cbvDesc)
+    {
+        return GetImplementation(this).CreateBufferCbv(_cbvDesc);
+    }
+
+    bool GraphicsContext::DestroyBufferCbv(BufferCbvHandle _handle)
+    {
+        return GetImplementation(this).DestroyBufferCbv(_handle);
+    }
+
     RenderTargetViewHandle GraphicsContext::CreateRenderTargetView(const RenderTargetViewDesc& _desc)
     {
         return GetImplementation(this).CreateRenderTargetView(_desc);
