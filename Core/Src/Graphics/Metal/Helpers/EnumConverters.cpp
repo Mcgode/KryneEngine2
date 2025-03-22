@@ -253,7 +253,7 @@ namespace KryneEngine::MetalConverters
         case DescriptorBindingDesc::Type::ConstantBuffer:
         case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:
         case DescriptorBindingDesc::Type::StorageReadWriteBuffer:
-            return MTL::DataTypeStruct;
+            return MTL::DataTypePointer;
         }
     }
 
