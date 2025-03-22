@@ -7,12 +7,12 @@
 #include "Platform.hlsl"
 #include "FrameData.hlsl"
 
-ConstantBuffer<FrameData> frameData;
+vkBinding(0, 0) ConstantBuffer<FrameData> frameData;
 
 struct VsInput
 {
-    float3 position: POSITION0;
-    float3 normal: NORMAL0;
+    vkLocation(0) float3 position: POSITION0;
+    vkLocation(1) float3 normal: NORMAL0;
 };
 
 struct VsOutput
