@@ -29,8 +29,9 @@ namespace KryneEngine::Samples::RenderGraphDemo
         UniquePtr<TorusKnot> m_torusKnot;
 
         Modules::GraphicsUtils::DynamicBuffer m_sceneConstantsBuffer;
+        DynamicArray<BufferCbvHandle> m_sceneCbvs;
         eastl::vector<u32> m_sceneDescriptorSetIndices;
         DescriptorSetLayoutHandle m_sceneDescriptorSetLayout;
-        DescriptorSetHandle m_sceneDescriptorSet;
+        DynamicArray<DescriptorSetHandle> m_sceneDescriptorSets;
     };
 }
