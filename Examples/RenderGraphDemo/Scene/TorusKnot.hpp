@@ -40,6 +40,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
         [[nodiscard]] u32 GetQValue() const { return m_qValue; }
         void SetQValue(u32 _qValue);
 
+        [[nodiscard]] const float4x4& GetModelMatrix() const { return m_modelMatrix; }
+
     private:
         AllocatorInstance m_allocator;
         bool m_meshDirty = true;
