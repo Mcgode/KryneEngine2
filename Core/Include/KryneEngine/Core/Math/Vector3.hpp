@@ -88,6 +88,9 @@ namespace KryneEngine::Math
         void Normalize() requires std::is_floating_point_v<T>;
         Vector3Base Normalized() const requires std::is_floating_point_v<T>;
 
+        static T Dot(const Vector3Base& _a, const Vector3Base& _b);
+        static Vector3Base CrossProduct(const Vector3Base& _a, const Vector3Base& _b);
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCInconsistentNamingInspection"
         union alignas(kAlignment)
@@ -107,12 +110,6 @@ namespace KryneEngine::Math
         };
 #pragma clang diagnostic pop
     };
-
-    template<typename T, bool SimdOptimal>
-    extern T Dot(const Vector3Base<T, SimdOptimal>& _a, const Vector3Base<T, SimdOptimal>& _b);
-
-    template<typename T, bool SimdOptimal>
-    extern Vector3Base<T, SimdOptimal> CrossProduct(const Vector3Base<T, SimdOptimal>& _a, const Vector3Base<T, SimdOptimal>& _b);
 
     template<typename T>
     concept Vector3Type = requires {

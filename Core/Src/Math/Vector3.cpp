@@ -162,7 +162,7 @@ namespace KryneEngine::Math
     }
 
     template <typename T, bool SimdOptimal>
-    T Dot(const Vector3Base<T, SimdOptimal>& _a, const Vector3Base<T, SimdOptimal>& _b)
+    T Vector3Base<T, SimdOptimal>::Dot(const Vector3Base& _a, const Vector3Base& _b)
     {
         using Vector3 = Vector3Base<T, SimdOptimal>;
 
@@ -188,7 +188,7 @@ namespace KryneEngine::Math
     }
 
     template <typename T, bool SimdOptimal>
-    Vector3Base<T, SimdOptimal> CrossProduct(const Vector3Base<T, SimdOptimal>& _a, const Vector3Base<T, SimdOptimal>& _b)
+    Vector3Base<T, SimdOptimal> Vector3Base<T, SimdOptimal>::CrossProduct(const Vector3Base& _a, const Vector3Base& _b)
     {
         return Vector3Base<T, SimdOptimal> {
             _a.y * _b.z - _a.z * _b.y,
@@ -198,9 +198,7 @@ namespace KryneEngine::Math
     }
 
 #define IMPLEMENT_SIMD(type, simd)                                                                                      \
-    template struct Vector3Base<type, simd>;                                                                            \
-    template type Dot<type, simd>(const Vector3Base<type, simd>& _a, const Vector3Base<type, simd>& _b);                \
-    template Vector3Base<type, simd> CrossProduct<type, simd>(const Vector3Base<type, simd>& _a, const Vector3Base<type, simd>& _b)
+    template struct Vector3Base<type, simd>;
 
 #define IMPLEMENT(type)                                                                                                 \
     IMPLEMENT_SIMD(type, false);                                                                                        \
