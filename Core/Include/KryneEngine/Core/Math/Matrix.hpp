@@ -29,10 +29,10 @@ namespace KryneEngine
     Math::Matrix44Base<T, SimdOptimal, RowMajor> ToMatrix44(const Math::Matrix33Base<T, SimdOptimal, RowMajor>& _matrix)
     {
         return Math::Matrix44Base<T, SimdOptimal, RowMajor> {
-            { _matrix.m_vectors[0] },
-            { _matrix.m_vectors[1] },
-            { _matrix.m_vectors[2] },
-            { 0.0f, 0.0f, 0.0f, 1.0f }
+            Math::Vector4Base<T, SimdOptimal>{ _matrix.m_vectors[0], 0.f },
+            Math::Vector4Base<T, SimdOptimal>{ _matrix.m_vectors[1], 0.f },
+            Math::Vector4Base<T, SimdOptimal>{ _matrix.m_vectors[2], 0.f },
+            Math::Vector4Base<T, SimdOptimal>{ 0.0f, 0.0f, 0.0f, 1.0f }
         };
     }
 
@@ -40,9 +40,9 @@ namespace KryneEngine
     Math::Matrix33Base<T, SimdOptimal, RowMajor> ToMatrix33(const Math::Matrix44Base<T, SimdOptimal, RowMajor>& _matrix)
     {
         return Math::Matrix33Base<T, SimdOptimal, RowMajor> {
-            { _matrix.m_vectors[0].x, _matrix.m_vectors[0].y, _matrix.m_vectors[0].z },
-            { _matrix.m_vectors[1].x, _matrix.m_vectors[1].y, _matrix.m_vectors[1].z },
-            { _matrix.m_vectors[2].x, _matrix.m_vectors[2].y, _matrix.m_vectors[2].z }
+            Math::Vector3Base<T, SimdOptimal>{ _matrix.m_vectors[0].x, _matrix.m_vectors[0].y, _matrix.m_vectors[0].z },
+            Math::Vector3Base<T, SimdOptimal>{ _matrix.m_vectors[1].x, _matrix.m_vectors[1].y, _matrix.m_vectors[1].z },
+            Math::Vector3Base<T, SimdOptimal>{ _matrix.m_vectors[2].x, _matrix.m_vectors[2].y, _matrix.m_vectors[2].z }
         };
     }
 }
