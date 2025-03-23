@@ -8,6 +8,7 @@
 
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Graphics/Common/Buffer.hpp>
+#include <KryneEngine/Core/Graphics/Common/Drawing.hpp>
 #include <KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp>
 #include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
 #include <KryneEngine/Core/Math/RotationConversion.hpp>
@@ -296,6 +297,38 @@ namespace KryneEngine::Samples::RenderGraphDemo
     {
         m_meshDirty = true;
         m_qValue = _qValue;
+    }
+
+    void TorusKnot::RenderGBuffer(
+        GraphicsContext* _graphicsContext,
+        CommandListHandle _commandList,
+        DescriptorSetHandle _sceneConstantsSet)
+    {
+        const BufferView vertexBufferView = {
+            .m_size = m_vertexBufferSize,
+            .m_offset = 0,
+            .m_buffer = m_vertexBuffer,
+        };
+        const BufferView indexBufferView = {
+            .m_size = m_indexBufferSize,
+            .m_offset = 0,
+            .m_buffer = m_indexBuffer,
+        };
+
+        _graphicsContext->SetVertexBuffers(_commandList, { &vertexBufferView, 1 });
+        _graphicsContext->SetIndexBuffer(_commandList, indexBufferView);
+
+        _graphicsContext->SetGraphicsDescriptorSets(
+            _commandList,
+            m_pipelineLayout,
+            { &_sceneConstantsSet, 1 });
+        _graphicsContext->SetGraphicsPipeline(_commandList,m_pso);
+
+        _graphicsContext->DrawIndexedInstanced(
+            _commandList,
+            {
+                .m_elementCount = static_cast<u32>(m_indexBufferSize / sizeof(u32)),
+            });
     }
 
     void TorusKnot::RenderWindow()

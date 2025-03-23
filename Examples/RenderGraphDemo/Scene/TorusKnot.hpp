@@ -47,6 +47,11 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         [[nodiscard]] const float4x4& GetModelMatrix() const { return m_modelMatrix; }
 
+        void RenderGBuffer(
+            GraphicsContext* _graphicsContext,
+            CommandListHandle _commandList,
+            DescriptorSetHandle _sceneConstantsSet);
+
     private:
         AllocatorInstance m_allocator;
         bool m_meshDirty = true;
