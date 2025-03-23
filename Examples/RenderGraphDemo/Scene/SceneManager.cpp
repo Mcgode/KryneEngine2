@@ -17,10 +17,11 @@
 
 namespace KryneEngine::Samples::RenderGraphDemo
 {
-    struct SceneConstants
+    struct alignas(16) SceneConstants
     {
         float4x4 m_torusKnotModel;
         float4x4 m_viewProjection;
+        float3 m_torusKnotAlbedo;
     };
 
     SceneManager::SceneManager(
