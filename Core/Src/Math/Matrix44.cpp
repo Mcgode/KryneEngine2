@@ -10,6 +10,32 @@
 
 namespace KryneEngine::Math
 {
+    template <class T, bool SimdOptimal, bool RowMajor>
+    T& Matrix44Base<T, SimdOptimal, RowMajor>::Get(size_t _row, size_t _col)
+    {
+        if constexpr (RowMajor)
+        {
+            return m_vectors[_row][_col];
+        }
+        else
+        {
+            return m_vectors[_col][_row];
+        }
+    }
+
+    template <class T, bool SimdOptimal, bool RowMajor>
+    const T& Matrix44Base<T, SimdOptimal, RowMajor>::Get(size_t _row, size_t _col) const
+    {
+        if constexpr (RowMajor)
+        {
+            return m_vectors[_row][_col];
+        }
+        else
+        {
+            return m_vectors[_col][_row];
+        }
+    }
+
     template <typename T, bool SimdOptimal, bool RowMajor>
     Matrix44Base<T, SimdOptimal, RowMajor> Matrix44Base<T, SimdOptimal, RowMajor>::operator+(const Matrix44Base& _other) const
     {

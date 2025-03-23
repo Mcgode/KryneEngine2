@@ -65,6 +65,9 @@ namespace KryneEngine::Math
             : Matrix44Base(_other.m_vectors[0], _other.m_vectors[1], _other.m_vectors[2], _other.m_vectors[3])
         {}
 
+        T& Get(size_t _row, size_t _col);
+        const T& Get(size_t _row, size_t _col) const;
+
         Matrix44Base operator+(const Matrix44Base& _other) const;
         Matrix44Base operator-(const Matrix44Base& _other) const;
         Matrix44Base operator*(const Matrix44Base& _other) const;
