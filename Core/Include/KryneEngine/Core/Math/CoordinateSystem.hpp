@@ -50,17 +50,17 @@ namespace KryneEngine::Math
         return _system == CoordinateSystem::RightHandedZUp || _system == CoordinateSystem::LeftHandedZUp;
     }
 
-    constexpr float3 UpVector(CoordinateSystem _system = KE_DEFAULT_COORDINATE_SYSTEM)
+    float3 UpVector(CoordinateSystem _system = KE_DEFAULT_COORDINATE_SYSTEM)
     {
         return IsZUp(_system) ? float3(0.0f, 0.0f, 1.0f) : float3(0.0f, 1.0f, 0.0f);
     }
 
-    constexpr float3 RightVector(CoordinateSystem _system = KE_DEFAULT_COORDINATE_SYSTEM)
+    float3 RightVector(CoordinateSystem _system = KE_DEFAULT_COORDINATE_SYSTEM)
     {
         return float3 { 1.0f, 0.0f, 0.0f };
     }
 
-    constexpr float3 ForwardVector(CoordinateSystem _system = KE_DEFAULT_COORDINATE_SYSTEM)
+    float3 ForwardVector(CoordinateSystem _system = KE_DEFAULT_COORDINATE_SYSTEM)
     {
         switch (_system)
         {
