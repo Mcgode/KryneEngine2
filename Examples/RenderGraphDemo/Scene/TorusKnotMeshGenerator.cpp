@@ -59,8 +59,8 @@ namespace KryneEngine::Samples::RenderGraphDemo::TorusKnotMeshGenerator
 
             float3_simd t = p2 - p1;
             float3_simd n = p1 + p2;
-            float3_simd b = Math::CrossProduct(t, n);
-            n = Math::CrossProduct(b, t);
+            float3_simd b = float3_simd::CrossProduct(t, n);
+            n = float3_simd::CrossProduct(b, t);
 
             n.Normalize();
             b.Normalize();
