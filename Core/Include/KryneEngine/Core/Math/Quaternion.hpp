@@ -167,9 +167,9 @@ namespace KryneEngine::Math
         {
             Vec3 u(x, y, z);
 
-            return u * 2.0 * Dot(u, _vec)
-                + _vec * (w * w - Dot(u, u))
-                + CrossProduct(u, _vec) * 2.0 * w;
+            return u * 2.0 * Vec3::Dot(u, _vec)
+                + _vec * (w * w - Vec3::Dot(u, u))
+                + Vec3::CrossProduct(u, _vec) * 2.0 * w;
         }
 
 #pragma clang diagnostic push
