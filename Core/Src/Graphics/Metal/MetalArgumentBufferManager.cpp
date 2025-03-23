@@ -98,13 +98,18 @@ namespace KryneEngine
 
         const GenPool::Handle handle = m_argumentBufferSets.Allocate();
 
-        ArgumentDescriptorHotData* argDescHot = m_argumentDescriptors.Get(_descriptor.m_handle);
         ArgumentBufferHotData* hot = m_argumentBufferSets.Get(handle);
 
-        NS::Array* array = NS::Array::array(
-            reinterpret_cast<const NS::Object* const*>(argDescHot->m_argDescriptors.Data()),
-            argDescHot->m_argDescriptors.Size());
-        hot->m_encoder = _device.newArgumentEncoder(array);
+        {
+            const ArgumentDescriptorHotData* argDescHot = m_argumentDescriptors.Get(_descriptor.m_handle);
+
+            DynamicArray<NsPtr<MTL::ArgumentDescriptor>> array(GetAllocator(), argDescHot->m_argDescriptors.Size());
+            for (auto i = 0u; i < argDescHot->m_argDescriptors.Size(); i++)
+            {
+                array.Init(i, argDescHot->m_argDescriptors[i]->copy());
+            }
+            hot->m_encoder = _device.newArgumentEncoder(NS::Array::array(reinterpret_cast<const NS::Object* const*>(array.Data()), array.Size()));
+        }
 
 #if defined(TARGET_OS_MAC)
         const MTL::ResourceOptions options = MTL::ResourceStorageModeManaged;
