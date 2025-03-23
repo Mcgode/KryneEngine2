@@ -161,6 +161,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
     void SceneManager::RenderGBuffer(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
     {
+        _graphicsContext->DeclarePassBufferCbvUsage(_commandList, { &m_sceneCbvs[_graphicsContext->GetCurrentFrameContextIndex()], 1 });
         m_torusKnot->RenderGBuffer(_graphicsContext, _commandList, m_sceneDescriptorSets[_graphicsContext->GetCurrentFrameContextIndex()]);
     }
 }
