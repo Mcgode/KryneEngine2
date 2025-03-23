@@ -127,4 +127,12 @@ namespace KryneEngine::Math
 
         Vector3Base<T, SimdOptimal> m_vectors[3];
     };
+
+    template<class T>
+    concept Matrix33Type = requires {
+        typename T::ScalarType;
+        T::kSimdOptimal;
+        T::kRowMajorLayout;
+        std::is_same_v<Matrix33Base<typename T::ScalarType, T::kSimdOptimal, T::kRowMajorLayout>, T>;
+    };
 }
