@@ -16,6 +16,10 @@ namespace KryneEngine::Math
     template<class T, bool SimdOptimal, bool RowMajor>
     struct Matrix33Base
     {
+        using ScalarType = T;
+        static constexpr bool kSimdOptimal = SimdOptimal;
+        static constexpr bool kRowMajorLayout = RowMajor;
+
         Matrix33Base();
         ~Matrix33Base() = default;
 
