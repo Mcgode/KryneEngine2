@@ -24,4 +24,25 @@ namespace KryneEngine
     using double4x4 = Math::Matrix44Base<double, false, KE_DEFAULT_MATRIX_ROW_MAJOR>;
     using float4x4_simd = Math::Matrix44Base<float, true, KE_DEFAULT_MATRIX_ROW_MAJOR>;
     using double4x4_simd = Math::Matrix44Base<double, true, KE_DEFAULT_MATRIX_ROW_MAJOR>;
+
+    template<class T, bool SimdOptimal, bool RowMajor>
+    Math::Matrix44Base<T, SimdOptimal, RowMajor> ToMatrix44(const Math::Matrix33Base<T, SimdOptimal, RowMajor>& _matrix)
+    {
+        return Math::Matrix44Base<T, SimdOptimal, RowMajor> {
+            { _matrix.m_vectors[0] },
+            { _matrix.m_vectors[1] },
+            { _matrix.m_vectors[2] },
+            { 0.0f, 0.0f, 0.0f, 1.0f }
+        };
+    }
+
+    template<class T, bool SimdOptimal, bool RowMajor>
+    Math::Matrix33Base<T, SimdOptimal, RowMajor> ToMatrix33(const Math::Matrix44Base<T, SimdOptimal, RowMajor>& _matrix)
+    {
+        return Math::Matrix33Base<T, SimdOptimal, RowMajor> {
+            { _matrix.m_vectors[0].x, _matrix.m_vectors[0].y, _matrix.m_vectors[0].z },
+            { _matrix.m_vectors[1].x, _matrix.m_vectors[1].y, _matrix.m_vectors[1].z },
+            { _matrix.m_vectors[2].x, _matrix.m_vectors[2].y, _matrix.m_vectors[2].z }
+        }
+    }
 }
