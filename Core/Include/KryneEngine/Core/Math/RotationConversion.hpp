@@ -27,9 +27,9 @@ namespace KryneEngine::Math
         return FromEulerAngles<T, U, Order>(_eulerAngles.x, _eulerAngles.y, _eulerAngles.z);
     }
 
-    template <class T, bool SimdOptimal, bool RowMajor, class U>
-        requires std::is_convertible_v<U, T>
-    Matrix33Base<T, SimdOptimal, RowMajor> ToMatrix33(const QuaternionBase<U>& _quaternion);
+    template <Matrix33Type Mat33, QuaternionType Quat>
+        requires std::is_convertible_v<typename Quat::ScalarType, typename Mat33::ScalarType>
+    Mat33 ToMatrix33(const Quat& _quaternion);
 
     template <Vector3Type Vector3, class U, bool MatrixSimdOptimal, bool RowMajor, EulerOrder Order = kDefaultEulerOrder>
         requires std::is_convertible_v<U, typename Vector3::ScalarType>
@@ -409,16 +409,18 @@ namespace KryneEngine::Math
         return result;
     }
 
-    template <class T, bool SimdOptimal, bool RowMajor, class U>
-        requires std::is_convertible_v<U, T>
-    Matrix33Base<T, SimdOptimal, RowMajor> ToMatrix33(const QuaternionBase<U>& _quaternion)
+    template <Matrix33Type Mat33, QuaternionType Quat>
+        requires std::is_convertible_v<typename Quat::ScalarType, typename Mat33::ScalarType>
+    Mat33 ToMatrix33(const Quat& _quaternion)
     {
+        using T = typename Mat33::ScalarType;
+
         const T x(_quaternion.x);
         const T y(_quaternion.y);
         const T z(_quaternion.z);
         const T w(_quaternion.w);
 
-        return Matrix33Base<T, SimdOptimal, RowMajor>(
+        return Mat33(
             1.0f - 2.0f * (y * y + z * z),  2.0f * (x * y - z * w),         2.0f * (x * z + y * w),
             2.0f * (x * y + z * w),         1.0f - 2.0f * (x * x + z * z),  2.0f * (y * z - x * w),
             2.0f * (x * z - y * w),         2.0f * (y * z + x * w),         1.0f - 2.0f * (x * x + y * y));
