@@ -53,6 +53,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         [[nodiscard]] SimplePoolHandle GetSceneConstantsCbv() const { return m_currentCbv; }
 
+        void RenderGBuffer(GraphicsContext* _graphicsContext, CommandListHandle _commandList);
+
     private:
         AllocatorInstance m_allocator;
         UniquePtr<TorusKnot> m_torusKnot;

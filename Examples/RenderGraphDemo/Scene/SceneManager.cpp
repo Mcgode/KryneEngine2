@@ -157,4 +157,9 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         m_torusKnot->ProcessTransfers(_graphicsContext, _commandList);
     }
+
+    void SceneManager::RenderGBuffer(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
+    {
+        m_torusKnot->RenderGBuffer(_graphicsContext, _commandList, m_sceneDescriptorSets[_graphicsContext->GetCurrentFrameContextIndex()]);
+    }
 }

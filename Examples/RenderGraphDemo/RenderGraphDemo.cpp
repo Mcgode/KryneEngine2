@@ -21,14 +21,6 @@ using namespace KryneEngine;
 using namespace KryneEngine::Modules;
 using namespace KryneEngine::Samples::RenderGraphDemo;
 
-void ExecuteGBufferPass(
-    RenderGraph::RenderGraph& _renderGraph,
-    RenderGraph::PassExecutionData& _passExecutionData)
-{
-    KE_ZoneScopedFunction(__FUNCTION__);
-    std::cout << "GBuffer pass" << std::endl;
-}
-
 void ExecuteDeferredShadowPass(
     RenderGraph::RenderGraph& _renderGraph,
     RenderGraph::PassExecutionData& _passExecutionData)
@@ -283,7 +275,11 @@ int main()
             builder
                 .DeclarePass(RenderGraph::PassType::Render)
                     .SetName("GBuffer pass")
-                    .SetExecuteFunction(ExecuteGBufferPass)
+                    .SetExecuteFunction([&sceneManager](const auto& _, const auto& _passData)
+                        {
+                            KE_ZoneScoped("Render GBuffer");
+                            sceneManager.RenderGBuffer(_passData.m_graphicsContext, _passData.m_commandList);
+                        })
                     .AddColorAttachment(gBufferAlbedoRtv)
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
