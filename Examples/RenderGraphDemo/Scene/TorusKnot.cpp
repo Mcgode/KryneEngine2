@@ -263,42 +263,6 @@ namespace KryneEngine::Samples::RenderGraphDemo
         _graphicsContext->PlaceMemoryBarriers(_commandList, {}, postCopyBarriers, {});
     }
 
-    void TorusKnot::SetRadialSegments(u32 _radialSegments)
-    {
-        m_meshDirty = true;
-        m_radialSegments = _radialSegments;
-    }
-
-    void TorusKnot::SetTubularSegments(u32 _tubularSegments)
-    {
-        m_meshDirty = true;
-        m_tubularSegments = _tubularSegments;
-    }
-
-    void TorusKnot::SetKnotRadius(float _knotRadius)
-    {
-        m_meshDirty = true;
-        m_knotRadius = _knotRadius;
-    }
-
-    void TorusKnot::SetTubeRadius(float _tubeRadius)
-    {
-        m_meshDirty = true;
-        m_tubeRadius = _tubeRadius;
-    }
-
-    void TorusKnot::SetPValue(u32 _pValue)
-    {
-        m_meshDirty = true;
-        m_pValue = _pValue;
-    }
-
-    void TorusKnot::SetQValue(u32 _qValue)
-    {
-        m_meshDirty = true;
-        m_qValue = _qValue;
-    }
-
     void TorusKnot::RenderGBuffer(
         GraphicsContext* _graphicsContext,
         CommandListHandle _commandList,
