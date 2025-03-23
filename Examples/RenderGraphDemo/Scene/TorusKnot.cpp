@@ -360,6 +360,13 @@ namespace KryneEngine::Samples::RenderGraphDemo
             }
         }
 
+        if (ImGui::CollapsingHeader("Material parameters", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::ColorEdit3("Albedo", m_albedo.GetPtr());
+            ImGui::SliderFloat("Roughness", &m_roughness, 0.0f, 1.0f);
+            ImGui::SliderFloat("Metalness", &m_metalness, 0.0f, 1.0f);
+        }
+
         if (ImGui::CollapsingHeader("Geometry parameters", ImGuiTreeNodeFlags_DefaultOpen))
         {
             const u32 kMinPValue = 1;

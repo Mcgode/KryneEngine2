@@ -27,25 +27,10 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         void ProcessTransfers(GraphicsContext* _graphicsContext, CommandListHandle _commandList);
 
-        [[nodiscard]] u32 GetRadialSegments() const { return m_radialSegments; }
-        void SetRadialSegments(u32 _radialSegments);
-
-        [[nodiscard]] u32 GetTubularSegments() const { return m_tubularSegments; }
-        void SetTubularSegments(u32 _tubularSegments);
-
-        [[nodiscard]] float GetKnotRadius() const { return m_knotRadius; }
-        void SetKnotRadius(float _knotRadius);
-
-        [[nodiscard]] float GetTubeRadius() const { return m_tubeRadius; }
-        void SetTubeRadius(float _tubeRadius);
-
-        [[nodiscard]] u32 GetPValue() const { return m_pValue; }
-        void SetPValue(u32 _pValue);
-
-        [[nodiscard]] u32 GetQValue() const { return m_qValue; }
-        void SetQValue(u32 _qValue);
-
         [[nodiscard]] const float4x4& GetModelMatrix() const { return m_modelMatrix; }
+        [[nodiscard]] const float3& GetAlbedo() const { return m_albedo; }
+        [[nodiscard]] const float& GetRoughness() const { return m_roughness; }
+        [[nodiscard]] const float& GetMetalness() const { return m_metalness; }
 
         void RenderGBuffer(
             GraphicsContext* _graphicsContext,
@@ -80,6 +65,9 @@ namespace KryneEngine::Samples::RenderGraphDemo
         Math::Quaternion m_rotation {};
         float3 m_scale { 1 };
         float4x4 m_modelMatrix {};
+        float3 m_albedo { 1.f };
+        float m_roughness = 1.f;
+        float m_metalness = 0.f;
 
         bool m_windowOpen = true;
 
