@@ -48,7 +48,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
         ShaderModuleHandle vsModule = createShaderModule("Shaders/Torus_MainVs");
         ShaderModuleHandle fsModule = createShaderModule("Shaders/Torus_MainFs");
 
-        PipelineLayoutHandle layout = _graphicsContext->CreatePipelineLayout({
+        m_pipelineLayout = _graphicsContext->CreatePipelineLayout({
             .m_descriptorSets = {
                 _descriptorSetLayout,
             },
@@ -99,14 +99,13 @@ namespace KryneEngine::Samples::RenderGraphDemo
                 .m_depthCompare = DepthStencilStateDesc::CompareOp::Greater // Use reverse depth
             },
             .m_renderPass = _renderPass,
-            .m_pipelineLayout = layout,
+            .m_pipelineLayout = m_pipelineLayout,
 #if !defined(KE_FINAL)
             .m_debugName = "TorusKnotPSO",
 #endif
         };
         m_pso = _graphicsContext->CreateGraphicsPipeline(psoDesc);
 
-        _graphicsContext->DestroyPipelineLayout(layout);
         _graphicsContext->FreeShaderModule(fsModule);
         _graphicsContext->FreeShaderModule(vsModule);
     }

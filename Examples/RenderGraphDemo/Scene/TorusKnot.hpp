@@ -68,6 +68,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
         size_t m_indexBufferSize = 0;
         size_t m_vertexBufferSize = 0;
 
+        PipelineLayoutHandle m_pipelineLayout { GenPool::kInvalidHandle };
         GraphicsPipelineHandle m_pso { GenPool::kInvalidHandle };
 
         float3 m_translation { 0.0f };
