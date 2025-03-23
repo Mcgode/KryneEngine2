@@ -72,7 +72,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
             sceneDesc,
             m_sceneDescriptorSetIndices.data());
 
-        m_sceneDescriptorSets.Resize(m_sceneDescriptorSetIndices.size());
+        m_sceneDescriptorSets.Resize(m_sceneCbvs.Size());
         for (auto i = 0; i < m_sceneDescriptorSets.Size(); ++i)
         {
             DescriptorSetHandle& set = m_sceneDescriptorSets[i];
