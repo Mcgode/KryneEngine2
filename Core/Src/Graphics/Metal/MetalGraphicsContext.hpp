@@ -126,6 +126,7 @@ namespace KryneEngine
             const eastl::span<const TextureMemoryBarrier>& _textureMemoryBarriers);
 
         void DeclarePassTextureSrvUsage(CommandList _commandList, const eastl::span<const TextureSrvHandle>& _textures);
+        void DeclarePassBufferCbvUsage(CommandList _commandList, const eastl::span<const BufferCbvHandle>& _buffers);
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
@@ -165,5 +166,7 @@ namespace KryneEngine
     private:
         MetalResources m_resources;
         MetalArgumentBufferManager m_argumentBufferManager;
+
+        void UseResources(CommandList _commandList, eastl::span<MTL::Resource*> _resources);
     };
 } // KryneEngine

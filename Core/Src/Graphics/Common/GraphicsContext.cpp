@@ -336,7 +336,6 @@ namespace KryneEngine
             _textureMemoryBarriers);
     }
 
-
     void GraphicsContext::DeclarePassTextureSrvUsage(
         CommandListHandle _commandList,
         const eastl::span<const TextureSrvHandle>& _textures)
@@ -344,6 +343,15 @@ namespace KryneEngine
         GetImplementation(this).DeclarePassTextureSrvUsage(
             reinterpret_cast<CommandList>(_commandList),
             _textures);
+    }
+
+    void GraphicsContext::DeclarePassBufferCbvUsage(
+        KryneEngine::CommandListHandle _commandList,
+        const eastl::span<const BufferCbvHandle>& _buffers)
+    {
+        GetImplementation(this).DeclarePassBufferCbvUsage(
+            reinterpret_cast<CommandList>(_commandList),
+            _buffers);
     }
 
     ShaderModuleHandle GraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
