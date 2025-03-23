@@ -43,6 +43,6 @@ namespace KryneEngine
             { _matrix.m_vectors[0].x, _matrix.m_vectors[0].y, _matrix.m_vectors[0].z },
             { _matrix.m_vectors[1].x, _matrix.m_vectors[1].y, _matrix.m_vectors[1].z },
             { _matrix.m_vectors[2].x, _matrix.m_vectors[2].y, _matrix.m_vectors[2].z }
-        }
+        };
     }
 }
