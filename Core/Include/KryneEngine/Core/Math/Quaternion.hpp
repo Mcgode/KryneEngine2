@@ -162,6 +162,16 @@ namespace KryneEngine::Math
             return *this;
         }
 
+        template<Vector3Type Vec3>
+        Vec3 ApplyTo(const Vec3& _vec) const
+        {
+            Vec3 u(x, y, z);
+
+            return u * 2.0 * Dot(u, _vec)
+                + _vec * (w * w - Dot(u, u))
+                + CrossProduct(u, _vec) * 2.0 * w;
+        }
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCInconsistentNamingInspection"
         T w;
