@@ -21,6 +21,7 @@ namespace KryneEngine
         struct ApplicationInfo;
     }
 
+    struct BufferCbvDesc;
     struct BufferCreateDesc;
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
@@ -53,6 +54,14 @@ namespace KryneEngine
 
         GenerationalPool<VkImageView> m_imageViews;
         GenerationalPool<VkSampler> m_samplers;
+
+        struct BufferView {
+            VkBuffer m_buffer;
+            size_t m_size;
+            size_t m_offset;
+        };
+
+        GenerationalPool<BufferView> m_bufferViews;
 
         struct RTVColdData
         {
@@ -117,6 +126,9 @@ namespace KryneEngine
 
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc, VkDevice _device);
         bool DestroySampler(SamplerHandle _sampler, VkDevice _device);
+
+        [[nodiscard]] BufferCbvHandle CreateBufferCbv(const BufferCbvDesc& _cbvDesc, VkDevice _device);
+        bool DestroyBufferCbv(BufferCbvHandle _handle, VkDevice _device);
 
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc, VkDevice& _device);
         bool FreeRenderTargetView(RenderTargetViewHandle _rtv, VkDevice _device);

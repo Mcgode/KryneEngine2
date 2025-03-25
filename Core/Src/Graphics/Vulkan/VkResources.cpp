@@ -13,6 +13,7 @@
 #include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
 #include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
 #include "KryneEngine/Core/Graphics/Common/RenderPass.hpp"
+#include "KryneEngine/Core/Graphics/Common/ResourceViews/ConstantBufferView.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
@@ -374,6 +375,26 @@ namespace KryneEngine
             return true;
         }
         return false;
+    }
+
+    BufferCbvHandle VkResources::CreateBufferCbv(const BufferCbvDesc &_cbvDesc, VkDevice _device)
+    {
+        KE_ZoneScopedFunction("VkResources::CreateBufferCbv");
+
+        const VkBuffer* buffer = m_buffers.Get(_cbvDesc.m_buffer.m_handle);
+        const auto handle = m_bufferViews.Allocate();
+
+        BufferView* bufferView = m_bufferViews.Get(handle);
+        bufferView->m_buffer = *buffer;
+        bufferView->m_offset = _cbvDesc.m_offset;
+        bufferView->m_size = _cbvDesc.m_size;
+
+        return { handle };
+    }
+
+    bool VkResources::DestroyBufferCbv(BufferCbvHandle _handle, VkDevice _device)
+    {
+        return m_bufferViews.Free(_handle.m_handle);
     }
 
     RenderTargetViewHandle VkResources::CreateRenderTargetView(

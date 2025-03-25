@@ -905,6 +905,16 @@ namespace KryneEngine
         return m_resources.DestroySampler(_sampler, m_device);
     }
 
+    BufferCbvHandle VkGraphicsContext::CreateBufferCbv(const BufferCbvDesc &_cbvDesc)
+    {
+        return m_resources.CreateBufferCbv(_cbvDesc, m_device);
+    }
+
+    bool VkGraphicsContext::DestroyBufferCbv(BufferCbvHandle _handle)
+    {
+        return m_resources.DestroyBufferCbv(_handle, m_device);
+    }
+
     RenderTargetViewHandle VkGraphicsContext::GetPresentRenderTargetView(u8 _index)
     {
         return (m_appInfo.m_features.m_present)
