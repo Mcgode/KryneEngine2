@@ -9,6 +9,10 @@ set(CMAKE_CXX_STANDARD 23)
 include(./CMake/BuildSystem.cmake)
 include(./CMake/ShaderCompilation.cmake)
 
+if (WIN32)
+    add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
+endif ()
+
 option(KRYNE_ENGINE_BUILD_MODULES "Build modules for KryneEngine" ON)
 option(KRYNE_ENGINE_BUILD_TOOLS "Build tools for KryneEngine" ON)
 option(KRYNE_ENGINE_BUILD_SAMPLES "Build samples for KryneEngine" ON)
