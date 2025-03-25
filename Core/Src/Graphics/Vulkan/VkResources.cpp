@@ -849,7 +849,7 @@ namespace KryneEngine
             .depthTestEnable = _desc.m_depthStencil.m_depthTest,
             .depthWriteEnable = _desc.m_depthStencil.m_depthWrite,
             .depthCompareOp = VkHelperFunctions::ToVkCompareOp(_desc.m_depthStencil.m_depthCompare),
-            .depthBoundsTestEnable = VK_TRUE,
+            .depthBoundsTestEnable = VK_FALSE,
             .stencilTestEnable = _desc.m_depthStencil.m_stencilTest,
             .front = {
                 .failOp = VkHelperFunctions::ToVkStencilOp(_desc.m_depthStencil.m_front.m_failOp),
