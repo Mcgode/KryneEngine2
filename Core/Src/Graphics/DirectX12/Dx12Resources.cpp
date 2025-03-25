@@ -14,6 +14,7 @@
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp"
 #include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
+#include "KryneEngine/Core/Graphics/Common/ResourceViews/ConstantBufferView.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 
 namespace KryneEngine
@@ -323,6 +324,37 @@ namespace KryneEngine
     bool Dx12Resources::DestroySampler(SamplerHandle _sampler)
     {
         return m_samplers.Free(_sampler.m_handle);
+    }
+
+    BufferCbvHandle Dx12Resources::CreateBufferCbv(const BufferCbvDesc &_cbvDesc, ID3D12Device *_device)
+    {
+        KE_ZoneScopedFunction("Dx12Resources::CreateBufferCbv");
+
+        ID3D12Resource** buffer = m_buffers.Get(_cbvDesc.m_buffer.m_handle);
+        if (buffer == nullptr)
+        {
+            return { GenPool::kInvalidHandle };
+        }
+
+        const auto handle = m_cbvSrvUav.Allocate();
+
+        const D3D12_CONSTANT_BUFFER_VIEW_DESC desc {
+            .BufferLocation = (*buffer)->GetGPUVirtualAddress(),
+            .SizeInBytes = static_cast<u32>(_cbvDesc.m_size),
+        };
+
+        const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
+            m_cbvSrvUavDescriptorStorageHeap->GetCPUDescriptorHandleForHeapStart(),
+            handle.m_index,
+            m_cbvSrvUavDescriptorSize);
+        _device->CreateConstantBufferView(&desc, cpuDescriptorHandle);
+        *m_cbvSrvUav.Get(handle) = cpuDescriptorHandle;
+        return { handle };
+    }
+
+    bool Dx12Resources::DestroyBufferCbv(BufferCbvHandle _bufferCbv)
+    {
+        return m_cbvSrvUav.Free(_bufferCbv.m_handle);
     }
 
     RenderTargetViewHandle

@@ -360,6 +360,16 @@ namespace KryneEngine
         return m_resources.DestroySampler(_sampler);
     }
 
+    BufferCbvHandle Dx12GraphicsContext::CreateBufferCbv(const BufferCbvDesc &_cbvDesc)
+    {
+        return m_resources.CreateBufferCbv(_cbvDesc, m_device.Get());
+    }
+
+    bool Dx12GraphicsContext::DestroyBufferCbv(BufferCbvHandle _handle)
+    {
+        return m_resources.DestroyBufferCbv(_handle);
+    }
+
     RenderTargetViewHandle Dx12GraphicsContext::GetPresentRenderTargetView(u8 _index)
     {
         return m_swapChain.m_renderTargetViews[_index];

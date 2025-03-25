@@ -20,6 +20,7 @@ namespace D3D12MA
 
 namespace KryneEngine
 {
+    struct BufferCbvDesc;
     struct BufferCreateDesc;
     struct TextureSrvDesc;
     struct RenderTargetViewDesc;
@@ -54,6 +55,9 @@ namespace KryneEngine
 
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc, ID3D12Device* _device);
         bool DestroySampler(SamplerHandle _sampler);
+
+        [[nodiscard]] BufferCbvHandle CreateBufferCbv(const BufferCbvDesc& _cbvDesc, ID3D12Device* _device);
+        bool DestroyBufferCbv(BufferCbvHandle _bufferCbv);
 
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc, ID3D12Device* _device);
         bool FreeRenderTargetView(RenderTargetViewHandle _rtv);
