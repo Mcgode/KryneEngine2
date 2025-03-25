@@ -57,5 +57,7 @@ namespace KryneEngine::Math
                 baseMat.Get(2, 3) = num / (f - n);
             }
         }
+
+        return baseMat;
     }
 }
