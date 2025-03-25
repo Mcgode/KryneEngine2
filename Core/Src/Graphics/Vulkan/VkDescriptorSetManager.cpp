@@ -298,10 +298,12 @@ namespace KryneEngine
                     data.m_imageInfo.imageView = *pImageView;
                     data.m_imageInfo.imageLayout = VkHelperFunctions::ToVkLayout(descriptor.m_textureLayout);
                 }
-                else
+                else if (packedIndex.m_type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER || packedIndex.m_type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
                 {
-                    KE_ERROR("Buffer support not yet implemented");
-                    return;
+                    const VkResources::BufferView* bufferView = _resources.m_bufferViews.Get(descriptor.m_handle);
+                    data.m_bufferImageInfo.buffer = bufferView->m_buffer;
+                    data.m_bufferImageInfo.offset = bufferView->m_offset;
+                    data.m_bufferImageInfo.range = bufferView->m_size;
                 }
             }
 
