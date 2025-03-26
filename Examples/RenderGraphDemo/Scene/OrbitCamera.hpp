@@ -6,16 +6,15 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Math/Matrix.hpp"
-#include "KryneEngine/Core/Window/Input/InputManager.hpp"
-#include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
+#include <KryneEngine/Core/Math/Matrix.hpp>
+#include <KryneEngine/Core/Window/Input/InputManager.hpp>
 
 namespace KryneEngine::Samples::RenderGraphDemo
 {
     class OrbitCamera
     {
     public:
-        OrbitCamera(InputManager _inputManager, float _aspectRatio);
+        OrbitCamera(InputManager* _inputManager, float _aspectRatio);
         ~OrbitCamera();
 
         void Process();

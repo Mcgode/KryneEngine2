@@ -81,7 +81,7 @@ int main()
     Modules::ImGui::Context* imGuiContext = nullptr;
 
     RenderGraph::RenderGraph renderGraph {};
-    SceneManager sceneManager(allocator, graphicsContext, renderGraph.GetRegistry());
+    SceneManager sceneManager(allocator, mainWindow, renderGraph.GetRegistry());
 
     KryneEngine::SimplePoolHandle
         gBufferAlbedo,

@@ -26,10 +26,11 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
     SceneManager::SceneManager(
         AllocatorInstance _allocator,
-        GraphicsContext* _graphicsContext,
+        Window& _window,
         Modules::RenderGraph::Registry& _registry)
             : m_allocator(_allocator)
             , m_torusKnot(nullptr, _allocator)
+            , m_orbitCamera(nullptr, _allocator)
             , m_sceneConstantsBuffer(_allocator)
             , m_sceneCbvs(_allocator)
             , m_sceneDescriptorSetIndices(_allocator)
@@ -37,8 +38,13 @@ namespace KryneEngine::Samples::RenderGraphDemo
     {
         m_torusKnot.reset(m_allocator.New<TorusKnot>(m_allocator));
 
+        GraphicsContext* graphicsContext = _window.GetGraphicsContext();
+        const float aspectRatio = static_cast<float>(graphicsContext->GetApplicationInfo().m_displayOptions.m_width)
+            / static_cast<float>(graphicsContext->GetApplicationInfo().m_displayOptions.m_height);
+        m_orbitCamera.reset(m_allocator.New<OrbitCamera>(_window.GetInputManager(), aspectRatio));
+
         m_sceneConstantsBuffer.Init(
-            _graphicsContext,
+            graphicsContext,
             {
                 .m_desc = {
                     .m_size = sizeof(SceneConstants),
@@ -48,11 +54,11 @@ namespace KryneEngine::Samples::RenderGraphDemo
                 },
                 .m_usage = MemoryUsage::StageEveryFrame_UsageType | MemoryUsage::ConstantBuffer,
             },
-            _graphicsContext->GetFrameContextCount());
-        m_sceneCbvs.Resize(_graphicsContext->GetFrameContextCount());
-        for (auto i = 0u; i < _graphicsContext->GetFrameContextCount(); ++i)
+            graphicsContext->GetFrameContextCount());
+        m_sceneCbvs.Resize(graphicsContext->GetFrameContextCount());
+        for (auto i = 0u; i < graphicsContext->GetFrameContextCount(); ++i)
         {
-            m_sceneCbvs[i] = _graphicsContext->CreateBufferCbv(BufferCbvDesc {
+            m_sceneCbvs[i] = graphicsContext->CreateBufferCbv(BufferCbvDesc {
                 .m_buffer = m_sceneConstantsBuffer.GetBuffer(i),
                 .m_size = sizeof(SceneConstants),
                 .m_offset = 0,
@@ -69,7 +75,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
         };
 
         m_sceneDescriptorSetIndices.resize(sceneDesc.m_bindings.size());
-        m_sceneDescriptorSetLayout = _graphicsContext->CreateDescriptorSetLayout(
+        m_sceneDescriptorSetLayout = graphicsContext->CreateDescriptorSetLayout(
             sceneDesc,
             m_sceneDescriptorSetIndices.data());
 
@@ -77,17 +83,17 @@ namespace KryneEngine::Samples::RenderGraphDemo
         for (auto i = 0; i < m_sceneDescriptorSets.Size(); ++i)
         {
             DescriptorSetHandle& set = m_sceneDescriptorSets[i];
-            set = _graphicsContext->CreateDescriptorSet(m_sceneDescriptorSetLayout);
+            set = graphicsContext->CreateDescriptorSet(m_sceneDescriptorSetLayout);
 
             const DescriptorSetWriteInfo writeInfo {
                 .m_index = m_sceneDescriptorSetIndices[0],
                 .m_descriptorData = { DescriptorSetWriteInfo::DescriptorData { .m_handle = m_sceneCbvs[i].m_handle } },
             };
-            _graphicsContext->UpdateDescriptorSet(set,{ &writeInfo, 1 });
+            graphicsContext->UpdateDescriptorSet(set,{ &writeInfo, 1 });
         }
 
-        m_cbRenderGraphHandles.Resize(_graphicsContext->GetFrameContextCount());
-        m_cbvRenderGraphHandles.Resize(_graphicsContext->GetFrameContextCount());
+        m_cbRenderGraphHandles.Resize(graphicsContext->GetFrameContextCount());
+        m_cbvRenderGraphHandles.Resize(graphicsContext->GetFrameContextCount());
         for (auto i = 0u; i < m_cbRenderGraphHandles.Size(); ++i)
         {
             m_cbRenderGraphHandles[i] = _registry.RegisterRawBuffer(m_sceneConstantsBuffer.GetBuffer(i));
@@ -135,6 +141,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
     void SceneManager::Process(GraphicsContext* _graphicsContext)
     {
         m_torusKnot->Process(_graphicsContext);
+        m_orbitCamera->Process();
 
         auto* sceneConstants = static_cast<SceneConstants*>(m_sceneConstantsBuffer.Map(
             _graphicsContext,

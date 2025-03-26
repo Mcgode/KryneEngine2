@@ -27,6 +27,7 @@ namespace KryneEngine::Modules
 
 namespace KryneEngine::Samples::RenderGraphDemo
 {
+    class OrbitCamera;
     class TorusKnot;
 
     class SceneManager
@@ -34,7 +35,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
     public:
         explicit SceneManager(
             AllocatorInstance _allocator,
-            GraphicsContext* _graphicsContext,
+            Window& _window,
             Modules::RenderGraph::Registry& _registry);
         ~SceneManager();
 
@@ -58,6 +59,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
     private:
         AllocatorInstance m_allocator;
         UniquePtr<TorusKnot> m_torusKnot;
+        UniquePtr<OrbitCamera> m_orbitCamera;
 
         Modules::GraphicsUtils::DynamicBuffer m_sceneConstantsBuffer;
         DynamicArray<BufferCbvHandle> m_sceneCbvs;

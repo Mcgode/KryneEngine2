@@ -15,7 +15,7 @@
 
 namespace KryneEngine::Samples::RenderGraphDemo
 {
-    OrbitCamera::OrbitCamera(InputManager _inputManager, float _aspectRatio)
+    OrbitCamera::OrbitCamera(InputManager* _inputManager, float _aspectRatio)
     : m_aspectRatio(_aspectRatio)
     {
     }
