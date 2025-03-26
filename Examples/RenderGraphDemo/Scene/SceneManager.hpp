@@ -60,6 +60,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
         AllocatorInstance m_allocator;
         UniquePtr<TorusKnot> m_torusKnot;
         UniquePtr<OrbitCamera> m_orbitCamera;
+        uint2 m_windowSize;
 
         Modules::GraphicsUtils::DynamicBuffer m_sceneConstantsBuffer;
         DynamicArray<BufferCbvHandle> m_sceneCbvs;

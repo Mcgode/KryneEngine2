@@ -6,6 +6,7 @@
 
 #include "SceneManager.hpp"
 
+#include <KryneEngine/Core/Graphics/Common/Drawing.hpp>
 #include <KryneEngine/Core/Graphics/Common/ResourceViews/ConstantBufferView.hpp>
 #include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
@@ -41,8 +42,11 @@ namespace KryneEngine::Samples::RenderGraphDemo
         m_torusKnot.reset(m_allocator.New<TorusKnot>(m_allocator));
 
         GraphicsContext* graphicsContext = _window.GetGraphicsContext();
-        const float aspectRatio = static_cast<float>(graphicsContext->GetApplicationInfo().m_displayOptions.m_width)
-            / static_cast<float>(graphicsContext->GetApplicationInfo().m_displayOptions.m_height);
+        m_windowSize = {
+            graphicsContext->GetApplicationInfo().m_displayOptions.m_width,
+            graphicsContext->GetApplicationInfo().m_displayOptions.m_height
+        };
+        const float aspectRatio = static_cast<float>(m_windowSize.x) / static_cast<float>(m_windowSize.y);
         m_orbitCamera.reset(m_allocator.New<OrbitCamera>(_window.GetInputManager(), aspectRatio));
 
         m_sceneConstantsBuffer.Init(
@@ -172,6 +176,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
     void SceneManager::RenderGBuffer(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
     {
         _graphicsContext->DeclarePassBufferCbvUsage(_commandList, { &m_sceneCbvs[_graphicsContext->GetCurrentFrameContextIndex()], 1 });
+        _graphicsContext->SetViewport(_commandList, Viewport { .m_width = static_cast<s32>(m_windowSize.x), .m_height = static_cast<s32>(m_windowSize.y) });
+        _graphicsContext->SetScissorsRect(_commandList, Rect { .m_left = 0, .m_top = 0, .m_right = m_windowSize.x, .m_bottom = m_windowSize.y });
         m_torusKnot->RenderGBuffer(_graphicsContext, _commandList, m_sceneDescriptorSets[_graphicsContext->GetCurrentFrameContextIndex()]);
     }
 }
