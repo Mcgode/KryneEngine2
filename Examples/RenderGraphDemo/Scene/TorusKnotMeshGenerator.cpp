@@ -47,7 +47,7 @@ namespace KryneEngine::Samples::RenderGraphDemo::TorusKnotMeshGenerator
         mesh.m_vertexCount = (_tubularSegments + 1) * (_radialSegments + 1);
 
         mesh.m_indices = static_cast<std::byte*>(_allocator.allocate(mesh.m_indexCount * sizeof(u32)));
-        mesh.m_vertices = static_cast<std::byte*>(_allocator.allocate(mesh.m_vertexCount * sizeof(float) * 3));
+        mesh.m_vertices = static_cast<std::byte*>(_allocator.allocate(mesh.m_vertexCount * kVertexSize));
 
         const auto p = static_cast<float>(_p);
         const auto q = static_cast<float>(_q);
