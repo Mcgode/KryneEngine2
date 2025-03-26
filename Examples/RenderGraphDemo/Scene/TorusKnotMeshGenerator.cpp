@@ -77,13 +77,13 @@ namespace KryneEngine::Samples::RenderGraphDemo::TorusKnotMeshGenerator
                 const float3_simd position = p1 + (cx * n) + (cy * b);
                 memcpy(
                     mesh.m_vertices + vertexId * kVertexSize + kVertexPositionOffset,
-                    &position.x,
+                    position.GetPtr(),
                     kVertexPositionSize);
 
                 const float3_simd normal = (position - p1).Normalized();
                 memcpy(
                     mesh.m_vertices + vertexId * kVertexSize + kVertexNormalOffset,
-                    &normal.x,
+                    normal.GetPtr(),
                     kVertexNormalSize);
 
                 vertexId++;
