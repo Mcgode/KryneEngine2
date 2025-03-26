@@ -25,9 +25,9 @@ VsOutput MainVs(const VsInput _input)
 {
     VsOutput output;
 
-    output.normal = mul(frameData.m_torusWorldMatrix, float4(_input.normal, 0.f)).xyz;
+    output.normal = mul(float4(_input.normal, 0.f), frameData.m_torusWorldMatrix).xyz;
 
-    output.position = mul(frameData.m_viewProjectionMatrix, mul(frameData.m_torusWorldMatrix, float4(_input.position, 1.f)));
+    output.position = mul(mul(float4(_input.position, 1.f), frameData.m_torusWorldMatrix), frameData.m_viewProjectionMatrix);
 
     return output;
 }
