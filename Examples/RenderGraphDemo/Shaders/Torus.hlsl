@@ -45,7 +45,7 @@ FsOutput MainFs(FsInput _input)
     FsOutput output;
 
     output.albedo = float4(frameData.m_torusAlbedo, 0.f);
-    output.normal = float4(normalize(_input.normal), 0.f);
+    output.normal = float4(normalize(_input.normal) * 0.5f + 0.5f, 0.f);
 
     return output;
 }
