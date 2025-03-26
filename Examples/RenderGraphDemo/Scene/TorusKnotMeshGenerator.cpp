@@ -25,7 +25,7 @@ namespace
         return float3_simd {
             _knotRadius * (2 + cs) * cu * 0.5f,
             _knotRadius * (2 + cs) * su * 0.5f,
-            _knotRadius * std::sin(quOverP) * _q * 0.5f
+            _knotRadius * std::sin(quOverP) * 0.5f
         };
     }
 }
@@ -55,7 +55,7 @@ namespace KryneEngine::Samples::RenderGraphDemo::TorusKnotMeshGenerator
         u32 vertexId = 0;
         for (auto i = 0u; i <= _tubularSegments; i++)
         {
-            const float u = static_cast<float>(i) / static_cast<float>(_tubularSegments) * float(M_PI) * 2.f;
+            const float u = static_cast<float>(i) / static_cast<float>(_tubularSegments) * p * float(M_PI) * 2.f;
 
             const float3_simd p1 = computePositionOnCurve(u, p, q, _knotRadius);
             const float3_simd p2 = computePositionOnCurve(u + 0.01f, p, q, _knotRadius);
@@ -95,10 +95,10 @@ namespace KryneEngine::Samples::RenderGraphDemo::TorusKnotMeshGenerator
         {
             for (auto j = 0u; j < _radialSegments; j++)
             {
-                const u32 a = (_radialSegments + 1) * j + i;
-                const u32 b = (_radialSegments + 1) * (j + 1) + i;
-                const u32 c = (_radialSegments + 1) * (j + 1) + i + 1;
-                const u32 d = (_radialSegments + 1) * j + i + 1;
+                const u32 a = (_radialSegments + 1) * i + j;
+                const u32 b = (_radialSegments + 1) * (i + 1) + j;
+                const u32 c = (_radialSegments + 1) * (i + 1) + (j + 1);
+                const u32 d = (_radialSegments + 1) * i + (j + 1);
 
                 *(indexPtr++) = a;
                 *(indexPtr++) = b;
