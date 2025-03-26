@@ -54,7 +54,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
                     .m_debugName = "SceneConstants",
 #endif
                 },
-                .m_usage = MemoryUsage::StageEveryFrame_UsageType | MemoryUsage::ConstantBuffer,
+                .m_usage = MemoryUsage::StageEveryFrame_UsageType | MemoryUsage::TransferDstBuffer | MemoryUsage::ConstantBuffer,
             },
             graphicsContext->GetFrameContextCount());
         m_sceneCbvs.Resize(graphicsContext->GetFrameContextCount());
