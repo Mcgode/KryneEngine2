@@ -43,7 +43,7 @@ namespace KryneEngine::Math
                 baseMat.Get(2, projZCol) = thirdAxisForward ? value : -value;
             }
             {
-                baseMat.Get(2, 3) = _reversedDepth ? -n : n;
+                baseMat.Get(2, 3) = _reversedDepth ? n : -n;
             }
         }
         else
@@ -53,7 +53,7 @@ namespace KryneEngine::Math
                 baseMat.Get(2, projZCol) = (thirdAxisForward ? num : -num) / (f - n);
             }
             {
-                const float num = _reversedDepth ? -f * n : f * n;
+                const float num = _reversedDepth ? f * n : -f * n;
                 baseMat.Get(2, 3) = num / (f - n);
             }
         }
