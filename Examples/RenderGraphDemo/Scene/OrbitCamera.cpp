@@ -13,6 +13,10 @@
 #include <KryneEngine/Core/Math/Transform.hpp>
 #include <KryneEngine/Core/Window/Input/InputManager.hpp>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include <cmath>
+
 namespace KryneEngine::Samples::RenderGraphDemo
 {
     OrbitCamera::OrbitCamera(InputManager* _inputManager, float _aspectRatio)

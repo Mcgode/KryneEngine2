@@ -16,6 +16,10 @@
 #include <imgui.h>
 #include <fstream>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include <cmath>
+
 #include "TorusKnotMeshGenerator.hpp"
 
 namespace KryneEngine::Samples::RenderGraphDemo

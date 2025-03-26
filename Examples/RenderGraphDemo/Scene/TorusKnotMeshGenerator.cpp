@@ -6,7 +6,10 @@
 
 #include "TorusKnotMeshGenerator.hpp"
 
-#include "KryneEngine/Core/Math/Vector3.hpp"
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include <cmath>
+#include <KryneEngine/Core/Math/Vector3.hpp>
 
 namespace
 {
