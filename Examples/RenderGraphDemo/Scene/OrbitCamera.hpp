@@ -19,6 +19,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         void Process();
 
+        [[nodiscard]] const float4x4& GetProjectionViewMatrix() const { return m_projectionViewMatrix; }
+
     private:
         float3 m_focusPosition {};
         float m_distance = 10.0f;

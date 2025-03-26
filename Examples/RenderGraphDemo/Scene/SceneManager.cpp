@@ -12,7 +12,9 @@
 #include <KryneEngine/Modules/ImGui/Context.hpp>
 #include <KryneEngine/Modules/RenderGraph/Builder.hpp>
 #include <KryneEngine/Modules/RenderGraph/Registry.hpp>
+#include <KryneEngine/Core/Window/Window.hpp>
 
+#include "OrbitCamera.hpp"
 #include "TorusKnot.hpp"
 
 namespace KryneEngine::Samples::RenderGraphDemo
@@ -148,7 +150,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
             _graphicsContext->GetCurrentFrameContextIndex()));
 
         sceneConstants->m_torusKnotModel = m_torusKnot->GetModelMatrix();
-        sceneConstants->m_viewProjection = float4x4();
+        sceneConstants->m_viewProjection = m_orbitCamera->GetProjectionViewMatrix();
         sceneConstants->m_torusKnotAlbedo = m_torusKnot->GetAlbedo();
 
         m_sceneConstantsBuffer.Unmap(_graphicsContext);
