@@ -39,7 +39,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         const Math::Quaternion viewRotation = yaw * pitch;
         const float3 forwardVector = viewRotation.ApplyTo(Math::ForwardVector());
-        const float3 translation = forwardVector * -m_distance;
+        const float3 translation = forwardVector * m_distance;
 
         float4x4_simd viewMatrix = ToMatrix44(ToMatrix33<float3x3_simd>(viewRotation));
         Math::SetTranslation(viewMatrix, translation);
