@@ -340,7 +340,7 @@ namespace KryneEngine
 
         const D3D12_CONSTANT_BUFFER_VIEW_DESC desc {
             .BufferLocation = (*buffer)->GetGPUVirtualAddress(),
-            .SizeInBytes = static_cast<u32>(_cbvDesc.m_size),
+            .SizeInBytes = Alignment::AlignUpPot<u32>(_cbvDesc.m_size, 8),
         };
 
         const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
