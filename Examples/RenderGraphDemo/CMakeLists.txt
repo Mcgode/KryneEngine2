@@ -10,6 +10,8 @@ add_executable(RenderGraphDemo
         Scene/TorusKnot.hpp
         Scene/OrbitCamera.cpp
         Scene/OrbitCamera.hpp
+        Scene/SunLight.cpp
+        Scene/SunLight.hpp
 )
 
 # Link to cpp libraries

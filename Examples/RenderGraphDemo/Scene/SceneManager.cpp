@@ -16,6 +16,7 @@
 #include <KryneEngine/Core/Window/Window.hpp>
 
 #include "OrbitCamera.hpp"
+#include "SunLight.hpp"
 #include "TorusKnot.hpp"
 
 namespace KryneEngine::Samples::RenderGraphDemo
@@ -23,8 +24,17 @@ namespace KryneEngine::Samples::RenderGraphDemo
     struct alignas(16) SceneConstants
     {
         float4x4 m_torusKnotModel;
+
         float4x4 m_viewProjection;
+
         float3 m_torusKnotAlbedo;
+        u32 m_padding0;
+
+        float3 m_sunLightDirection;
+        u32 m_padding1;
+
+        float3 m_sunDiffuse;
+        u32 m_padding2;
     };
 
     SceneManager::SceneManager(
@@ -34,6 +44,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
             : m_allocator(_allocator)
             , m_torusKnot(nullptr, _allocator)
             , m_orbitCamera(nullptr, _allocator)
+            , m_sunLight(nullptr, _allocator)
             , m_sceneConstantsBuffer(_allocator)
             , m_sceneCbvs(_allocator)
             , m_sceneDescriptorSetIndices(_allocator)
@@ -48,6 +59,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
         };
         const float aspectRatio = static_cast<float>(m_windowSize.x) / static_cast<float>(m_windowSize.y);
         m_orbitCamera.reset(m_allocator.New<OrbitCamera>(_window.GetInputManager(), aspectRatio));
+
+        m_sunLight.reset(m_allocator.New<SunLight>());
 
         m_sceneConstantsBuffer.Init(
             graphicsContext,
@@ -156,6 +169,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
         sceneConstants->m_torusKnotModel = m_torusKnot->GetModelMatrix();
         sceneConstants->m_viewProjection = m_orbitCamera->GetProjectionViewMatrix();
         sceneConstants->m_torusKnotAlbedo = m_torusKnot->GetAlbedo();
+        sceneConstants->m_sunLightDirection = m_sunLight->GetDirection();
+        sceneConstants->m_sunDiffuse = m_sunLight->GetDiffuse();
 
         m_sceneConstantsBuffer.Unmap(_graphicsContext);
     }
