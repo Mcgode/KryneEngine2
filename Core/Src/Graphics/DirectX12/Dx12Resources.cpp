@@ -69,7 +69,8 @@ namespace KryneEngine
         VERIFY_OR_RETURN(_desc.m_desc.m_size > 0, { GenPool::kInvalidHandle });
         VERIFY_OR_RETURN(BitUtils::EnumHasAny(_desc.m_usage, ~MemoryUsage::USAGE_TYPE_MASK), { GenPool::kInvalidHandle });
 
-        D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_desc.m_desc.m_size);
+        const size_t alignment = BitUtils::EnumHasAny(_desc.m_usage, MemoryUsage::ConstantBuffer) ? 256 : 1;
+        D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(Alignment::AlignUp(_desc.m_desc.m_size, alignment));
 
         if (BitUtils::EnumHasAny(_desc.m_usage, MemoryUsage::WriteBuffer))
         {
