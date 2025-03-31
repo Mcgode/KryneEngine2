@@ -12,6 +12,7 @@ set(CommonSrc
         Include/KryneEngine/Core/Common/Utils/MultiFrameTracking.hpp
         Src/Common/BitUtils.cpp
         Include/KryneEngine/Core/Common/Misc/EastlConfig.hpp
+        Include/KryneEngine/Core/Common/Misc/Unroll.hpp
 )
 
 set(FilesSrc
