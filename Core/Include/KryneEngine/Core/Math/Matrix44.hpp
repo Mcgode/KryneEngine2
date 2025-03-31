@@ -84,6 +84,8 @@ namespace KryneEngine::Math
         [[nodiscard]] Matrix44Base Transposed() const;
 
         Vector4Base<T, SimdOptimal> m_vectors[4];
+
+        [[nodiscard]] T Determinant() const;
     };
 
     template<class T>

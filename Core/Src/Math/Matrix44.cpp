@@ -200,6 +200,34 @@ namespace KryneEngine::Math
         return result;
     }
 
+    template <class T, bool SimdOptimal, bool RowMajor>
+    T Matrix44Base<T, SimdOptimal, RowMajor>::Determinant() const
+    {
+        // Don't care about the layout, as the determinant of the transpose has the same value
+        // https://en.wikipedia.org/wiki/Determinant#Transpose
+
+        const T a0 = m_vectors[0][0],
+                a1 = m_vectors[0][1],
+                a2 = m_vectors[0][2],
+                a3 = m_vectors[0][3],
+                b0 = m_vectors[1][0],
+                b1 = m_vectors[1][1],
+                b2 = m_vectors[1][2],
+                b3 = m_vectors[1][3],
+                c0 = m_vectors[2][0],
+                c1 = m_vectors[2][1],
+                c2 = m_vectors[2][2],
+                c3 = m_vectors[2][3],
+                d0 = m_vectors[3][0],
+                d1 = m_vectors[3][1],
+                d2 = m_vectors[3][2],
+                d3 = m_vectors[3][3];
+
+        return a0*b1*c2*d3 - a0*b1*c3*d2 + a0*b2*c3*d1 - a0*b2*c1*d3 + a0*b3*c1*d2 - a0*b3*c2*d1
+            - a1*b2*c3*d0 + a1*b2*c0*d3 - a1*b3*c0*d2 + a1*b3*c2*d0 - a1*b0*c2*d3 + a1*b0*c3*d2
+            + a2*b3*c0*d1 - a2*b3*c1*d0 + a2*b0*c1*d3 - a2*b0*c3*d1 + a2*b1*c3*d0 - a2*b1*c0*d3
+            - a3*b0*c1*d2 + a3*b0*c2*d1 - a3*b1*c2*d0 + a3*b1*c0*d2 - a3*b2*c0*d1 + a3*b2*c1*d0;
+    }
 #define IMPLEMENTATION_INDIVIDUAL(type, simdOptimal, rowMajor) \
     template struct Matrix44Base<type, simdOptimal, rowMajor>
 
