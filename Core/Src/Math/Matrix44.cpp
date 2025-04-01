@@ -6,6 +6,7 @@
 
 #include "KryneEngine/Core/Math/Matrix44.hpp"
 
+#include "KryneEngine/Core/Common/Misc/Unroll.hpp"
 #include "KryneEngine/Core/Math/XSimdUtils.hpp"
 
 namespace KryneEngine::Math
@@ -69,32 +70,29 @@ namespace KryneEngine::Math
 
             xsimd::batch<T, OptimalArch> matB[4 * Operability::kBatchCount];
 
-            for (size_t i = 0; i < Operability::kBatchCount; ++i)
-            {
+            UNROLL_FOR_LOOP(i, Operability::kBatchCount)
                 matB[0 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(_other.m_vectors[0].GetPtr() + Operability::kBatchSize * i);
                 matB[1 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(_other.m_vectors[1].GetPtr() + Operability::kBatchSize * i);
                 matB[2 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(_other.m_vectors[2].GetPtr() + Operability::kBatchSize * i);
                 matB[3 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(_other.m_vectors[3].GetPtr() + Operability::kBatchSize * i);
-            }
-            for (size_t i = 0; i < Operability::kBatchCount * Operability::kBatchCount; ++i)
-            {
+            END_UNROLL()
+            UNROLL_FOR_LOOP(i, Operability::kBatchCount * Operability::kBatchCount)
                 xsimd::transpose(
                     matB + i * Operability::kBatchSize,
                     matB + (i + 1) * Operability::kBatchSize);
-            }
+            END_UNROLL()
             if constexpr (Operability::kBatchCount == 2)
             {
                 std::swap(matB[2], matB[4]);
                 std::swap(matB[3], matB[5]);
             }
 
-            for (auto i = 0; i < 4; ++i)
-            {
-                for (auto j = 0; j < Operability::kBatchCount; ++j)
-                {
-                    xsimd::batch matALine = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[i].GetPtr() + Operability::kBatchSize * j);
-                    for (auto k = 0; k < 4; ++k)
-                    {
+            UNROLL_FOR_LOOP(i, 4)
+                UNROLL_FOR_LOOP(j, Operability::kBatchCount)
+                    xsimd::batch matALine = XsimdLoad<alignedOps, T, OptimalArch>(
+                        m_vectors[i].GetPtr() + Operability::kBatchSize * j);
+
+                    UNROLL_FOR_LOOP(k, 4)
                         if (j == 0)
                         {
                             result.m_vectors[i][k] = xsimd::reduce_add(matALine * matB[k]);
@@ -103,10 +101,10 @@ namespace KryneEngine::Math
                         {
                             result.m_vectors[i][k] += xsimd::reduce_add(matALine * matB[k + 4 * j]);
                         }
-                    }
+                    END_UNROLL()
+                END_UNROLL()
+            END_UNROLL()
 
-                }
-            }
             return result;
         }
         else
@@ -153,31 +151,28 @@ namespace KryneEngine::Math
         {
             using OptimalArch = Operability::OptimalArch;
             xsimd::batch<T, OptimalArch> mat[4 * Operability::kBatchCount];
-            for (size_t i = 0; i < Operability::kBatchCount; ++i)
-            {
+            UNROLL_FOR_LOOP(i, Operability::kBatchCount)
                 mat[0 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[0].GetPtr() + Operability::kBatchSize * i);
                 mat[1 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[1].GetPtr() + Operability::kBatchSize * i);
                 mat[2 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[2].GetPtr() + Operability::kBatchSize * i);
                 mat[3 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[3].GetPtr() + Operability::kBatchSize * i);
-            }
-            for (size_t i = 0; i < Operability::kBatchCount * Operability::kBatchCount; ++i)
-            {
+            END_UNROLL()
+            UNROLL_FOR_LOOP(i, Operability::kBatchCount * Operability::kBatchCount)
                 xsimd::transpose(
                     mat + i * Operability::kBatchSize,
                     mat + (i + 1) * Operability::kBatchSize);
-            }
+            END_UNROLL()
             if constexpr (Operability::kBatchCount == 2)
             {
                 std::swap(mat[2], mat[4]);
                 std::swap(mat[3], mat[5]);
             }
-            for (auto i = 0u; i < Operability::kBatchCount; ++i)
-            {
+            UNROLL_FOR_LOOP(i, Operability::kBatchCount)
                 XsimdStore<alignedOps, T, OptimalArch>(m_vectors[0].GetPtr() + Operability::kBatchSize * i, mat[0 + 4 * i]);
                 XsimdStore<alignedOps, T, OptimalArch>(m_vectors[1].GetPtr() + Operability::kBatchSize * i, mat[1 + 4 * i]);
                 XsimdStore<alignedOps, T, OptimalArch>(m_vectors[2].GetPtr() + Operability::kBatchSize * i, mat[2 + 4 * i]);
                 XsimdStore<alignedOps, T, OptimalArch>(m_vectors[3].GetPtr() + Operability::kBatchSize * i, mat[3 + 4 * i]);
-            }
+            END_UNROLL()
         }
         else
         {
