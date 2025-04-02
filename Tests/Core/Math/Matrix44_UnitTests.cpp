@@ -330,7 +330,7 @@ namespace KryneEngine::Tests::Math
         {
             const float4 vec = perspective * testVector;
             const float4x4 inverse = perspective.Inverse();
-            const float4x4 mul = transform * inverse;
+            const float4x4 mul = perspective * inverse;
             EXPECT_EQ(mul, float4x4()) << "Perspective matrix inverse is invalid";
             EXPECT_EQ(testVector, inverse * vec) << "Perspective matrix inverse is invalid";
         }
