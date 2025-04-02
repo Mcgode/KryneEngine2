@@ -57,7 +57,9 @@ namespace KryneEngine::Math
         T* GetPtr();
         const T* GetPtr() const;
 
-        bool operator==(const Vector4Base& _other) const;
+        static constexpr T kEqualsEpsilon = 1e-6f;
+        bool operator==(const Vector4Base& _other) const { return Equals(_other); }
+        bool Equals(const Vector4Base& _other, T _epsilon = kEqualsEpsilon) const;
 
         void Normalize() requires std::is_floating_point_v<T>;
         Vector4Base Normalized() const requires std::is_floating_point_v<T>;

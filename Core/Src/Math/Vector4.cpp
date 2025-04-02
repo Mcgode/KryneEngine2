@@ -117,7 +117,7 @@ namespace KryneEngine::Math
     }
 
     template <typename T, bool SimdOptimal>
-    bool Vector4Base<T, SimdOptimal>::operator==(const Vector4Base& _other) const
+    bool Vector4Base<T, SimdOptimal>::Equals(const Vector4Base& _other, T _epsilon) const
     {
         using Vector4 = Vector4Base<T, SimdOptimal>;
 
@@ -132,13 +132,27 @@ namespace KryneEngine::Math
             {
                 xsimd::batch vecA = XsimdLoad<alignedOps, T, OptimalArch>(GetPtr() + i * Operability::kBatchSize);
                 xsimd::batch vecB = XsimdLoad<alignedOps, T, OptimalArch>(_other.GetPtr() + i * Operability::kBatchSize);
-                result &= xsimd::all(xsimd::eq(vecA, vecB));
+                if (_epsilon == 0.0f)
+                {
+                    result &= xsimd::all(xsimd::eq(vecA, vecB));
+                }
+                else
+                {
+                    result &= xsimd::all(xsimd::abs(vecA - vecB) < _epsilon);
+                }
             }
             return result;
         }
         else
         {
-            return x == _other.x && y == _other.y && z == _other.z && w == _other.w;
+            if (_epsilon == 0.0f)
+            {
+                return x == _other.x && y == _other.y && z == _other.z && w == _other.w;
+            }
+            return (std::abs(x - _other.x) < _epsilon)
+                   && (std::abs(y - _other.y) < _epsilon)
+                   && (std::abs(z - _other.z) < _epsilon)
+                   && (std::abs(w - _other.w) < _epsilon);
         }
     }
 
