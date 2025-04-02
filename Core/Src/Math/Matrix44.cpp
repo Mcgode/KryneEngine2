@@ -296,6 +296,134 @@ namespace KryneEngine::Math
             + a2*b3*c0*d1 - a2*b3*c1*d0 + a2*b0*c1*d3 - a2*b0*c3*d1 + a2*b1*c3*d0 - a2*b1*c0*d3
             - a3*b0*c1*d2 + a3*b0*c2*d1 - a3*b1*c2*d0 + a3*b1*c0*d2 - a3*b2*c0*d1 + a3*b2*c1*d0;
     }
+
+    template <class T, bool SimdOptimal, bool RowMajor>
+    Matrix44Base<T, SimdOptimal, RowMajor> Matrix44Base<T, SimdOptimal, RowMajor>::Inverse() const
+    {
+        // Transpose of an inverse is the inverse of a transpose, so layout is irrelevant.
+
+        Matrix44Base result;
+
+        constexpr bool alignedOps = SimdOptimal;
+        using Operability = SimdOperability<T, Matrix44Base>;
+
+        if constexpr (Operability::kSimdOperable)
+        {
+            using OptimalArch = Operability::OptimalArch;
+            constexpr size_t batchCount = 4 / Operability::kBatchSize;
+
+            if constexpr (batchCount == 1)
+            {
+                using vec4 = xsimd::batch<T, OptimalArch>;
+
+                const vec4 v0 = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[0].GetPtr());
+                const vec4 v1 = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[1].GetPtr());
+                const vec4 v2 = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[2].GetPtr());
+                const vec4 v3 = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[3].GetPtr());
+
+                const vec4 a = xsimd::shuffle(v0, v1, xsimd::batch_constant<u32, OptimalArch, 0, 1, 4, 5>());
+                const vec4 b = xsimd::shuffle(v0, v1, xsimd::batch_constant<u32, OptimalArch, 2, 3, 6, 7>());
+                const vec4 c = xsimd::shuffle(v2, v3, xsimd::batch_constant<u32, OptimalArch, 0, 1, 4, 5>());
+                const vec4 d = xsimd::shuffle(v2, v3, xsimd::batch_constant<u32, OptimalArch, 2, 3, 6, 7>());
+
+                vec4 detA, detB, detC, detD;
+                {
+                    const vec4 a0 = xsimd::shuffle(v0, v2, xsimd::batch_constant<u32, OptimalArch, 0, 2, 4, 6>());
+                    const vec4 b0 = xsimd::shuffle(v1, v3, xsimd::batch_constant<u32, OptimalArch, 1, 3, 5, 7>());
+                    const vec4 detMul0 = a0 * b0;
+
+                    const vec4 a1 = xsimd::shuffle(v0, v2, xsimd::batch_constant<u32, OptimalArch, 1, 3, 5, 7>());
+                    const vec4 b1 = xsimd::shuffle(v1, v3, xsimd::batch_constant<u32, OptimalArch, 0, 2, 4, 6>());
+                    const vec4 detMul1 = a1 * b1;
+
+                    const vec4 detSub = detMul0 - detMul1;
+
+                    detA = xsimd::swizzle(detSub, xsimd::batch_constant<u32, OptimalArch, 0, 0, 0, 0>());
+                    detB = xsimd::swizzle(detSub, xsimd::batch_constant<u32, OptimalArch, 1, 1, 1, 1>());
+                    detC = xsimd::swizzle(detSub, xsimd::batch_constant<u32, OptimalArch, 2, 2, 2, 2>());
+                    detD = xsimd::swizzle(detSub, xsimd::batch_constant<u32, OptimalArch, 3, 3, 3, 3>());
+                }
+
+                constexpr auto mat2Mul = [](const vec4& _a, const vec4& _b)
+                {
+                    return
+                        (
+                            _a
+                            * xsimd::swizzle(_b, xsimd::batch_constant<u32, OptimalArch, 0, 3, 0, 3>())
+                        ) + (
+                            xsimd::swizzle(_a, xsimd::batch_constant<u32, OptimalArch, 1, 0, 3, 2>())
+                            * xsimd::swizzle(_b, xsimd::batch_constant<u32, OptimalArch, 2, 1, 2, 1>())
+                        );
+                };
+
+                constexpr auto mat2AdjMul = [](const vec4& _a, const vec4& _b)
+                {
+                    return (
+                            xsimd::swizzle(_a, xsimd::batch_constant<u32, OptimalArch, 3, 3, 0, 0>())
+                            * _b
+                        ) - (
+                            xsimd::swizzle(_a, xsimd::batch_constant<u32, OptimalArch, 1, 1, 2, 2>())
+                            * xsimd::swizzle(_b, xsimd::batch_constant<u32, OptimalArch, 2, 3, 0, 1>())
+                        );
+                };
+
+                constexpr auto mat2MulAdj = [](const vec4& _a, const vec4& _b)
+                {
+                    return
+                        (
+                            _a
+                            * xsimd::swizzle(_b, xsimd::batch_constant<u32, OptimalArch, 3, 0, 3, 0>())
+                        ) - (
+                            xsimd::swizzle(_a, xsimd::batch_constant<u32, OptimalArch, 1, 0, 3, 2>())
+                            * xsimd::swizzle(_b, xsimd::batch_constant<u32, OptimalArch, 2, 1, 2, 1>())
+                        );
+                };
+
+                const vec4 d_c = mat2AdjMul(d, c);
+                const vec4 a_b = mat2Mul(a, b);
+
+                vec4 x_ = (detD * a) - mat2Mul(b, d_c);
+                vec4 w_ = (detA * d) - mat2Mul(c, a_b);
+
+                vec4 y_ = (detB * c) - mat2MulAdj(d, a_b);
+                vec4 z_ = (detC * b) - mat2MulAdj(a, d_c);
+
+                vec4 detM = (detA * detD) + (detB * detC);
+
+                const T tr = xsimd::reduce_add(
+                    a_b * xsimd::swizzle(d_c, xsimd::batch_constant<u32, OptimalArch, 0, 2, 1, 3>()));
+                detM = detM - tr;
+
+                const vec4 adjSignMask = vec4(1, -1, -1, 1);
+                const vec4 invDet = adjSignMask / detM;
+
+                x_ *= invDet;
+                y_ *= invDet;
+                z_ *= invDet;
+                w_ *= invDet;
+
+                XsimdStore<alignedOps, T, OptimalArch>(
+                    result.m_vectors[0].GetPtr(),
+                    xsimd::shuffle(x_, y_, xsimd::batch_constant<u32, OptimalArch, 3, 1, 7, 5>()));
+                XsimdStore<alignedOps, T, OptimalArch>(
+                    result.m_vectors[1].GetPtr(),
+                    xsimd::shuffle(x_, y_, xsimd::batch_constant<u32, OptimalArch, 2, 0, 6, 4>()));
+                XsimdStore<alignedOps, T, OptimalArch>(
+                    result.m_vectors[2].GetPtr(),
+                    xsimd::shuffle(z_, w_, xsimd::batch_constant<u32, OptimalArch, 3, 1, 7, 5>()));
+                XsimdStore<alignedOps, T, OptimalArch>(
+                    result.m_vectors[3].GetPtr(),
+                    xsimd::shuffle(z_, w_, xsimd::batch_constant<u32, OptimalArch, 2, 0, 6, 4>()));
+            }
+        }
+        else
+        {
+
+        }
+
+        return result;
+    }
+
 #define IMPLEMENTATION_INDIVIDUAL(type, simdOptimal, rowMajor) \
     template struct Matrix44Base<type, simdOptimal, rowMajor>
 
