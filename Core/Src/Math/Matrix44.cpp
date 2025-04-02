@@ -182,10 +182,10 @@ namespace KryneEngine::Math
             Vector4 result {};
 
             UNROLL_FOR_LOOP(i, Operability::kBatchCount)
-                result.x = xsimd::reduce_add(mat[0 + 4 * i] * vec[i]);
-                result.y = xsimd::reduce_add(mat[1 + 4 * i] * vec[i]);
-                result.z = xsimd::reduce_add(mat[2 + 4 * i] * vec[i]);
-                result.w = xsimd::reduce_add(mat[3 + 4 * i] * vec[i]);
+                result.x += xsimd::reduce_add(mat[0 + 4 * i] * vec[i]);
+                result.y += xsimd::reduce_add(mat[1 + 4 * i] * vec[i]);
+                result.z += xsimd::reduce_add(mat[2 + 4 * i] * vec[i]);
+                result.w += xsimd::reduce_add(mat[3 + 4 * i] * vec[i]);
             END_UNROLL()
 
             return result;
