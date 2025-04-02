@@ -17,6 +17,9 @@ namespace KryneEngine::Math
     template <typename T, bool SimdOptimal = false>
     struct Vector4Base
     {
+        using ScalarType = T;
+        static constexpr bool kSimdOptimal = SimdOptimal;
+
         static_assert(sizeof(T) >= 4 || !SimdOptimal, "Vector4Base element type must be at least 4 bytes to use SIMD");
 
         static constexpr size_t kSimdOptimalAlignment = Alignment::AlignUpPot(4 * sizeof(T), 4);
@@ -88,4 +91,11 @@ namespace KryneEngine::Math
 
     template<typename T, bool SimdOptimal>
     extern T Dot(const Vector4Base<T, SimdOptimal>& _a, const Vector4Base<T, SimdOptimal>& _b);
+
+    template<typename T>
+    concept Vector4Type = requires {
+        typename T::ScalarType;
+        T::kSimdOptimal;
+        std::is_same_v<T, Vector4Base<typename T::ScalarType, T::kSimdOptimal>>;
+    };
 }
