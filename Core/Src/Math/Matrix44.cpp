@@ -274,6 +274,7 @@ namespace KryneEngine::Math
         // Don't care about the layout, as the determinant of the transpose has the same value
         // https://en.wikipedia.org/wiki/Determinant#Transpose
 
+        // Implementation based on the one from Assimp
         const T a0 = m_vectors[0][0],
                 a1 = m_vectors[0][1],
                 a2 = m_vectors[0][2],
@@ -313,6 +314,8 @@ namespace KryneEngine::Math
         if constexpr (Operability::kSimdOperable)
         {
             using OptimalArch = Operability::OptimalArch;
+
+            // SIMD implementation based on https://lxjk.github.io/2017/09/03/Fast-4x4-Matrix-Inverse-with-SSE-SIMD-Explained.html
 
             if constexpr (Operability::kBatchCount == 1)
             {
@@ -492,7 +495,50 @@ namespace KryneEngine::Math
         }
         else
         {
+            // Taken from assimp implementation
 
+            const T invDet = 1.0 / Determinant();
+            const T a0 = m_vectors[0][0],
+                    a1 = m_vectors[0][1],
+                    a2 = m_vectors[0][2],
+                    a3 = m_vectors[0][3],
+                    b0 = m_vectors[1][0],
+                    b1 = m_vectors[1][1],
+                    b2 = m_vectors[1][2],
+                    b3 = m_vectors[1][3],
+                    c0 = m_vectors[2][0],
+                    c1 = m_vectors[2][1],
+                    c2 = m_vectors[2][2],
+                    c3 = m_vectors[2][3],
+                    d0 = m_vectors[3][0],
+                    d1 = m_vectors[3][1],
+                    d2 = m_vectors[3][2],
+                    d3 = m_vectors[3][3];
+            
+            result.m_vectors[0] = Vector4Base<T, SimdOptimal> {
+                invDet * (b1 * (c2 * d3 - c3 * d2) + b2 * (c3 * d1 - c1 * d3) + b3 * (c1 * d2 - c2 * d1)),
+                -invDet * (a1 * (c2 * d3 - c3 * d2) + a2 * (c3 * d1 - c1 * d3) + a3 * (c1 * d2 - c2 * d1)),
+                invDet * (a1 * (b2 * d3 - b3 * d2) + a2 * (b3 * d1 - b1 * d3) + a3 * (b1 * d2 - b2 * d1)),
+                -invDet * (a1 * (b2 * c3 - b3 * c2) + a2 * (b3 * c1 - b1 * c3) + a3 * (b1 * c2 - b2 * c1)),
+            };
+            result.m_vectors[1] = Vector4Base<T, SimdOptimal> {
+                -invDet * (b0 * (c2 * d3 - c3 * d2) + b2 * (c3 * d0 - c0 * d3) + b3 * (c0 * d2 - c2 * d0)),
+                invDet * (a0 * (c2 * d3 - c3 * d2) + a2 * (c3 * d0 - c0 * d3) + a3 * (c0 * d2 - c2 * d0)),
+                -invDet * (a0 * (b2 * d3 - b3 * d2) + a2 * (b3 * d0 - b0 * d3) + a3 * (b0 * d2 - b2 * d0)),
+                invDet * (a0 * (b2 * c3 - b3 * c2) + a2 * (b3 * c0 - b0 * c3) + a3 * (b0 * c2 - b2 * c0)),
+            };
+            result.m_vectors[2] = Vector4Base<T, SimdOptimal> {
+                invDet * (b0 * (c1 * d3 - c3 * d1) + b1 * (c3 * d0 - c0 * d3) + b3 * (c0 * d1 - c1 * d0)),
+                -invDet * (a0 * (c1 * d3 - c3 * d1) + a1 * (c3 * d0 - c0 * d3) + a3 * (c0 * d1 - c1 * d0)),
+                invDet * (a0 * (b1 * d3 - b3 * d1) + a1 * (b3 * d0 - b0 * d3) + a3 * (b0 * d1 - b1 * d0)),
+                -invDet * (a0 * (b1 * c3 - b3 * c1) + a1 * (b3 * c0 - b0 * c3) + a3 * (b0 * c1 - b1 * c0)),
+            };
+            result.m_vectors[3] = Vector4Base<T, SimdOptimal> {
+                -invDet * (b0 * (c1 * d2 - c2 * d1) + b1 * (c2 * d0 - c0 * d2) + b2 * (c0 * d1 - c1 * d0)),
+                invDet * (a0 * (c1 * d2 - c2 * d1) + a1 * (c2 * d0 - c0 * d2) + a2 * (c0 * d1 - c1 * d0)),
+                -invDet * (a0 * (b1 * d2 - b2 * d1) + a1 * (b2 * d0 - b0 * d2) + a2 * (b0 * d1 - b1 * d0)),
+                invDet * (a0 * (b1 * c2 - b2 * c1) + a1 * (b2 * c0 - b0 * c2) + a2 * (b0 * c1 - b1 * c0)),
+            };
         }
 
         return result;
