@@ -302,17 +302,19 @@ namespace KryneEngine::Math
     {
         // Transpose of an inverse is the inverse of a transpose, so layout is irrelevant.
 
+#define SHUFFLE(a, b,...) xsimd::shuffle(a, b, xsimd::batch_constant<u32, OptimalArch, __VA_ARGS__>())
+#define SWIZZLE(v,...) xsimd::swizzle(v, xsimd::batch_constant<u32, OptimalArch, __VA_ARGS__>())
+
         Matrix44Base result;
 
         constexpr bool alignedOps = SimdOptimal;
-        using Operability = SimdOperability<T, Matrix44Base>;
+        using Operability = SimdOperability<T, Vector4Base<T, SimdOptimal>>;
 
         if constexpr (Operability::kSimdOperable)
         {
             using OptimalArch = Operability::OptimalArch;
-            constexpr size_t batchCount = 4 / Operability::kBatchSize;
 
-            if constexpr (batchCount == 1)
+            if constexpr (Operability::kBatchCount == 1)
             {
                 using vec4 = xsimd::batch<T, OptimalArch>;
 
@@ -321,62 +323,45 @@ namespace KryneEngine::Math
                 const vec4 v2 = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[2].GetPtr());
                 const vec4 v3 = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[3].GetPtr());
 
-                const vec4 a = xsimd::shuffle(v0, v1, xsimd::batch_constant<u32, OptimalArch, 0, 1, 4, 5>());
-                const vec4 b = xsimd::shuffle(v0, v1, xsimd::batch_constant<u32, OptimalArch, 2, 3, 6, 7>());
-                const vec4 c = xsimd::shuffle(v2, v3, xsimd::batch_constant<u32, OptimalArch, 0, 1, 4, 5>());
-                const vec4 d = xsimd::shuffle(v2, v3, xsimd::batch_constant<u32, OptimalArch, 2, 3, 6, 7>());
+                const vec4 a = SHUFFLE(v0, v1, 0, 1, 4, 5);
+                const vec4 b = SHUFFLE(v0, v1, 2, 3, 6, 7);
+                const vec4 c = SHUFFLE(v2, v3, 0, 1, 4, 5);
+                const vec4 d = SHUFFLE(v2, v3, 2, 3, 6, 7);
 
                 vec4 detA, detB, detC, detD;
                 {
-                    const vec4 a0 = xsimd::shuffle(v0, v2, xsimd::batch_constant<u32, OptimalArch, 0, 2, 4, 6>());
-                    const vec4 b0 = xsimd::shuffle(v1, v3, xsimd::batch_constant<u32, OptimalArch, 1, 3, 5, 7>());
+                    const vec4 a0 = SHUFFLE(v0, v2, 0, 2, 4, 6);
+                    const vec4 b0 = SHUFFLE(v1, v3, 1, 3, 5, 7);
                     const vec4 detMul0 = a0 * b0;
 
-                    const vec4 a1 = xsimd::shuffle(v0, v2, xsimd::batch_constant<u32, OptimalArch, 1, 3, 5, 7>());
-                    const vec4 b1 = xsimd::shuffle(v1, v3, xsimd::batch_constant<u32, OptimalArch, 0, 2, 4, 6>());
+                    const vec4 a1 = SHUFFLE(v0, v2, 1, 3, 5, 7);
+                    const vec4 b1 = SHUFFLE(v1, v3, 0, 2, 4, 6);
                     const vec4 detMul1 = a1 * b1;
 
                     const vec4 detSub = detMul0 - detMul1;
 
-                    detA = xsimd::swizzle(detSub, xsimd::batch_constant<u32, OptimalArch, 0, 0, 0, 0>());
-                    detB = xsimd::swizzle(detSub, xsimd::batch_constant<u32, OptimalArch, 1, 1, 1, 1>());
-                    detC = xsimd::swizzle(detSub, xsimd::batch_constant<u32, OptimalArch, 2, 2, 2, 2>());
-                    detD = xsimd::swizzle(detSub, xsimd::batch_constant<u32, OptimalArch, 3, 3, 3, 3>());
+                    detA = SWIZZLE(detSub, 0, 0, 0, 0);
+                    detB = SWIZZLE(detSub, 1, 1, 1, 1);
+                    detC = SWIZZLE(detSub, 2, 2, 2, 2);
+                    detD = SWIZZLE(detSub, 3, 3, 3, 3);
                 }
 
                 constexpr auto mat2Mul = [](const vec4& _a, const vec4& _b)
                 {
-                    return
-                        (
-                            _a
-                            * xsimd::swizzle(_b, xsimd::batch_constant<u32, OptimalArch, 0, 3, 0, 3>())
-                        ) + (
-                            xsimd::swizzle(_a, xsimd::batch_constant<u32, OptimalArch, 1, 0, 3, 2>())
-                            * xsimd::swizzle(_b, xsimd::batch_constant<u32, OptimalArch, 2, 1, 2, 1>())
-                        );
+                    return (_a * SWIZZLE(_b, 0, 3, 0, 3))
+                           + (SWIZZLE(_a, 1, 0, 3, 2) * SWIZZLE(_b, 2, 1, 2, 1));
                 };
 
                 constexpr auto mat2AdjMul = [](const vec4& _a, const vec4& _b)
                 {
-                    return (
-                            xsimd::swizzle(_a, xsimd::batch_constant<u32, OptimalArch, 3, 3, 0, 0>())
-                            * _b
-                        ) - (
-                            xsimd::swizzle(_a, xsimd::batch_constant<u32, OptimalArch, 1, 1, 2, 2>())
-                            * xsimd::swizzle(_b, xsimd::batch_constant<u32, OptimalArch, 2, 3, 0, 1>())
-                        );
+                    return (SWIZZLE(_a, 3, 3, 0, 0) * _b)
+                           - (SWIZZLE(_a, 1, 1, 2, 2) * SWIZZLE(_b, 2, 3, 0, 1));
                 };
 
                 constexpr auto mat2MulAdj = [](const vec4& _a, const vec4& _b)
                 {
-                    return
-                        (
-                            _a
-                            * xsimd::swizzle(_b, xsimd::batch_constant<u32, OptimalArch, 3, 0, 3, 0>())
-                        ) - (
-                            xsimd::swizzle(_a, xsimd::batch_constant<u32, OptimalArch, 1, 0, 3, 2>())
-                            * xsimd::swizzle(_b, xsimd::batch_constant<u32, OptimalArch, 2, 1, 2, 1>())
-                        );
+                    return (_a * SWIZZLE(_b, 3, 0, 3, 0))
+                           - (SWIZZLE(_a, 1, 0, 3, 2) * SWIZZLE(_b, 2, 1, 2, 1));
                 };
 
                 const vec4 d_c = mat2AdjMul(d, c);
@@ -390,8 +375,7 @@ namespace KryneEngine::Math
 
                 vec4 detM = (detA * detD) + (detB * detC);
 
-                const T tr = xsimd::reduce_add(
-                    a_b * xsimd::swizzle(d_c, xsimd::batch_constant<u32, OptimalArch, 0, 2, 1, 3>()));
+                const T tr = xsimd::reduce_add(a_b * SWIZZLE(d_c, 0, 2, 1, 3));
                 detM = detM - tr;
 
                 const vec4 adjSignMask = vec4(1, -1, -1, 1);
@@ -402,18 +386,13 @@ namespace KryneEngine::Math
                 z_ *= invDet;
                 w_ *= invDet;
 
-                XsimdStore<alignedOps, T, OptimalArch>(
-                    result.m_vectors[0].GetPtr(),
-                    xsimd::shuffle(x_, y_, xsimd::batch_constant<u32, OptimalArch, 3, 1, 7, 5>()));
-                XsimdStore<alignedOps, T, OptimalArch>(
-                    result.m_vectors[1].GetPtr(),
-                    xsimd::shuffle(x_, y_, xsimd::batch_constant<u32, OptimalArch, 2, 0, 6, 4>()));
-                XsimdStore<alignedOps, T, OptimalArch>(
-                    result.m_vectors[2].GetPtr(),
-                    xsimd::shuffle(z_, w_, xsimd::batch_constant<u32, OptimalArch, 3, 1, 7, 5>()));
-                XsimdStore<alignedOps, T, OptimalArch>(
-                    result.m_vectors[3].GetPtr(),
-                    xsimd::shuffle(z_, w_, xsimd::batch_constant<u32, OptimalArch, 2, 0, 6, 4>()));
+                XsimdStore<alignedOps, T, OptimalArch>(result.m_vectors[0].GetPtr(), SHUFFLE(x_, y_, 3, 1, 7, 5));
+                XsimdStore<alignedOps, T, OptimalArch>(result.m_vectors[1].GetPtr(), SHUFFLE(x_, y_, 2, 0, 6, 4));
+                XsimdStore<alignedOps, T, OptimalArch>(result.m_vectors[2].GetPtr(), SHUFFLE(z_, w_, 3, 1, 7, 5));
+                XsimdStore<alignedOps, T, OptimalArch>(result.m_vectors[3].GetPtr(), SHUFFLE(z_, w_, 2, 0, 6, 4));
+
+#undef SWIZZLE
+#undef SHUFFLE
             }
         }
         else
