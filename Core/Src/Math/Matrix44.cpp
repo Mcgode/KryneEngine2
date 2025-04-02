@@ -394,6 +394,101 @@ namespace KryneEngine::Math
 #undef SWIZZLE
 #undef SHUFFLE
             }
+            else
+            {
+#define SHUFFLE(m,...) xsimd::shuffle(m.r0, m.r1, xsimd::batch_constant<u64, OptimalArch, __VA_ARGS__>())
+#define SWIZZLE(v,...) xsimd::swizzle(v, xsimd::batch_constant<u64, OptimalArch, __VA_ARGS__>())
+
+                static_assert(Operability::kBatchCount == 2);
+
+                using vec2 = xsimd::batch<T, OptimalArch>;
+                struct mat22 {
+                    vec2 r0, r1;
+                    inline const vec2& operator[](u32 _index) const { return _index == 0 ? r0 : r1; }
+
+                    inline mat22 operator+(const mat22& _o) const { return { r0 + _o.r0, r1 + _o.r1 }; }
+                    inline mat22 operator-(const mat22& _o) const { return { r0 - _o.r0, r1 - _o.r1 }; }
+                    inline mat22 operator*(const mat22& _o) const { return { r0 * _o.r0, r1 * _o.r1 }; }
+                    inline void operator*=(const mat22& _o) { r0 *= _o.r0; r1 *= _o.r1; }
+                    inline mat22 operator*(const vec2& _o) const { return { r0 * _o, r1 * _o }; }
+                    inline mat22 operator/(const vec2& _o) const { return { r0 / _o, r1 / _o }; }
+                };
+
+                const mat22 a = {
+                    XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[0].GetPtr()),
+                    XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[1].GetPtr()) };
+                const mat22 b = {
+                    XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[0].GetPtr() + 2),
+                    XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[1].GetPtr() + 2) };
+                const mat22 c = {
+                    XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[2].GetPtr()),
+                    XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[3].GetPtr()) };
+                const mat22 d = {
+                    XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[2].GetPtr() + 2),
+                    XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[3].GetPtr() + 2) };
+
+                const vec2 detA = m_vectors[0][0] * m_vectors[1][1] - m_vectors[0][1] * m_vectors[1][0];
+                const vec2 detB = m_vectors[0][2] * m_vectors[1][3] - m_vectors[0][3] * m_vectors[1][2];
+                const vec2 detC = m_vectors[2][0] * m_vectors[3][1] - m_vectors[2][1] * m_vectors[3][0];
+                const vec2 detD = m_vectors[2][2] * m_vectors[3][3] - m_vectors[2][3] * m_vectors[3][2];
+
+                constexpr auto mat2Mul = [](const mat22& _a, const mat22& _b)
+                {
+                    return mat22 {
+                        _a[0] * SHUFFLE(_b, 0, 3) + SWIZZLE(_a[0], 1, 0) * SHUFFLE(_b, 2, 1),
+                        _a[1] * SHUFFLE(_b, 0, 3) + SWIZZLE(_a[1], 1, 0) * SHUFFLE(_b, 2, 1),
+                    };
+                };
+
+                constexpr auto mat2AdjMul = [](const mat22& _a, const mat22& _b)
+                {
+                    return mat22 {
+                        SWIZZLE(_a[1], 1, 1) * _b[0] - SWIZZLE(_a[0], 1, 1) * SWIZZLE(_b[1], 0, 1),
+                        SWIZZLE(_a[0], 0, 0) * _b[1] - SWIZZLE(_a[1], 0, 0) * SWIZZLE(_b[0], 0, 1),
+                    };
+                };
+
+                constexpr auto mat2MulAdj = [](const mat22& _a, const mat22& _b)
+                {
+                    return mat22 {
+                        _a[0] * SHUFFLE(_b, 3, 0) - SWIZZLE(_a[0], 1, 0) * SHUFFLE(_b, 2, 1),
+                        _a[1] * SHUFFLE(_b, 3, 0) - SWIZZLE(_a[1], 1, 0) * SHUFFLE(_b, 2, 1),
+                    };
+                };
+
+                const mat22 d_c = mat2AdjMul(d, c);
+                const mat22 a_b = mat2AdjMul(a, b);
+
+                mat22 x_ = a * detD - mat2Mul(b, d_c);
+                mat22 y_ = c * detB - mat2MulAdj(d, a_b);
+                mat22 z_ = b * detC - mat2MulAdj(a, d_c);
+                mat22 w_ = d * detA - mat2Mul(c, a_b);
+
+                vec2 detM = detA * detD - detB * detC;
+
+                const mat22 trMat = a_b * SHUFFLE(d_c, 0, 2);
+                const T tr = xsimd::reduce_add(trMat[0] + trMat[1]);
+                detM = detM - tr;
+
+                const mat22 adjSignMask { { 1, -1 }, { -1, 1 } };
+                const mat22 invDet = adjSignMask / detM;
+
+                x_ *= invDet;
+                y_ *= invDet;
+                z_ *= invDet;
+                w_ *= invDet;
+
+                XsimdStore<alignedOps, T, OptimalArch>(result.m_vectors[0].GetPtr() + 0, SHUFFLE(x_, 3, 1));
+                XsimdStore<alignedOps, T, OptimalArch>(result.m_vectors[0].GetPtr() + 2, SHUFFLE(y_, 3, 1));
+                XsimdStore<alignedOps, T, OptimalArch>(result.m_vectors[1].GetPtr() + 0, SHUFFLE(x_, 2, 0));
+                XsimdStore<alignedOps, T, OptimalArch>(result.m_vectors[1].GetPtr() + 2, SHUFFLE(y_, 2, 0));
+                XsimdStore<alignedOps, T, OptimalArch>(result.m_vectors[2].GetPtr() + 0, SHUFFLE(z_, 3, 1));
+                XsimdStore<alignedOps, T, OptimalArch>(result.m_vectors[2].GetPtr() + 2, SHUFFLE(w_, 3, 1));
+                XsimdStore<alignedOps, T, OptimalArch>(result.m_vectors[3].GetPtr() + 0, SHUFFLE(z_, 2, 0));
+                XsimdStore<alignedOps, T, OptimalArch>(result.m_vectors[3].GetPtr() + 2, SHUFFLE(w_, 2, 0));
+#undef SWIZZLE
+#undef SHUFFLE
+            }
         }
         else
         {
