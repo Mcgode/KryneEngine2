@@ -380,7 +380,7 @@ namespace KryneEngine::Math
                 };
 
                 const vec4 d_c = mat2AdjMul(d, c);
-                const vec4 a_b = mat2Mul(a, b);
+                const vec4 a_b = mat2AdjMul(a, b);
 
                 vec4 x_ = (detD * a) - mat2Mul(b, d_c);
                 vec4 w_ = (detA * d) - mat2Mul(c, a_b);
