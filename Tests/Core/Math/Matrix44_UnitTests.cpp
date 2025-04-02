@@ -6,10 +6,12 @@
 
 #include <gtest/gtest.h>
 #include <KryneEngine/Core/Math/Matrix.hpp>
+#include <KryneEngine/Core/Math/Projection.hpp>
+#include <KryneEngine/Core/Math/Transform.hpp>
 
 namespace KryneEngine::Tests::Math
 {
-    using namespace Math;
+    using namespace KryneEngine::Math;
 
     TEST(Matrix44, Addition)
     {
@@ -243,6 +245,94 @@ namespace KryneEngine::Tests::Math
         {
             const double4x4_simd mat(matBase);
             EXPECT_EQ(mat.Transposed(), double4x4_simd(expected));
+        }
+    }
+
+    TEST(Matrix44, Inverse)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        const float4x4 identity {};
+
+        const auto translation = ComputeTransformMatrix<float4x4>(
+            float3(1.0f, 2.0f, 3.0f),
+            Quaternion(),
+            float3(1.0f)
+        );
+
+        const auto scale = ComputeTransformMatrix<float4x4>(
+            float3(),
+            Quaternion(),
+            float3(1.0f, 0.5f, 1.2f)
+        );
+
+        const auto rotation = ComputeTransformMatrix<float4x4>(
+            float3(),
+            Quaternion(),
+            float3(1.0f)
+        );
+
+        const auto transform = ComputeTransformMatrix<float4x4>(
+            float3(1.0f, 2.0f, 3.0f),
+            Quaternion().FromAxisAngle(float3(1.0f, 1.0f, 0.0f).Normalized(), 0.5f),
+            float3(1.0f, 0.5f, 1.2f)
+        );
+
+        const auto perspective = PerspectiveProjection<float4x4>(1.5f, 1.3333f, 0.1, 1024, false);
+
+        const float4 testVector { 1.0f, 2.0f, 3.0f, 4.0f };
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        {
+            const float4 vec = identity * testVector;
+            const float4x4 inverse = identity.Inverse();
+            EXPECT_EQ(identity, inverse) << "Identity matrix inverse is invalid";
+            EXPECT_EQ(testVector, inverse * vec) << "Identity matrix inverse is invalid";
+        }
+
+        {
+            const float4 vec = translation * testVector;
+            const float4x4 inverse = translation.Inverse();
+            const float4x4 mul = translation * inverse;
+            EXPECT_EQ(mul, float4x4()) << "Translation matrix inverse is invalid";
+            EXPECT_EQ(testVector, inverse * vec) << "Translation matrix inverse is invalid";
+        }
+
+        {
+            const float4 vec = scale * testVector;
+            const float4x4 inverse = scale.Inverse();
+            const float4x4 mul = scale * inverse;
+            EXPECT_EQ(mul, float4x4()) << "Scale matrix inverse is invalid";
+            EXPECT_EQ(testVector, inverse * vec) << "Scale matrix inverse is invalid";
+        }
+
+        {
+            const float4 vec = rotation * testVector;
+            const float4x4 inverse = rotation.Inverse();
+            const float4x4 mul = rotation * inverse;
+            EXPECT_EQ(mul, float4x4()) << "Rotation matrix inverse is invalid";
+            EXPECT_EQ(testVector, inverse * vec) << "Rotation matrix inverse is invalid";
+        }
+
+        {
+            const float4 vec = transform * testVector;
+            const float4x4 inverse = transform.Inverse();
+            const float4x4 mul = transform * inverse;
+            EXPECT_EQ(mul, float4x4()) << "Transform matrix inverse is invalid";
+            EXPECT_EQ(testVector, inverse * vec) << "Transform matrix inverse is invalid";
+        }
+
+        {
+            const float4 vec = perspective * testVector;
+            const float4x4 inverse = perspective.Inverse();
+            const float4x4 mul = transform * inverse;
+            EXPECT_EQ(mul, float4x4()) << "Perspective matrix inverse is invalid";
+            EXPECT_EQ(testVector, inverse * vec) << "Perspective matrix inverse is invalid";
         }
     }
 }
