@@ -141,7 +141,80 @@ namespace KryneEngine::Math
         }
     }
 
-    template <typename T, bool SimdOptimal, bool RowMajor>
+    template <class T, bool SimdOptimal, bool RowMajor>
+    Vector4Base<T, SimdOptimal> Matrix44Base<T, SimdOptimal, RowMajor>::operator*(const Vector4Base<T, SimdOptimal>& _other) const
+    {
+        using Vector4 = Vector4Base<T, SimdOptimal>;
+
+        constexpr bool alignedOps = SimdOptimal;
+        using Operability = SimdOperability<T, Vector4>;
+
+        if constexpr (Operability::kSimdOperable)
+        {
+            using OptimalArch = Operability::OptimalArch;
+
+            xsimd::batch<T, OptimalArch> mat[4 * Operability::kBatchCount];
+            xsimd::batch<T, OptimalArch> vec[Operability::kBatchCount];
+
+            UNROLL_FOR_LOOP(i, Operability::kBatchCount)
+                mat[0 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[0].GetPtr() + Operability::kBatchSize * i);
+                mat[1 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[1].GetPtr() + Operability::kBatchSize * i);
+                mat[2 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[2].GetPtr() + Operability::kBatchSize * i);
+                mat[3 + 4 * i] = XsimdLoad<alignedOps, T, OptimalArch>(m_vectors[3].GetPtr() + Operability::kBatchSize * i);
+
+                vec[i] = XsimdLoad<alignedOps, T, OptimalArch>(_other.GetPtr() + Operability::kBatchSize * i);
+            END_UNROLL()
+
+            if constexpr (!RowMajor)
+            {
+                UNROLL_FOR_LOOP(i, Operability::kBatchCount * Operability::kBatchCount)
+                    xsimd::transpose(
+                    mat + i * Operability::kBatchSize,
+                    mat + (i + 1) * Operability::kBatchSize);
+                END_UNROLL()
+                if constexpr (Operability::kBatchCount == 2)
+                {
+                    std::swap(mat[2], mat[4]);
+                    std::swap(mat[3], mat[5]);
+                }
+            }
+
+            Vector4 result {};
+
+            UNROLL_FOR_LOOP(i, Operability::kBatchCount)
+                result.x = xsimd::reduce_add(mat[0 + 4 * i] * vec[i]);
+                result.y = xsimd::reduce_add(mat[1 + 4 * i] * vec[i]);
+                result.z = xsimd::reduce_add(mat[2 + 4 * i] * vec[i]);
+                result.w = xsimd::reduce_add(mat[3 + 4 * i] * vec[i]);
+            END_UNROLL()
+
+            return result;
+        }
+        else
+        {
+            if constexpr (RowMajor)
+            {
+                return {
+                    Dot(m_vectors[0], _other),
+                    Dot(m_vectors[1], _other),
+                    Dot(m_vectors[2], _other),
+                    Dot(m_vectors[3], _other),
+                };
+            }
+            else
+            {
+                const Matrix44Base transposed = Transposed();
+                return {
+                    Dot(transposed.m_vectors[0], _other),
+                    Dot(transposed.m_vectors[1], _other),
+                    Dot(transposed.m_vectors[2], _other),
+                    Dot(transposed.m_vectors[3], _other),
+                };
+            }
+        }
+    }
+
+    template <class T, bool SimdOptimal, bool RowMajor>
     Matrix44Base<T, SimdOptimal, RowMajor>& Matrix44Base<T, SimdOptimal, RowMajor>::Transpose()
     {
         constexpr bool alignedOps = SimdOptimal;
