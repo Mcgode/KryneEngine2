@@ -248,7 +248,7 @@ namespace KryneEngine::Tests::Math
         }
     }
 
-    TEST(Matrix44, Inverse)
+    TEST(Matrix44, InverseFloat4x4)
     {
         // -----------------------------------------------------------------------
         // Setup
@@ -332,6 +332,91 @@ namespace KryneEngine::Tests::Math
             const float4x4 inverse = perspective.Inverse();
             const float4x4 mul = perspective * inverse;
             EXPECT_EQ(mul, float4x4()) << "Perspective matrix inverse is invalid";
+            EXPECT_EQ(testVector, inverse * vec) << "Perspective matrix inverse is invalid";
+        }
+    }
+
+    TEST(Matrix44, InverseDouble4x4)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        const double4x4 identity{};
+
+        const auto translation = double4x4(ComputeTransformMatrix<float4x4>(
+            float3(1, 2, 3),
+            Quaternion(),
+            float3(1.0f)));
+
+        const auto scale = double4x4(ComputeTransformMatrix<float4x4>(
+            float3(),
+            Quaternion(),
+            float3(1.0f, 0.5f, 1.2f)));
+
+        const auto rotation = double4x4(ComputeTransformMatrix<float4x4>(
+            float3(),
+            Quaternion(),
+            float3(1.0f)));
+
+        const auto transform = double4x4(ComputeTransformMatrix<float4x4>(
+            float3(1.0f, 2.0f, 3.0f),
+            Quaternion().FromAxisAngle(float3(1.0f, 1.0f, 0.0f).Normalized(), 0.5f),
+            float3(1.0f, 0.5f, 1.2f)));
+
+        const auto perspective = double4x4(
+            PerspectiveProjection<double4x4>(1.5f, 1.3333f, 0.1, 1024, false));
+
+        const double4 testVector{1.0f, 2.0f, 3.0f, 4.0f};
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        {
+            const double4 vec = identity * testVector;
+            const double4x4 inverse = identity.Inverse();
+            EXPECT_EQ(identity, inverse) << "Identity matrix inverse is invalid";
+            EXPECT_EQ(testVector, inverse * vec) << "Identity matrix inverse is invalid";
+        }
+
+        {
+            const double4 vec = translation * testVector;
+            const double4x4 inverse = translation.Inverse();
+            const double4x4 mul = translation * inverse;
+            EXPECT_EQ(mul, double4x4()) << "Translation matrix inverse is invalid";
+            EXPECT_EQ(testVector, inverse * vec) << "Translation matrix inverse is invalid";
+        }
+
+        {
+            const double4 vec = scale * testVector;
+            const double4x4 inverse = scale.Inverse();
+            const double4x4 mul = scale * inverse;
+            EXPECT_EQ(mul, double4x4()) << "Scale matrix inverse is invalid";
+            EXPECT_EQ(testVector, inverse * vec) << "Scale matrix inverse is invalid";
+        }
+
+        {
+            const double4 vec = rotation * testVector;
+            const double4x4 inverse = rotation.Inverse();
+            const double4x4 mul = rotation * inverse;
+            EXPECT_EQ(mul, double4x4()) << "Rotation matrix inverse is invalid";
+            EXPECT_EQ(testVector, inverse * vec) << "Rotation matrix inverse is invalid";
+        }
+
+        {
+            const double4 vec = transform * testVector;
+            const double4x4 inverse = transform.Inverse();
+            const double4x4 mul = transform * inverse;
+            EXPECT_EQ(mul, double4x4()) << "Transform matrix inverse is invalid";
+            EXPECT_EQ(testVector, inverse * vec) << "Transform matrix inverse is invalid";
+        }
+
+        {
+            const double4 vec = perspective * testVector;
+            const double4x4 inverse = perspective.Inverse();
+            const double4x4 mul = perspective * inverse;
+            EXPECT_EQ(mul, double4x4()) << "Perspective matrix inverse is invalid";
             EXPECT_EQ(testVector, inverse * vec) << "Perspective matrix inverse is invalid";
         }
     }
