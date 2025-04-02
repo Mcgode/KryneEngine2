@@ -466,7 +466,7 @@ namespace KryneEngine::Math
 
                 vec2 detM = detA * detD - detB * detC;
 
-                const mat22 trMat = a_b * SHUFFLE(d_c, 0, 2);
+                const mat22 trMat = a_b * mat22 { SHUFFLE(d_c, 0, 2), SHUFFLE(d_c, 1, 3) };
                 const T tr = xsimd::reduce_add(trMat[0] + trMat[1]);
                 detM = detM - tr;
 
