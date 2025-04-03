@@ -7,6 +7,7 @@
 #pragma once
 
 #include <KryneEngine/Core/Math/Matrix.hpp>
+#include <KryneEngine/Core/Math/Quaternion.hpp>
 #include <KryneEngine/Core/Window/Input/InputManager.hpp>
 
 namespace KryneEngine::Samples::RenderGraphDemo
@@ -19,6 +20,10 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         void Process();
 
+        [[nodiscard]] const float& GetFov() const { return m_fov; }
+        [[nodiscard]] const float2& GetDepthLinearizeConstants() const { return m_depthLinearizeConstants; }
+        [[nodiscard]] const float3& GetViewTranslation() const { return m_viewTranslation; }
+        [[nodiscard]] const Math::Quaternion& GetViewRotation() const { return m_viewRotation; }
         [[nodiscard]] const float4x4& GetProjectionViewMatrix() const { return m_projectionViewMatrix; }
 
     private:
@@ -32,6 +37,9 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         bool m_matrixDirty = true;
 
+        float2 m_depthLinearizeConstants {};
+        float3 m_viewTranslation {};
+        Math::Quaternion m_viewRotation {};
         float4x4 m_projectionViewMatrix {};
     };
 }

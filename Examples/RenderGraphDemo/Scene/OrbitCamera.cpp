@@ -37,12 +37,12 @@ namespace KryneEngine::Samples::RenderGraphDemo
         yaw.FromAxisAngle(Math::UpVector(), m_theta * M_PI / 180.0f);
         pitch.FromAxisAngle(Math::RightVector(), m_phi * M_PI / 180.0f);
 
-        const Math::Quaternion viewRotation = yaw * pitch;
-        const float3 forwardVector = viewRotation.ApplyTo(Math::ForwardVector());
-        const float3 translation = forwardVector * m_distance;
+        m_viewRotation = yaw * pitch;
+        const float3 forwardVector = m_viewRotation.ApplyTo(Math::ForwardVector());
+        m_viewTranslation = forwardVector * m_distance;
 
-        float4x4_simd viewMatrix = ToMatrix44(ToMatrix33<float3x3_simd>(viewRotation));
-        Math::SetTranslation(viewMatrix, translation);
+        float4x4_simd viewMatrix = ToMatrix44(ToMatrix33<float3x3_simd>(m_viewRotation));
+        Math::SetTranslation(viewMatrix, m_viewTranslation);
 
         m_projectionViewMatrix = float4x4(
             Math::PerspectiveProjection<float4x4_simd>(
@@ -52,6 +52,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
                 INFINITY,
                 true
             ) * viewMatrix);
+
+        m_depthLinearizeConstants = Math::ComputePerspectiveDepthLinearizationConstants(m_near, INFINITY, true);
 
         m_matrixDirty = false;
     }

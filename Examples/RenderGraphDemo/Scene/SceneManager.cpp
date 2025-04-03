@@ -174,11 +174,19 @@ namespace KryneEngine::Samples::RenderGraphDemo
             _graphicsContext,
             _graphicsContext->GetCurrentFrameContextIndex()));
 
+        sceneConstants->m_screenResolution = float2(m_windowSize);
+
         sceneConstants->m_torusKnotModel = m_torusKnot->GetModelMatrix();
-        sceneConstants->m_viewProjection = m_orbitCamera->GetProjectionViewMatrix();
         sceneConstants->m_torusKnotAlbedo = m_torusKnot->GetAlbedo();
+
         sceneConstants->m_sunLightDirection = m_sunLight->GetDirection();
         sceneConstants->m_sunDiffuse = m_sunLight->GetDiffuse();
+
+        sceneConstants->m_tanHalfFov = tanf(m_orbitCamera->GetFov() * 0.5f);
+        sceneConstants->m_viewProjection = m_orbitCamera->GetProjectionViewMatrix();
+        sceneConstants->m_cameraTranslation = m_orbitCamera->GetViewTranslation();
+        sceneConstants->m_cameraQuaternion = *reinterpret_cast<const float4*>(&m_orbitCamera->GetViewRotation());
+        sceneConstants->m_depthLinearizationConstants = m_orbitCamera->GetDepthLinearizeConstants();
 
         m_sceneConstantsBuffer.Unmap(_graphicsContext);
     }
