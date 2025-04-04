@@ -28,6 +28,7 @@ namespace KryneEngine
     struct BufferCopyParameters;
     struct BufferView;
     struct DrawIndexedInstancedDesc;
+    struct DrawInstancedDesc;
     struct Viewport;
 
     class VkGraphicsContext
@@ -249,6 +250,7 @@ namespace KryneEngine
             const eastl::span<const DescriptorSetHandle>& _sets,
             const bool* _unchanged,
             u32 _frameId);
+        void DrawInstanced(CommandList _commandList, const DrawInstancedDesc& _desc);
         void DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc);
 
     private:

@@ -1463,6 +1463,18 @@ namespace KryneEngine
         }
     }
 
+    void VkGraphicsContext::DrawInstanced(CommandList _commandList, const DrawInstancedDesc& _desc)
+    {
+        KE_ZoneScopedFunction("VkGraphicsContext::DrawInstanced");
+
+        vkCmdDraw(
+            _commandList,
+            _desc.m_vertexCount,
+            _desc.m_instanceCount,
+            _desc.m_vertexOffset,
+            _desc.m_instanceOffset);
+    }
+
     void VkGraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)
     {
         KE_ZoneScopedFunction("VkGraphicsContext::DrawIndexedInstanced");
