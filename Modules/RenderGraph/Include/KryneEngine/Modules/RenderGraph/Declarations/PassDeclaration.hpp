@@ -36,6 +36,7 @@ namespace KryneEngine::Modules::RenderGraph
         explicit PassDeclaration(PassType _type, size_t _id);
 
         using ExecuteFunction = eastl::function<void(RenderGraph&, PassExecutionData&)>;
+        using RenderPassCallBack = eastl::function<void(GraphicsContext*, RenderPassHandle)>;
 
         [[nodiscard]] u64 GetRenderPassHash();
 
@@ -48,6 +49,11 @@ namespace KryneEngine::Modules::RenderGraph
         eastl::vector<Dependency> m_writeDependencies;
         eastl::optional<u64> m_renderPassHash;
         ExecuteFunction m_executeFunction;
+
+        /// @brief A callback for passing the render pass handle for this pass before any execution is done.
+        /// Useful for PSO creation.
+        /// Only called for Render type passes.
+        RenderPassCallBack m_renderPassCallback = nullptr;
     };
 
     class Builder;
@@ -63,6 +69,7 @@ namespace KryneEngine::Modules::RenderGraph
         PassDeclarationBuilder& ReadDependency(const Dependency& _dependency);
         PassDeclarationBuilder& WriteDependency(const Dependency& _dependency);
         PassDeclarationBuilder& SetExecuteFunction(PassDeclaration::ExecuteFunction&& _function);
+        PassDeclarationBuilder& SetRenderPassCallback(PassDeclaration::RenderPassCallBack&& _callback);
     };
 } // namespace KryneEngine::Module::RenderGraph
 
