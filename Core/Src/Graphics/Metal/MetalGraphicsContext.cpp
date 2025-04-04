@@ -855,6 +855,22 @@ namespace KryneEngine
         }
     }
 
+    void MetalGraphicsContext::DrawInstanced(CommandList _commandList, const DrawInstancedDesc& _desc)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
+        auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(_commandList->m_encoder.get());
+        auto* renderState = static_cast<RenderState*>(_commandList->m_userData);
+        KE_ASSERT_FATAL(renderState != nullptr);
+
+        KE_AUTO_RELEASE_POOL;
+        encoder->drawPrimitives(
+            MetalConverters::GetPrimitiveType(renderState->m_topology),
+            _desc.m_vertexOffset,
+            _desc.m_vertexCount,
+            _desc.m_instanceCount,
+            _desc.m_instanceOffset);
+    }
+
     void MetalGraphicsContext::DrawIndexedInstanced(
         CommandList _commandList,
         const DrawIndexedInstancedDesc& _desc)

@@ -23,6 +23,7 @@
 namespace KryneEngine
 {
     struct DrawIndexedInstancedDesc;
+    struct DrawInstancedDesc;
     struct RenderPassDesc;
     struct RenderTargetViewDesc;
     struct TextureCreateDesc;
@@ -161,6 +162,7 @@ namespace KryneEngine
             const eastl::span<const DescriptorSetHandle>& _sets,
             const bool* _unchanged,
             u64 _frameId);
+        void DrawInstanced(CommandList _commandList, const DrawInstancedDesc& _desc);
         void DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc);
 
     private:

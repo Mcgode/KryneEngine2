@@ -25,6 +25,7 @@ namespace KryneEngine
     struct DescriptorSetDesc;
     struct DescriptorSetWriteInfo;
     struct DrawIndexedInstancedDesc;
+    struct DrawInstancedDesc;
     struct GlobalMemoryBarrier;
     struct GraphicsPipelineDesc;
     struct PipelineLayoutDesc;
@@ -166,6 +167,7 @@ namespace KryneEngine
             PipelineLayoutHandle _layout,
             const eastl::span<const DescriptorSetHandle>& _sets,
             const bool* _unchanged = nullptr);
+        void DrawInstanced(CommandListHandle _commandList, const DrawInstancedDesc& _desc);
         void DrawIndexedInstanced(CommandListHandle _commandList, const DrawIndexedInstancedDesc& _desc);
     };
 }

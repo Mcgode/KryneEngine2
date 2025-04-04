@@ -1124,6 +1124,17 @@ namespace KryneEngine
             _frameId % m_frameContextCount);
     }
 
+    void Dx12GraphicsContext::DrawInstanced(CommandList _commandList, const DrawInstancedDesc& _desc)
+    {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::DrawInstanced");
+
+        _commandList->DrawInstanced(
+            _desc.m_vertexCount,
+            _desc.m_instanceCount,
+            _desc.m_vertexOffset,
+            _desc.m_instanceOffset);
+    }
+
     void Dx12GraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::DrawIndexedInstanced");

@@ -478,6 +478,13 @@ namespace KryneEngine
             m_frameId);
     }
 
+    void GraphicsContext::DrawInstanced(CommandListHandle _commandList, const DrawInstancedDesc& _desc)
+    {
+        GetImplementation(this).DrawInstanced(
+            reinterpret_cast<CommandList>(_commandList),
+            _desc);
+    }
+
     void GraphicsContext::DrawIndexedInstanced(CommandListHandle _commandList, const DrawIndexedInstancedDesc& _desc)
     {
         GetImplementation(this).DrawIndexedInstanced(
