@@ -54,6 +54,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
         void ExecuteTransfers(GraphicsContext* _graphicsContext, CommandListHandle _commandList);
 
         [[nodiscard]] SimplePoolHandle GetSceneConstantsCbv() const { return m_currentCbv; }
+        [[nodiscard]] DescriptorSetLayoutHandle GetDescriptorSetLayout() const { return m_sceneDescriptorSetLayout; }
+        [[nodiscard]] DescriptorSetHandle GetSceneDescriptorSet(u8 _index) const { return m_sceneDescriptorSets[_index]; }
 
         void RenderGBuffer(GraphicsContext* _graphicsContext, CommandListHandle _commandList);
 
