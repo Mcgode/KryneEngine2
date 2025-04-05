@@ -196,7 +196,7 @@ int main()
         gBufferDepthSrv = renderGraph.GetRegistry().CreateTextureSrv(
             graphicsContext,
             gBufferDepth,
-            { .m_format = KryneEngine::TextureFormat::D32F });
+            { .m_format = KryneEngine::TextureFormat::D32F, .m_plane = TexturePlane::Depth });
 
         deferredShadow = renderGraph.GetRegistry().CreateRawTexture(
             graphicsContext,
