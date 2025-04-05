@@ -291,7 +291,7 @@ namespace KryneEngine
             VkHelperFunctions::RetrieveImageViewType(_srvDesc.m_viewType),
             VkHelperFunctions::ToVkFormat(_srvDesc.m_format),
             VkHelperFunctions::ToVkComponentMapping(_srvDesc.m_componentsMapping),
-            VK_IMAGE_ASPECT_COLOR_BIT,
+            VkHelperFunctions::RetrieveAspectMask(_srvDesc.m_plane),
             _srvDesc.m_minMip,
             _srvDesc.m_maxMip - _srvDesc.m_minMip + 1,
             _srvDesc.m_arrayStart,
