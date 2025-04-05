@@ -5,6 +5,7 @@
  */
 
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 #include <KryneEngine/Core/Window/Window.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Threads/FibersManager.hpp>
@@ -12,9 +13,11 @@
 #include <KryneEngine/Modules/RenderGraph/Builder.hpp>
 #include <KryneEngine/Modules/RenderGraph/Descriptors/RenderTargetViewDesc.hpp>
 #include <KryneEngine/Modules/RenderGraph/Registry.hpp>
+#include <KryneEngine/Modules/RenderGraph/Resource.hpp>
 #include <KryneEngine/Modules/RenderGraph/RenderGraph.hpp>
 #include <iostream>
 
+#include "Rendering/DeferredShadingPass.hpp"
 #include "Scene/SceneManager.hpp"
 
 using namespace KryneEngine;
@@ -83,15 +86,22 @@ int main()
     RenderGraph::RenderGraph renderGraph {};
     SceneManager sceneManager(allocator, mainWindow, renderGraph.GetRegistry());
 
+    DeferredShadingPass deferredShadingPass { allocator };
+
     KryneEngine::SimplePoolHandle
         gBufferAlbedo,
         gBufferAlbedoRtv,
+        gBufferAlbedoSrv,
         gBufferNormal,
         gBufferNormalRtv,
+        gBufferNormalSrv,
         gBufferDepth,
         gBufferDepthRtv,
+        gBufferDepthSrv,
         deferredShadow,
-        deferredGi;
+        deferredShadowSrv,
+        deferredGi,
+        deferredGiSrv;
 
     DynamicArray<SimplePoolHandle> swapChainTextures(allocator, graphicsContext->GetFrameContextCount());
     DynamicArray<SimplePoolHandle> swapChainRtvs(allocator, graphicsContext->GetFrameContextCount());
@@ -124,7 +134,7 @@ int main()
                     .m_debugName = "GBuffer albedo",
 #endif
                 },
-                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ColorTargetImage | MemoryUsage::ReadImage,
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ColorTargetImage | MemoryUsage::ReadImage | MemoryUsage::SampledImage,
             });
         gBufferAlbedoRtv = renderGraph.GetRegistry().CreateRenderTargetView(
             graphicsContext,
@@ -133,6 +143,10 @@ int main()
                 .m_format = KryneEngine::TextureFormat::RGBA8_UNorm,
             },
             "GBuffer albedo RTV");
+        gBufferAlbedoSrv = renderGraph.GetRegistry().CreateTextureSrv(
+            graphicsContext,
+            gBufferAlbedo,
+            { .m_format = KryneEngine::TextureFormat::RGBA8_UNorm });
 
         gBufferNormal = renderGraph.GetRegistry().CreateRawTexture(
             graphicsContext,
@@ -144,7 +158,7 @@ int main()
                     .m_debugName = "GBuffer normal",
 #endif
                 },
-                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ColorTargetImage | MemoryUsage::ReadImage,
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ColorTargetImage | MemoryUsage::ReadImage | MemoryUsage::SampledImage,
             });
         gBufferNormalRtv = renderGraph.GetRegistry().CreateRenderTargetView(
             graphicsContext,
@@ -153,6 +167,10 @@ int main()
                 .m_format = KryneEngine::TextureFormat::RGBA8_UNorm, // TODO: Implement RGB10A2 format support
             },
             "GBuffer normal RTV");
+        gBufferNormalSrv = renderGraph.GetRegistry().CreateTextureSrv(
+            graphicsContext,
+            gBufferNormal,
+            { .m_format = KryneEngine::TextureFormat::RGBA8_UNorm });
 
         gBufferDepth = renderGraph.GetRegistry().CreateRawTexture(
             graphicsContext,
@@ -165,7 +183,7 @@ int main()
                     .m_debugName = "GBuffer depth"
 #endif
                 },
-                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::DepthStencilTargetImage | MemoryUsage::ReadImage,
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::DepthStencilTargetImage | MemoryUsage::ReadImage | MemoryUsage::SampledImage,
             });
         gBufferDepthRtv = renderGraph.GetRegistry().CreateRenderTargetView(
             graphicsContext,
@@ -175,6 +193,10 @@ int main()
                 .m_plane = TexturePlane::Depth,
             },
             "GBuffer depth RTV");
+        gBufferDepthSrv = renderGraph.GetRegistry().CreateTextureSrv(
+            graphicsContext,
+            gBufferDepth,
+            { .m_format = KryneEngine::TextureFormat::D32F });
 
         deferredShadow = renderGraph.GetRegistry().CreateRawTexture(
             graphicsContext,
@@ -186,8 +208,13 @@ int main()
                     .m_debugName = "Deferred shadow",
 #endif
                 },
-                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ReadWriteImage,
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ReadWriteImage | MemoryUsage::SampledImage,
             });
+        deferredShadowSrv = renderGraph.GetRegistry().CreateTextureSrv(
+            graphicsContext,
+            deferredShadow,
+            { .m_format = KryneEngine::TextureFormat::R8_UNorm });
+
         deferredGi = renderGraph.GetRegistry().CreateRawTexture(
             graphicsContext,
             {
@@ -198,8 +225,12 @@ int main()
                     .m_debugName = "Deferred GI",
 #endif
                 },
-                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ReadWriteImage,
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ReadWriteImage | MemoryUsage::SampledImage,
             });
+        deferredGiSrv = renderGraph.GetRegistry().CreateTextureSrv(
+            graphicsContext,
+            deferredGi,
+            { .m_format = KryneEngine::TextureFormat::RGBA32_Float });
     }
 
     // Init scene PSOs
@@ -231,6 +262,15 @@ int main()
             renderGraph.FetchRenderPass(*graphicsContext, gBufferDummyPass));
     }
 
+    deferredShadingPass.Initialize(
+        graphicsContext,
+        sceneManager.GetDescriptorSetLayout(),
+        renderGraph.GetRegistry().GetResource(gBufferAlbedoSrv).m_textureSrvData.m_textureSrv,
+        renderGraph.GetRegistry().GetResource(gBufferNormalSrv).m_textureSrvData.m_textureSrv,
+        renderGraph.GetRegistry().GetResource(gBufferDepthSrv).m_textureSrvData.m_textureSrv,
+        renderGraph.GetRegistry().GetResource(deferredGiSrv).m_textureSrvData.m_textureSrv,
+        renderGraph.GetRegistry().GetResource(deferredShadowSrv).m_textureSrvData.m_textureSrv);
+
     do
     {
         if (imGuiContext == nullptr)
@@ -256,6 +296,8 @@ int main()
         }
 
         imGuiContext->NewFrame(&mainWindow);
+
+        deferredShadingPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
 
         RenderGraph::Builder& builder = renderGraph.BeginFrame(*graphicsContext);
 
@@ -345,7 +387,8 @@ int main()
                     .Done()
                 .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
                     .SetName("Deferred shading pass")
-                    .SetExecuteFunction(ExecuteDeferredShadingPass)
+                    .SetRenderPassCallback([&deferredShadingPass](auto* _graphicsContext, RenderPassHandle _renderPass) { deferredShadingPass.CreatePso(_graphicsContext, _renderPass); })
+                    .SetExecuteFunction([&deferredShadingPass](const auto& _, const auto& _passData) { deferredShadingPass.Render(_, _passData); })
                     .AddColorAttachment(swapChainRtv)
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)

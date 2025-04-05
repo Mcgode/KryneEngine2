@@ -12,6 +12,8 @@ add_executable(RenderGraphDemo
         Scene/OrbitCamera.hpp
         Scene/SunLight.cpp
         Scene/SunLight.hpp
+        Rendering/DeferredShadingPass.cpp
+        Rendering/DeferredShadingPass.hpp
 )
 
 # Link to cpp libraries
