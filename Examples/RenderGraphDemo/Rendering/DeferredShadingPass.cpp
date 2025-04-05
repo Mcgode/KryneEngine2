@@ -141,7 +141,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
         _passExecutionData.m_graphicsContext->SetGraphicsPushConstant(
             _passExecutionData.m_commandList,
             m_pipelineLayout,
-            { (u32*)(&fullscreenDepth), sizeof(float) });
+            { (u32*)(&fullscreenDepth), 1 });
 
         _passExecutionData.m_graphicsContext->DrawInstanced(
             _passExecutionData.m_commandList,
