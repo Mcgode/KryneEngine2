@@ -13,6 +13,7 @@ namespace KryneEngine
 {
     class GraphicsContext;
     struct TextureCreateDesc;
+    struct TextureSrvDesc;
 }
 
 namespace KryneEngine::Modules::RenderGraph
@@ -51,7 +52,11 @@ namespace KryneEngine::Modules::RenderGraph
             GraphicsContext* _graphicsContext,
             const RenderTargetViewDesc& _desc,
             eastl::string_view _name = {});
-
+        SimplePoolHandle CreateTextureSrv(
+            GraphicsContext* _graphicsContext,
+            SimplePoolHandle _texture,
+            const KryneEngine::TextureSrvDesc& _desc,
+            eastl::string_view _name = {});
 
         [[nodiscard]] SimplePoolHandle GetUnderlyingResource(SimplePoolHandle _resource) const;
 
@@ -59,6 +64,7 @@ namespace KryneEngine::Modules::RenderGraph
 
         [[nodiscard]] bool IsRenderTargetView(SimplePoolHandle _resource) const;
         [[nodiscard]] RenderTargetViewHandle GetRenderTargetView(SimplePoolHandle _resource) const;
+        [[nodiscard]] TextureSrvHandle GetTextureSrv(SimplePoolHandle _resource) const;
 
     private:
         SimplePool<Resource, void, true> m_resources;

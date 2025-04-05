@@ -9,6 +9,7 @@
 #include <KryneEngine/Core/Memory/SimplePool.inl>
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 #include <KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp>
+#include <KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 
 #include "KryneEngine/Modules/RenderGraph/Descriptors/RenderTargetViewDesc.hpp"
 #include "KryneEngine/Modules/RenderGraph/Resource.hpp"
@@ -167,6 +168,27 @@ namespace KryneEngine::Modules::RenderGraph
         });
     }
 
+    SimplePoolHandle Registry::CreateTextureSrv(
+        GraphicsContext* _graphicsContext,
+        SimplePoolHandle _texture,
+        const KryneEngine::TextureSrvDesc& _desc,
+        eastl::string_view _name)
+    {
+        Resource& resource = m_resources.Get(_texture);
+
+        KryneEngine::TextureSrvDesc desc = _desc;
+        desc.m_texture = resource.m_rawTextureData.m_texture;
+
+        return m_resources.AllocateAndInit(Resource {
+            .m_type = ResourceType::TextureSrv,
+            .m_owned = true,
+            .m_textureSrvData = {
+                .m_textureSrv = _graphicsContext->CreateTextureSrv(desc),
+                .m_textureResource = _texture,
+            },
+        });
+    }
+
     SimplePoolHandle Registry::GetUnderlyingResource(SimplePoolHandle _resource) const
     {
         const Resource& resource = m_resources.Get(_resource);
@@ -201,6 +223,13 @@ namespace KryneEngine::Modules::RenderGraph
         const Resource& resource = m_resources.Get(_resource);
         VERIFY_OR_RETURN(resource.m_type == ResourceType::RenderTargetView, RenderTargetViewHandle { GenPool::kInvalidHandle });
         return resource.m_renderTargetViewData.m_renderTargetView;
+    }
+
+    TextureSrvHandle Registry::GetTextureSrv(SimplePoolHandle _resource) const
+    {
+        const Resource& resource = m_resources.Get(_resource);
+        VERIFY_OR_RETURN(resource.m_type == ResourceType::TextureSrv, TextureSrvHandle { GenPool::kInvalidHandle });
+        return resource.m_textureSrvData.m_textureSrv;
     }
 } // namespace KryneEngine::Modules::RenderGraph
 
