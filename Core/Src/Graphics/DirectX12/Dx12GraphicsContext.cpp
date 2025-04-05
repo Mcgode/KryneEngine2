@@ -470,7 +470,9 @@ namespace KryneEngine
                 convertStoreOperation(attachment.m_storeOperation)
             };
 
-            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv.m_handle);
+            const GenPool::Handle handle = attachment.m_rtv.m_handle;
+            VERIFY_OR_RETURN_VOID((handle.m_index & Dx12Resources::kDsvFlag) == 0);
+            auto* rtvData = m_resources.m_renderTargetViews.Get(handle);
             VERIFY_OR_RETURN_VOID(rtvData != nullptr);
 
             colorAttachments.push_back(D3D12_RENDER_PASS_RENDER_TARGET_DESC { rtvData->m_cpuHandle, beginningAccess, endingAccess });
@@ -501,7 +503,10 @@ namespace KryneEngine
                 convertStoreOperation(attachment.m_stencilStoreOperation)
             };
 
-            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv.m_handle);
+            GenPool::Handle handle = attachment.m_rtv.m_handle;
+            VERIFY_OR_RETURN_VOID((handle.m_index & Dx12Resources::kDsvFlag) != 0);
+            handle.m_index &= ~Dx12Resources::kDsvFlag;
+            auto* rtvData = m_resources.m_depthStencilViews.Get(handle);
             VERIFY_OR_RETURN_VOID(rtvData != nullptr);
 
             depthStencilDesc = {
@@ -566,7 +571,11 @@ namespace KryneEngine
         if (desc->m_depthStencilAttachment.has_value())
         {
             const auto& attachment = desc->m_depthStencilAttachment.value();
-            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv.m_handle);
+
+            GenPool::Handle handle = attachment.m_rtv.m_handle;
+            VERIFY_OR_RETURN_VOID((handle.m_index & Dx12Resources::kDsvFlag) != 0);
+            handle.m_index &= ~Dx12Resources::kDsvFlag;
+            auto* rtvData = m_resources.m_renderTargetViews.Get(handle);
             VERIFY_OR_RETURN_VOID(rtvData != nullptr);
 
             addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource.m_handle), true);

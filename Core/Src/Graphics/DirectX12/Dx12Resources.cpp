@@ -369,82 +369,153 @@ namespace KryneEngine
             return { GenPool::kInvalidHandle };
         }
 
-        const auto handle = m_renderTargetViews.Allocate();
-        KE_ASSERT_FATAL_MSG(handle.m_index < kRtvHeapSize, "RTV heap only supports up to %d concurrent descriptors. Try to improve architecture, or increase Dx12Resources::kRtvHeapSize");
-
-        if (m_rtvDescriptorHeap == nullptr)
+        if (_desc.m_plane == TexturePlane::Color)
         {
-            const D3D12_DESCRIPTOR_HEAP_DESC heapDesc {
-                .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-                .NumDescriptors = kRtvHeapSize,
-                .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE // Not shader visible
-            };
-            Dx12Assert(_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_rtvDescriptorHeap)));
+            const auto handle = m_renderTargetViews.Allocate();
+            KE_ASSERT_FATAL_MSG(handle.m_index < kRtvHeapSize, "RTV heap only supports up to %d concurrent descriptors. Try to improve architecture, or increase Dx12Resources::kRtvHeapSize");
+
+            if (m_rtvDescriptorHeap == nullptr)
+            {
+                const D3D12_DESCRIPTOR_HEAP_DESC heapDesc {
+                    .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+                    .NumDescriptors = kRtvHeapSize,
+                    .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE // Not shader visible
+                };
+                Dx12Assert(_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_rtvDescriptorHeap)));
 #if !defined(KE_FINAL)
-            Dx12SetName(m_rtvDescriptorHeap.Get(), L"RTV descriptor heap");
+                Dx12SetName(m_rtvDescriptorHeap.Get(), L"RTV descriptor heap");
 #endif
-            m_rtvDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+                m_rtvDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+            }
+
+            D3D12_RENDER_TARGET_VIEW_DESC rtvDesc {
+                .Format = Dx12Converters::ToDx12Format(_desc.m_format)
+            };
+
+            switch (_desc.m_type)
+            {
+                case TextureTypes::Single1D:
+                    rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1D;
+                    rtvDesc.Texture1D.MipSlice = _desc.m_mipLevel;
+                    break;
+                case TextureTypes::Single2D:
+                    rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+                    rtvDesc.Texture2D.MipSlice = _desc.m_mipLevel;
+                    rtvDesc.Texture2D.PlaneSlice = 0;
+                    break;
+                case TextureTypes::Single3D:
+                    rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
+                    rtvDesc.Texture3D.MipSlice = _desc.m_mipLevel;
+                    rtvDesc.Texture3D.FirstWSlice = _desc.m_depthStartSlice;
+                    rtvDesc.Texture3D.WSize = _desc.m_depthSlicesSize;
+                    break;
+                case TextureTypes::Array1D:
+                    rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1DARRAY;
+                    rtvDesc.Texture1DArray.MipSlice = _desc.m_mipLevel;
+                    rtvDesc.Texture1DArray.FirstArraySlice = _desc.m_arrayRangeStart;
+                    rtvDesc.Texture1DArray.ArraySize = _desc.m_arrayRangeSize;
+                    break;
+                case TextureTypes::Array2D:
+                    rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+                    rtvDesc.Texture2DArray.MipSlice = _desc.m_mipLevel;
+                    rtvDesc.Texture2DArray.FirstArraySlice = _desc.m_arrayRangeStart;
+                    rtvDesc.Texture2DArray.ArraySize = _desc.m_arrayRangeSize;
+                    rtvDesc.Texture2DArray.PlaneSlice = 0;
+                    break;
+                case TextureTypes::SingleCube:
+                case TextureTypes::ArrayCube:
+                    KE_FATAL("Invalid RTV texture type");
+            }
+
+            const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
+                    m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
+                    handle.m_index,
+                    m_rtvDescriptorSize);
+            _device->CreateRenderTargetView(*texture, &rtvDesc, cpuDescriptorHandle);
+
+            *m_renderTargetViews.Get(handle) = RtvHotData {
+                .m_cpuHandle = cpuDescriptorHandle,
+                .m_resource = _desc.m_texture,
+            };
+            *m_renderTargetViews.GetCold(handle) = Dx12Converters::ToDx12Format(_desc.m_format);
+
+            return { handle };
         }
-
-        D3D12_RENDER_TARGET_VIEW_DESC rtvDesc {
-            .Format = Dx12Converters::ToDx12Format(_desc.m_format)
-        };
-
-        switch (_desc.m_type)
+        else
         {
-            case TextureTypes::Single1D:
-                rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1D;
-                rtvDesc.Texture1D.MipSlice = _desc.m_mipLevel;
-                break;
-            case TextureTypes::Single2D:
-                rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-                rtvDesc.Texture2D.MipSlice = _desc.m_mipLevel;
-                rtvDesc.Texture2D.PlaneSlice = 0;
-                break;
-            case TextureTypes::Single3D:
-                rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
-                rtvDesc.Texture3D.MipSlice = _desc.m_mipLevel;
-                rtvDesc.Texture3D.FirstWSlice = _desc.m_depthStartSlice;
-                rtvDesc.Texture3D.WSize = _desc.m_depthSlicesSize;
-                break;
-            case TextureTypes::Array1D:
-                rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1DARRAY;
-                rtvDesc.Texture1DArray.MipSlice = _desc.m_mipLevel;
-                rtvDesc.Texture1DArray.FirstArraySlice = _desc.m_arrayRangeStart;
-                rtvDesc.Texture1DArray.ArraySize = _desc.m_arrayRangeSize;
-                break;
-            case TextureTypes::Array2D:
-                rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-                rtvDesc.Texture2DArray.MipSlice = _desc.m_mipLevel;
-                rtvDesc.Texture2DArray.FirstArraySlice = _desc.m_arrayRangeStart;
-                rtvDesc.Texture2DArray.ArraySize = _desc.m_arrayRangeSize;
-                rtvDesc.Texture2DArray.PlaneSlice = 0;
-                break;
-            case TextureTypes::SingleCube:
-            case TextureTypes::ArrayCube:
-                KE_FATAL("Invalid RTV texture type");
+            GenPool::Handle handle = m_depthStencilViews.Allocate();
+            KE_ASSERT_FATAL_MSG(handle.m_index < kDsvHeapSize, "DSV heap only supports up to %d concurrent descriptors. Try to improve architecture, or increase Dx12Resources::kDsvHeapSize");
+
+            if (m_dsvDescriptorHeap == nullptr)
+            {
+                const D3D12_DESCRIPTOR_HEAP_DESC heapDesc {
+                    .Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
+                    .NumDescriptors = kDsvHeapSize,
+                    .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE // Not shader visible
+                };
+                Dx12Assert(_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_dsvDescriptorHeap)));
+// #if !defined(KE_FINAL)
+//                 Dx12SetName(m_dsvDescriptorHeap.Get(), L"DSV descriptor heap");
+// #endif
+                m_dsvDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+            }
+
+            D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc {
+                .Format = Dx12Converters::ToDx12Format(_desc.m_format)
+            };
+
+            switch (_desc.m_type)
+            {
+                case TextureTypes::Single1D:
+                    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1D;
+                    dsvDesc.Texture1D.MipSlice = _desc.m_mipLevel;
+                    break;
+                case TextureTypes::Single2D:
+                    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+                    dsvDesc.Texture2D.MipSlice = _desc.m_mipLevel;
+                    break;
+                case TextureTypes::Array1D:
+                    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1DARRAY;
+                    dsvDesc.Texture1DArray.MipSlice = _desc.m_mipLevel;
+                    dsvDesc.Texture1DArray.FirstArraySlice = _desc.m_arrayRangeStart;
+                    dsvDesc.Texture1DArray.ArraySize = _desc.m_arrayRangeSize;
+                    break;
+                case TextureTypes::Array2D:
+                    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+                    dsvDesc.Texture2DArray.MipSlice = _desc.m_mipLevel;
+                    dsvDesc.Texture2DArray.FirstArraySlice = _desc.m_arrayRangeStart;
+                    dsvDesc.Texture2DArray.ArraySize = _desc.m_arrayRangeSize;
+                    break;
+                case TextureTypes::Single3D:
+                case TextureTypes::SingleCube:
+                case TextureTypes::ArrayCube:
+                    KE_FATAL("Invalid DSV texture type");
+            }
+
+            const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
+                    m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
+                    handle.m_index,
+                    m_dsvDescriptorSize);
+            _device->CreateDepthStencilView(*texture, &dsvDesc, cpuDescriptorHandle);
+
+            auto [hot, cold] = m_depthStencilViews.GetAll(handle);
+            hot->m_cpuHandle = cpuDescriptorHandle;
+            hot->m_resource = _desc.m_texture;
+            *cold = Dx12Converters::ToDx12Format(_desc.m_format);
+
+            handle.m_index |= kDsvFlag;
+            return { handle };
         }
-
-        const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
-                m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
-                handle.m_index,
-                m_rtvDescriptorSize);
-        _device->CreateRenderTargetView(*texture, &rtvDesc, cpuDescriptorHandle);
-
-        *m_renderTargetViews.Get(handle) = RtvHotData {
-            .m_cpuHandle = cpuDescriptorHandle,
-            .m_resource = _desc.m_texture,
-        };
-        *m_renderTargetViews.GetCold(handle) = Dx12Converters::ToDx12Format(_desc.m_format);
-
-        return { handle };
     }
 
     bool Dx12Resources::FreeRenderTargetView(RenderTargetViewHandle _rtv)
     {
         // Don't have to destroy anything, as the memory slot will be marked as free.
         // Only the heap itself will need to be freed using API.
-        return m_renderTargetViews.Free(_rtv.m_handle);
+        if (_rtv.m_handle.m_index & kDsvFlag)
+            return m_depthStencilViews.Free(_rtv.m_handle);
+        else
+            return m_renderTargetViews.Free(_rtv.m_handle);
     }
 
     RenderPassHandle Dx12Resources::CreateRenderPass(const RenderPassDesc &_desc)
@@ -979,8 +1050,9 @@ namespace KryneEngine
 
             for (auto i = 0u; i < desc.NumRenderTargets; i++)
             {
-                VERIFY_OR_RETURN(renderPassDesc->m_colorAttachments[i].m_rtv != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
-                auto* pRtvFormat = m_renderTargetViews.GetCold(renderPassDesc->m_colorAttachments[i].m_rtv.m_handle);
+                const GenPool::Handle handle = renderPassDesc->m_colorAttachments[i].m_rtv.m_handle;
+                VERIFY_OR_RETURN(handle != GenPool::kInvalidHandle && (handle.m_index & kDsvFlag) == 0, { GenPool::kInvalidHandle });
+                auto* pRtvFormat = m_renderTargetViews.GetCold(handle);
                 VERIFY_OR_RETURN(pRtvFormat != nullptr, { GenPool::kInvalidHandle });
 
                 desc.RTVFormats[i] = *pRtvFormat;
@@ -988,11 +1060,13 @@ namespace KryneEngine
 
             if (renderPassDesc->m_depthStencilAttachment.has_value())
             {
-                VERIFY_OR_RETURN(renderPassDesc->m_depthStencilAttachment.value().m_rtv != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
-                auto* pRtvFormat = m_renderTargetViews.GetCold(renderPassDesc->m_depthStencilAttachment.value().m_rtv.m_handle);
-                VERIFY_OR_RETURN(pRtvFormat != nullptr, { GenPool::kInvalidHandle });
+                GenPool::Handle handle = renderPassDesc->m_depthStencilAttachment.value().m_rtv.m_handle;
+                VERIFY_OR_RETURN(handle != GenPool::kInvalidHandle && (handle.m_index & kDsvFlag) != 0, { GenPool::kInvalidHandle });
+                handle.m_index &= ~kDsvFlag;
+                auto* pDsvFormat = m_depthStencilViews.GetCold(handle);
+                VERIFY_OR_RETURN(pDsvFormat != nullptr, { GenPool::kInvalidHandle });
 
-                desc.DSVFormat = *pRtvFormat;
+                desc.DSVFormat = *pDsvFormat;
             }
         }
 

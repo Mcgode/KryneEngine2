@@ -94,6 +94,7 @@ namespace KryneEngine
         GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_cbvSrvUav;
         GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_samplers;
         GenerationalPool<RtvHotData, DXGI_FORMAT> m_renderTargetViews;
+        GenerationalPool<RtvHotData, DXGI_FORMAT> m_depthStencilViews;
         GenerationalPool<RenderPassDesc> m_renderPasses;
         GenerationalPool<ID3D12RootSignature*, u32> m_rootSignatures;
         GenerationalPool<D3D12_SHADER_BYTECODE> m_shaderBytecodes;
@@ -103,6 +104,12 @@ namespace KryneEngine
         static constexpr u16 kRtvHeapSize = 2048;
         ComPtr<ID3D12DescriptorHeap> m_rtvDescriptorHeap = nullptr;
         u32 m_rtvDescriptorSize = 0;
+
+        static constexpr u16 kDsvHeapSize = 256;
+        ComPtr<ID3D12DescriptorHeap> m_dsvDescriptorHeap = nullptr;
+        u32 m_dsvDescriptorSize = 0;
+
+        static constexpr GenPool::IndexType kDsvFlag = 1u << 15;
 
         static_assert(sizeof(GenPool::IndexType) == 2, "GenPool index type changed, please update size appropriately.");
         static constexpr u64 kCbvSrvUavHeapSize = 1u << 16;
