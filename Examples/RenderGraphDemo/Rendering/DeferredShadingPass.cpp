@@ -192,6 +192,9 @@ namespace KryneEngine::Samples::RenderGraphDemo
             .m_depthStencil = { .m_depthTest = false, .m_depthWrite = false },
             .m_renderPass = _renderPass,
             .m_pipelineLayout = m_pipelineLayout,
+#if !defined(KE_FINAL)
+            .m_debugName = "DeferredShadingPSO",
+#endif
         };
 
         m_pso = _graphicsContext->CreateGraphicsPipeline(psoDesc);
