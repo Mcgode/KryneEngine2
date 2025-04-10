@@ -18,6 +18,7 @@
 #include <iostream>
 
 #include "Rendering/DeferredShadingPass.hpp"
+#include "Rendering/SkyPass.hpp"
 #include "Scene/SceneManager.hpp"
 
 using namespace KryneEngine;
@@ -87,6 +88,7 @@ int main()
     SceneManager sceneManager(allocator, mainWindow, renderGraph.GetRegistry());
 
     DeferredShadingPass deferredShadingPass { allocator };
+    SkyPass skyPass { allocator };
 
     KryneEngine::SimplePoolHandle
         gBufferAlbedo,
@@ -271,6 +273,9 @@ int main()
         renderGraph.GetRegistry().GetResource(gBufferDepthSrv).m_textureSrvData.m_textureSrv,
         renderGraph.GetRegistry().GetResource(deferredGiSrv).m_textureSrvData.m_textureSrv,
         renderGraph.GetRegistry().GetResource(deferredShadowSrv).m_textureSrvData.m_textureSrv);
+    skyPass.Initialize(
+        graphicsContext,
+        sceneManager.GetDescriptorSetLayout());
 
     do
     {
@@ -300,6 +305,7 @@ int main()
         imGuiContext->NewFrame(&mainWindow);
 
         deferredShadingPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
+        skyPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
 
         RenderGraph::Builder& builder = renderGraph.BeginFrame(*graphicsContext);
 
@@ -430,7 +436,8 @@ int main()
                     .Done()
                 .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
                     .SetName("Sky pass")
-                    .SetExecuteFunction(ExecuteSkyPass)
+                    .SetRenderPassCallback([&skyPass](auto* _graphicsContext, RenderPassHandle _renderPass) { skyPass.CreatePso(_graphicsContext, _renderPass); })
+                    .SetExecuteFunction([&skyPass](const auto& _renderGraph, const auto& _passData) { skyPass.Render(_renderGraph, _passData); })
                     .AddColorAttachment(swapChainRtv)
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)

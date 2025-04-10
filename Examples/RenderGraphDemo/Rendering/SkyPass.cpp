@@ -1,0 +1,65 @@
+/**
+ * @file
+ * @author Max Godefroy
+ * @date 10/04/2025.
+ */
+
+#include "SkyPass.hpp"
+
+#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
+#include "FullscreenPassCommon.hpp"
+
+namespace KryneEngine::Samples::RenderGraphDemo
+{
+    SkyPass::SkyPass(AllocatorInstance _allocator)
+        : m_allocator(_allocator)
+    {}
+
+    void SkyPass::Initialize(
+        GraphicsContext* _graphicsContext,
+        DescriptorSetLayoutHandle _sceneConstantsDescriptorSetLayout)
+    {
+        m_pipelineLayout = _graphicsContext->CreatePipelineLayout(PipelineLayoutDesc {
+            .m_descriptorSets = { _sceneConstantsDescriptorSetLayout },
+            .m_pushConstants = {
+                PushConstantDesc {
+                    .m_sizeInBytes = sizeof(float),
+                    .m_visibility = ShaderVisibility::Vertex,
+                }
+            }
+        });
+    }
+
+    void SkyPass::Render(
+        const Modules::RenderGraph::RenderGraph&,
+        const Modules::RenderGraph::PassExecutionData& _passExecutionData)
+    {
+        KE_ASSERT_MSG(m_pso != GenPool::kInvalidHandle, "PSO not created");
+
+        FullscreenPassCommon::Render(
+            _passExecutionData.m_graphicsContext,
+            _passExecutionData.m_commandList,
+            _passExecutionData.m_graphicsContext->GetApplicationInfo().m_displayOptions.m_width,
+            _passExecutionData.m_graphicsContext->GetApplicationInfo().m_displayOptions.m_height,
+            0.f,
+            m_pso,
+            m_pipelineLayout,
+            { &m_sceneConstantsDescriptorSet, 1 }
+        );
+    }
+
+    void SkyPass::CreatePso(GraphicsContext* _graphicsContext, RenderPassHandle _renderPass)
+    {
+        if (m_pso != GenPool::kInvalidHandle)
+            return;
+
+        m_pso = FullscreenPassCommon::CreatePso(
+            _graphicsContext,
+            m_allocator,
+            _renderPass,
+            m_pipelineLayout,
+            "Shaders/Sky/SkyRender_SkyMain",
+            "SkyMain",
+            true);
+    }
+}

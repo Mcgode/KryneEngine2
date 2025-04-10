@@ -16,6 +16,8 @@ add_executable(RenderGraphDemo
         Rendering/DeferredShadingPass.hpp
         Rendering/FullscreenPassCommon.cpp
         Rendering/FullscreenPassCommon.hpp
+        Rendering/SkyPass.cpp
+        Rendering/SkyPass.hpp
 )
 
 # Link to cpp libraries
