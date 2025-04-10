@@ -339,6 +339,10 @@ namespace KryneEngine
                 attachment->setClearStencil(attachmentDesc.m_stencilClearValue);
             }
 
+#if !defined(KE_FINAL)
+            hotData->m_debugName = _desc.m_debugName;
+#endif
+
             coldData->m_depthStencilFormat = rtvCold->m_pixelFormat;
         }
         else

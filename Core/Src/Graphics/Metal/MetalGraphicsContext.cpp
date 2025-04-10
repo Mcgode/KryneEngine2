@@ -269,10 +269,15 @@ namespace KryneEngine
         KE_ASSERT_FATAL(_commandList->m_encoder == nullptr || _commandList->m_type != CommandListData::EncoderType::Render);
         _commandList->ResetEncoder(CommandListData::EncoderType::Render);
 
-        NsPtr autoReleasePool { NS::AutoreleasePool::alloc()->init() };
+        KE_AUTO_RELEASE_POOL;
 
         _commandList->m_encoder =
             _commandList->m_commandBuffer->renderCommandEncoder(rpHot->m_descriptor.get())->retain();
+
+#if !defined(KE_FINAL)
+        auto* string = NS::String::string(rpHot->m_debugName.c_str(), NS::UTF8StringEncoding);
+        _commandList->m_encoder->setLabel(string);
+#endif
 
         _commandList->m_userData = new RenderState();
     }
