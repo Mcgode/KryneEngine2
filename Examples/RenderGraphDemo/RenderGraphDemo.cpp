@@ -237,6 +237,7 @@ int main()
     {
         RenderGraph::PassDeclaration gBufferDummyPass(KryneEngine::Modules::RenderGraph::PassType::Render, 0);
         RenderGraph::PassDeclarationBuilder(gBufferDummyPass, nullptr)
+            .SetName("GBuffer pass")
             .AddColorAttachment(gBufferAlbedoRtv)
                 .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
                 .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
@@ -282,6 +283,7 @@ int main()
 
             RenderGraph::PassDeclaration imguiDummyPass(KryneEngine::Modules::RenderGraph::PassType::Render, 0);
             RenderGraph::PassDeclarationBuilder(imguiDummyPass, nullptr)
+                .SetName("ImGui pass")
                 .AddColorAttachment(swapChainRtvs[0])
                     .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
                     .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
