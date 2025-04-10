@@ -120,12 +120,15 @@ namespace KryneEngine
 
         void CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params);
 
+        [[nodiscard]] static bool SupportsNonGlobalBarriers() { return false; }
         void PlaceMemoryBarriers(
             CommandList _commandList,
             const eastl::span<const GlobalMemoryBarrier>& _globalMemoryBarriers,
             const eastl::span<const BufferMemoryBarrier>& _bufferMemoryBarriers,
             const eastl::span<const TextureMemoryBarrier>& _textureMemoryBarriers);
 
+        [[nodiscard]] static bool RenderPassNeedsUsageDeclaration() { return true; }
+        [[nodiscard]] static bool ComputePassNeedsUsageDeclaration() { return true; }
         void DeclarePassTextureSrvUsage(CommandList _commandList, const eastl::span<const TextureSrvHandle>& _textures);
         void DeclarePassBufferCbvUsage(CommandList _commandList, const eastl::span<const BufferCbvHandle>& _buffers);
 

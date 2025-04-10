@@ -323,6 +323,11 @@ namespace KryneEngine
             _params);
     }
 
+    bool GraphicsContext::SupportsNonGlobalBarriers()
+    {
+        return Implementation::SupportsNonGlobalBarriers();
+    }
+
     void GraphicsContext::PlaceMemoryBarriers(
         CommandListHandle _commandList,
         const eastl::span<const GlobalMemoryBarrier>& _globalMemoryBarriers,
@@ -334,6 +339,15 @@ namespace KryneEngine
             _globalMemoryBarriers,
             _bufferMemoryBarriers,
             _textureMemoryBarriers);
+    }
+
+    bool GraphicsContext::RenderPassNeedsUsageDeclaration()
+    {
+        return Implementation::ComputePassNeedsUsageDeclaration();
+    }
+    bool GraphicsContext::ComputePassNeedsUsageDeclaration()
+    {
+        return Implementation::ComputePassNeedsUsageDeclaration();
     }
 
     void GraphicsContext::DeclarePassTextureSrvUsage(
