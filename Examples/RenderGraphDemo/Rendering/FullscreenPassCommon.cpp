@@ -18,7 +18,9 @@ namespace KryneEngine::Samples::RenderGraphDemo::FullscreenPassCommon
         AllocatorInstance _allocator,
         RenderPassHandle _renderPass,
         PipelineLayoutHandle _pipelineLayout,
-        const char* _psShader)
+        const char* _fsShader,
+        const char* _fsFunctionName,
+        bool _depthTest)
     { 
         void* vsByteCode, *fsByteCode;
         const auto createShaderModule = [&](const auto& _path, void*& _data) -> ShaderModuleHandle
@@ -40,7 +42,7 @@ namespace KryneEngine::Samples::RenderGraphDemo::FullscreenPassCommon
         };
 
         ShaderModuleHandle vsModule = createShaderModule("Shaders/FullScreenVS_FullScreenMain", vsByteCode);
-        ShaderModuleHandle fsModule = createShaderModule(_psShader, fsByteCode);
+        ShaderModuleHandle fsModule = createShaderModule(_fsShader, fsByteCode);
 
         GraphicsPipelineDesc psoDesc {
             .m_stages = {
@@ -52,11 +54,15 @@ namespace KryneEngine::Samples::RenderGraphDemo::FullscreenPassCommon
                 GraphicsShaderStage {
                     .m_shaderModule = fsModule,
                     .m_stage = GraphicsShaderStage::Stage::Fragment,
-                    .m_entryPoint = "DeferredShadingMain",
+                    .m_entryPoint = _fsFunctionName,
                 },
             },
             .m_colorBlending = { .m_attachments = { ColorAttachmentBlendDesc() } },
-            .m_depthStencil = { .m_depthTest = false, .m_depthWrite = false },
+            .m_depthStencil = {
+                .m_depthTest = _depthTest,
+                .m_depthWrite = false,
+                .m_depthCompare = DepthStencilStateDesc::CompareOp::Greater
+            },
             .m_renderPass = _renderPass,
             .m_pipelineLayout = _pipelineLayout,
 #if !defined(KE_FINAL)

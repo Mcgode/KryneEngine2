@@ -15,7 +15,9 @@ namespace KryneEngine::Samples::RenderGraphDemo::FullscreenPassCommon
         AllocatorInstance _allocator,
         RenderPassHandle _renderPass,
         PipelineLayoutHandle _pipelineLayout,
-        const char* _psShader);
+        const char* _fsShader,
+        const char* _fsFunctionName,
+        bool _depthTest);
 
     void Render(
         GraphicsContext* _graphicsContext,
