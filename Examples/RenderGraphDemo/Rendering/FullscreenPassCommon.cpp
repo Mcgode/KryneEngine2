@@ -61,7 +61,7 @@ namespace KryneEngine::Samples::RenderGraphDemo::FullscreenPassCommon
             .m_depthStencil = {
                 .m_depthTest = _depthTest,
                 .m_depthWrite = false,
-                .m_depthCompare = DepthStencilStateDesc::CompareOp::Greater
+                .m_depthCompare = DepthStencilStateDesc::CompareOp::GreaterEqual
             },
             .m_renderPass = _renderPass,
             .m_pipelineLayout = _pipelineLayout,
