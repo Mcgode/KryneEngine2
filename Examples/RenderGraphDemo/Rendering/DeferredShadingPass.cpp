@@ -37,11 +37,26 @@ namespace KryneEngine::Samples::RenderGraphDemo
         {
             DescriptorSetDesc desc {
                 .m_bindings = {
-                    DescriptorBindingDesc {}, // Albedo
-                    DescriptorBindingDesc {}, // Normal
-                    DescriptorBindingDesc {}, // Depth
-                    DescriptorBindingDesc {}, // Ambient
-                    DescriptorBindingDesc {}, // Deferred shadows
+                    DescriptorBindingDesc {
+                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                        .m_visibility = ShaderVisibility::Fragment
+                    }, // Albedo
+                    DescriptorBindingDesc {
+                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                        .m_visibility = ShaderVisibility::Fragment
+                    }, // Normal
+                    DescriptorBindingDesc {
+                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                        .m_visibility = ShaderVisibility::Fragment
+                    }, // Depth
+                    DescriptorBindingDesc {
+                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                        .m_visibility = ShaderVisibility::Fragment
+                    }, // Ambient
+                    DescriptorBindingDesc {
+                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                        .m_visibility = ShaderVisibility::Fragment
+                    }, // Deferred shadows
                 }
             };
 
