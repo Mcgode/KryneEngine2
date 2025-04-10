@@ -280,8 +280,7 @@ namespace KryneEngine::Modules::RenderGraph
 
         for (const auto& dependency : _pass.m_readDependencies)
         {
-            const SimplePoolHandle underlyingResource = m_registry->GetUnderlyingResource(dependency.m_resource);
-            const Resource& resource = m_registry->GetResource(underlyingResource);
+            const Resource& resource = m_registry->GetResource(dependency.m_resource);
 
             switch (resource.m_type)
             {
@@ -294,9 +293,9 @@ namespace KryneEngine::Modules::RenderGraph
             default:
                 break;
             }
-
-            _graphicsContext->DeclarePassTextureSrvUsage(_commandList, textureSrvs);
-            _graphicsContext->DeclarePassBufferCbvUsage(_commandList, bufferCbvs);
         }
+
+        _graphicsContext->DeclarePassTextureSrvUsage(_commandList, textureSrvs);
+        _graphicsContext->DeclarePassBufferCbvUsage(_commandList, bufferCbvs);
     }
 } // namespace KryneEngine::Modules::RenderGraph
