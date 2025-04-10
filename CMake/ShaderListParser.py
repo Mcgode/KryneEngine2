@@ -74,6 +74,8 @@ def main():
         base_command += "-T $shader_type "
         base_command += "-E $entry_point "
         base_command += "$includes "
+        # base_command += "-Zi "
+        # base_command += "-Qembed_debug "
 
         command = f"${python_name} ${build_shader_script_name} $out {base_command}"
 
