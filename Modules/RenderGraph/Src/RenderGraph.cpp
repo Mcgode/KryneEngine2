@@ -12,6 +12,7 @@
 
 #include "KryneEngine/Modules/RenderGraph/Builder.hpp"
 #include "KryneEngine/Modules/RenderGraph/Registry.hpp"
+#include "KryneEngine/Modules/RenderGraph/Resource.hpp"
 #include "KryneEngine/Modules/RenderGraph/Utils/ResourceStateTracker.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
@@ -184,6 +185,15 @@ namespace KryneEngine::Modules::RenderGraph
                     it->second);
             }
 
+            if (pass.m_type == PassType::Render && GraphicsContext::RenderPassNeedsUsageDeclaration())
+            {
+                jobData->m_renderGraph->HandleResourceUsage(
+                    jobData->m_passExecutionData.m_graphicsContext,
+                    jobData->m_passExecutionData.m_commandList,
+                    pass);
+            }
+            // TODO: handle usage as well when compute passes are set up
+
             KE_ASSERT(pass.m_executeFunction != nullptr);
             pass.m_executeFunction(*jobData->m_renderGraph, jobData->m_passExecutionData);
 
@@ -255,5 +265,38 @@ namespace KryneEngine::Modules::RenderGraph
     void RenderGraph::ResetRenderPassCache()
     {
         m_renderPassCache.clear();
+    }
+
+    void RenderGraph::HandleResourceUsage(
+        GraphicsContext* _graphicsContext,
+        CommandListHandle _commandList,
+        const PassDeclaration& _pass)
+    {
+        eastl::vector<TextureSrvHandle> textureSrvs;
+        eastl::vector<BufferCbvHandle> bufferCbvs;
+
+        textureSrvs.reserve(_pass.m_readDependencies.size());
+        bufferCbvs.reserve(_pass.m_readDependencies.size());
+
+        for (const auto& dependency : _pass.m_readDependencies)
+        {
+            const SimplePoolHandle underlyingResource = m_registry->GetUnderlyingResource(dependency.m_resource);
+            const Resource& resource = m_registry->GetResource(underlyingResource);
+
+            switch (resource.m_type)
+            {
+            case ResourceType::TextureSrv:
+                textureSrvs.push_back(resource.m_textureSrvData.m_textureSrv);
+                break;
+            case ResourceType::BufferCbv:
+                bufferCbvs.push_back(resource.m_bufferCbvData.m_cbv);
+                break;
+            default:
+                break;
+            }
+
+            _graphicsContext->DeclarePassTextureSrvUsage(_commandList, textureSrvs);
+            _graphicsContext->DeclarePassBufferCbvUsage(_commandList, bufferCbvs);
+        }
     }
 } // namespace KryneEngine::Modules::RenderGraph
