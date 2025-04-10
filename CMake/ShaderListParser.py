@@ -98,7 +98,7 @@ def main():
 
             writer.newline()
             writer.rule("metal_to_air",
-                        "xcrun -sdk macosx metal -c $in -o $out")
+                        "xcrun -sdk macosx metal -c $in -o $out -frecord-sources -gline-tables-only")
 
             writer.newline()
             writer.rule("air_to_metallib",
