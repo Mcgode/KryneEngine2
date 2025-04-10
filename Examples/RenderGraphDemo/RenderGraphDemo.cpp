@@ -395,33 +395,34 @@ int main()
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                         .Done()
+                    .ReadDependency(frameCBufferReadDep)
                     .ReadDependency({
-                        .m_resource = gBufferAlbedo,
+                        .m_resource = gBufferAlbedoSrv,
                         .m_targetSyncStage = BarrierSyncStageFlags::FragmentShading,
                         .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
                         .m_targetLayout = TextureLayout::ShaderResource,
                     })
                     .ReadDependency({
-                        .m_resource = gBufferNormal,
+                        .m_resource = gBufferNormalSrv,
                         .m_targetSyncStage = BarrierSyncStageFlags::FragmentShading,
                         .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
                         .m_targetLayout = TextureLayout::ShaderResource,
                     })
                     .ReadDependency({
-                        .m_resource = gBufferDepth,
+                        .m_resource = gBufferDepthSrv,
                         .m_targetSyncStage = BarrierSyncStageFlags::FragmentShading,
                         .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
                         .m_targetLayout = TextureLayout::ShaderResource,
                         .m_planes = TexturePlane::Depth,
                     })
                     .ReadDependency({
-                        .m_resource = deferredShadow,
+                        .m_resource = deferredShadowSrv,
                         .m_targetSyncStage = BarrierSyncStageFlags::FragmentShading,
                         .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
                         .m_targetLayout = TextureLayout::ShaderResource,
                     })
                     .ReadDependency({
-                        .m_resource = deferredGi,
+                        .m_resource = deferredGiSrv,
                         .m_targetSyncStage = BarrierSyncStageFlags::FragmentShading,
                         .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
                         .m_targetLayout = TextureLayout::ShaderResource,
