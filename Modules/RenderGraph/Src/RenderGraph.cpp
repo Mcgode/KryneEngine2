@@ -240,6 +240,10 @@ namespace KryneEngine::Modules::RenderGraph
             desc.m_depthStencilAttachment.value().m_clearColor = float4(attachment.m_clearDepth, 0.0f, 0.0f, 0.0f);
         }
 
+#if !defined(KE_FINAL)
+        desc.m_debugName = _passDeclaration.m_name.m_string;
+#endif
+
         const RenderPassHandle handle = _graphicsContext.CreateRenderPass(desc);
         m_renderPassCache.emplace(hash, handle);
         return handle;
