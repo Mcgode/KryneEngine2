@@ -14,6 +14,8 @@ add_executable(RenderGraphDemo
         Scene/SunLight.hpp
         Rendering/DeferredShadingPass.cpp
         Rendering/DeferredShadingPass.hpp
+        Rendering/FullscreenPassCommon.cpp
+        Rendering/FullscreenPassCommon.hpp
 )
 
 # Link to cpp libraries
