@@ -164,12 +164,15 @@ namespace KryneEngine::Modules::RenderGraph
 
             const std::chrono::time_point start = std::chrono::steady_clock::now();
 
-            const ResourceStateTracker::PassBarriers barriers = jobData->m_renderGraph->m_resourceStateTracker->GetPassBarriers(i);
-            jobData->m_passExecutionData.m_graphicsContext->PlaceMemoryBarriers(
-                jobData->m_passExecutionData.m_commandList,
-                {},
-                barriers.m_bufferMemoryBarriers,
-                barriers.m_textureMemoryBarriers);
+            if (GraphicsContext::SupportsNonGlobalBarriers())
+            {
+                const ResourceStateTracker::PassBarriers barriers = jobData->m_renderGraph->m_resourceStateTracker->GetPassBarriers(i);
+                jobData->m_passExecutionData.m_graphicsContext->PlaceMemoryBarriers(
+                    jobData->m_passExecutionData.m_commandList,
+                    {},
+                    barriers.m_bufferMemoryBarriers,
+                    barriers.m_textureMemoryBarriers);
+            }
 
             if (pass.m_type == PassType::Render)
             {
