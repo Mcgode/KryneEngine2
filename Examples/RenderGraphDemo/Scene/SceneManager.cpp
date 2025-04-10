@@ -185,7 +185,9 @@ namespace KryneEngine::Samples::RenderGraphDemo
         sceneConstants->m_tanHalfFov = tanf(m_orbitCamera->GetFov() * 0.5f);
         sceneConstants->m_viewProjection = m_orbitCamera->GetProjectionViewMatrix();
         sceneConstants->m_cameraTranslation = m_orbitCamera->GetViewTranslation();
-        sceneConstants->m_cameraQuaternion = *reinterpret_cast<const float4*>(&m_orbitCamera->GetViewRotation());
+
+        const Math::Quaternion& rotation = m_orbitCamera->GetViewRotation();
+        sceneConstants->m_cameraQuaternion = float4(rotation.x, rotation.y, rotation.z, rotation.w);
         sceneConstants->m_depthLinearizationConstants = m_orbitCamera->GetDepthLinearizeConstants();
 
         m_sceneConstantsBuffer.Unmap(_graphicsContext);
