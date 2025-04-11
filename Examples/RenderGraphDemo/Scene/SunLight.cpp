@@ -32,8 +32,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
        m_direction = float3 {
            sinf(m_theta * 3.1415f / 180.f),
-           sinf(m_phi * 3.1415f / 180.f),
-           -cosf(m_phi * 3.1415f / 180.f) * cosf(m_theta * 3.1415f / 180.f)
+           cosf(m_theta * 3.1415f / 180.f) * sinf(m_phi * 3.1415f / 180.f),
+           -cosf(m_theta * 3.1415f / 180.f) * cosf(m_phi * 3.1415f / 180.f)
        };
     }
 }
