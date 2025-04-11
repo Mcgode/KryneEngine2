@@ -144,7 +144,7 @@ float3 GetIncidentLight(const in Ray _rayW)
         }
     }
 
-    return SceneConstants.m_sunDiffuse * (betaR * phaseR * accumulatedRayleigh + betaM * phaseR * accumulatedMie);
+    return SceneConstants.m_sunDiffuse * (betaR * phaseR * accumulatedRayleigh + betaM * phaseM * accumulatedMie);
 }
 
 Output SkyMain(Input _input)
