@@ -208,7 +208,7 @@ namespace KryneEngine
         void UnmapBuffer(BufferMapping& _mapping);
         void CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params);
 
-        [[nodiscard]] static bool SupportsNonGlobalMemoryBarriers() { return true; }
+        [[nodiscard]] static bool SupportsNonGlobalBarriers() { return true; }
         void PlaceMemoryBarriers(
             CommandList _commandList,
             const eastl::span<const GlobalMemoryBarrier>& _globalMemoryBarriers,
