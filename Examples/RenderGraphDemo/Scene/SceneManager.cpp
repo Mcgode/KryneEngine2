@@ -169,6 +169,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
     {
         m_torusKnot->Process(_graphicsContext);
         m_orbitCamera->Process();
+        m_sunLight->Process();
 
         auto* sceneConstants = static_cast<SceneConstants*>(m_sceneConstantsBuffer.Map(
             _graphicsContext,
