@@ -58,8 +58,8 @@ bool RaySphereIntersection(
     if (d2 > radiusSq)
         return false;
     const float thc = sqrt(radiusSq - d2);
-    t0_ = thc - tca;
-    t1_ = thc + tca;
+    t0_ = tca - thc;
+    t1_ = tca + thc;
     return true;
 }
 
