@@ -40,11 +40,11 @@ namespace KryneEngine
         {
             flags |= D3D12_BARRIER_SYNC_EXECUTE_INDIRECT;
         }
-        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::InputAssembly))
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::IndexInputAssembly))
         {
             flags |= D3D12_BARRIER_SYNC_INDEX_INPUT;
         }
-        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::VertexShading))
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::VertexInputAssembly | BarrierSyncStageFlags::VertexShading))
         {
             flags |= D3D12_BARRIER_SYNC_VERTEX_SHADING;
         }
