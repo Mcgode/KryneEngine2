@@ -251,14 +251,14 @@ namespace KryneEngine::Samples::RenderGraphDemo
         const BufferMemoryBarrier postCopyBarriers[] = {
             {
                 .m_stagesSrc = BarrierSyncStageFlags::Transfer,
-                .m_stagesDst = BarrierSyncStageFlags::InputAssembly,
+                .m_stagesDst = BarrierSyncStageFlags::IndexInputAssembly,
                 .m_accessSrc = BarrierAccessFlags::TransferSrc,
                 .m_accessDst = BarrierAccessFlags::IndexBuffer,
                 .m_buffer = m_indexBuffer,
             },
             {
                 .m_stagesSrc = BarrierSyncStageFlags::Transfer,
-                .m_stagesDst = BarrierSyncStageFlags::InputAssembly,
+                .m_stagesDst = BarrierSyncStageFlags::VertexInputAssembly,
                 .m_accessSrc = BarrierAccessFlags::TransferSrc,
                 .m_accessDst = BarrierAccessFlags::VertexBuffer,
                 .m_buffer = m_vertexBuffer,
