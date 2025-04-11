@@ -343,7 +343,7 @@ namespace KryneEngine
 
     bool GraphicsContext::RenderPassNeedsUsageDeclaration()
     {
-        return Implementation::ComputePassNeedsUsageDeclaration();
+        return Implementation::RenderPassNeedsUsageDeclaration();
     }
     bool GraphicsContext::ComputePassNeedsUsageDeclaration()
     {
