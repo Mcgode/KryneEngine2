@@ -78,6 +78,7 @@ struct DescriptorSet1 {
     RWTexture2D texture2;
     StructuredBuffer<uint> buffer0;
     RWByteAddressBuffer buffer1;
+    ConstantBuffer<uint> buffer2;
 }
 
 [shader("fragment")]
