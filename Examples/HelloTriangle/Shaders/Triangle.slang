@@ -78,7 +78,10 @@ struct DescriptorSet1 {
 }
 
 [shader("fragment")]
-PsOutput ImGuiMainFS(in PsInput input, ParameterBlock<DescriptorSet0> descriptorSet0, ParameterBlock<DescriptorSet1> descriptorSet1)
+PsOutput ImGuiMainFS(
+    in PsInput input,
+    [vk::binding(0, 0)] ParameterBlock<DescriptorSet0> descriptorSet0: register(space0),
+    [vk::binding(0, 1)] ParameterBlock<DescriptorSet1> descriptorSet1: register(space1))
 {
     PsOutput output;
 
