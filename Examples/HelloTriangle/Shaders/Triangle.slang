@@ -75,6 +75,9 @@ struct DescriptorSet0 {
 struct DescriptorSet1 {
     SamplerState sampler0: register(s0);
     Texture2D texture1: register(t1);
+    RWTexture2D texture2;
+    StructuredBuffer<uint> buffer0;
+    RWByteAddressBuffer buffer1;
 }
 
 [shader("fragment")]
