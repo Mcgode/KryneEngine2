@@ -33,7 +33,6 @@ struct PushConstants
     float4x4 m_matrix;
 }
 
-[vk::push_constant] uniform PushConstants globalPushConstants;
 
 [shader("vertex")]
 VsToPs MainVS(IaToVs _input, [vk::push_constant] uniform PushConstants pushConstants)
