@@ -28,13 +28,20 @@ struct PsToOm
 func myFun()
 {}
 
+struct PushConstants
+{
+    float4x4 m_matrix;
+}
+
+[vk::push_constant] uniform PushConstants globalPushConstants;
+
 [shader("vertex")]
-VsToPs MainVS(IaToVs _input)
+VsToPs MainVS(IaToVs _input, [vk::push_constant] uniform PushConstants pushConstants)
 {
     VsToPs output;
 
     output.m_color = _input.m_color;
-    output.m_position = float4(_input.m_position, 1);
+    output.m_position = mul(pushConstants.m_matrix, float4(_input.m_position, 1));
 
     return output;
 }
