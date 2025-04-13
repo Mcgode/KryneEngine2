@@ -17,6 +17,7 @@
 
 namespace KryneEngine
 {
+    struct BufferCbvDesc;
     struct BufferCreateDesc;
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
@@ -32,8 +33,11 @@ namespace KryneEngine
         friend class MetalArgumentBufferManager;
 
     public:
-        MetalResources();
+        explicit MetalResources(AllocatorInstance _allocator);
         ~MetalResources();
+
+    private:
+        [[nodiscard]] AllocatorInstance GetAllocator() const;
 
     public:
         BufferHandle CreateBuffer(MTL::Device& _device, const BufferCreateDesc& _desc);
@@ -92,6 +96,19 @@ namespace KryneEngine
         GenerationalPool<TextureSrvHotData> m_textureSrvs;
 
     public:
+        [[nodiscard]] BufferCbvHandle RegisterBufferCbv(const BufferCbvDesc& _cbvDesc);
+        bool UnregisterBufferCbv(BufferCbvHandle _handle);
+
+    private:
+        struct BufferCbvHotData
+        {
+            NsPtr<MTL::Buffer> m_buffer;
+            size_t m_offset;
+        };
+
+        GenerationalPool<BufferCbvHotData> m_bufferCbvs;
+
+    public:
         RenderTargetViewHandle RegisterRtv(const RenderTargetViewDesc& _desc);
         bool UnregisterRtv(RenderTargetViewHandle _handle);
 
@@ -131,6 +148,10 @@ namespace KryneEngine
                 u8 m_index;
             };
             eastl::fixed_vector<SystemRtv, 1> m_systemRtvs;
+
+#if !defined(KE_FINAL)
+            eastl::string m_debugName;
+#endif
         };
 
         struct RenderPassColdData

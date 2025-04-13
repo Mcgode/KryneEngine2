@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <KryneEngine/Core/Memory/SimplePool.inl>
+#include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 
 #include "KryneEngine/Modules/RenderGraph/Declarations/PassDeclaration.hpp"
 #include "KryneEngine/Modules/RenderGraph/Registry.hpp"
@@ -23,13 +24,13 @@ namespace KryneEngine::Modules::RenderGraph
 
     PassDeclarationBuilder Builder::DeclarePass(PassType _type)
     {
-        return { m_declaredPasses.emplace_back(_type), *this };
+        return { m_declaredPasses.emplace_back(_type, m_declaredPasses.size()), this };
     }
 
     Builder& Builder::DeclareTargetResource(SimplePoolHandle _resource)
     {
-        const SimplePoolHandle underlyingPass = m_registry.GetUnderlyingResource(_resource);
-        m_targetResources.insert(_resource);
+        const SimplePoolHandle underlyingResource = m_registry.GetUnderlyingResource(_resource);
+        m_targetResources.insert(underlyingResource);
         return *this;
     }
 
@@ -42,32 +43,41 @@ namespace KryneEngine::Modules::RenderGraph
         m_dag.resize(m_declaredPasses.size());
         m_passAlive.resize(m_declaredPasses.size(), false);
 
-        for (const PassDeclaration& pass : m_declaredPasses)
         {
-            indent.push_back('\t');
-            std::cout << "- [" << index <<  "] '" << pass.m_name.c_str() << "' - ";
-            switch(pass.m_type)
+            KE_ZoneScoped("Printing passes");
+
+            for (const PassDeclaration& pass : m_declaredPasses)
             {
-            case PassType::Render:
-                std::cout << "RENDER" << std::endl;
-                break;
-            case PassType::Compute:
-                std::cout << "COMPUTE" << std::endl;
-                break;
+                indent.push_back('\t');
+                std::cout << "- [" << index << "] '" << pass.m_name.m_string.c_str() << "' - ";
+                switch (pass.m_type)
+                {
+                case PassType::Render:
+                    std::cout << "RENDER" << std::endl;
+                    break;
+                case PassType::Compute:
+                    std::cout << "COMPUTE" << std::endl;
+                    break;
+                case PassType::Transfer:
+                    std::cout << "TRANSFER" << std::endl;
+                    break;
+                default:
+                    break;
+                }
+                indent.push_back('\t');
+
+                if (pass.m_type == PassType::Render)
+                {
+                    PrintRenderPassAttachments(pass, indent);
+                }
+                PrintDependencies(pass, indent);
+                BuildDag(index, pass);
+
+                indent.pop_back();
+                indent.pop_back();
+
+                index++;
             }
-            indent.push_back('\t');
-
-            if (pass.m_type == PassType::Render)
-            {
-                PrintRenderPassAttachments(pass, indent);
-            }
-            PrintDependencies(pass, indent);
-            BuildDag(index, pass);
-
-            indent.pop_back();
-            indent.pop_back();
-
-            index++;
         }
 
         ProcessDagDeferredCulling();
@@ -78,6 +88,8 @@ namespace KryneEngine::Modules::RenderGraph
 
     void Builder::BuildDag(const size_t _index, const PassDeclaration& _passDeclaration)
     {
+        KE_ZoneScopedFunction("Builder::BuildDag");
+
         const auto handleResourceRead = [this, _index](SimplePoolHandle _resource)
         {
             const auto versionIt = m_resourceVersions.find(m_registry.GetUnderlyingResource(_resource));
@@ -99,13 +111,13 @@ namespace KryneEngine::Modules::RenderGraph
             }
         };
 
-        for (SimplePoolHandle resource: _passDeclaration.m_readDependencies)
+        for (const Dependency& dependency: _passDeclaration.m_readDependencies)
         {
-            handleResourceRead(resource);
+            handleResourceRead(dependency.m_resource);
         }
-        for (SimplePoolHandle resource: _passDeclaration.m_writeDependencies)
+        for (const Dependency& dependency: _passDeclaration.m_writeDependencies)
         {
-            handleResourceWrite(m_registry.GetUnderlyingResource(resource));
+            handleResourceWrite(m_registry.GetUnderlyingResource(dependency.m_resource));
         }
 
         // Render targets are to be marked as implicit READ/WRITE dependencies
@@ -113,19 +125,21 @@ namespace KryneEngine::Modules::RenderGraph
         {
             for (const auto& colorAttachment: _passDeclaration.m_colorAttachments)
             {
-                handleResourceRead(colorAttachment.m_texture);
-                handleResourceWrite(m_registry.GetUnderlyingResource(colorAttachment.m_texture));
+                handleResourceRead(colorAttachment.m_rtv);
+                handleResourceWrite(m_registry.GetUnderlyingResource(colorAttachment.m_rtv));
             }
             if (_passDeclaration.m_depthAttachment.has_value())
             {
-                handleResourceRead(_passDeclaration.m_depthAttachment->m_texture);
-                handleResourceWrite(m_registry.GetUnderlyingResource(_passDeclaration.m_depthAttachment->m_texture));
+                handleResourceRead(_passDeclaration.m_depthAttachment->m_rtv);
+                handleResourceWrite(m_registry.GetUnderlyingResource(_passDeclaration.m_depthAttachment->m_rtv));
             }
         }
     }
 
     void Builder::ProcessDagDeferredCulling()
     {
+        KE_ZoneScopedFunction("Builder::ProcessDagDeferredCulling");
+
         for (size_t i = 0; i < m_passAlive.size(); i++)
         {
             const size_t index = m_passAlive.size() - i - 1;
@@ -141,6 +155,8 @@ namespace KryneEngine::Modules::RenderGraph
 
     void Builder::PrintResource(SimplePoolHandle _resource, std::string& _indent)
     {
+        KE_ZoneScopedFunction("Builder::PrintResource");
+
         const Resource& resource = m_registry.m_resources.Get(_resource);
 
         std::cout << _indent << "- ";
@@ -175,7 +191,17 @@ namespace KryneEngine::Modules::RenderGraph
             break;
         case ResourceType::TextureSrv:
             std::cout
-                << eastl::string().sprintf(", Texture SRV, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
+                << eastl::string().sprintf(", Texture SRV, handle: Ox%x",(u32)resource.m_textureSrvData.m_textureSrv.m_handle).c_str()
+                << std::endl;
+            break;
+        case ResourceType::BufferCbv:
+            std::cout
+                << eastl::string().sprintf(", Buffer CBV, handle: Ox%x",(u32)resource.m_bufferCbvData.m_cbv.m_handle).c_str()
+                << std::endl;
+            break;
+        case ResourceType::RenderTargetView:
+            std::cout
+                << eastl::string().sprintf(", Render target view, handle: Ox%x",(u32)resource.m_renderTargetViewData.m_renderTargetView.m_handle).c_str()
                 << std::endl;
             break;
         }
@@ -183,13 +209,15 @@ namespace KryneEngine::Modules::RenderGraph
 
     void Builder::PrintRenderPassAttachments(const PassDeclaration& _pass, std::string& _indent)
     {
+        KE_ZoneScopedFunction("Builder::PrintRenderPassAttachments");
+
         if (!_pass.m_colorAttachments.empty())
         {
             std::cout << _indent << "Color attachments:" << std::endl;
             _indent.push_back('\t');
             for (auto& attachment : _pass.m_colorAttachments)
             {
-                PrintResource(_pass.m_depthAttachment->m_texture, _indent);
+                PrintResource(attachment.m_rtv, _indent);
                 _indent.push_back('\t');
                 std::cout << _indent;
                 switch (attachment.m_loadOperation)
@@ -226,7 +254,7 @@ namespace KryneEngine::Modules::RenderGraph
         {
             std::cout << _indent << "Depth/stencil attachment:" << std::endl;
             _indent.push_back('\t');
-            PrintResource(_pass.m_depthAttachment->m_texture, _indent);
+            PrintResource(_pass.m_depthAttachment->m_rtv, _indent);
             _indent.push_back('\t');
             std::cout << _indent;
             switch (_pass.m_depthAttachment.value().m_loadOperation)
@@ -261,16 +289,18 @@ namespace KryneEngine::Modules::RenderGraph
 
     void Builder::PrintDependencies(const PassDeclaration& _pass, std::string& _indent)
     {
+        KE_ZoneScopedFunction("Builder::PrintDependencies");
+
         if (!_pass.m_readDependencies.empty())
         {
             std::cout << _indent << "Read dependencies:" << std::endl;
             _indent.push_back('\t');
-            for (SimplePoolHandle resource: _pass.m_readDependencies)
+            for (const Dependency& dependency: _pass.m_readDependencies)
             {
-                const auto versionIt = m_resourceVersions.find(m_registry.GetUnderlyingResource(resource));
+                const auto versionIt = m_resourceVersions.find(m_registry.GetUnderlyingResource(dependency.m_resource));
                 const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second.first : 0;
 
-                PrintResource(resource, _indent);
+                PrintResource(dependency.m_resource, _indent);
                 _indent.push_back('\t');
                 std::cout << _indent << "Version " << version << std::endl;
                 _indent.pop_back();
@@ -282,12 +312,12 @@ namespace KryneEngine::Modules::RenderGraph
         {
             std::cout << _indent << "Write dependencies:" << std::endl;
             _indent.push_back('\t');
-            for (SimplePoolHandle resource: _pass.m_writeDependencies)
+            for (const Dependency& dependency: _pass.m_writeDependencies)
             {
-                const auto versionIt = m_resourceVersions.find(resource);
+                const auto versionIt = m_resourceVersions.find(dependency.m_resource);
                 const u32 version = versionIt != m_resourceVersions.end() ? versionIt->second.first : 0;
 
-                PrintResource(resource, _indent);
+                PrintResource(dependency.m_resource, _indent);
                 _indent.push_back('\t');
                 std::cout << _indent << "Version " << version << std::endl;
                 _indent.pop_back();
@@ -298,6 +328,8 @@ namespace KryneEngine::Modules::RenderGraph
 
     void Builder::PrintDag()
     {
+        KE_ZoneScopedFunction("Builder::PrintDag");
+
         std::cout << std::endl;
         std::cout << "DAG:" << std::endl;
         std::cout << "digraph RawRenderGraph {" << std::endl;
@@ -309,14 +341,14 @@ namespace KryneEngine::Modules::RenderGraph
             {
                 std::cout
                     << eastl::string{}.sprintf(R"(  "[%lld] %s" -> "[%lld] %s";)",
-                                               i, m_declaredPasses[i].m_name.c_str(),
-                                               child, m_declaredPasses[child].m_name.c_str()).c_str()
+                                               i, m_declaredPasses[i].m_name.m_string.c_str(),
+                                               child, m_declaredPasses[child].m_name.m_string.c_str()).c_str()
                     << std::endl;
             }
             if (node.m_children.empty())
             {
                 std::cout
-                    << eastl::string{}.sprintf(R"(  "[%lld] %s";)", i, m_declaredPasses[i].m_name.c_str()).c_str()
+                    << eastl::string{}.sprintf(R"(  "[%lld] %s";)", i, m_declaredPasses[i].m_name.m_string.c_str()).c_str()
                     << std::endl;
             }
         }
@@ -340,14 +372,14 @@ namespace KryneEngine::Modules::RenderGraph
                 }
                 std::cout
                     << eastl::string{}.sprintf(R"(  "[%lld] %s" -> "[%lld] %s";)",
-                                               i, m_declaredPasses[i].m_name.c_str(),
-                                               child, m_declaredPasses[child].m_name.c_str()).c_str()
+                                               i, m_declaredPasses[i].m_name.m_string.c_str(),
+                                               child, m_declaredPasses[child].m_name.m_string.c_str()).c_str()
                     << std::endl;
             }
             if (node.m_children.empty())
             {
                 std::cout
-                    << eastl::string{}.sprintf(R"(  "[%lld] %s";)", i, m_declaredPasses[i].m_name.c_str()).c_str()
+                    << eastl::string{}.sprintf(R"(  "[%lld] %s";)", i, m_declaredPasses[i].m_name.m_string.c_str()).c_str()
                     << std::endl;
             }
         }
@@ -356,6 +388,8 @@ namespace KryneEngine::Modules::RenderGraph
 
     void Builder::PrintFlattenedPasses()
     {
+        KE_ZoneScopedFunction("Builder::PrintFlattenedPasses");
+
         eastl::vector<size_t> renderPasses;
         eastl::vector<size_t> computePasses;
         eastl::vector<size_t> transferPasses;
@@ -419,7 +453,7 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(
                                       R"("[%lld] %s";)",
                                       renderPasses[0],
-                                      m_declaredPasses[renderPasses[0]].m_name.c_str()).c_str()
+                                      m_declaredPasses[renderPasses[0]].m_name.m_string.c_str()).c_str()
                 << std::endl;
         }
         for (size_t i = 1; i < renderPasses.size(); i++)
@@ -429,9 +463,9 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(
                                       R"("[%lld] %s" -> "[%lld] %s";)",
                                       renderPasses[i - 1],
-                                      m_declaredPasses[renderPasses[i - 1]].m_name.c_str(),
+                                      m_declaredPasses[renderPasses[i - 1]].m_name.m_string.c_str(),
                                       renderPasses[i],
-                                      m_declaredPasses[renderPasses[i]].m_name.c_str()).c_str()
+                                      m_declaredPasses[renderPasses[i]].m_name.m_string.c_str()).c_str()
                 << std::endl;
         }
         std::cout << "\t}" << std::endl;
@@ -444,7 +478,7 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(
                                       R"("[%lld] %s";)",
                                       computePasses[0],
-                                      m_declaredPasses[computePasses[0]].m_name.c_str()).c_str()
+                                      m_declaredPasses[computePasses[0]].m_name.m_string.c_str()).c_str()
                 << std::endl;
         }
         for (size_t i = 1; i < computePasses.size(); i++)
@@ -454,9 +488,9 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(
                                       R"("[%lld] %s" -> "[%lld] %s";)",
                                       computePasses[i - 1],
-                                      m_declaredPasses[computePasses[i - 1]].m_name.c_str(),
+                                      m_declaredPasses[computePasses[i - 1]].m_name.m_string.c_str(),
                                       computePasses[i],
-                                      m_declaredPasses[computePasses[i]].m_name.c_str()).c_str()
+                                      m_declaredPasses[computePasses[i]].m_name.m_string.c_str()).c_str()
                 << std::endl;
         }
         std::cout << "\t}" << std::endl;
@@ -469,7 +503,7 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(
                                       R"("[%lld] %s";)",
                                       transferPasses[0],
-                                      m_declaredPasses[transferPasses[0]].m_name.c_str()).c_str()
+                                      m_declaredPasses[transferPasses[0]].m_name.m_string.c_str()).c_str()
                 << std::endl;
         }
         for (size_t i = 1; i < transferPasses.size(); i++)
@@ -479,9 +513,9 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(
                                       R"("[%lld] %s" -> "[%lld] %s";)",
                                       transferPasses[i - 1],
-                                      m_declaredPasses[transferPasses[i - 1]].m_name.c_str(),
+                                      m_declaredPasses[transferPasses[i - 1]].m_name.m_string.c_str(),
                                       transferPasses[i],
-                                      m_declaredPasses[transferPasses[i]].m_name.c_str()).c_str()
+                                      m_declaredPasses[transferPasses[i]].m_name.m_string.c_str()).c_str()
                 << std::endl;
         }
         std::cout << "\t}" << std::endl;
@@ -495,9 +529,9 @@ namespace KryneEngine::Modules::RenderGraph
                     << eastl::string().sprintf(
                                           R"("[%lld] %s" -> "[%lld] %s";)",
                                           dependencyPair.first,
-                                          m_declaredPasses[dependencyPair.first].m_name.c_str(),
+                                          m_declaredPasses[dependencyPair.first].m_name.m_string.c_str(),
                                           dependencyPair.second,
-                                          m_declaredPasses[dependencyPair.second].m_name.c_str()).c_str()
+                                          m_declaredPasses[dependencyPair.second].m_name.m_string.c_str()).c_str()
                     << std::endl;
             }
         }

@@ -61,12 +61,16 @@ namespace KryneEngine
         return reinterpret_cast<const GraphicsContextBlob*>(_this)->m_implementation;
     }
 
-    GraphicsContext* GraphicsContext::Create(const GraphicsCommon::ApplicationInfo& _appInfo, Window* _window)
+    GraphicsContext* GraphicsContext::Create(
+        const GraphicsCommon::ApplicationInfo& _appInfo,
+        Window* _window,
+        AllocatorInstance _allocator)
     {
-        auto* blob = new GraphicsContextBlob {
+        auto* blob = new (_allocator.Allocate<GraphicsContextBlob>()) GraphicsContextBlob {
             .m_interface = {},
-            .m_implementation = Implementation(_appInfo, _window, kInitialFrameId),
+            .m_implementation = Implementation(_allocator, _appInfo, _window, kInitialFrameId),
         };
+        blob->m_interface.m_allocator = _allocator;
         blob->m_interface.m_frameId = kInitialFrameId;
         blob->m_interface.m_window = _window;
 
@@ -74,7 +78,8 @@ namespace KryneEngine
     }
     void GraphicsContext::Destroy(GraphicsContext* _context)
     {
-        delete reinterpret_cast<GraphicsContextBlob*>(_context);
+        GetImplementation(_context).~Implementation();
+        _context->m_allocator.deallocate(_context, sizeof(GraphicsContextBlob));
     }
 
     u8 GraphicsContext::GetFrameContextCount() const
@@ -123,6 +128,16 @@ namespace KryneEngine
         static_assert("Not yet implemented");
         return nullptr;
 #endif
+    }
+
+    bool GraphicsContext::HasDedicatedTransferQueue() const
+    {
+        return GetImplementation(this).HasDedicatedTransferQueue();
+    }
+
+    bool GraphicsContext::HasDedicatedComputeQueue() const
+    {
+        return GetImplementation(this).HasDedicatedComputeQueue();
     }
 
     BufferHandle GraphicsContext::CreateBuffer(const BufferCreateDesc& _desc)
@@ -205,6 +220,16 @@ namespace KryneEngine
         return GetImplementation(this).DestroySampler(_sampler);
     }
 
+    BufferCbvHandle GraphicsContext::CreateBufferCbv(const BufferCbvDesc& _cbvDesc)
+    {
+        return GetImplementation(this).CreateBufferCbv(_cbvDesc);
+    }
+
+    bool GraphicsContext::DestroyBufferCbv(BufferCbvHandle _handle)
+    {
+        return GetImplementation(this).DestroyBufferCbv(_handle);
+    }
+
     RenderTargetViewHandle GraphicsContext::CreateRenderTargetView(const RenderTargetViewDesc& _desc)
     {
         return GetImplementation(this).CreateRenderTargetView(_desc);
@@ -245,9 +270,11 @@ namespace KryneEngine
         return reinterpret_cast<CommandListHandle>(GetImplementation(this).BeginGraphicsCommandList(m_frameId));
     }
 
-    void GraphicsContext::EndGraphicsCommandList()
+    void GraphicsContext::EndGraphicsCommandList(CommandListHandle _commandList)
     {
-        GetImplementation(this).EndGraphicsCommandList(m_frameId);
+        GetImplementation(this).EndGraphicsCommandList(
+            reinterpret_cast<CommandList>(_commandList),
+            m_frameId);
     }
 
     void GraphicsContext::BeginRenderPass(CommandListHandle _commandList, RenderPassHandle _handle)
@@ -296,6 +323,11 @@ namespace KryneEngine
             _params);
     }
 
+    bool GraphicsContext::SupportsNonGlobalBarriers()
+    {
+        return Implementation::SupportsNonGlobalBarriers();
+    }
+
     void GraphicsContext::PlaceMemoryBarriers(
         CommandListHandle _commandList,
         const eastl::span<const GlobalMemoryBarrier>& _globalMemoryBarriers,
@@ -309,6 +341,14 @@ namespace KryneEngine
             _textureMemoryBarriers);
     }
 
+    bool GraphicsContext::RenderPassNeedsUsageDeclaration()
+    {
+        return Implementation::RenderPassNeedsUsageDeclaration();
+    }
+    bool GraphicsContext::ComputePassNeedsUsageDeclaration()
+    {
+        return Implementation::ComputePassNeedsUsageDeclaration();
+    }
 
     void GraphicsContext::DeclarePassTextureSrvUsage(
         CommandListHandle _commandList,
@@ -317,6 +357,15 @@ namespace KryneEngine
         GetImplementation(this).DeclarePassTextureSrvUsage(
             reinterpret_cast<CommandList>(_commandList),
             _textures);
+    }
+
+    void GraphicsContext::DeclarePassBufferCbvUsage(
+        KryneEngine::CommandListHandle _commandList,
+        const eastl::span<const BufferCbvHandle>& _buffers)
+    {
+        GetImplementation(this).DeclarePassBufferCbvUsage(
+            reinterpret_cast<CommandList>(_commandList),
+            _buffers);
     }
 
     ShaderModuleHandle GraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
@@ -441,6 +490,13 @@ namespace KryneEngine
             _sets,
             _unchanged,
             m_frameId);
+    }
+
+    void GraphicsContext::DrawInstanced(CommandListHandle _commandList, const DrawInstancedDesc& _desc)
+    {
+        GetImplementation(this).DrawInstanced(
+            reinterpret_cast<CommandList>(_commandList),
+            _desc);
     }
 
     void GraphicsContext::DrawIndexedInstanced(CommandListHandle _commandList, const DrawIndexedInstancedDesc& _desc)

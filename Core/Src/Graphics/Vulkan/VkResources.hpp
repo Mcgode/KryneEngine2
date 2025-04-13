@@ -21,6 +21,7 @@ namespace KryneEngine
         struct ApplicationInfo;
     }
 
+    struct BufferCbvDesc;
     struct BufferCreateDesc;
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
@@ -42,24 +43,32 @@ namespace KryneEngine
             VmaAllocation m_allocation;
             VmaAllocationInfo m_info;
         };
-        GenerationalPool<VkBuffer, BufferColdData> m_buffers {};
+        GenerationalPool<VkBuffer, BufferColdData> m_buffers;
 
         struct TextureColdData
         {
             VmaAllocation m_allocation;
             uint3 m_dimensions;
         };
-        GenerationalPool<VkImage, TextureColdData> m_textures {};
+        GenerationalPool<VkImage, TextureColdData> m_textures;
 
-        GenerationalPool<VkImageView> m_imageViews {};
+        GenerationalPool<VkImageView> m_imageViews;
         GenerationalPool<VkSampler> m_samplers;
+
+        struct BufferView {
+            VkBuffer m_buffer;
+            size_t m_size;
+            size_t m_offset;
+        };
+
+        GenerationalPool<BufferView> m_bufferViews;
 
         struct RTVColdData
         {
             VkFormat m_format;
             Size16x2 m_size;
         };
-        GenerationalPool<VkImageView, RTVColdData> m_renderTargetViews {};
+        GenerationalPool<VkImageView, RTVColdData> m_renderTargetViews;
 
         struct RenderPassData
         {
@@ -68,7 +77,7 @@ namespace KryneEngine
             Size16x2 m_size;
             eastl::vector<VkClearValue> m_clearValues;
         };
-        GenerationalPool<RenderPassData> m_renderPasses {};
+        GenerationalPool<RenderPassData> m_renderPasses;
 
         GenerationalPool<VkShaderModule> m_shaderModules;
 
@@ -90,7 +99,7 @@ namespace KryneEngine
 #endif
 
         // Default constructor and destructor, but moved implementation to cpp for .inl linking
-        VkResources();
+        VkResources(AllocatorInstance _allocator);
         ~VkResources();
 
         void InitAllocator(
@@ -117,6 +126,9 @@ namespace KryneEngine
 
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc, VkDevice _device);
         bool DestroySampler(SamplerHandle _sampler, VkDevice _device);
+
+        [[nodiscard]] BufferCbvHandle CreateBufferCbv(const BufferCbvDesc& _cbvDesc, VkDevice _device);
+        bool DestroyBufferCbv(BufferCbvHandle _handle, VkDevice _device);
 
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc, VkDevice& _device);
         bool FreeRenderTargetView(RenderTargetViewHandle _rtv, VkDevice _device);

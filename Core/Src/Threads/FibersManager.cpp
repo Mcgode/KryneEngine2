@@ -8,6 +8,7 @@
 
 #include "KryneEngine/Core/Common/Assert.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"
+#include "KryneEngine/Core/Threads/FiberJob.hpp"
 #include "KryneEngine/Core/Threads/FiberThread.hpp"
 #include "KryneEngine/Core/Threads/FiberTls.inl"
 #include "Threads/Internal/FiberContext.hpp"
@@ -16,11 +17,17 @@ namespace KryneEngine
 {
     thread_local FibersManager* FibersManager::s_manager = nullptr;
 
-    FibersManager::FibersManager(s32 _requestedThreadCount)
+    FibersManager::FibersManager(s32 _requestedThreadCount, AllocatorInstance _allocator)
+        : m_fiberThreads(_allocator)
+        , m_jobProducerTokens(_allocator)
+        , m_jobConsumerTokens(_allocator)
+        , m_currentJobs(_allocator)
+        , m_nextJob(_allocator)
+        , m_baseContexts(_allocator)
     {
         KE_ZoneScopedFunction("FibersManager::FibersManager()");
 
-        m_contextAllocator = eastl::make_unique<FiberContextAllocator>();
+        m_contextAllocator = _allocator.New<FiberContextAllocator>(_allocator);
 
         u16 fiberThreadCount;
         if (_requestedThreadCount <= 0)
@@ -67,7 +74,11 @@ namespace KryneEngine
 
             m_currentJobs.Init(this, nullptr);
             m_nextJob.Init(this, nullptr);
-            m_baseContexts.Init(this, {});
+            m_baseContexts.InitFunc(
+                this,
+                [](FiberContext& _context) {
+                    ::new(&_context) FiberContext();
+                });
 
             for (u32 i = 0; i < fiberThreadCount; i++)
             {
@@ -100,10 +111,10 @@ namespace KryneEngine
         m_waitVariable.notify_one();
     }
 
-    bool FibersManager::_RetrieveNextJob(Job&job_, u16 _fiberIndex)
+    bool FibersManager::_RetrieveNextJob(Job& job_, u16 _fiberIndex)
     {
         auto& consumerTokens = m_jobConsumerTokens.Load(_fiberIndex);
-        for (s64 i = 0; i < (s64)kJobQueuesCount; i++)
+        for (s64 i = 0; i < static_cast<s64>(kJobQueuesCount); i++)
         {
             if (m_jobQueues[i].try_dequeue(consumerTokens[i], job_))
             {
@@ -144,6 +155,7 @@ namespace KryneEngine
         }
         // Make sure to end and join all the fiber threads before anything else.
         m_fiberThreads.Clear();
+        m_fiberThreads.GetAllocator().Delete(m_contextAllocator);
     }
 
     FiberJob *FibersManager::GetCurrentJob()
@@ -158,7 +170,7 @@ namespace KryneEngine
 
         if (currentJob != nullptr && currentJob->GetStatus() == FiberJob::Status::Running)
         {
-            currentJob->m_status = FiberJob::Status::Paused;
+            currentJob->m_status.store(FiberJob::Status::Paused, std::memory_order_release);
             QueueJob(currentJob);
         }
 
@@ -174,8 +186,8 @@ namespace KryneEngine
     {
         const auto fiberIndex = FiberThread::GetCurrentFiberThreadIndex();
 
-        auto& oldJob = m_currentJobs.Load(fiberIndex);
-        auto& newJob = m_nextJob.Load(fiberIndex);
+        FiberJob* oldJob = m_currentJobs.Load(fiberIndex);
+        FiberJob* newJob = m_nextJob.Load(fiberIndex);
 
         if (oldJob != nullptr && oldJob->GetStatus() == FiberJob::Status::Finished)
         {
@@ -183,36 +195,60 @@ namespace KryneEngine
             m_syncCounterPool.DecrementCounterValue(oldJob->m_associatedCounterId);
 
             m_contextAllocator->Free(oldJob->m_contextId);
+
             oldJob->_ResetContext();
+            m_fiberThreads.GetAllocator().Delete(oldJob);
         }
 
-        oldJob = newJob;
-        newJob = nullptr;
+        m_currentJobs.Load(fiberIndex) = newJob;
+        m_nextJob.Load(fiberIndex) = nullptr;
     }
 
-    SyncCounterId FibersManager::InitAndBatchJobs(FiberJob *_jobArray,
-                                                  FiberJob::JobFunc *_jobFunc,
-                                                  void *_userData,
-                                                  u32 _count,
-                                                  FiberJob::Priority _priority,
-                                                  bool _useBigStack)
+    SyncCounterId FibersManager::InitAndBatchJobs(
+        u32 _jobCount,
+        FiberJob::JobFunc* _jobFunc,
+        void* _pUserData,
+        size_t _userDataSize,
+        FiberJob::Priority _priority,
+        bool _useBigStack)
     {
-        const auto syncCounter = m_syncCounterPool.AcquireCounter(_count);
+        const auto syncCounter = m_syncCounterPool.AcquireCounter(_jobCount);
 
         VERIFY_OR_RETURN(syncCounter != kInvalidSyncCounterId, kInvalidSyncCounterId);
 
-        for (u32 i = 0; i < _count; i++)
+        auto pUserData = reinterpret_cast<uintptr_t>(_pUserData);
+
+        AllocatorInstance allocator = m_fiberThreads.GetAllocator();
+
+        for (u32 i = 0; i < _jobCount; i++)
         {
-            auto& job = _jobArray[i];
-            job.m_functionPtr = _jobFunc;
-            job.m_userData = _userData;
-            job.m_priority = _priority;
-            job.m_bigStack = _useBigStack;
-            job.m_associatedCounterId = syncCounter;
-            QueueJob(&job);
+            auto* job = allocator.New<FiberJob>();
+            job->m_functionPtr = _jobFunc;
+            job->m_userData = reinterpret_cast<void*>(pUserData + _userDataSize * i);
+            job->m_priority = _priority;
+            job->m_bigStack = _useBigStack;
+            job->m_associatedCounterId = syncCounter;
+            QueueJob(job);
         }
 
         return syncCounter;
+    }
+
+    SyncCounterId FibersManager::InitAndBatchJobs(
+        FiberJob::JobFunc *_jobFunc,
+        void *_userData,
+        u32 _jobCount,
+        FiberJob::Priority _priority,
+        bool _useBigStack)
+    {
+        // We reuse the InitAndBatchJobs, but we just make sure there is no per-job shift by setting the data size to 0
+        return InitAndBatchJobs(
+            _jobCount,
+            _jobFunc,
+            _userData,
+            0,
+            _priority,
+            _useBigStack);
     }
 
     SyncCounterPool::AutoSyncCounter FibersManager::AcquireAutoSyncCounter(u32 _count)
@@ -227,9 +263,6 @@ namespace KryneEngine
             auto* currentJob = GetCurrentJob();
             if (!m_syncCounterPool.AddWaitingJob(_syncCounter, currentJob))
             {
-                // Manually pause here, to avoid auto re-queueing when yielding.
-                currentJob->m_status = FiberJob::Status::Paused;
-
                 YieldJob();
             }
         }
@@ -251,8 +284,7 @@ namespace KryneEngine
                 FibersManager::GetInstance()->WaitForCounter(data->m_syncCounterId);
                 data->m_waitVariable.notify_one();
             };
-            FiberJob waitAndWakeJob;
-            SyncCounterId id = InitAndBatchJobs(&waitAndWakeJob, jobFunction, &data);
+            SyncCounterId id = InitAndBatchJobs(jobFunction, &data);
 
             std::unique_lock<LockableBase(std::mutex)> lock(waitMutex);
             data.m_waitVariable.wait(lock);

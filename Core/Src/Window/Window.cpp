@@ -12,7 +12,9 @@
 
 namespace KryneEngine
 {
-    Window::Window(const GraphicsCommon::ApplicationInfo &_appInfo)
+    Window::Window(const GraphicsCommon::ApplicationInfo &_appInfo, AllocatorInstance _allocator)
+        : m_allocator(_allocator)
+        , m_windowFocusEventListeners(_allocator)
     {
         KE_ZoneScopedFunction("Window init");
 
@@ -38,12 +40,12 @@ namespace KryneEngine
         }
         glfwSetWindowUserPointer(m_glfwWindow, this);
 
-        m_graphicsContext = GraphicsContext::Create(_appInfo, this);
+        m_graphicsContext = GraphicsContext::Create(_appInfo, this, _allocator);
 
         {
             KE_ZoneScoped("Input management init");
 
-            m_inputManager = eastl::make_unique<InputManager>(this);
+            m_inputManager = m_allocator.New<InputManager>(this, _allocator);
 
             glfwSetWindowFocusCallback(m_glfwWindow, WindowFocusCallback);
         }
@@ -51,6 +53,7 @@ namespace KryneEngine
 
     Window::~Window()
     {
+        m_allocator.Delete(m_inputManager);
         GraphicsContext::Destroy(m_graphicsContext);
 
         glfwDestroyWindow(m_glfwWindow);

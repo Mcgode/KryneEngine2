@@ -8,7 +8,7 @@
 
 #if defined(_WIN32) || defined(WIN32)
 #   define WINDOWS_THREADS
-#   include <Platform/Windows.h>
+#   include <KryneEngine/Core/Platform/Windows.h>
 #elif defined(__unix__)
     #define PTHREADS
     #include <pthread.h>

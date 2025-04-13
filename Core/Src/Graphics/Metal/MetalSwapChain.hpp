@@ -10,9 +10,9 @@
 
 #include "Graphics/Metal/MetalHeaders.hpp"
 #include "Graphics/Metal/MetalTypes.hpp"
-#include "KryneEngine/Core/Common/Arrays.hpp"
 #include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
 #include "KryneEngine/Core/Graphics/Common/Handles.hpp"
+#include "KryneEngine/Core/Memory/DynamicArray.hpp"
 
 namespace KryneEngine
 {
@@ -24,7 +24,9 @@ namespace KryneEngine
         friend class MetalGraphicsContext;
 
     public:
-        MetalSwapChain(
+
+        void Init(
+            AllocatorInstance _allocator,
             MTL::Device& _device,
             const GraphicsCommon::ApplicationInfo& _appInfo,
             const Window* _window,

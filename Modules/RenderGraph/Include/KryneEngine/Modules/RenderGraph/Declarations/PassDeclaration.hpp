@@ -6,12 +6,15 @@
 
 #pragma once
 
+#include <KryneEngine/Core/Common/StringHelpers.hpp>
+#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+
+#include "KryneEngine/Modules/RenderGraph/Declarations/Dependency.hpp"
 #include "KryneEngine/Modules/RenderGraph/Declarations/PassAttachmentDeclaration.hpp"
 
 namespace KryneEngine::Modules::RenderGraph
 {
     class RenderGraph;
-    struct PassExecutionData;
 
     enum class PassType
     {
@@ -21,21 +24,36 @@ namespace KryneEngine::Modules::RenderGraph
         COUNT,
     };
 
+    struct PassExecutionData
+    {
+        GraphicsContext* m_graphicsContext;
+        CommandListHandle m_commandList;
+    };
+
     struct PassDeclaration
     {
     public:
-        explicit PassDeclaration(PassType _type);
+        explicit PassDeclaration(PassType _type, size_t _id);
 
         using ExecuteFunction = eastl::function<void(RenderGraph&, PassExecutionData&)>;
+        using RenderPassCallBack = eastl::function<void(GraphicsContext*, RenderPassHandle)>;
+
+        [[nodiscard]] u64 GetRenderPassHash();
 
     public:
         PassType m_type;
-        eastl::string m_name;
+        StringHash m_name;
         eastl::fixed_vector<PassAttachmentDeclaration, RenderPassDesc::kMaxSupportedColorAttachments, false> m_colorAttachments = {};
         eastl::optional<PassAttachmentDeclaration> m_depthAttachment;
-        eastl::vector<SimplePoolHandle> m_readDependencies;
-        eastl::vector<SimplePoolHandle> m_writeDependencies;
+        eastl::vector<Dependency> m_readDependencies;
+        eastl::vector<Dependency> m_writeDependencies;
+        eastl::optional<u64> m_renderPassHash;
         ExecuteFunction m_executeFunction;
+
+        /// @brief A callback for passing the render pass handle for this pass before any execution is done.
+        /// Useful for PSO creation.
+        /// Only called for Render type passes.
+        RenderPassCallBack m_renderPassCallback = nullptr;
     };
 
     class Builder;
@@ -47,9 +65,11 @@ namespace KryneEngine::Modules::RenderGraph
     public:
         PassDeclarationBuilder& SetName(const eastl::string_view& _name);
         PassAttachmentDeclarationBuilder AddColorAttachment(SimplePoolHandle _texture);
-        PassDeclarationBuilder& ReadDependency(SimplePoolHandle _resource);
-        PassDeclarationBuilder& WriteDependency(SimplePoolHandle _resource);
+        PassAttachmentDeclarationBuilder SetDepthAttachment(SimplePoolHandle _texture);
+        PassDeclarationBuilder& ReadDependency(const Dependency& _dependency);
+        PassDeclarationBuilder& WriteDependency(const Dependency& _dependency);
         PassDeclarationBuilder& SetExecuteFunction(PassDeclaration::ExecuteFunction&& _function);
+        PassDeclarationBuilder& SetRenderPassCallback(PassDeclaration::RenderPassCallBack&& _callback);
     };
 } // namespace KryneEngine::Module::RenderGraph
 

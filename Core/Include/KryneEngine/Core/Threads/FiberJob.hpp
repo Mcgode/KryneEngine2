@@ -73,22 +73,23 @@ namespace KryneEngine
         friend class FibersManager;
         friend class FiberThread;
         friend class FiberContext;
+        friend class SyncCounterPool;
 
     public:
         typedef void (JobFunc)(void*);
 
         FiberJob();
 
-        [[nodiscard]] Status GetStatus() const { return m_status; }
+        [[nodiscard]] Status GetStatus() const { return m_status.load(std::memory_order_acquire); }
 
         [[nodiscard]] PriorityType GetPriorityType() const
         {
-            return { m_priority, m_status == Status::PendingStart };
+            return { m_priority, m_status.load(std::memory_order_acquire) == Status::PendingStart };
         }
 
         [[nodiscard]] bool CanRun() const
         {
-            const Status status = m_status;
+            const Status status = m_status.load(std::memory_order_acquire);
             return status == Status::PendingStart || status == Status::Paused;
         }
 
@@ -105,7 +106,7 @@ namespace KryneEngine
         Priority m_priority = Priority::Medium;
         bool m_bigStack = false;
 
-        volatile Status m_status = Status::PendingStart;
+        std::atomic<Status> m_status { Status::PendingStart };
 
         static constexpr s32 kInvalidContextId = -1;
         s32 m_contextId = kInvalidContextId;

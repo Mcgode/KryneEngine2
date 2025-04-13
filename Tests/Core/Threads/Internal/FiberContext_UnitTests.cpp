@@ -7,10 +7,11 @@
 #include <gtest/gtest.h>
 
 #if defined(_WIN32)
-#   include <Platform/Windows.h>
+#   include <KryneEngine/Core/Platform/Windows.h>
 #endif
 
 #include "../../../Core/Src/Threads/Internal/FiberContext.hpp"
+#include <KryneEngine/Core/Platform/StdAlloc.hpp>
 
 #include "Utils/AssertUtils.hpp"
 
@@ -28,7 +29,7 @@ namespace KryneEngine::Tests
         // Execute
         // -----------------------------------------------------------------------
 
-        EXPECT_NO_THROW(FiberContextAllocator allocator);
+        EXPECT_NO_THROW(FiberContextAllocator allocator { AllocatorInstance() });
 
         // -----------------------------------------------------------------------
         // Teardown
@@ -44,7 +45,7 @@ namespace KryneEngine::Tests
         // -----------------------------------------------------------------------
 
         ScopedAssertCatcher catcher;
-        FiberContextAllocator allocator;
+        FiberContextAllocator allocator { AllocatorInstance() };
 
         // -----------------------------------------------------------------------
         // Execute
@@ -74,7 +75,7 @@ namespace KryneEngine::Tests
         // -----------------------------------------------------------------------
 
         ScopedAssertCatcher catcher;
-        FiberContextAllocator allocator;
+        FiberContextAllocator allocator { AllocatorInstance() };
 
         // -----------------------------------------------------------------------
         // Execute
@@ -119,7 +120,7 @@ namespace KryneEngine::Tests
         // -----------------------------------------------------------------------
 
         ScopedAssertCatcher catcher;
-        FiberContextAllocator allocator;
+        FiberContextAllocator allocator { AllocatorInstance() };
 
         // -----------------------------------------------------------------------
         // Execute
@@ -189,7 +190,7 @@ namespace KryneEngine::Tests
         };
 
         constexpr size_t stackSize = 1 << 16;
-        void* stack = std::aligned_alloc(16, stackSize);
+        void* stack = StdAlloc::MemAlign(16, stackSize);
 
         std::thread startThread(
             [&](){
@@ -208,7 +209,7 @@ namespace KryneEngine::Tests
         // Teardown
         // -----------------------------------------------------------------------
 
-        std::free(stack);
+        StdAlloc::Free(stack);
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 }

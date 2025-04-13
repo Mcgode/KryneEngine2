@@ -10,6 +10,12 @@
 
 namespace KryneEngine::Modules::GraphicsUtils
 {
+    DynamicBuffer::DynamicBuffer(AllocatorInstance _allocator)
+        : m_mappableBuffers(_allocator)
+        , m_sizes(_allocator)
+        , m_gpuBuffersToFree(_allocator)
+    {}
+
     void DynamicBuffer::Init(GraphicsContext* _graphicsContext, const BufferCreateDesc& _bufferDesc, u8 _frameCount)
     {
         KE_ASSERT_MSG(
@@ -39,6 +45,9 @@ namespace KryneEngine::Modules::GraphicsUtils
         {
             // Will be able to use cpu-writable directly on the GPU
 
+#if !defined(KE_FINAL)
+            m_mappableRecreateDesc.m_desc.m_debugName.set_allocator(m_mappableBuffers.GetAllocator());
+#endif
             m_mappableRecreateDesc = _bufferDesc;
             m_mappableBuffers[0] = baseBuffer;
             for (u8 i = 1; i < _frameCount; i++)
@@ -105,7 +114,7 @@ namespace KryneEngine::Modules::GraphicsUtils
         if (m_gpuBuffer == GenPool::kInvalidHandle)
         {
             BufferMemoryBarrier memoryBarrier {
-                .m_stagesSrc = BarrierSyncStageFlags::None,
+                .m_stagesSrc = BarrierSyncStageFlags::All,
                 .m_stagesDst = BarrierSyncStageFlags::All,
                 .m_accessSrc = BarrierAccessFlags::All,
                 .m_accessDst = _accessFlags,

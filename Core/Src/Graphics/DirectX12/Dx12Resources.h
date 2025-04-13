@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Common/Arrays.hpp"
 #include "KryneEngine/Core/Graphics/Common/Handles.hpp"
 #include "KryneEngine/Core/Graphics/Common/RenderPass.hpp"
 #include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Graphics/Common/Texture.hpp"
+#include "KryneEngine/Core/Memory/DynamicArray.hpp"
 
 namespace D3D12MA
 {
@@ -20,6 +20,7 @@ namespace D3D12MA
 
 namespace KryneEngine
 {
+    struct BufferCbvDesc;
     struct BufferCreateDesc;
     struct TextureSrvDesc;
     struct RenderTargetViewDesc;
@@ -33,7 +34,7 @@ namespace KryneEngine
         friend class Dx12DescriptorSetManager;
 
     public:
-        Dx12Resources();
+        Dx12Resources(AllocatorInstance _allocator);
         ~Dx12Resources();
 
         void InitAllocator(ID3D12Device* _device, IDXGIAdapter* _adapter);
@@ -55,6 +56,9 @@ namespace KryneEngine
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc, ID3D12Device* _device);
         bool DestroySampler(SamplerHandle _sampler);
 
+        [[nodiscard]] BufferCbvHandle CreateBufferCbv(const BufferCbvDesc& _cbvDesc, ID3D12Device* _device);
+        bool DestroyBufferCbv(BufferCbvHandle _bufferCbv);
+
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc, ID3D12Device* _device);
         bool FreeRenderTargetView(RenderTargetViewHandle _rtv);
 
@@ -66,7 +70,7 @@ namespace KryneEngine
 
         [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(
             const PipelineLayoutDesc& _desc,
-            Dx12DescriptorSetManager* _setManager,
+            Dx12DescriptorSetManager& _setManager,
             ID3D12Device* _device);
         bool DestroyPipelineLayout(PipelineLayoutHandle _layout);
 
@@ -90,6 +94,7 @@ namespace KryneEngine
         GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_cbvSrvUav;
         GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_samplers;
         GenerationalPool<RtvHotData, DXGI_FORMAT> m_renderTargetViews;
+        GenerationalPool<RtvHotData, DXGI_FORMAT> m_depthStencilViews;
         GenerationalPool<RenderPassDesc> m_renderPasses;
         GenerationalPool<ID3D12RootSignature*, u32> m_rootSignatures;
         GenerationalPool<D3D12_SHADER_BYTECODE> m_shaderBytecodes;
@@ -99,6 +104,12 @@ namespace KryneEngine
         static constexpr u16 kRtvHeapSize = 2048;
         ComPtr<ID3D12DescriptorHeap> m_rtvDescriptorHeap = nullptr;
         u32 m_rtvDescriptorSize = 0;
+
+        static constexpr u16 kDsvHeapSize = 256;
+        ComPtr<ID3D12DescriptorHeap> m_dsvDescriptorHeap = nullptr;
+        u32 m_dsvDescriptorSize = 0;
+
+        static constexpr GenPool::IndexType kDsvFlag = 1u << 15;
 
         static_assert(sizeof(GenPool::IndexType) == 2, "GenPool index type changed, please update size appropriately.");
         static constexpr u64 kCbvSrvUavHeapSize = 1u << 16;

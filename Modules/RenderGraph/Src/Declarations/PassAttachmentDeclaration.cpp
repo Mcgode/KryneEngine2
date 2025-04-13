@@ -9,7 +9,7 @@
 namespace KryneEngine::Modules::RenderGraph
 {
     PassAttachmentDeclaration::PassAttachmentDeclaration(SimplePoolHandle _texture)
-        : m_texture(_texture)
+        : m_rtv(_texture)
     {}
 
     PassAttachmentDeclarationBuilder& PassAttachmentDeclarationBuilder::SetLoadOperation(const RenderPassDesc::Attachment::LoadOperation _operation)
@@ -34,6 +34,12 @@ namespace KryneEngine::Modules::RenderGraph
     {
         m_item.m_clearDepth = _clearDepth;
         m_item.m_clearStencil = _clearStencil;
+        return *this;
+    }
+
+    PassAttachmentDeclarationBuilder& PassAttachmentDeclarationBuilder::SetReadOnlyDepthStencil(bool _readOnly)
+    {
+        m_item.m_readOnly = _readOnly;
         return *this;
     }
 } // namespace KryneEngine::Modules::RenderGraph

@@ -11,38 +11,35 @@
 
 namespace KryneEngine::Math
 {
-    template<typename T, size_t Alignment, class Operator>
-    inline Vector2Base<T, Alignment> ApplyOperation(
-        const Vector2Base<T, Alignment>& _vecA,
-        const Vector2Base<T, Alignment>& _vecB)
+    template<typename T, bool SimdOptimal, class Operator>
+    inline Vector2Base<T, SimdOptimal> ApplyOperation(
+        const Vector2Base<T, SimdOptimal>& _vecA,
+        const Vector2Base<T, SimdOptimal>& _vecB)
     {
-        Vector2Base<T, Alignment> result {};
+        using Vector2 = Vector2Base<T, SimdOptimal>;
 
-        if constexpr (Alignment == 16)
+        constexpr bool alignedOps = SimdOptimal;
+        using Operability = SimdOperability<T, Vector2>;
+
+        if constexpr (Operability::kSimdOperable)
         {
-            xsimd::batch<T, XsimdArch128> vecA = xsimd::load_aligned(&_vecA.x);
-            xsimd::batch<T, XsimdArch128> vecB = xsimd::load_aligned(&_vecB.x);
-            xsimd::batch<T, XsimdArch128> res = Operator{}(vecA, vecB);
-            res.store_aligned(&result.x);
+            using OptimalArch = Operability::OptimalArch;
+            Vector2 result{};
+            for (size_t i = 0; i < Operability::kBatchCount; ++i)
+            {
+                xsimd::batch vecA = XsimdLoad<alignedOps, T, OptimalArch>(_vecA.GetPtr() + i * Operability::kBatchSize);
+                xsimd::batch vecB = XsimdLoad<alignedOps, T, OptimalArch>(_vecB.GetPtr() + i * Operability::kBatchSize);
+                XsimdStore<alignedOps, T, OptimalArch>(result.GetPtr() + i * Operability::kBatchSize, Operator{}(vecA, vecB));
+            }
+            return result;
         }
         else
         {
-            if constexpr (sizeof(T) == 4)
-            {
-                xsimd::batch<T, XsimdArch128> vecA = xsimd::load_unaligned(&_vecA.x);
-                xsimd::batch<T, XsimdArch128> vecB = xsimd::load_unaligned(&_vecB.x);
-                xsimd::batch<T, XsimdArch128> res = Operator{}(vecA, vecB);
-                res.store_unaligned(&result.x);
-            }
-            else
-            {
-                result.x = Operator{}(_vecA.x, _vecB.x);
-                result.z = Operator{}(_vecA.y, _vecB.y);
-                result.y = Operator{}(_vecA.z, _vecB.z);
-                result.w = Operator{}(_vecA.w, _vecB.w);
-            }
+            return Vector2 {
+                Operator{}(_vecA.x, _vecB.x),
+                Operator{}(_vecA.y, _vecB.y)
+            };
         }
-        return std::move(result);
     }
 
     struct AddOperator
@@ -69,80 +66,114 @@ namespace KryneEngine::Math
         T operator()(const T& _a, const T& _b) { return _a / _b; }
     };
 
-    template <typename T, size_t Alignment>
-    Vector2Base<T, Alignment> Vector2Base<T, Alignment>::operator+(const Vector2Base<T, Alignment>& _other) const
+    template <typename T, bool SimdOptimal>
+    Vector2Base<T, SimdOptimal> Vector2Base<T, SimdOptimal>::operator+(const Vector2Base<T, SimdOptimal>& _other) const
     {
-        return ApplyOperation<T, Alignment, AddOperator>(*this, _other);
+        return ApplyOperation<T, SimdOptimal, AddOperator>(*this, _other);
     }
 
-    template <typename T, size_t Alignment>
-    Vector2Base<T, Alignment> Vector2Base<T, Alignment>::operator-(const Vector2Base<T, Alignment>& _other) const
+    template <typename T, bool SimdOptimal>
+    Vector2Base<T, SimdOptimal> Vector2Base<T, SimdOptimal>::operator-(const Vector2Base<T, SimdOptimal>& _other) const
     {
-        return ApplyOperation<T, Alignment, SubtractOperator>(*this, _other);
+        return ApplyOperation<T, SimdOptimal, SubtractOperator>(*this, _other);
     }
-    template <typename T, size_t Alignment>
-    Vector2Base<T, Alignment> Vector2Base<T, Alignment>::operator*(const Vector2Base<T, Alignment>& _other) const
+    template <typename T, bool SimdOptimal>
+    Vector2Base<T, SimdOptimal> Vector2Base<T, SimdOptimal>::operator*(const Vector2Base<T, SimdOptimal>& _other) const
     {
-        return ApplyOperation<T, Alignment, MultiplyOperator>(*this, _other);
+        return ApplyOperation<T, SimdOptimal, MultiplyOperator>(*this, _other);
     }
-    template <typename T, size_t Alignment>
-    Vector2Base<T, Alignment> Vector2Base<T, Alignment>::operator/(const Vector2Base<T, Alignment>& _other) const
+    template <typename T, bool SimdOptimal>
+    Vector2Base<T, SimdOptimal> Vector2Base<T, SimdOptimal>::operator/(const Vector2Base<T, SimdOptimal>& _other) const
     {
-        return ApplyOperation<T, Alignment, DivideOperator>(*this, _other);
+        return ApplyOperation<T, SimdOptimal, DivideOperator>(*this, _other);
     }
 
-    template <typename T, size_t Alignment>
-    bool Vector2Base<T, Alignment>::operator==(const Vector2Base& _other) const
+    template <typename T, bool SimdOptimal>
+    bool Vector2Base<T, SimdOptimal>::operator==(const Vector2Base& _other) const
     {
-        if constexpr (Alignment == 16)
+        using Vector2 = Vector2Base<T, SimdOptimal>;
+
+        constexpr bool alignedOps = SimdOptimal;
+        using Operability = SimdOperability<T, Vector2>;
+
+        if constexpr (Operability::kSimdOperable)
         {
-            xsimd::batch<T, XsimdArch128> vecA = xsimd::load_aligned(&x);
-            xsimd::batch<T, XsimdArch128> vecB = xsimd::load_aligned(&_other.x);
-            return xsimd::all(xsimd::eq(vecA, vecB));
+            using OptimalArch = Operability::OptimalArch;
+            bool result = true;
+            for (size_t i = 0; i < Operability::kBatchCount; ++i)
+            {
+                xsimd::batch vecA = XsimdLoad<alignedOps, T, OptimalArch>(GetPtr() + i * Operability::kBatchSize);
+                xsimd::batch vecB = XsimdLoad<alignedOps, T, OptimalArch>(_other.GetPtr() + i * Operability::kBatchSize);
+                result &= xsimd::all(xsimd::eq(vecA, vecB));
+            }
+            return result;
         }
         else
         {
-            if constexpr (sizeof(T) == 8)
-            {
-                xsimd::batch<T, XsimdArch128> vecA = xsimd::load_unaligned(&x);
-                xsimd::batch<T, XsimdArch128> vecB = xsimd::load_unaligned(&_other.x);
-                return xsimd::all(xsimd::eq(vecA, vecB));
-            }
-            else
-            {
-                return x == _other.x && y == _other.y;
-            }
+            return x == _other.x && y == _other.y;
         }
     }
 
-    template <typename T, size_t Alignment>
-    T Dot(const Vector2Base<T, Alignment>& _a, const Vector2Base<T, Alignment>& _b)
+    template <typename T, bool SimdOptimal>
+    void Vector2Base<T, SimdOptimal>::Normalize()
+        requires std::is_floating_point_v<T>
     {
-        if constexpr (Alignment == 16)
+        const T length = std::sqrt(Dot(*this, *this));
+        if (length > 0.0f)
         {
-            xsimd::batch<T, XsimdArch128> vecA = xsimd::load_aligned(&_a.x);
-            xsimd::batch<T, XsimdArch128> vecB = xsimd::load_aligned(&_b.x);
-            return xsimd::reduce_add(xsimd::mul(vecA, vecB));
+            x /= length;
+            y /= length;
+        }
+    }
+
+    template <typename T, bool SimdOptimal>
+    Vector2Base<T, SimdOptimal> Vector2Base<T, SimdOptimal>::Normalized() const
+        requires std::is_floating_point_v<T>
+    {
+        Vector2Base result(*this);
+        result.Normalize();
+        return result;
+    }
+
+    template <typename T, bool SimdOptimal>
+    T Dot(const Vector2Base<T, SimdOptimal>& _a, const Vector2Base<T, SimdOptimal>& _b)
+    {
+        using Vector2 = Vector2Base<T, SimdOptimal>;
+
+        constexpr bool alignedOps = SimdOptimal;
+        using Operability = SimdOperability<T, Vector2>;
+
+        if constexpr (Operability::kSimdOperable)
+        {
+            using OptimalArch = Operability::OptimalArch;
+            T result{};
+            for (size_t i = 0; i < Operability::kBatchCount; ++i)
+            {
+                xsimd::batch vecA = XsimdLoad<alignedOps, T, OptimalArch>(_a.GetPtr() + i * Operability::kBatchSize);
+                xsimd::batch vecB = XsimdLoad<alignedOps, T, OptimalArch>(_b.GetPtr() + i * Operability::kBatchSize);
+                result += xsimd::reduce_add(xsimd::mul(vecA, vecB));
+            }
+            return result;
         }
         else
         {
-            if constexpr (sizeof(T) == 8)
-            {
-                xsimd::batch<T, XsimdArch128> vecA = xsimd::load_unaligned(&_a.x);
-                xsimd::batch<T, XsimdArch128> vecB = xsimd::load_unaligned(&_b.x);
-                return xsimd::reduce_add(xsimd::mul(vecA, vecB));
-            }
-            else
-            {
-                return _a.x * _b.x + _a.y * _b.y;
-            }
+            return _a.x * _b.x + _a.y * _b.y;
         }
     }
 
-    template struct Vector2Base<float>;
-    template struct Vector2Base<s32>;
-    template struct Vector2Base<u32>;
-    template struct Vector2Base<float, 16>;
-    template struct Vector2Base<s32, 16>;
-    template struct Vector2Base<u32, 16>;
+#define IMPLEMENT_SIMD(type, simd)                                                                                      \
+    template struct Vector2Base<type, simd>;                                                                            \
+    template type Dot<type, simd>(const Vector2Base<type, simd>& _a, const Vector2Base<type, simd>& _b)
+
+#define IMPLEMENT(type)                                                                                                 \
+    IMPLEMENT_SIMD(type, false);                                                                                        \
+    IMPLEMENT_SIMD(type, true)
+
+    IMPLEMENT(float);
+    IMPLEMENT(s32);
+    IMPLEMENT(u32);
+    IMPLEMENT(double);
+
+#undef IMPLEMENT
+#undef IMPLEMENT_SIMD
 } // namespace KryneEngine::Math

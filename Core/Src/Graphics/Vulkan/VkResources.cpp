@@ -13,13 +13,25 @@
 #include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
 #include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
 #include "KryneEngine/Core/Graphics/Common/RenderPass.hpp"
+#include "KryneEngine/Core/Graphics/Common/ResourceViews/ConstantBufferView.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
 #include "KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 
 namespace KryneEngine
 {
-    VkResources::VkResources()  = default;
+    VkResources::VkResources(AllocatorInstance _allocator)
+        : m_buffers(_allocator)
+        , m_textures(_allocator)
+        , m_imageViews(_allocator)
+        , m_samplers(_allocator)
+        , m_renderTargetViews(_allocator)
+        , m_renderPasses(_allocator)
+        , m_shaderModules(_allocator)
+        , m_pipelineLayouts(_allocator)
+        , m_pipelines(_allocator)
+    {}
+
     VkResources::~VkResources() = default;
 
     void VkResources::InitAllocator(
@@ -279,7 +291,7 @@ namespace KryneEngine
             VkHelperFunctions::RetrieveImageViewType(_srvDesc.m_viewType),
             VkHelperFunctions::ToVkFormat(_srvDesc.m_format),
             VkHelperFunctions::ToVkComponentMapping(_srvDesc.m_componentsMapping),
-            VK_IMAGE_ASPECT_COLOR_BIT,
+            VkHelperFunctions::RetrieveAspectMask(_srvDesc.m_plane),
             _srvDesc.m_minMip,
             _srvDesc.m_maxMip - _srvDesc.m_minMip + 1,
             _srvDesc.m_arrayStart,
@@ -363,6 +375,26 @@ namespace KryneEngine
             return true;
         }
         return false;
+    }
+
+    BufferCbvHandle VkResources::CreateBufferCbv(const BufferCbvDesc &_cbvDesc, VkDevice _device)
+    {
+        KE_ZoneScopedFunction("VkResources::CreateBufferCbv");
+
+        const VkBuffer* buffer = m_buffers.Get(_cbvDesc.m_buffer.m_handle);
+        const auto handle = m_bufferViews.Allocate();
+
+        BufferView* bufferView = m_bufferViews.Get(handle);
+        bufferView->m_buffer = *buffer;
+        bufferView->m_offset = _cbvDesc.m_offset;
+        bufferView->m_size = _cbvDesc.m_size;
+
+        return { handle };
+    }
+
+    bool VkResources::DestroyBufferCbv(BufferCbvHandle _handle, VkDevice _device)
+    {
+        return m_bufferViews.Free(_handle.m_handle);
     }
 
     RenderTargetViewHandle VkResources::CreateRenderTargetView(
@@ -817,7 +849,7 @@ namespace KryneEngine
             .depthTestEnable = _desc.m_depthStencil.m_depthTest,
             .depthWriteEnable = _desc.m_depthStencil.m_depthWrite,
             .depthCompareOp = VkHelperFunctions::ToVkCompareOp(_desc.m_depthStencil.m_depthCompare),
-            .depthBoundsTestEnable = VK_TRUE,
+            .depthBoundsTestEnable = VK_FALSE,
             .stencilTestEnable = _desc.m_depthStencil.m_stencilTest,
             .front = {
                 .failOp = VkHelperFunctions::ToVkStencilOp(_desc.m_depthStencil.m_front.m_failOp),

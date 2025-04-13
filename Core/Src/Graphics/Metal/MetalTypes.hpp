@@ -21,9 +21,9 @@ namespace KryneEngine
             Compute
         };
 
-        MTL::CommandBuffer* m_commandBuffer;
-        NsPtr<MTL::CommandEncoder> m_encoder;
-        EncoderType m_type;
+        MTL::CommandBuffer* m_commandBuffer { nullptr };
+        NsPtr<MTL::CommandEncoder> m_encoder { nullptr };
+        EncoderType m_type = EncoderType::Render;
         void* m_userData = nullptr;
 
         void ResetEncoder()

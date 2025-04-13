@@ -22,6 +22,8 @@ namespace KryneEngine
     class Dx12DescriptorSetManager
     {
     public:
+        Dx12DescriptorSetManager(AllocatorInstance _allocator);
+
         void Init(ID3D12Device* _device, u8 _frameContextCount, u8 _currentFrame);
 
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);

@@ -13,10 +13,15 @@
 namespace KryneEngine
 {
     MetalGraphicsContext::MetalGraphicsContext(
-            const GraphicsCommon::ApplicationInfo& _appInfo,
-            const Window* _window,
-            u64 _initialFrameId)
-                : m_applicationInfo(_appInfo)
+        AllocatorInstance _allocator,
+        const GraphicsCommon::ApplicationInfo& _appInfo,
+        const Window* _window,
+        u64 _initialFrameId)
+        : m_allocator(_allocator)
+        , m_applicationInfo(_appInfo)
+        , m_frameContexts(_allocator)
+        , m_resources(_allocator)
+        , m_argumentBufferManager(_allocator)
     {
         m_device = MTL::CreateSystemDefaultDevice();
 
@@ -59,12 +64,13 @@ namespace KryneEngine
         KE_ASSERT_FATAL(!(_appInfo.m_features.m_present ^ (_window != nullptr)));
         if (_appInfo.m_features.m_present)
         {
-            m_swapChain = eastl::make_unique<MetalSwapChain>(*m_device, _appInfo, _window, m_resources, frameIndex);
-            m_frameContextCount = m_swapChain->m_textures.Size();
+            m_swapChain.Init(_allocator, *m_device, _appInfo, _window, m_resources, frameIndex);
+            m_frameContextCount = m_swapChain.m_textures.Size();
         }
 
         m_frameContexts.Resize(m_frameContextCount);
         m_frameContexts.InitAll(
+            _allocator,
             m_graphicsQueue != nullptr,
             m_computeQueue != nullptr,
             m_ioQueue != nullptr,

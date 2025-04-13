@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "Dx12Types.hpp"
 #include "Graphics/DirectX12/Dx12Headers.hpp"
 #include "KryneEngine/Core/Threads/LightweightMutex.hpp"
 
@@ -25,9 +26,9 @@ namespace KryneEngine
             return m_directCommandAllocationSet.BeginCommandList(m_device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
         }
 
-        void EndDirectCommandList()
+        void EndDirectCommandList(CommandList _commandList)
         {
-            m_directCommandAllocationSet.EndCommandList();
+            m_directCommandAllocationSet.EndCommandList(nullptr);
         }
 
         ID3D12GraphicsCommandList7* BeginComputeCommandList()
@@ -35,19 +36,19 @@ namespace KryneEngine
             return m_computeCommandAllocationSet.BeginCommandList(m_device.Get(), D3D12_COMMAND_LIST_TYPE_COMPUTE);
         }
 
-        void EndComputeCommandList()
+        void EndComputeCommandList(CommandList _commandList)
         {
-            m_computeCommandAllocationSet.EndCommandList();
+            m_computeCommandAllocationSet.EndCommandList(_commandList);
         }
 
-        ID3D12GraphicsCommandList7* BeginTransferCommandList()
+        ID3D12GraphicsCommandList7* BeginTransferCommandList(CommandList _commandList)
         {
             return m_copyCommandAllocationSet.BeginCommandList(m_device.Get(), D3D12_COMMAND_LIST_TYPE_COPY);
         }
 
-        void EndTransferCommandList()
+        void EndTransferCommandList(CommandList _commandList)
         {
-            m_copyCommandAllocationSet.EndCommandList();
+            m_copyCommandAllocationSet.EndCommandList(_commandList);
         }
 
     private:
@@ -63,7 +64,7 @@ namespace KryneEngine
             LightweightMutex m_mutex {};
 
             ID3D12GraphicsCommandList7 * BeginCommandList(ID3D12Device *_device, D3D12_COMMAND_LIST_TYPE _commandType);
-            void EndCommandList();
+            void EndCommandList(CommandList _commandList);
 
             void Reset();
 

@@ -37,9 +37,9 @@ namespace KryneEngine
             return m_graphicsCommandPoolSet.BeginCommandBuffer(_device);
         }
 
-        void EndGraphicsCommandBuffer()
+        void EndGraphicsCommandBuffer(VkCommandBuffer _commandList)
         {
-            m_graphicsCommandPoolSet.EndCommandBuffer();
+            m_graphicsCommandPoolSet.EndCommandBuffer(_commandList);
         }
 
         VkCommandBuffer BeginComputeCommandBuffer(VkDevice _device)
@@ -47,9 +47,9 @@ namespace KryneEngine
             return m_computeCommandPoolSet.BeginCommandBuffer(_device);
         }
 
-        void EndComputeCommandBuffer()
+        void EndComputeCommandBuffer(VkCommandBuffer _commandList)
         {
-            m_computeCommandPoolSet.EndCommandBuffer();
+            m_computeCommandPoolSet.EndCommandBuffer(_commandList);
         }
 
         VkCommandBuffer BeginTransferCommandBuffer(VkDevice _device)
@@ -57,9 +57,9 @@ namespace KryneEngine
             return m_transferCommandPoolSet.BeginCommandBuffer(_device);
         }
 
-        void EndTransferCommandBuffer()
+        void EndTransferCommandBuffer(VkCommandBuffer _commandList)
         {
-            m_transferCommandPoolSet.EndCommandBuffer();
+            m_transferCommandPoolSet.EndCommandBuffer(_commandList);
         }
 
         void WaitForFences(VkDevice _device, u64 _frameId) const;
@@ -85,7 +85,7 @@ namespace KryneEngine
 #endif
 
             VkCommandBuffer BeginCommandBuffer(VkDevice _device);
-            void EndCommandBuffer();
+            void EndCommandBuffer(VkCommandBuffer _commandList);
 
             void Reset();
 

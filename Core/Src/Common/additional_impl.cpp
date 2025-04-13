@@ -4,30 +4,59 @@
  * @date 10/10/2021.
  */
 
-#include <KryneEngine/Core/Common/Types.hpp>
+#include <cstdint>
 
-void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+#include "KryneEngine/Core/Platform/StdAlloc.hpp"
+
+void* __cdecl operator new[](
+    const size_t _size,
+    const char* /* _name */,
+    int /* _flags */,
+    unsigned /* _debugFlags */,
+    const char* /* _file */,
+    int /* _line */)
 {
-    return new KryneEngine::u8[size];
+    return KryneEngine::StdAlloc::Malloc(_size);
 }
 
-void* __cdecl operator new[](size_t size, size_t alignment, size_t alignment_offset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+void* __cdecl operator new[](
+    const size_t _size,
+    const size_t _alignment,
+    const size_t _alignmentOffset,
+    const char* /* _name */,
+    int /* _flags */,
+    unsigned /* _debugFlags */,
+    const char* /* _file */,
+    int /* _line */)
 {
-    return new KryneEngine::u8[size];
+    void* ptr = KryneEngine::StdAlloc::MemAlign(_size, _alignment);
+    return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr) + _alignmentOffset);
 }
 
-void __cdecl operator delete(void* _p, const char* _name, int _flags, unsigned int _debugFlags, const char* _file, int _line)
+void __cdecl operator delete(
+    void* _p,
+    const char* /* _name */,
+    int /* _flags */,
+    unsigned /* _debugFlags */,
+    const char* /* _file */,
+    int /* _line */)
 {
-  if (_p != nullptr)
-  {
-    ::operator delete(_p);
-  }
+    if (_p != nullptr)
+    {
+        KryneEngine::StdAlloc::Free(_p);
+    }
 }
 
-void __cdecl operator delete[](void* _p, const char* _name, int _flags, unsigned int _debugFlags, const char* _file, int _line)
+void __cdecl operator delete[](
+    void* _p,
+    const char* /* _name */,
+    int /* _flags */,
+    unsigned /* _debugFlags */,
+    const char* /* _file */,
+    int /* _line */)
 {
-  if (_p != nullptr)
-  {
-    ::operator delete[](_p);
-  }
+    if (_p != nullptr)
+    {
+        KryneEngine::StdAlloc::Free(_p);
+    }
 }

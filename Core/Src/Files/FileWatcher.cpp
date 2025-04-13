@@ -7,7 +7,7 @@
 #include "Files/FileWatcher.hpp"
 
 #if defined(_WIN32)
-#	include <Platform/Windows.h>
+#	include <KryneEngine/Core/Platform/Windows.h>
 #endif
 
 #if defined(__APPLE__)
@@ -17,7 +17,7 @@
 
 
 #include "KryneEngine/Core/Common/Assert.hpp"
-#include "KryneEngine/Core/Common/Arrays.hpp"
+#include "KryneEngine/Core/Memory/DynamicArray.hpp"
 
 namespace KryneEngine
 {

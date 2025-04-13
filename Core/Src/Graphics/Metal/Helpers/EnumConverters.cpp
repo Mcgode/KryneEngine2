@@ -152,8 +152,9 @@ namespace KryneEngine::MetalConverters
 #else
             return MTL::ResourceStorageModeShared;
 #endif
+        default:
+            return 0;
         }
-        return 0;
     }
 
     MTL::StorageMode GetStorageMode(MemoryUsage _memoryUsage)
@@ -252,7 +253,7 @@ namespace KryneEngine::MetalConverters
         case DescriptorBindingDesc::Type::ConstantBuffer:
         case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:
         case DescriptorBindingDesc::Type::StorageReadWriteBuffer:
-            return MTL::DataTypeStruct;
+            return MTL::DataTypePointer;
         }
     }
 
@@ -416,7 +417,7 @@ namespace KryneEngine::MetalConverters
         }
     }
 
-    MTL::StencilOperation MetalConverters::GetStencilOperation(DepthStencilStateDesc::StencilOp _op)
+    MTL::StencilOperation GetStencilOperation(DepthStencilStateDesc::StencilOp _op)
     {
         switch (_op)
         {

@@ -63,7 +63,7 @@ namespace KryneEngine::VkHelperFunctions
         {
             flags |= VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT; // Works for all indirect commands, not just draw
         }
-        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::InputAssembly))
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::IndexInputAssembly | BarrierSyncStageFlags::VertexInputAssembly))
         {
             flags |= VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT;
         }
@@ -132,7 +132,7 @@ namespace KryneEngine::VkHelperFunctions
         {
             flags |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT; // Works for all indirect commands, not just draw
         }
-        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::InputAssembly))
+        if (BitUtils::EnumHasAny(_flags, BarrierSyncStageFlags::IndexInputAssembly | BarrierSyncStageFlags::VertexInputAssembly))
         {
             flags |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
         }

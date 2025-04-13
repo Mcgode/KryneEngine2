@@ -8,7 +8,7 @@
 
 #include <EASTL/span.h>
 
-#include "KryneEngine/Core/Common/Arrays.hpp"
+#include "KryneEngine/Core/Memory/DynamicArray.hpp"
 
 namespace KryneEngine
 {
@@ -16,11 +16,12 @@ namespace KryneEngine
     class MultiFrameDataTracker
     {
     public:
-        inline void Init(u8 _frameCount, u8 _frameIndex)
+        inline void Init(AllocatorInstance _allocator, u8 _frameCount, u8 _frameIndex)
         {
             m_currentFrame = _frameIndex;
+            m_trackedData.SetAllocator(_allocator);
             m_trackedData.Resize(_frameCount);
-            m_trackedData.InitAll();
+            m_trackedData.InitAll(_allocator);
         }
 
         inline void AdvanceToNextFrame()

@@ -37,8 +37,9 @@ namespace KryneEngine::Modules::ImGui
          *
          * @param _window The Window object associated with the Context.
          * @param _renderPass The RenderPassHandle object used for building the ImGui PSO.
+         * @param _allocator The memory allocator instance for this context
          */
-        explicit Context(Window* _window, RenderPassHandle _renderPass);
+        Context(Window* _window, RenderPassHandle _renderPass, AllocatorInstance _allocator);
 
         ~Context();
 
@@ -60,7 +61,7 @@ namespace KryneEngine::Modules::ImGui
          * @param _window The Window object.
          * @param _commandList The command list.
          */
-        void NewFrame(Window* _window, CommandListHandle _commandList);
+        void NewFrame(Window* _window);
 
         /**
          * @brief Prepares the rendering context for a new frame by updating the vertex and index buffers.
@@ -81,8 +82,14 @@ namespace KryneEngine::Modules::ImGui
         void RenderFrame(GraphicsContext* _graphicsContext, CommandListHandle _commandList);
 
     private:
+        struct StagingData {
+            u8* m_data = nullptr;
+            TextureCreateDesc m_fontsTextureDesc {};
+            u64 m_stagingFrame = 0;
+        };
+
         ImGuiContext* m_context;
-        u64 m_stagingFrame = 0;
+        StagingData* m_stagingData = nullptr;
         BufferHandle m_fontsStagingHandle { GenPool::kInvalidHandle };
         TextureHandle m_fontsTextureHandle { GenPool::kInvalidHandle };
         TextureSrvHandle m_fontTextureSrvHandle{ GenPool::kInvalidHandle };
@@ -105,7 +112,7 @@ namespace KryneEngine::Modules::ImGui
 
         eastl::chrono::time_point<eastl::chrono::steady_clock> m_timePoint;
 
-        eastl::unique_ptr<Input> m_input;
+        Input* m_input;
 
         void _InitPso(GraphicsContext* _graphicsContext, RenderPassHandle _renderPass);
     };

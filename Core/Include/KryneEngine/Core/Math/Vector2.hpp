@@ -9,12 +9,23 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "KryneEngine/Core/Common/Utils/Alignment.hpp"
+
 namespace KryneEngine::Math
 {
-    template <typename T, size_t Alignment = sizeof(T)>
-    struct alignas(Alignment) Vector2Base
+    template <typename T, bool SimdOptimal = false>
+    struct Vector2Base
     {
+        using ScalarType = T;
+        static constexpr bool kSimdOptimal = SimdOptimal;
+
+        static_assert(sizeof(T) >= 4 || !SimdOptimal, "Vector2Base element type must be at least 4 bytes to use SIMD");
+
+        static constexpr size_t kSimdOptimalAlignment = Alignment::AlignUpPot(2 * sizeof(T), 4);
+        static constexpr size_t kAlignment = SimdOptimal ? kSimdOptimalAlignment : alignof(T);
+
         Vector2Base()
+            : x(), y()
         {
             if constexpr (sizeof(Vector2Base) == 4 * sizeof(T))
             {
@@ -41,9 +52,9 @@ namespace KryneEngine::Math
         requires std::is_constructible_v<T, U>
         explicit Vector2Base(U _value) : Vector2Base(_value, _value) {}
 
-        template <typename U, size_t OtherAlignment>
+        template <typename U, bool OtherSimdOptimal>
         requires std::is_constructible_v<T, U>
-        explicit Vector2Base(const Vector2Base<U, OtherAlignment> &_other) : Vector2Base(_other.x, _other.y, _other.z, _other.w)
+        explicit Vector2Base(const Vector2Base<U, OtherSimdOptimal> &_other) : Vector2Base(_other.x, _other.y)
         {}
 
         Vector2Base operator+(const Vector2Base& _other) const;
@@ -53,9 +64,15 @@ namespace KryneEngine::Math
 
         bool operator==(const Vector2Base& _other) const;
 
+        T* GetPtr() { return &x; }
+        const T* GetPtr() const { return &x; }
+
+        void Normalize() requires std::is_floating_point_v<T>;
+        Vector2Base Normalized() const requires std::is_floating_point_v<T>;
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCInconsistentNamingInspection"
-        union
+        union alignas(kAlignment)
         {
             struct
             {
@@ -71,6 +88,13 @@ namespace KryneEngine::Math
 #pragma clang diagnostic pop
     };
 
-    template<typename T, size_t Alignment>
-    extern T Dot(const Vector2Base<T, Alignment>& _a, const Vector2Base<T, Alignment>& _b);
+    template<typename T, bool SimdOptimal>
+    extern T Dot(const Vector2Base<T, SimdOptimal>& _a, const Vector2Base<T, SimdOptimal>& _b);
+
+    template<typename T>
+    concept Vector2Type = requires {
+        typename T::ScalarType;
+        T::kSimdOptimal;
+        std::is_same_v<T, Vector2Base<typename T::ScalarType, T::kSimdOptimal>>;
+    };
 }

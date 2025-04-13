@@ -21,6 +21,7 @@
 
 #define KE_ZoneScopedFunction(name) ZoneScopedNC(name, KE_TRACY_FUNC_COLOR)
 #define KE_ZoneScoped(name) ZoneScopedNC(name, KE_TRACY_COLOR)
+#define KE_ZoneScopedF(name,...) ZoneScopedC(KE_TRACY_COLOR); ZoneNameF(name, __VA_ARGS__)
 
 namespace KryneEngine
 {}

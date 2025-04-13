@@ -16,6 +16,8 @@ namespace KryneEngine::Modules::GraphicsUtils
     class DynamicBuffer
     {
     public:
+        explicit DynamicBuffer(AllocatorInstance _allocator);
+
         void Init(GraphicsContext* _graphicsContext, const BufferCreateDesc& _bufferDesc, u8 _frameCount);
         void RequestResize(u64 _size);
         void* Map(GraphicsContext* _graphicsContext, u8 _frameIndex);

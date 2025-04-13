@@ -8,13 +8,16 @@
 
 #include <EASTL/unique_ptr.h>
 
-#include "Graphics/DirectX12/Dx12Headers.hpp"
+#include "Graphics/DirectX12/Dx12DescriptorSetManager.hpp"
 #include "Graphics/DirectX12/Dx12FrameContext.hpp"
+#include "Graphics/DirectX12/Dx12Headers.hpp"
 #include "Graphics/DirectX12/Dx12Resources.h"
+#include "Graphics/DirectX12/Dx12SwapChain.hpp"
 #include "Graphics/DirectX12/Dx12Types.hpp"
-#include "KryneEngine/Core/Common/Arrays.hpp"
 #include "KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp"
 #include "KryneEngine/Core/Graphics/Common/Texture.hpp"
+#include "KryneEngine/Core/Graphics/Common/ResourceViews/ConstantBufferView.hpp"
+#include "KryneEngine/Core/Memory/DynamicArray.hpp"
 
 namespace KryneEngine
 {
@@ -25,12 +28,14 @@ namespace KryneEngine
     struct BufferMapping;
     struct BufferView;
     struct DrawIndexedInstancedDesc;
+    struct DrawInstancedDesc;
     struct Viewport;
 
     class Dx12GraphicsContext
     {
     public:
         explicit Dx12GraphicsContext(
+            AllocatorInstance _allocator,
             const GraphicsCommon::ApplicationInfo& _appInfo,
             Window* _window,
             u64 _currentFrameId);
@@ -47,7 +52,11 @@ namespace KryneEngine
 
         [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_appInfo; }
 
+        [[nodiscard]] bool HasDedicatedTransferQueue() const;
+        [[nodiscard]] bool HasDedicatedComputeQueue() const;
+
     private:
+        AllocatorInstance m_allocator;
         GraphicsCommon::ApplicationInfo m_appInfo;
 
         ComPtr<ID3D12Device> m_device;
@@ -56,7 +65,7 @@ namespace KryneEngine
         ComPtr<ID3D12CommandQueue> m_computeQueue;
         ComPtr<ID3D12CommandQueue> m_copyQueue;
 
-        eastl::unique_ptr<Dx12SwapChain> m_swapChain;
+        Dx12SwapChain m_swapChain;
 
         u8 m_frameContextCount;
         DynamicArray<Dx12FrameContext> m_frameContexts;
@@ -117,6 +126,9 @@ namespace KryneEngine
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
         bool DestroySampler(SamplerHandle _sampler);
 
+        [[nodiscard]] BufferCbvHandle CreateBufferCbv(const BufferCbvDesc& _cbvDesc);
+        bool DestroyBufferCbv(BufferCbvHandle _handle);
+
         [[nodiscard]] inline RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
             return m_resources.CreateRenderTargetView(_desc, m_device.Get());
@@ -142,7 +154,7 @@ namespace KryneEngine
         }
 
         CommandList BeginGraphicsCommandList(u64 _frameId);
-        void EndGraphicsCommandList(u64 _frameId);
+        void EndGraphicsCommandList(CommandList _commandList, u64 _frameId);
 
         void BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass);
         void EndRenderPass(CommandList _commandList);
@@ -159,13 +171,17 @@ namespace KryneEngine
         void UnmapBuffer(BufferMapping& _mapping);
         void CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params);
 
+        [[nodiscard]] static bool SupportsNonGlobalBarriers() { return true; }
         void PlaceMemoryBarriers(
             CommandList _commandList,
             const eastl::span<const GlobalMemoryBarrier>& _globalMemoryBarriers,
             const eastl::span<const BufferMemoryBarrier>& _bufferMemoryBarriers,
             const eastl::span<const TextureMemoryBarrier>& _textureMemoryBarriers);
 
-        void DeclarePassTextureSrvUsage(CommandList _commandList, const eastl::span<const TextureSrvHandle>& _textures) {}
+        [[nodiscard]] static bool RenderPassNeedsUsageDeclaration() { return false; }
+        [[nodiscard]] static bool ComputePassNeedsUsageDeclaration() { return false; }
+        void DeclarePassTextureSrvUsage(CommandList, const eastl::span<const TextureSrvHandle>&) {}
+        void DeclarePassBufferCbvUsage(CommandList, const eastl::span<const BufferCbvHandle>&) {}
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
@@ -200,11 +216,12 @@ namespace KryneEngine
             const eastl::span<const DescriptorSetHandle>& _sets,
             const bool* _unchanged,
             u32 _frameId);
+        void DrawInstanced(CommandList _commandList, const DrawInstancedDesc& _desc);
         void DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc);
 
     private:
         Dx12Resources m_resources;
-        eastl::unique_ptr<Dx12DescriptorSetManager> m_descriptorSetManager;
+        Dx12DescriptorSetManager m_descriptorSetManager;
         RenderPassHandle m_currentRenderPass;
     };
 } // KryneEngine

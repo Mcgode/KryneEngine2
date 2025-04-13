@@ -9,16 +9,25 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "KryneEngine/Core/Common/Utils/Alignment.hpp"
 #include "KryneEngine/Core/Math/Vector2.hpp"
 
 namespace KryneEngine::Math
 {
-    template <typename T, size_t Alignment = sizeof(T)>
-    struct alignas(Alignment) Vector3Base
+    template <typename T, bool SimdOptimal = false>
+    struct Vector3Base
     {
+        using ScalarType = T;
+        static constexpr bool kSimdOptimal = SimdOptimal;
+
+        static_assert(sizeof(T) >= 4 || !SimdOptimal, "Vector3Base element type must be at least 4 bytes to use SIMD");
+
+        static constexpr size_t kSimdOptimalAlignment = Alignment::AlignUpPot(3 * sizeof(T), 4);
+        static constexpr size_t kAlignment = SimdOptimal ? kSimdOptimalAlignment : alignof(T);
+
         Vector3Base(): x(), y(), z()
         {
-            if constexpr (Alignment > sizeof(T))
+            if constexpr (SimdOptimal)
             {
                 // Ensure padding is zero-initialized
                 new (&x + 3) T(0);
@@ -29,7 +38,7 @@ namespace KryneEngine::Math
         requires std::is_constructible_v<T, U0> && std::is_constructible_v<T, U1> && std::is_constructible_v<T, U2>
         Vector3Base(U0 _x, U1 _y, U2 _z = 0) : x(_x), y(_y), z(_z)
         {
-            if constexpr (Alignment > sizeof(T))
+            if constexpr (SimdOptimal)
             {
                 // Ensure padding is zero-initialized
                 new (&x + 3) T(0);
@@ -40,24 +49,51 @@ namespace KryneEngine::Math
         requires std::is_constructible_v<T, U>
         explicit Vector3Base(U _value) : Vector3Base(_value, _value, _value) {}
 
-        template <typename U, size_t OtherAlignment>
+        template <typename U, bool S>
         requires std::is_constructible_v<T, U>
-        explicit Vector3Base(const Vector3Base<U, OtherAlignment> &_other) : Vector3Base(_other.x, _other.y, _other.z) {}
+        explicit Vector3Base(const Vector3Base<U, S> &_other) : Vector3Base(_other.x, _other.y, _other.z) {}
 
-        template <typename U0, typename U1, size_t A>
+        template <typename U0, typename U1, bool S>
             requires std::is_constructible_v<T, U0> && std::is_constructible_v<T, U1>
-        explicit Vector3Base(const Vector2Base<U0, A>& _vec2, U1 _z = 0): Vector3Base(_vec2.x, _vec2.y, _z) {}
+        explicit Vector3Base(const Vector2Base<U0, S>& _vec2, U1 _z = 0): Vector3Base(_vec2.x, _vec2.y, _z) {}
 
         Vector3Base operator+(const Vector3Base& _other) const;
         Vector3Base operator-(const Vector3Base& _other) const;
         Vector3Base operator*(const Vector3Base& _other) const;
         Vector3Base operator/(const Vector3Base& _other) const;
 
+        template<class U> requires std::is_constructible_v<T, U>
+        Vector3Base operator+(U _scalar) const { return *this + Vector3Base(_scalar); }
+
+        template<class U> requires std::is_constructible_v<T, U>
+        Vector3Base operator-(U _scalar) const { return *this - Vector3Base(_scalar); }
+
+        template<class U> requires std::is_constructible_v<T, U>
+        Vector3Base operator*(U _scalar) const { return *this * Vector3Base(_scalar); }
+
+        template<class U> requires std::is_constructible_v<T, U>
+        Vector3Base operator/(U _scalar) const { return *this / Vector3Base(_scalar); }
+
+        T& operator[](size_t _index);
+        const T& operator[](size_t _index) const;
+
+        T* GetPtr() { return &x; }
+        const T* GetPtr() const { return &x; }
+
         bool operator==(const Vector3Base& _other) const;
+
+        T LengthSquared() const;
+        T Length() const;
+
+        void Normalize() requires std::is_floating_point_v<T>;
+        Vector3Base Normalized() const requires std::is_floating_point_v<T>;
+
+        static T Dot(const Vector3Base& _a, const Vector3Base& _b);
+        static Vector3Base CrossProduct(const Vector3Base& _a, const Vector3Base& _b);
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCInconsistentNamingInspection"
-        union
+        union alignas(kAlignment)
         {
             struct
             {
@@ -75,9 +111,10 @@ namespace KryneEngine::Math
 #pragma clang diagnostic pop
     };
 
-    template<typename T, size_t Alignment>
-    extern T Dot(const Vector3Base<T, Alignment>& _a, const Vector3Base<T, Alignment>& _b);
-
-    template<typename T, size_t Alignment>
-    extern Vector3Base<T, Alignment> CrossProduct(const Vector3Base<T, Alignment>& _a, const Vector3Base<T, Alignment>& _b);
+    template<typename T>
+    concept Vector3Type = requires {
+        typename T::ScalarType;
+        T::kSimdOptimal;
+        std::is_same_v<T, Vector3Base<typename T::ScalarType, T::kSimdOptimal>>;
+    };
 }

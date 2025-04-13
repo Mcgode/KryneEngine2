@@ -11,10 +11,6 @@
 #include "KryneEngine/Core/Threads/HelperFunctions.hpp"
 #include "Threads/Internal/FiberContext.hpp"
 
-#if CONTEXT_SWITCH_WINDOWS_FIBERS
-#	include <Platform/Windows.h>
-#endif
-
 namespace KryneEngine
 {
     thread_local FiberThread::ThreadIndex FiberThread::sThreadIndex = 0;
@@ -29,18 +25,17 @@ namespace KryneEngine
             tracy::SetThreadName(m_name.c_str());
 
             {
-                auto& context = _fiberManager->m_baseContexts.Load(_threadIndex);
+                FiberContext& context = _fiberManager->m_baseContexts.Load(_threadIndex);
                 TracyFiberEnter(context.m_name.c_str());
+
+                // Mark current fiber context as running.
+                context.m_mutex.ManualLock();
 
                 KE_ASSERT(Threads::DisableThreadSignals());
 
                 FibersManager::s_manager = _fiberManager;
                 sThreadIndex = _threadIndex;
                 sIsThread = true;
-
-#if CONTEXT_SWITCH_WINDOWS_FIBERS
-                context.m_winFiber = ConvertThreadToFiber(nullptr);
-#endif
             }
 
             while (!m_shouldStop)

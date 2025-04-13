@@ -142,4 +142,7 @@ namespace KryneEngine::BitUtils
         using UnderlyingType = std::underlying_type_t<EnumType>;
         return static_cast<UnderlyingType>(_source & _flags) == static_cast<UnderlyingType>(_flags);
     }
+
+    u8 GetMostSignificantBit(u64 _value);
+    u8 GetLeastSignificantBit(u64 _value);
 }

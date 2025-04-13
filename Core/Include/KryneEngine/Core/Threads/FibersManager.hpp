@@ -28,7 +28,7 @@ namespace KryneEngine
     public:
         using Job = FiberJob*;
 
-        explicit FibersManager(s32 _requestedThreadCount);
+        explicit FibersManager(s32 _requestedThreadCount, AllocatorInstance _allocatorInstance);
 
         ~FibersManager();
 
@@ -48,12 +48,37 @@ namespace KryneEngine
 
         [[nodiscard]] FiberJob* GetCurrentJob();
 
-        [[nodiscard]] SyncCounterId InitAndBatchJobs(FiberJob* _jobArray,
-                                                     FiberJob::JobFunc* _jobFunc,
-                                                     void* _userData,
-                                                     u32 _count = 1,
-                                                     FiberJob::Priority _priority = FiberJob::Priority::Medium,
-                                                     bool _useBigStack = false);
+        [[nodiscard]] SyncCounterId InitAndBatchJobs(
+            u32 _jobCount,
+            FiberJob::JobFunc* _jobFunc,
+            void* _pUserData,
+            size_t _userDataSize,
+            FiberJob::Priority _priority = FiberJob::Priority::Medium,
+            bool _useBigStack = false);
+
+        [[nodiscard]] SyncCounterId InitAndBatchJobs(
+            FiberJob::JobFunc* _jobFunc,
+            void* _userData,
+            u32 _jobCount = 1,
+            FiberJob::Priority _priority = FiberJob::Priority::Medium,
+            bool _useBigStack = false);
+
+        template <class T>
+        [[nodiscard]] SyncCounterId InitAndBatchJobs(
+            u32 _jobCount,
+            FiberJob::JobFunc* _jobFunc,
+            T* _userData,
+            FiberJob::Priority _priority = FiberJob::Priority::Medium,
+            bool _useBigStack = false)
+        {
+            return InitAndBatchJobs(
+                _jobCount,
+                _jobFunc,
+                reinterpret_cast<void*>(_userData),
+                sizeof(T),
+                _priority,
+                _useBigStack);
+        }
 
         [[nodiscard]] SyncCounterPool::AutoSyncCounter AcquireAutoSyncCounter(u32 _count = 1);
 
@@ -97,7 +122,7 @@ namespace KryneEngine
         FiberTls<Job> m_nextJob;
         FiberTls<FiberContext> m_baseContexts;
 
-        eastl::unique_ptr<FiberContextAllocator> m_contextAllocator;
+        FiberContextAllocator* m_contextAllocator;
 
         SyncCounterPool m_syncCounterPool {};
 

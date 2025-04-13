@@ -8,14 +8,14 @@
 
 #include <atomic>
 
-#include <EASTL/allocator.h>
-#include <KryneEngine/Core/Common/Types.hpp>
+#include "KryneEngine/Core/Common/Types.hpp"
+#include "KryneEngine/Core/Memory/Allocators/Allocator.hpp"
 
 namespace KryneEngine
 {
     using SimplePoolHandle = size_t;
 
-    template <class HotDataStruct, class ColdDataStruct = void, bool RefCounting = false, class Allocator = EASTLAllocatorType>
+    template <class HotDataStruct, class ColdDataStruct = void, bool RefCounting = false, class Allocator = AllocatorInstance>
     class SimplePool
     {
     public:
@@ -45,6 +45,9 @@ namespace KryneEngine
 
         s32 AddRef(SimplePoolHandle _handle) requires RefCounting;
         [[nodiscard]] s32 GetRefCount(SimplePoolHandle _handle) const requires RefCounting;
+
+        [[nodiscard]] const Allocator& GetAllocator() const { return m_allocator; }
+        void SetAllocator(const Allocator& _allocator) { m_allocator = _allocator; }
 
     protected:
         static constexpr size_t kDefaultPoolSize = 32;

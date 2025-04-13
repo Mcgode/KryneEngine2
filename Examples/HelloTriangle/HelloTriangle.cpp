@@ -98,12 +98,16 @@ void PreparePso(
                 .m_elements = {
                     // Position element
                     VertexLayoutElement {
+                        .m_semanticName = KryneEngine::VertexLayoutElement::SemanticName::Position,
+                        .m_semanticIndex = 0,
                         .m_format = KryneEngine::TextureFormat::RGB32_Float,
                         .m_offset = 0,
                         .m_location = 0,
                     },
                     // Color element
                     VertexLayoutElement {
+                        .m_semanticName = KryneEngine::VertexLayoutElement::SemanticName::Color,
+                        .m_semanticIndex = 0,
                         .m_format = KryneEngine::TextureFormat::RGB32_Float,
                         .m_offset = sizeof(float3),
                         .m_location = 1,
@@ -195,7 +199,7 @@ void PrepareBuffers(
                 .m_desc = {
                     .m_size = _vertexBufferView.m_size + _indexBufferView.m_size,
 #if !defined(KE_FINAL)
-    .m_debugName = "Staging buffer",
+                    .m_debugName = "Staging buffer",
 #endif
                 },
                 .m_usage = MemoryUsage::StageEveryFrame_UsageType | MemoryUsage::TransferSrcBuffer
@@ -231,7 +235,7 @@ void PrepareBuffers(
                     .m_offsetSrc = _vertexBufferView.m_size,
                 });
 
-            _graphicsContext.EndGraphicsCommandList();
+            _graphicsContext.EndGraphicsCommandList(commandList);
         }
 
         // Free staging buffer once everything is done.
@@ -254,7 +258,7 @@ int main()
     appInfo.m_applicationName += " - Metal";
 #endif
 
-    Window mainWindow(appInfo);
+    Window mainWindow(appInfo, AllocatorInstance());
     GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
     // Declare resources
@@ -305,7 +309,7 @@ int main()
 
         graphicsContext->EndRenderPass(commandList);
 
-        graphicsContext->EndGraphicsCommandList();
+        graphicsContext->EndGraphicsCommandList(commandList);
     }
     while (graphicsContext->EndFrame());
 }

@@ -22,7 +22,7 @@ namespace KryneEngine
     class InputManager
     {
     public:
-        explicit InputManager(Window* _window);
+        InputManager(Window* _window, AllocatorInstance _allocator);
 
         [[nodiscard]] u32 RegisterKeyInputEventCallback(eastl::function<void(const KeyInputEvent&)>&& _callback);
         void UnregisterKeyInputEventCallback(u32 _id);

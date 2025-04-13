@@ -10,6 +10,7 @@
 #include "Graphics/Metal/MetalFrameContext.hpp"
 #include "Graphics/Metal/MetalSwapChain.hpp"
 #include "KryneEngine/Core/Graphics/Common/Drawing.hpp"
+#include "KryneEngine/Core/Graphics/Common/GraphicsContext.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"
 
 namespace KryneEngine
@@ -25,15 +26,15 @@ namespace KryneEngine
             const u8 frameIndex = _frameId % m_frameContextCount;
             MetalFrameContext& frameContext = m_frameContexts[frameIndex];
 
-            if (m_swapChain != nullptr)
+            if (m_applicationInfo.m_features.m_present)
             {
                 if (frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.empty())
                 {
                     KE_ZoneScoped("Begin graphics command buffer for present operation");
                     frameContext.BeginGraphicsCommandList(*m_graphicsQueue);
                 }
-                m_swapChain->Present(
-                    &frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.back(),
+                m_swapChain.Present(
+                    frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.back(),
                     frameIndex);
             }
 
@@ -44,10 +45,10 @@ namespace KryneEngine
                 frameContext.m_ioAllocationSet.Commit(frameContext.m_enhancedCommandBufferErrors);
             }
 
-            if (m_swapChain)
+            if (m_applicationInfo.m_features.m_present)
             {
                 KE_ZoneScoped("Retrieve next drawable");
-                m_swapChain->UpdateNextDrawable(frameIndex, m_resources);
+                m_swapChain.UpdateNextDrawable(frameIndex, m_resources);
             }
         }
 
@@ -83,10 +84,20 @@ namespace KryneEngine
         return _frameId < m_frameContexts[frameIndex].m_frameId;
     }
 
+    bool MetalGraphicsContext::HasDedicatedTransferQueue() const
+    {
+        return m_ioQueue.get() != nullptr;
+    }
+
+    bool MetalGraphicsContext::HasDedicatedComputeQueue() const
+    {
+        return m_computeQueue.get() != nullptr;
+    }
+
     eastl::vector<TextureMemoryFootprint> MetalGraphicsContext::FetchTextureSubResourcesMemoryFootprints(
         const TextureDesc& _desc)
     {
-        eastl::vector<TextureMemoryFootprint> result {};
+        eastl::vector<TextureMemoryFootprint> result { m_allocator };
 
         const size_t pixelByteSize = MetalConverters::GetPixelByteSize(_desc.m_format);
         size_t currentOffset = 0;
@@ -186,6 +197,16 @@ namespace KryneEngine
         return m_resources.DestroySampler(_sampler);
     }
 
+    BufferCbvHandle MetalGraphicsContext::CreateBufferCbv(const BufferCbvDesc& _cbvDesc)
+    {
+        return m_resources.RegisterBufferCbv(_cbvDesc);
+    }
+
+    bool MetalGraphicsContext::DestroyBufferCbv(BufferCbvHandle _handle)
+    {
+        return m_resources.UnregisterBufferCbv(_handle);
+    }
+
     RenderTargetViewHandle MetalGraphicsContext::CreateRenderTargetView(const RenderTargetViewDesc& _desc)
     {
         return m_resources.RegisterRtv(_desc);
@@ -198,22 +219,22 @@ namespace KryneEngine
 
     RenderTargetViewHandle MetalGraphicsContext::GetPresentRenderTargetView(u8 _swapChainIndex) const
     {
-        VERIFY_OR_RETURN(m_swapChain != nullptr, { GenPool::kInvalidHandle });
+        VERIFY_OR_RETURN(m_applicationInfo.m_features.m_present, { GenPool::kInvalidHandle });
 
-        return m_swapChain->m_rtvs[_swapChainIndex];
+        return m_swapChain.m_rtvs[_swapChainIndex];
     }
 
     TextureHandle MetalGraphicsContext::GetPresentTexture(u8 _swapChainIndex) const
     {
-        VERIFY_OR_RETURN(m_swapChain != nullptr, { GenPool::kInvalidHandle });
+        VERIFY_OR_RETURN(m_applicationInfo.m_features.m_present, { GenPool::kInvalidHandle });
 
-        return m_swapChain->m_textures[_swapChainIndex];
+        return m_swapChain.m_textures[_swapChainIndex];
     }
 
     u32 MetalGraphicsContext::GetCurrentPresentImageIndex() const
     {
-        VERIFY_OR_RETURN(m_swapChain != nullptr, 0);
-        return m_swapChain->m_index;
+        VERIFY_OR_RETURN(m_applicationInfo.m_features.m_present, 0);
+        return m_swapChain.m_index;
     }
 
     RenderPassHandle MetalGraphicsContext::CreateRenderPass(const RenderPassDesc& _desc)
@@ -248,10 +269,15 @@ namespace KryneEngine
         KE_ASSERT_FATAL(_commandList->m_encoder == nullptr || _commandList->m_type != CommandListData::EncoderType::Render);
         _commandList->ResetEncoder(CommandListData::EncoderType::Render);
 
-        NsPtr autoReleasePool { NS::AutoreleasePool::alloc()->init() };
+        KE_AUTO_RELEASE_POOL;
 
         _commandList->m_encoder =
             _commandList->m_commandBuffer->renderCommandEncoder(rpHot->m_descriptor.get())->retain();
+
+#if !defined(KE_FINAL)
+        auto* string = NS::String::string(rpHot->m_debugName.c_str(), NS::UTF8StringEncoding);
+        _commandList->m_encoder->setLabel(string);
+#endif
 
         _commandList->m_userData = new RenderState();
     }
@@ -305,10 +331,10 @@ namespace KryneEngine
 
         KE_ASSERT_MSG(_mapping.m_ptr == nullptr, "Did not unmap previous map");
 
-        KE_ASSERT(_mapping.m_size == ~0u || buffer->length() >= _mapping.m_offset + _mapping.m_size);
+        KE_ASSERT(_mapping.m_size == ~0ull || buffer->length() >= _mapping.m_offset + _mapping.m_size);
         _mapping.m_size = eastl::min(_mapping.m_size, buffer->length() - _mapping.m_offset);
 
-        _mapping.m_ptr = static_cast<u8*>(buffer->contents()) + _mapping.m_offset;
+        _mapping.m_ptr = static_cast<std::byte*>(buffer->contents()) + _mapping.m_offset;
     }
 
     void MetalGraphicsContext::UnmapBuffer(BufferMapping& _mapping)
@@ -346,8 +372,15 @@ namespace KryneEngine
         return m_frameContexts[frameIndex].BeginGraphicsCommandList(*m_graphicsQueue);
     }
 
-    void MetalGraphicsContext::EndGraphicsCommandList(u64 _frameId)
-    {}
+    void MetalGraphicsContext::EndGraphicsCommandList(CommandList _commandList, u64 _frameId)
+    {
+        KE_ASSERT(_commandList != nullptr);
+        if (_commandList->m_encoder != nullptr)
+        {
+            _commandList->m_encoder->endEncoding();
+            _commandList->m_encoder = nullptr;
+        }
+    }
 
     void MetalGraphicsContext::PlaceMemoryBarriers(
         CommandList _commandList,
@@ -531,31 +564,32 @@ namespace KryneEngine
                   && (_commandList->m_type == CommandListData::EncoderType::Render
                       || _commandList->m_type == CommandListData::EncoderType::Compute));
 
-        eastl::vector<MTL::Resource*> resources;
-        resources.reserve(_textures.size());
+        DynamicArray<MTL::Resource*> resources(m_allocator, _textures.size());
 
-        for (TextureSrvHandle srv : _textures)
+        for (auto i = 0u; i < _textures.size(); ++i)
         {
-            resources.push_back(m_resources.m_textureSrvs.Get(srv.m_handle)->m_texture.get());
+            resources[i] = m_resources.m_textureSrvs.Get(_textures[i].m_handle)->m_texture.get();
         }
 
-        switch (_commandList->m_type)
+        UseResources(_commandList, { resources.Data(), resources.Size() });
+    }
+
+    void MetalGraphicsContext::DeclarePassBufferCbvUsage(
+        CommandList _commandList,
+        const eastl::span<const BufferCbvHandle>& _buffers)
+    {
+        KE_ASSERT(_commandList->m_encoder != nullptr
+                  && (_commandList->m_type == CommandListData::EncoderType::Render
+                      || _commandList->m_type == CommandListData::EncoderType::Compute));
+
+        DynamicArray<MTL::Resource*> resources(m_allocator, _buffers.size());
+
+        for (auto i = 0u; i < _buffers.size(); ++i)
         {
-        case CommandListData::EncoderType::Render:
-        {
-            auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(_commandList->m_encoder.get());
-            encoder->useResources(resources.data(), resources.size(), MTL::ResourceUsageRead);
-            break;
+            resources[i] = m_resources.m_bufferCbvs.Get(_buffers[i].m_handle)->m_buffer.get();
         }
-        case CommandListData::EncoderType::Compute:
-        {
-            auto* encoder = reinterpret_cast<MTL::ComputeCommandEncoder*>(_commandList->m_encoder.get());
-            encoder->useResources(resources.data(), resources.size(), MTL::ResourceUsageRead);
-            break;
-        }
-        default:
-            break;
-        }
+
+        UseResources(_commandList, { resources.Data(), resources.Size() });
     }
 
     ShaderModuleHandle MetalGraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
@@ -826,6 +860,22 @@ namespace KryneEngine
         }
     }
 
+    void MetalGraphicsContext::DrawInstanced(CommandList _commandList, const DrawInstancedDesc& _desc)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
+        auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(_commandList->m_encoder.get());
+        auto* renderState = static_cast<RenderState*>(_commandList->m_userData);
+        KE_ASSERT_FATAL(renderState != nullptr);
+
+        KE_AUTO_RELEASE_POOL;
+        encoder->drawPrimitives(
+            MetalConverters::GetPrimitiveType(renderState->m_topology),
+            _desc.m_vertexOffset,
+            _desc.m_vertexCount,
+            _desc.m_instanceCount,
+            _desc.m_instanceOffset);
+    }
+
     void MetalGraphicsContext::DrawIndexedInstanced(
         CommandList _commandList,
         const DrawIndexedInstancedDesc& _desc)
@@ -848,5 +898,26 @@ namespace KryneEngine
             _desc.m_instanceCount,
             _desc.m_vertexOffset,
             _desc.m_instanceOffset);
+    }
+
+    void MetalGraphicsContext::UseResources(CommandList _commandList, eastl::span<MTL::Resource*> _resources)
+    {
+        switch (_commandList->m_type)
+        {
+        case CommandListData::EncoderType::Render:
+        {
+            auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(_commandList->m_encoder.get());
+            encoder->useResources(_resources.data(), _resources.size(), MTL::ResourceUsageRead);
+            break;
+        }
+        case CommandListData::EncoderType::Compute:
+        {
+            auto* encoder = reinterpret_cast<MTL::ComputeCommandEncoder*>(_commandList->m_encoder.get());
+            encoder->useResources(_resources.data(), _resources.size(), MTL::ResourceUsageRead);
+            break;
+        }
+        default:
+            break;
+        }
     }
 }

@@ -9,8 +9,16 @@
 #include <KryneEngine/Core/Graphics/Common/Handles.hpp>
 #include <KryneEngine/Core/Memory/SimplePool.hpp>
 
+namespace KryneEngine
+{
+    class GraphicsContext;
+    struct TextureCreateDesc;
+    struct TextureSrvDesc;
+}
+
 namespace KryneEngine::Modules::RenderGraph
 {
+    struct RenderTargetViewDesc;
     struct Resource;
 
     class Registry
@@ -22,14 +30,41 @@ namespace KryneEngine::Modules::RenderGraph
         ~Registry();
 
     public:
-        SimplePoolHandle RegisterRawTexture(TextureHandle _texture, const eastl::string_view& _name = {});
-        SimplePoolHandle RegisterRawBuffer(BufferHandle _buffer, const eastl::string_view& _name = {});
+        SimplePoolHandle RegisterRawTexture(TextureHandle _texture, const eastl::string_view& _name = "");
+        SimplePoolHandle RegisterRawBuffer(BufferHandle _buffer, const eastl::string_view& _name = "");
         SimplePoolHandle RegisterTextureSrv(
             TextureSrvHandle _textureSrv,
             SimplePoolHandle _textureResource,
             const eastl::string_view& _name = {});
+        SimplePoolHandle RegisterCbv(
+            BufferCbvHandle _cbv,
+            SimplePoolHandle _bufferResource,
+            const eastl::string_view& _name = {});
+        SimplePoolHandle RegisterRenderTargetView(
+            RenderTargetViewHandle _rtv,
+            SimplePoolHandle _textureResource,
+            const eastl::string_view& _name = {});
 
-        SimplePoolHandle GetUnderlyingResource(SimplePoolHandle _resource) const;
+        SimplePoolHandle CreateRawTexture(
+            GraphicsContext* _graphicsContext,
+            const TextureCreateDesc& _desc);
+        SimplePoolHandle CreateRenderTargetView(
+            GraphicsContext* _graphicsContext,
+            const RenderTargetViewDesc& _desc,
+            eastl::string_view _name = {});
+        SimplePoolHandle CreateTextureSrv(
+            GraphicsContext* _graphicsContext,
+            SimplePoolHandle _texture,
+            const KryneEngine::TextureSrvDesc& _desc,
+            eastl::string_view _name = {});
+
+        [[nodiscard]] SimplePoolHandle GetUnderlyingResource(SimplePoolHandle _resource) const;
+
+        [[nodiscard]] const Resource& GetResource(SimplePoolHandle _resource) const;
+
+        [[nodiscard]] bool IsRenderTargetView(SimplePoolHandle _resource) const;
+        [[nodiscard]] RenderTargetViewHandle GetRenderTargetView(SimplePoolHandle _resource) const;
+        [[nodiscard]] TextureSrvHandle GetTextureSrv(SimplePoolHandle _resource) const;
 
     private:
         SimplePool<Resource, void, true> m_resources;

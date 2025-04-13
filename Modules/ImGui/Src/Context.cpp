@@ -34,7 +34,12 @@ namespace KryneEngine::Modules::ImGui
         float2 m_translate;
     };
 
-    Context::Context(Window* _window, RenderPassHandle _renderPass)
+    Context::Context(Window* _window, RenderPassHandle _renderPass, AllocatorInstance _allocator)
+        : m_vsBytecode(_allocator)
+        , m_fsBytecode(_allocator)
+        , m_setIndices(_allocator)
+        , m_dynamicVertexBuffer(_allocator)
+        , m_dynamicIndexBuffer(_allocator)
     {
         KE_ZoneScopedFunction("Modules::ImGui::ContextContext");
 
@@ -52,7 +57,7 @@ namespace KryneEngine::Modules::ImGui
                 .m_desc = {
                     .m_size = kInitialSize * sizeof(VertexEntry),
 #if !defined(KE_FINAL)
-                    .m_debugName = "ImGuiContext/DynamicVertexBuffer"
+                    .m_debugName { "ImGuiContext/DynamicVertexBuffer", _allocator }
 #endif
                 },
                 .m_usage = MemoryUsage::StageEveryFrame_UsageType
@@ -70,7 +75,7 @@ namespace KryneEngine::Modules::ImGui
                 .m_desc = {
                     .m_size = kInitialSize * sizeof(u32),
 #if !defined(KE_FINAL)
-                    .m_debugName = "ImGuiContext/DynamicIndexBuffer"
+                    .m_debugName { "ImGuiContext/DynamicIndexBuffer", _allocator }
 #endif
                 },
                 .m_usage = MemoryUsage::StageEveryFrame_UsageType
@@ -83,14 +88,17 @@ namespace KryneEngine::Modules::ImGui
                 graphicsContext->GetFrameContextCount());
         }
 
-        m_input = eastl::make_unique<Input>(_window);
+        m_input = _allocator.New<Input>(_window);
 
         _InitPso(graphicsContext, _renderPass);
 
         m_timePoint = eastl::chrono::steady_clock::now();
     }
 
-    Context::~Context() { KE_ASSERT_MSG(m_context == nullptr, "ImGui module was not shut down"); }
+    Context::~Context()
+    {
+        KE_ASSERT_MSG(m_context == nullptr, "ImGui module was not shut down");
+    }
 
     void Context::Shutdown(Window* _window)
     {
@@ -132,12 +140,13 @@ namespace KryneEngine::Modules::ImGui
 
         // Unregister input callbacks.
         m_input->Shutdown(_window);
+        m_vsBytecode.get_allocator().Delete(m_input);
 
         ::ImGui::DestroyContext(m_context);
         m_context = nullptr;
     }
 
-    void Context::NewFrame(Window* _window, CommandListHandle _commandList)
+    void Context::NewFrame(Window* _window)
     {
         KE_ZoneScopedFunction("Modules::ImGui::ContextNewFrame");
 
@@ -186,7 +195,8 @@ namespace KryneEngine::Modules::ImGui
                 .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::TransferDstImage | MemoryUsage::SampledImage,
             };
 
-            m_stagingFrame = graphicsContext->GetFrameId();
+            m_stagingData = m_vsBytecode.get_allocator().New<StagingData>(data, textureCreateDesc, graphicsContext->GetFrameId());
+
             m_fontsStagingHandle = graphicsContext->CreateStagingBuffer(
                 fontsTextureDesc,
                 textureCreateDesc.m_footprintPerSubResource);
@@ -241,7 +251,34 @@ namespace KryneEngine::Modules::ImGui
             }
 
             io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontTextureSrvHandle.m_handle)));
+        }
 
+        if (m_stagingData != nullptr && graphicsContext->IsFrameExecuted(m_stagingData->m_stagingFrame))
+        {
+            graphicsContext->DestroyBuffer(m_fontsStagingHandle);
+            m_fontsStagingHandle = GenPool::kInvalidHandle;
+
+            m_vsBytecode.get_allocator().Delete(m_stagingData);
+            m_stagingData = nullptr;
+        }
+
+        const auto currentTimePoint =  eastl::chrono::steady_clock::now();
+        const eastl::chrono::duration<double> interval = currentTimePoint - m_timePoint;
+        m_timePoint = currentTimePoint;
+
+        io.DeltaTime = static_cast<float>(interval.count());
+
+        ::ImGui::NewFrame();
+    }
+
+    void Context::PrepareToRenderFrame(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
+    {
+        KE_ZoneScopedFunction("Modules::ImGui::ContextPrepareToRenderFrame");
+
+        ::ImGui::Render();
+
+        if (m_stagingData != nullptr && m_stagingData->m_stagingFrame != _graphicsContext->GetFrameId())
+        {
             {
                 BufferMemoryBarrier stagingBufferBarrier {
                     .m_stagesSrc = BarrierSyncStageFlags::None,
@@ -263,20 +300,20 @@ namespace KryneEngine::Modules::ImGui
                     .m_layoutDst = TextureLayout::TransferDst,
                 };
 
-                graphicsContext->PlaceMemoryBarriers(
+                _graphicsContext->PlaceMemoryBarriers(
                     _commandList,
                     {},
                     { &stagingBufferBarrier, 1 },
                     { &textureMemoryBarrier, 1 });
             }
 
-            graphicsContext->SetTextureData(
+            _graphicsContext->SetTextureData(
                 _commandList,
                 m_fontsStagingHandle,
                 m_fontsTextureHandle,
-                textureCreateDesc.m_footprintPerSubResource[0],
-                { textureCreateDesc.m_desc, 0 },
-                data);
+                m_stagingData->m_fontsTextureDesc.m_footprintPerSubResource[0],
+                { m_stagingData->m_fontsTextureDesc.m_desc, 0 },
+                m_stagingData->m_data);
 
             {
                 // Don't care about staging buffer state any more, they've outlived their usefulness
@@ -291,34 +328,13 @@ namespace KryneEngine::Modules::ImGui
                     .m_layoutDst = TextureLayout::ShaderResource,
                 };
 
-                graphicsContext->PlaceMemoryBarriers(
+                _graphicsContext->PlaceMemoryBarriers(
                     _commandList,
                     {},
                     {},
                     { &textureMemoryBarrier, 1 });
             }
         }
-
-        if (m_fontsStagingHandle != GenPool::kInvalidHandle && graphicsContext->IsFrameExecuted(m_stagingFrame))
-        {
-            graphicsContext->DestroyBuffer(m_fontsStagingHandle);
-            m_fontsStagingHandle = GenPool::kInvalidHandle;
-        }
-
-        const auto currentTimePoint =  eastl::chrono::steady_clock::now();
-        const eastl::chrono::duration<double> interval = currentTimePoint - m_timePoint;
-        m_timePoint = currentTimePoint;
-
-        io.DeltaTime = static_cast<float>(interval.count());
-
-        ::ImGui::NewFrame();
-    }
-
-    void Context::PrepareToRenderFrame(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
-    {
-        KE_ZoneScopedFunction("Modules::ImGui::ContextPrepareToRenderFrame");
-
-        ::ImGui::Render();
 
         ImDrawData* drawData = ::ImGui::GetDrawData();
 
@@ -393,6 +409,11 @@ namespace KryneEngine::Modules::ImGui
         KE_ZoneScopedFunction("Modules::ImGui::ContextRenderFrame");
 
         ImDrawData* drawData = ::ImGui::GetDrawData();
+
+        if (drawData == nullptr)
+        {
+            return;
+        }
 
         // Set viewport
         {
@@ -515,11 +536,13 @@ namespace KryneEngine::Modules::ImGui
                 KE_VERIFY(file.read(_vec.data(), _vec.size()));
             };
 
+            AllocatorInstance allocator = m_vsBytecode.get_allocator();
+
             readShaderFile(
-                eastl::string("Shaders/ImGui/ImGui_vs_MainVS.") + GraphicsContext::GetShaderFileExtension(),
+                eastl::string("Shaders/ImGui/ImGui_vs_MainVS.", allocator) + GraphicsContext::GetShaderFileExtension(),
                 m_vsBytecode);
             readShaderFile(
-                eastl::string("Shaders/ImGui/ImGui_ps_MainPS.") + GraphicsContext::GetShaderFileExtension(),
+                eastl::string("Shaders/ImGui/ImGui_ps_MainPS.", allocator) + GraphicsContext::GetShaderFileExtension(),
                 m_fsBytecode);
 
             m_vsModule = _graphicsContext->RegisterShaderModule(m_vsBytecode.data(), m_vsBytecode.size());

@@ -12,7 +12,12 @@
 
 namespace KryneEngine
 {
-    InputManager::InputManager(Window* _window)
+    InputManager::InputManager(Window* _window, AllocatorInstance _allocator)
+        : m_keyInputEventListeners(_allocator)
+        , m_textInputEventListeners(_allocator)
+        , m_cursorPosEventListeners(_allocator)
+        , m_mouseInputEventListeners(_allocator)
+        , m_scrollInputEventListeners(_allocator)
     {
         GLFWwindow* glfwWindow = _window->GetGlfwWindow();
 

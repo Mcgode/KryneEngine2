@@ -6,7 +6,7 @@
 
 #pragma once
 
-#if !defined(WIN32_LEAN_AND_MEAN)
+#if !defined(KE_FULL_WINDOWS) && !defined(WIN32_LEAN_AND_MEAN)
 #	define WIN32_LEAN_AND_MEAN
 #endif
 
@@ -14,4 +14,4 @@
 #   define NOMINMAX
 #endif
 
-#include "Windows.h"
+#include <windows.h>

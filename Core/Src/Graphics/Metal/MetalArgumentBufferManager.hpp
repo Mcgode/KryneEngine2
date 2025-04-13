@@ -30,13 +30,15 @@ namespace KryneEngine
         friend class MetalResources;
 
     public:
-        MetalArgumentBufferManager();
+        explicit MetalArgumentBufferManager(AllocatorInstance _allocator);
         ~MetalArgumentBufferManager();
 
         void Init(u8 _inFlightFrameCount, u8 _frameIndex);
 
     private:
         u8 m_inFlightFrameCount {};
+
+        [[nodiscard]] AllocatorInstance GetAllocator() const;
 
     public:
         [[nodiscard]] DescriptorSetLayoutHandle CreateArgumentDescriptor(

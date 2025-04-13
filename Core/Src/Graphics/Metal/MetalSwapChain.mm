@@ -18,7 +18,8 @@
 
 namespace KryneEngine
 {
-    MetalSwapChain::MetalSwapChain(
+    void MetalSwapChain::Init(
+        AllocatorInstance _allocator,
         MTL::Device& _device,
         const GraphicsCommon::ApplicationInfo& _appInfo,
         const Window* _window,
@@ -44,6 +45,9 @@ namespace KryneEngine
             _appInfo.m_displayOptions.m_tripleBuffering == GraphicsCommon::SoftEnable::Disabled
                 ? 2
                 : 3;
+
+        m_textures.SetAllocator(_allocator);
+        m_rtvs.SetAllocator(_allocator);
 
         m_textures.Resize(metalLayer.maximumDrawableCount);
         m_rtvs.Resize(metalLayer.maximumDrawableCount);

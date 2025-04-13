@@ -23,23 +23,24 @@ namespace KryneEngine
     {
     public:
 
-        explicit Window(const GraphicsCommon::ApplicationInfo& _appInfo);
+        explicit Window(const GraphicsCommon::ApplicationInfo& _appInfo, AllocatorInstance _allocator);
 
         virtual ~Window();
 
         [[nodiscard]] bool WaitForEvents() const;
         [[nodiscard]] GLFWwindow* GetGlfwWindow() const { return m_glfwWindow; }
         [[nodiscard]] GraphicsContext* GetGraphicsContext() const { return m_graphicsContext; }
-        [[nodiscard]] InputManager* GetInputManager() const { return m_inputManager.get(); }
+        [[nodiscard]] InputManager* GetInputManager() const { return m_inputManager; }
 
         [[nodiscard]] u32 RegisterWindowFocusEventCallback(eastl::function<void(bool)>&& _callback);
         void UnregisterWindowFocusEventCallback(u32 _id);
 
     private:
+        AllocatorInstance m_allocator;
         GLFWwindow* m_glfwWindow;
 
         GraphicsContext* m_graphicsContext;
-        eastl::unique_ptr<InputManager> m_inputManager;
+        InputManager* m_inputManager;
 
         LightweightMutex m_callbackMutex;
 

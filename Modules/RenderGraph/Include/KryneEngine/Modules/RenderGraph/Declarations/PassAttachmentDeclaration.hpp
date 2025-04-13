@@ -19,12 +19,22 @@ namespace KryneEngine::Modules::RenderGraph
         explicit PassAttachmentDeclaration(SimplePoolHandle _texture);
 
     public:
-        SimplePoolHandle m_texture;
+        SimplePoolHandle m_rtv;
+        union
+        {
+            float4 m_clearColor { 0 };
+            struct {
+                float m_clearDepth;
+                u8 m_clearStencil;
+                RenderPassDesc::Attachment::LoadOperation m_stencilLoadOperation;
+                RenderPassDesc::Attachment::StoreOperation m_stencilStoreOperation;
+                bool m_readOnly;
+            };
+        };
         RenderPassDesc::Attachment::LoadOperation m_loadOperation = RenderPassDesc::Attachment::LoadOperation::Load;
         RenderPassDesc::Attachment::StoreOperation m_storeOperation = RenderPassDesc::Attachment::StoreOperation::Store;
-        float4 m_clearColor { 0 };
-        float m_clearDepth = NAN;
-        u16 m_clearStencil = ~0;
+        TextureLayout m_layoutBefore = TextureLayout::Unknown;
+        TextureLayout m_layoutAfter = TextureLayout::ColorAttachment;
     };
 
     struct PassDeclarationBuilder;
@@ -38,6 +48,7 @@ namespace KryneEngine::Modules::RenderGraph
         PassAttachmentDeclarationBuilder& SetStoreOperation(RenderPassDesc::Attachment::StoreOperation _operation);
         PassAttachmentDeclarationBuilder& SetClearColor(const float4& _clearColor);
         PassAttachmentDeclarationBuilder& SetClearDepthStencil(float _clearDepth, u16 _clearStencil = ~0);
+        PassAttachmentDeclarationBuilder& SetReadOnlyDepthStencil(bool _readOnly = true);
     };
 
 } // namespace KryneEngine::Modules::RenderGraph

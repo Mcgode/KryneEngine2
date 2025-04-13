@@ -4,8 +4,8 @@
  * @date 18/09/2024.
  */
 
+#include "KryneEngine/Core/Memory/DynamicArray.hpp"
 #include <gtest/gtest.h>
-#include <KryneEngine/Core/Common/Arrays.hpp>
 
 #include "Utils/AssertUtils.hpp"
 

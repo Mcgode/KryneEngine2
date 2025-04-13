@@ -10,24 +10,41 @@
 
 #include "KryneEngine/Core/Common/Types.hpp"
 #include "KryneEngine/Core/Common/Assert.hpp"
+#include "KryneEngine/Core/Memory/Allocators/Allocator.hpp"
 
 namespace KryneEngine
 {
-    template<class T>
-    struct DynamicArray
+    template<class T, class Allocator = AllocatorInstance>
+    class DynamicArray final
     {
+    public:
         using Ptr = T*;
         using Ref = T&;
         using Iterator = Ptr;
 
         DynamicArray() = default;
 
+        explicit DynamicArray(const Allocator& _allocator): m_allocator(_allocator) {}
+
         explicit DynamicArray(size_t _count)
         {
             Resize(_count);
         }
 
+        DynamicArray(const Allocator& _allocator, size_t _count)
+            : m_allocator(_allocator)
+        {
+            Resize(_count);
+        }
+
         DynamicArray(size_t _count, const T& _value)
+        {
+            Resize(_count);
+            SetAll(_value);
+        }
+
+        DynamicArray(const Allocator& _allocator, size_t _count, const T& _value)
+            : m_allocator(_allocator)
         {
             Resize(_count);
             SetAll(_value);
@@ -44,40 +61,61 @@ namespace KryneEngine
             }
         }
 
+        DynamicArray(const Allocator& _allocator, const std::initializer_list<T>& _initializerList)
+            : m_allocator(_allocator)
+        {
+            Resize(_initializerList.size());
+
+            auto it = _initializerList.begin();
+            for (Ptr valuePtr = begin(); valuePtr != end(); valuePtr++, it++)
+            {
+                *valuePtr = *it;
+            }
+        }
+
         DynamicArray(const DynamicArray& _other)
         {
+            m_allocator = _other.m_allocator;
             Resize(_other.m_count);
             for (u64 i = 0; i < m_count; i++) { m_array[i] = _other.m_array[i]; }
         }
 
         DynamicArray& operator=(const DynamicArray& _other)
         {
+            // Clear first, to make sure the original buffer is deallocate from the proper allocator
+            Clear();
+            m_allocator = _other.m_allocator;
             Resize(_other.m_count);
-            for (u64 i = 0; i < m_count; i++) { m_array[i] = _other.m_array[i]; }
+            // No memcpy, to explicitly call copy operators of entries
+            for (size_t i = 0; i < m_count; i++) { m_array[i] = _other.m_array[i]; }
             return *this;
         }
 
         DynamicArray(DynamicArray&& _other) noexcept
         {
+            m_allocator = _other.m_allocator;
             m_count = _other.m_count;
             m_array = _other.m_array;
 
+            _other.m_allocator = Allocator();
             _other.m_count = 0;
             _other.m_array = nullptr;
         }
 
         DynamicArray& operator=(DynamicArray&& _other) noexcept
         {
+            m_allocator = _other.m_allocator;
             m_count = _other.m_count;
             m_array = _other.m_array;
 
+            _other.m_allocator = Allocator();
             _other.m_count = 0;
             _other.m_array = nullptr;
 
             return *this;
         }
 
-        virtual ~DynamicArray()
+        ~DynamicArray()
         {
             Resize(0);
         }
@@ -92,6 +130,10 @@ namespace KryneEngine
             return m_count == 0;
         }
 
+        [[nodiscard]] const Allocator& GetAllocator() const { return m_allocator; }
+        [[nodiscard]] Allocator& GetAllocator() { return m_allocator; }
+        void SetAllocator(const Allocator& _allocator) { m_allocator = _allocator; }
+
         void Resize(size_t _count)
         {
             if (m_array != nullptr)
@@ -104,25 +146,25 @@ namespace KryneEngine
             if (m_count > 0)
             {
                 const size_t size = sizeof(T) * m_count;
-                m_buffer = new u8[size];
+                m_array = static_cast<Ptr>(m_allocator.allocate(size, alignof(T)));
             }
         }
 
         template<class... Args>
-        Ptr Init(u64 _index, Args... args)
+        Ptr Init(u64 _index, Args... _args)
         {
             IF_NOT_VERIFY_MSG(_index < m_count, "Beyond max index!")
                 return nullptr;
             Ptr memSpace = m_array + _index;
-            return new (memSpace) T(args...);
+            return new (memSpace) T(_args...);
         }
 
         template<class... Args>
-        void InitAll(Args... args)
+        void InitAll(Args... _args)
         {
             for (Ptr valuePtr = begin(); valuePtr != end(); valuePtr++)
             {
-                new (valuePtr) T(args...);
+                new (valuePtr) T(_args...);
             }
         }
 
@@ -161,8 +203,8 @@ namespace KryneEngine
 
         void ResetLooseMemory()
         {
-            delete m_buffer;
-            m_buffer = nullptr;
+            m_allocator.deallocate(m_array, m_count * sizeof(T));
+            m_array = nullptr;
             m_count = 0;
         }
 
@@ -172,11 +214,8 @@ namespace KryneEngine
         }
 
     private:
-        union
-        {
-            u8* m_buffer = nullptr;
-            Ptr m_array;
-        };
+        Ptr m_array = nullptr;
         size_t m_count = 0;
+        Allocator m_allocator;
     };
 }

@@ -17,7 +17,12 @@ namespace KryneEngine
         friend class MetalGraphicsContext;
 
     public:
-        MetalFrameContext(bool _graphicsAvailable, bool _computeAvailable, bool _ioAvailable, bool _validationLayers);
+        MetalFrameContext(
+            AllocatorInstance _allocator,
+            bool _graphicsAvailable,
+            bool _computeAvailable,
+            bool _ioAvailable,
+            bool _validationLayers);
 
         CommandList BeginGraphicsCommandList(MTL::CommandQueue& _queue);
 
@@ -28,12 +33,12 @@ namespace KryneEngine
     private:
         struct AllocationSet
         {
-            eastl::vector<CommandListData> m_usedCommandBuffers {};
+            eastl::vector<CommandListData*> m_usedCommandBuffers {};
             dispatch_semaphore_t m_synchronizationSemaphore = nullptr;
             bool m_available;
             bool m_committedBuffers = false;
 
-            AllocationSet(bool _available);
+            AllocationSet(AllocatorInstance _allocator, bool _available);
             void Commit(bool _enhancedErrors);
             void Wait();
         };

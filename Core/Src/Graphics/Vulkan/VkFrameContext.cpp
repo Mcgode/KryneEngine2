@@ -103,7 +103,7 @@ namespace KryneEngine
     {
         KE_ZoneScopedFunction("VkFrameContext::CommandPoolSet::BeginCommandBuffer");
 
-        m_mutex.ManualLock();
+        const auto lock = m_mutex.AutoLock();
 
         if (m_availableCommandBuffers.empty())
         {
@@ -144,13 +144,17 @@ namespace KryneEngine
         return commandBuffer;
     }
 
-    void VkFrameContext::CommandPoolSet::EndCommandBuffer()
+    void VkFrameContext::CommandPoolSet::EndCommandBuffer(VkCommandBuffer _commandList)
     {
         KE_ZoneScopedFunction("VkFrameContext::CommandPoolSet::EndCommandBuffer");
 
-        vkEndCommandBuffer(m_usedCommandBuffers.back());
+        const auto lock = m_mutex.AutoLock();
 
-        m_mutex.ManualUnlock();
+        const auto it = eastl::find(m_usedCommandBuffers.begin(), m_usedCommandBuffers.end(), _commandList);
+        if (KE_VERIFY(it != m_usedCommandBuffers.end()))
+        {
+            vkEndCommandBuffer(_commandList);
+        }
     }
 
     void VkFrameContext::CommandPoolSet::Reset()

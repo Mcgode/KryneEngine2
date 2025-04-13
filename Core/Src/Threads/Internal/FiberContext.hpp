@@ -6,31 +6,19 @@
 
 #pragma once
 
-#if defined(_WIN32)
-    #define CONTEXT_SWITCH_WINDOWS_FIBERS 1
-#elif defined(__APPLE__)
-#   define CONTEXT_SWITCH_UCONTEXT 1
-#elif __linux__ || defined(__APPLE__) || __unix__
-    #define CONTEXT_SWITCH_ABI_SYS_V 1
-#else
-#error Unsupported ABI
-#endif
-
-#if CONTEXT_SWITCH_ABI_WINDOWS
-    #include <emmintrin.h>
-#endif
-
-#if defined(CONTEXT_SWITCH_UCONTEXT)
-#   define _XOPEN_SOURCE
-#   include <ucontext.h>
-#endif
-
 #include <EASTL/array.h>
 #include <EASTL/priority_queue.h>
 #include <boost/context/detail/fcontext.hpp>
+
 #include "KryneEngine/Core/Common/Types.hpp"
 #include "KryneEngine/Core/Common/Utils/Alignment.hpp"
+#include "KryneEngine/Core/Threads/LightweightMutex.hpp"
 #include "KryneEngine/Core/Threads/SpinLock.hpp"
+
+// These macros are defined by GCC and/or clang
+#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)
+#   define HAS_ASAN
+#endif
 
 namespace KryneEngine
 {
@@ -40,6 +28,11 @@ namespace KryneEngine
 
         boost::context::detail::fcontext_t m_context {};
         eastl::string m_name {};
+        LightweightMutex m_mutex {};
+#if defined(HAS_ASAN)
+        const void* m_stackBottom = nullptr;
+        size_t m_stackSize = 0;
+#endif
 
         void SwapContext(FiberContext *_new);
 
@@ -50,7 +43,7 @@ namespace KryneEngine
     struct FiberContextAllocator
     {
     public:
-        FiberContextAllocator();
+        explicit FiberContextAllocator(AllocatorInstance _allocator);
 
         ~FiberContextAllocator();
 

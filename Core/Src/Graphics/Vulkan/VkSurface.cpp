@@ -12,7 +12,13 @@
 
 namespace KryneEngine
 {
-    VkSurface::VkSurface(VkInstance _instance, GLFWwindow *_window)
+    VkSurface::VkSurface(AllocatorInstance _allocator)
+    {
+        m_capabilities.m_formats.SetAllocator(_allocator);
+        m_capabilities.m_presentModes.SetAllocator(_allocator);
+    }
+
+    void VkSurface::Init(VkInstance _instance, GLFWwindow *_window)
     {
         KE_ZoneScopedFunction("VkSurface::VkSurface");
         VkAssert(glfwCreateWindowSurface(_instance,

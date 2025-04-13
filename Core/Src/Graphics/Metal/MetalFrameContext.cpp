@@ -12,10 +12,14 @@
 namespace KryneEngine
 {
     MetalFrameContext::MetalFrameContext(
-        bool _graphicsAvailable, bool _computeAvailable, bool _ioAvailable, bool _validationLayers)
-        : m_graphicsAllocationSet(_graphicsAvailable)
-        , m_computeAllocationSet(_computeAvailable)
-        , m_ioAllocationSet(_ioAvailable)
+        AllocatorInstance _allocator,
+        bool _graphicsAvailable,
+        bool _computeAvailable,
+        bool _ioAvailable,
+        bool _validationLayers)
+        : m_graphicsAllocationSet(_allocator, _graphicsAvailable)
+        , m_computeAllocationSet(_allocator, _computeAvailable)
+        , m_ioAllocationSet(_allocator, _ioAvailable)
         , m_enhancedCommandBufferErrors(_validationLayers)
     {}
 
@@ -32,8 +36,9 @@ namespace KryneEngine
         MTL::CommandBuffer* commandBuffer = _queue.commandBuffer(descriptor.get())->retain();
         KE_ASSERT_FATAL(commandBuffer != nullptr);
 
-        m_graphicsAllocationSet.m_usedCommandBuffers.push_back({ commandBuffer });
-        return &m_graphicsAllocationSet.m_usedCommandBuffers.back();
+        auto* commandList = m_graphicsAllocationSet.m_usedCommandBuffers.get_allocator().New<CommandListData>(commandBuffer);
+        m_graphicsAllocationSet.m_usedCommandBuffers.push_back(commandList);
+        return commandList;
     }
 
     void MetalFrameContext::PrepareForNextFrame(u64 _frameId)
@@ -56,8 +61,9 @@ namespace KryneEngine
         m_ioAllocationSet.Wait();
     }
 
-    MetalFrameContext::AllocationSet::AllocationSet(bool _available)
-        : m_available(_available)
+    MetalFrameContext::AllocationSet::AllocationSet(AllocatorInstance _allocator, bool _available)
+        : m_usedCommandBuffers(_allocator)
+        , m_available(_available)
     {
         if (_available)
         {
@@ -74,9 +80,9 @@ namespace KryneEngine
 
         if (_enhancedErrors)
         {
-            for (CommandListData commandList: m_usedCommandBuffers)
+            for (CommandListData* commandList: m_usedCommandBuffers)
             {
-                commandList.m_commandBuffer->addCompletedHandler(
+                commandList->m_commandBuffer->addCompletedHandler(
                     [](MTL::CommandBuffer* commandBuffer) {
                         {
                             NS::Object* objectPtr = nullptr;
@@ -109,7 +115,7 @@ namespace KryneEngine
         if (!m_usedCommandBuffers.empty())
         {
             m_committedBuffers = true;
-            m_usedCommandBuffers.back().m_commandBuffer->addCompletedHandler(
+            m_usedCommandBuffers.back()->m_commandBuffer->addCompletedHandler(
                 [this](MTL::CommandBuffer*){
                     dispatch_semaphore_signal(m_synchronizationSemaphore);
                 });
@@ -118,13 +124,10 @@ namespace KryneEngine
         KE_AUTO_RELEASE_POOL;
         for (auto& commandListData : m_usedCommandBuffers)
         {
-            if (commandListData.m_encoder != nullptr)
-            {
-                commandListData.m_encoder->endEncoding();
-                commandListData.m_encoder.reset();
-            }
-            commandListData.m_commandBuffer->commit();
-            commandListData.m_commandBuffer->release();
+            KE_ASSERT(commandListData->m_encoder == nullptr);
+            commandListData->m_commandBuffer->commit();
+            commandListData->m_commandBuffer->release();
+            m_usedCommandBuffers.get_allocator().deallocate(commandListData);
         }
         m_usedCommandBuffers.clear();
     }

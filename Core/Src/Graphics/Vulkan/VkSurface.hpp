@@ -23,7 +23,9 @@ namespace KryneEngine
             DynamicArray<VkPresentModeKHR> m_presentModes;
         };
 
-        VkSurface(VkInstance _instance, GLFWwindow *_window);
+        explicit VkSurface(AllocatorInstance _allocator);
+
+        void Init(VkInstance _instance, GLFWwindow *_window);
 
         virtual ~VkSurface();
 

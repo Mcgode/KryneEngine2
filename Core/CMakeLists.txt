@@ -1,7 +1,6 @@
 set(RootDir ${CMAKE_SOURCE_DIR}/Core)
 
 set(CommonSrc
-        Include/KryneEngine/Core/Common/Arrays.hpp
         Include/KryneEngine/Core/Common/Assert.hpp
         Src/Common/Assert.cpp
         Include/KryneEngine/Core/Common/BitUtils.hpp
@@ -11,6 +10,9 @@ set(CommonSrc
         Src/Common/additional_impl.cpp
         Include/KryneEngine/Core/Common/Utils/Alignment.hpp
         Include/KryneEngine/Core/Common/Utils/MultiFrameTracking.hpp
+        Src/Common/BitUtils.cpp
+        Include/KryneEngine/Core/Common/Misc/EastlConfig.hpp
+        Include/KryneEngine/Core/Common/Misc/Unroll.hpp
 )
 
 set(FilesSrc
@@ -53,14 +55,41 @@ set(MathSrc
         Include/KryneEngine/Core/Math/Vector3.hpp
         Include/KryneEngine/Core/Math/Vector4.hpp
         Include/KryneEngine/Core/Math/XSimdUtils.hpp
+        Include/KryneEngine/Core/Math/Hashing.hpp
+        Src/Math/Hashing.cpp
+        Include/KryneEngine/Core/Math/Quaternion.hpp
+        Include/KryneEngine/Core/Math/CoordinateSystem.hpp
+        Include/KryneEngine/Core/Math/RotationConversion.hpp
+        Src/Math/Matrix33.cpp
+        Include/KryneEngine/Core/Math/Matrix33.hpp
+        Include/KryneEngine/Core/Math/Matrix.hpp
+        Src/Math/Matrix44.cpp
+        Include/KryneEngine/Core/Math/Matrix44.hpp
+        Include/KryneEngine/Core/Math/Transform.hpp
+        Include/KryneEngine/Core/Math/Projection.hpp
 )
 
 set(MemorySrc
+        Include/KryneEngine/Core/Memory/DynamicArray.hpp
         Include/KryneEngine/Core/Memory/RangeMapping.hpp
         Include/KryneEngine/Core/Memory/GenerationalPool.inl
         Include/KryneEngine/Core/Memory/GenerationalPool.hpp
         Include/KryneEngine/Core/Memory/SimplePool.inl
         Include/KryneEngine/Core/Memory/SimplePool.hpp
+        Src/Memory/Allocators/TlsfAllocator.cpp
+        Include/KryneEngine/Core/Memory/Allocators/TlsfAllocator.hpp
+        Include/KryneEngine/Core/Memory/Heaps/TlsfHeap.hpp
+        Src/Memory/Allocators/Allocator.cpp
+        Include/KryneEngine/Core/Memory/Allocators/Allocator.hpp
+        Include/KryneEngine/Core/Memory/Allocators/DefaultHeapHeapAllocationTracker.hpp
+        Src/Memory/Allocators/DefaultHeapHeapAllocationTracker.cpp
+        Include/KryneEngine/Core/Memory/UniquePtr.hpp
+)
+
+set(PlatformSrc
+        Include/KryneEngine/Core/Platform/Windows.h
+        Src/Platform/StdAlloc.cpp
+        Include/KryneEngine/Core/Platform/StdAlloc.hpp
 )
 
 set(ProfilingSrc
@@ -163,7 +192,16 @@ elseif (GraphicsApi STREQUAL "MTL")
         )
 endif()
 
-add_library(KryneEngine_Core ${CommonSrc} ${FilesSrc} ${GraphicsFiles} ${MathSrc} ${MemorySrc} ${ProfilingSrc} ${ThreadsSrc} ${WindowSrc})
+add_library(KryneEngine_Core
+        ${CommonSrc}
+        ${FilesSrc}
+        ${GraphicsFiles}
+        ${MathSrc}
+        ${MemorySrc}
+        ${PlatformSrc}
+        ${ProfilingSrc}
+        ${ThreadsSrc}
+        ${WindowSrc})
 target_link_libraries(KryneEngine_Core EASTL glfw glm Tracy::TracyClient moodycamel Boost::context xsimd)
 
 if (GraphicsApi STREQUAL "VK")
@@ -193,6 +231,8 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         target_compile_options(KryneEngine_Core PRIVATE /we4062)
 endif()
+
+target_compile_definitions(KryneEngine_Core PUBLIC EASTL_USER_CONFIG_HEADER="KryneEngine/Core/Common/Misc/EastlConfig.hpp")
 
 target_include_directories(KryneEngine_Core PUBLIC Include)
 target_include_directories(KryneEngine_Core PRIVATE Src)

@@ -5,7 +5,7 @@
 #include "KryneEngine/Core/Common/StringHelpers.hpp"
 
 #if defined(_WIN32)
-#	include <Platform/Windows.h>
+#	include <KryneEngine/Core/Platform/Windows.h>
 #endif
 
 namespace KryneEngine::Assertion

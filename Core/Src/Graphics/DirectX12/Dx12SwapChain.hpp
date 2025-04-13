@@ -8,7 +8,7 @@
 
 #include "Graphics/DirectX12/Dx12Headers.hpp"
 #include "Graphics/DirectX12/Dx12Resources.h"
-#include "KryneEngine/Core/Common/Arrays.hpp"
+#include "KryneEngine/Core/Memory/DynamicArray.hpp"
 
 namespace KryneEngine
 {
@@ -19,15 +19,16 @@ namespace KryneEngine
         friend class Dx12GraphicsContext;
 
     public:
-        Dx12SwapChain(
+        Dx12SwapChain(AllocatorInstance _allocator);
+        ~Dx12SwapChain();
+
+        void Init(
             const GraphicsCommon::ApplicationInfo &_appInfo,
             const Window* _processWindow,
             IDXGIFactory4 *_factory,
             ID3D12Device *_device,
             ID3D12CommandQueue *_directQueue,
             KryneEngine::Dx12Resources& _resources);
-
-        ~Dx12SwapChain();
 
         [[nodiscard]] u8 GetBackBufferIndex() const
         {

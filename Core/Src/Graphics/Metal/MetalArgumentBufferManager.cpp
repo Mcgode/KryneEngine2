@@ -25,13 +25,23 @@ namespace KryneEngine
         u32 m_packedIndex;
     };
 
-    MetalArgumentBufferManager::MetalArgumentBufferManager() = default;
+    MetalArgumentBufferManager::MetalArgumentBufferManager(AllocatorInstance _allocator)
+        : m_argumentDescriptors(_allocator)
+        , m_argumentBufferSets(_allocator)
+        , m_pipelineLayouts(_allocator)
+    {}
+
     MetalArgumentBufferManager::~MetalArgumentBufferManager() = default;
 
     void MetalArgumentBufferManager::Init(u8 _inFlightFrameCount, u8 _frameIndex)
     {
         m_inFlightFrameCount = _inFlightFrameCount;
-        m_multiFrameTracker.Init(_inFlightFrameCount, _frameIndex);
+        m_multiFrameTracker.Init(GetAllocator(), _inFlightFrameCount, _frameIndex);
+    }
+
+    AllocatorInstance MetalArgumentBufferManager::GetAllocator() const
+    {
+        return m_argumentDescriptors.GetAllocator();
     }
 
     DescriptorSetLayoutHandle MetalArgumentBufferManager::CreateArgumentDescriptor(
@@ -41,6 +51,7 @@ namespace KryneEngine
         const GenPool::Handle handle = m_argumentDescriptors.Allocate();
         auto [hot, cold] = m_argumentDescriptors.GetAll(handle);
 
+        hot->m_argDescriptors.SetAllocator(GetAllocator());
         hot->m_argDescriptors.Resize(_desc.m_bindings.size());
         hot->m_argDescriptors.InitAll(nullptr);
 
@@ -87,13 +98,18 @@ namespace KryneEngine
 
         const GenPool::Handle handle = m_argumentBufferSets.Allocate();
 
-        ArgumentDescriptorHotData* argDescHot = m_argumentDescriptors.Get(_descriptor.m_handle);
         ArgumentBufferHotData* hot = m_argumentBufferSets.Get(handle);
 
-        NS::Array* array = NS::Array::array(
-            reinterpret_cast<const NS::Object* const*>(argDescHot->m_argDescriptors.Data()),
-            argDescHot->m_argDescriptors.Size());
-        hot->m_encoder = _device.newArgumentEncoder(array);
+        {
+            const ArgumentDescriptorHotData* argDescHot = m_argumentDescriptors.Get(_descriptor.m_handle);
+
+            DynamicArray<NsPtr<MTL::ArgumentDescriptor>> array(GetAllocator(), argDescHot->m_argDescriptors.Size());
+            for (auto i = 0u; i < argDescHot->m_argDescriptors.Size(); i++)
+            {
+                array.Init(i, argDescHot->m_argDescriptors[i]->copy());
+            }
+            hot->m_encoder = _device.newArgumentEncoder(NS::Array::array(reinterpret_cast<const NS::Object* const*>(array.Data()), array.Size()));
+        }
 
 #if defined(TARGET_OS_MAC)
         const MTL::ResourceOptions options = MTL::ResourceStorageModeManaged;
@@ -144,10 +160,11 @@ namespace KryneEngine
         // If no descriptor set is included in shader, takes buffer index 0.
         // If there's any set, will take the last set index, and add +1.
         // Push constant buffer index can vary between stages.
-
+        hot->m_pushConstantsData.set_overflow_allocator(GetAllocator());
         for (auto pushConstantDesc : _desc.m_pushConstants)
         {
             auto& data = hot->m_pushConstantsData.emplace_back();
+            data.m_data.set_overflow_allocator(GetAllocator());
             for (const ShaderVisibility visibility: testedVisibilities)
             {
                 if (BitUtils::EnumHasAny(pushConstantDesc.m_visibility, visibility))
@@ -159,6 +176,7 @@ namespace KryneEngine
             }
         }
 
+        hot->m_setVisibilities.set_overflow_allocator(GetAllocator());
         for (size_t i = 0; i < _desc.m_descriptorSets.size(); i++)
         {
             const auto& set = _desc.m_descriptorSets[i];
@@ -271,6 +289,11 @@ namespace KryneEngine
                 KE_ERROR("Not support yet");
                 break;
             case DescriptorBindingDesc::Type::ConstantBuffer:
+            {
+                MetalResources::BufferCbvHotData* cbv = _resources.m_bufferCbvs.Get(update.m_object);
+                encoder->setBuffer(cbv->m_buffer.get(), cbv->m_offset, index.m_index);
+                break;
+            }
             case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:
             case DescriptorBindingDesc::Type::StorageReadWriteBuffer:
                 KE_ERROR("Not supported yet");

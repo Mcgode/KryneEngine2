@@ -16,6 +16,7 @@ namespace KryneEngine
         struct ApplicationInfo;
     }
 
+    struct BufferCbvDesc;
     struct BufferCopyParameters;
     struct BufferCreateDesc;
     struct BufferMapping;
@@ -24,6 +25,7 @@ namespace KryneEngine
     struct DescriptorSetDesc;
     struct DescriptorSetWriteInfo;
     struct DrawIndexedInstancedDesc;
+    struct DrawInstancedDesc;
     struct GlobalMemoryBarrier;
     struct GraphicsPipelineDesc;
     struct PipelineLayoutDesc;
@@ -40,7 +42,10 @@ namespace KryneEngine
     class GraphicsContext
     {
     public:
-        static GraphicsContext* Create(const GraphicsCommon::ApplicationInfo& _appInfo, Window* _window);
+        static GraphicsContext* Create(
+            const GraphicsCommon::ApplicationInfo& _appInfo,
+            Window* _window,
+            AllocatorInstance _allocator);
         static void Destroy(GraphicsContext* _context);
 
         [[nodiscard]] inline u64 GetFrameId() const
@@ -60,8 +65,12 @@ namespace KryneEngine
         [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const;
         [[nodiscard]] static const char* GetShaderFileExtension();
 
+        [[nodiscard]] bool HasDedicatedTransferQueue() const;
+        [[nodiscard]] bool HasDedicatedComputeQueue() const;
+
     private:
 
+        AllocatorInstance m_allocator;
         const Window* m_window;
 
         static constexpr u64 kInitialFrameId = 1;
@@ -86,6 +95,9 @@ namespace KryneEngine
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
         bool DestroySampler(SamplerHandle _sampler);
 
+        [[nodiscard]] BufferCbvHandle CreateBufferCbv(const BufferCbvDesc& _cbvDesc);
+        bool DestroyBufferCbv(BufferCbvHandle _handle);
+
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc);
         bool DestroyRenderTargetView(RenderTargetViewHandle _handle);
 
@@ -97,7 +109,7 @@ namespace KryneEngine
         bool DestroyRenderPass(RenderPassHandle _handle);
 
         CommandListHandle BeginGraphicsCommandList();
-        void EndGraphicsCommandList();
+        void EndGraphicsCommandList(CommandListHandle _commandList);
 
         void BeginRenderPass(CommandListHandle _commandList, RenderPassHandle _handle);
         void EndRenderPass(CommandListHandle _commandList);
@@ -115,13 +127,17 @@ namespace KryneEngine
 
         void CopyBuffer(CommandListHandle _commandList, const BufferCopyParameters& _params);
 
+        [[nodiscard]] static bool SupportsNonGlobalBarriers();
         void PlaceMemoryBarriers(
             CommandListHandle _commandList,
             const eastl::span<const GlobalMemoryBarrier>& _globalMemoryBarriers,
             const eastl::span<const BufferMemoryBarrier>& _bufferMemoryBarriers,
             const eastl::span<const TextureMemoryBarrier>& _textureMemoryBarriers);
 
+        [[nodiscard]] static bool RenderPassNeedsUsageDeclaration();
+        [[nodiscard]] static bool ComputePassNeedsUsageDeclaration();
         void DeclarePassTextureSrvUsage(CommandListHandle _commandList, const eastl::span<const TextureSrvHandle>& _textures);
+        void DeclarePassBufferCbvUsage(CommandListHandle _commandList, const eastl::span<const BufferCbvHandle>& _buffers);
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
@@ -154,6 +170,7 @@ namespace KryneEngine
             PipelineLayoutHandle _layout,
             const eastl::span<const DescriptorSetHandle>& _sets,
             const bool* _unchanged = nullptr);
+        void DrawInstanced(CommandListHandle _commandList, const DrawInstancedDesc& _desc);
         void DrawIndexedInstanced(CommandListHandle _commandList, const DrawIndexedInstancedDesc& _desc);
     };
 }

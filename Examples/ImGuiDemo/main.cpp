@@ -2,13 +2,14 @@
  * @file
  */
 
-#include <iostream>
+#include "KryneEngine/Core/Memory/Allocators/TlsfAllocator.hpp"
 #include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 #include <KryneEngine/Core/Graphics/Common/RenderPass.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Threads/FibersManager.hpp>
 #include <KryneEngine/Core/Window/Window.hpp>
 #include <KryneEngine/Modules/ImGui/Context.hpp>
+#include <iostream>
 
 using namespace KryneEngine;
 namespace KEModules = KryneEngine::Modules;
@@ -30,20 +31,21 @@ void Job1(void*)
     auto* fibersManager = FibersManager::GetInstance();
 
     static constexpr u32 kCount = 1'000;
-    FiberJob counterJobs[kCount];
 
-    const auto syncCounter = fibersManager->InitAndBatchJobs(counterJobs, Job0, &counter, kCount);
+    const auto syncCounter = fibersManager->InitAndBatchJobs(Job0, &counter, kCount);
 
     fibersManager->WaitForCounterAndReset(syncCounter);
 
     std::cout << "Counter value: " << counter << std::endl;
 }
 
-void MainFunc(void* _fibersManagerPtr)
+void MainFunc(void* _pAllocator)
 {
-    auto appInfo = GraphicsCommon::ApplicationInfo();
-    //        appInfo.m_features.m_validationLayers = false;
-    appInfo.m_applicationName = "Basic Example - Kryne Engine 2";
+    AllocatorInstance allocator = *static_cast<AllocatorInstance*>(_pAllocator);
+
+    auto appInfo = GraphicsCommon::ApplicationInfo {
+        .m_applicationName { "ImGuiDemo - Kryne Engine 2", allocator }
+    };
 #if defined(KE_GRAPHICS_API_VK)
     appInfo.m_api = GraphicsCommon::Api::Vulkan_1_3;
     appInfo.m_applicationName += " - Vulkan";
@@ -54,10 +56,10 @@ void MainFunc(void* _fibersManagerPtr)
     appInfo.m_api = KryneEngine::GraphicsCommon::Api::Metal_3;
     appInfo.m_applicationName += " - Metal";
 #endif
-    Window mainWindow(appInfo);
+    Window mainWindow(appInfo, allocator);
     GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
-    DynamicArray<RenderPassHandle> renderPassHandles;
+    DynamicArray<RenderPassHandle> renderPassHandles(allocator);
     renderPassHandles.Resize(graphicsContext->GetFrameContextCount());
     for (auto i = 0u; i < renderPassHandles.Size(); i++)
     {
@@ -76,7 +78,7 @@ void MainFunc(void* _fibersManagerPtr)
         renderPassHandles[i] = graphicsContext->CreateRenderPass(desc);
     }
 
-    KEModules::ImGui::Context imGuiContext{&mainWindow, renderPassHandles[0]};
+    KEModules::ImGui::Context imGuiContext { &mainWindow, renderPassHandles[0], allocator };
 
     do
     {
@@ -84,7 +86,7 @@ void MainFunc(void* _fibersManagerPtr)
 
         CommandListHandle commandList = graphicsContext->BeginGraphicsCommandList();
 
-        imGuiContext.NewFrame(&mainWindow, commandList);
+        imGuiContext.NewFrame(&mainWindow);
 
         {
             static bool open;
@@ -100,7 +102,7 @@ void MainFunc(void* _fibersManagerPtr)
 
         graphicsContext->EndRenderPass(commandList);
 
-        graphicsContext->EndGraphicsCommandList();
+        graphicsContext->EndGraphicsCommandList(commandList);
     }
     while (graphicsContext->EndFrame());
 
@@ -114,28 +116,31 @@ void MainFunc(void* _fibersManagerPtr)
     }
 }
 
-int main() {
+int main()
+{
     std::cout << "Hello, World!" << std::endl;
 
-    {
-        auto fibersManager = FibersManager(0);
+    TlsfAllocator* tlsfAllocator = TlsfAllocator::Create(AllocatorInstance(), 32 << 20); // 32 MiB heap
+    AllocatorInstance allocator(tlsfAllocator);
 
-        FiberJob testJob;
-        const auto syncCounter = fibersManager.InitAndBatchJobs(&testJob, Job1, nullptr);
+    {
+        auto fibersManager = FibersManager(0, allocator);
+
+        const auto syncCounter = fibersManager.InitAndBatchJobs(Job1, nullptr);
 
 #if !defined(__APPLE__)
         FiberJob mainJob;
         const auto mainCounter = fibersManager.InitAndBatchJobs(
             &mainJob,
             MainFunc,
-            &fibersManager,
+            &allocator,
             1,
             FiberJob::Priority::High,
             true);
 
         fibersManager.WaitForCounterAndReset(mainCounter);
 #else
-        MainFunc(&fibersManager);
+        MainFunc(&allocator);
 #endif
 
         fibersManager.WaitForCounterAndReset(syncCounter);

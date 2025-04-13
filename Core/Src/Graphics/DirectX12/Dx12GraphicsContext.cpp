@@ -6,6 +6,7 @@
 
 #include "Graphics/DirectX12/Dx12GraphicsContext.hpp"
 
+#include <bit>
 #include <D3D12MemAlloc.h>
 #include <dxgidebug.h>
 
@@ -21,10 +22,16 @@
 namespace KryneEngine
 {
     Dx12GraphicsContext::Dx12GraphicsContext(
+        AllocatorInstance _allocator,
         const GraphicsCommon::ApplicationInfo& _appInfo,
         Window* _window,
         u64 _currentFrameId)
-        : m_appInfo(_appInfo)
+        : m_allocator(_allocator)
+        , m_appInfo(_appInfo)
+        , m_swapChain(_allocator)
+        , m_frameContexts(_allocator)
+        , m_resources(_allocator)
+        , m_descriptorSetManager(_allocator)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::Dx12GraphicsContext");
 
@@ -54,14 +61,15 @@ namespace KryneEngine
 
         if (m_appInfo.m_features.m_present)
         {
-            m_swapChain = eastl::make_unique<Dx12SwapChain>(m_appInfo,
-                                                            _window,
-                                                            factory4.Get(),
-                                                            m_device.Get(),
-                                                            m_directQueue.Get(),
-                                                            m_resources);
+            m_swapChain.Init(
+                m_appInfo,
+                _window,
+                factory4.Get(),
+                m_device.Get(),
+                m_directQueue.Get(),
+                m_resources);
 
-            m_frameContextCount = m_swapChain->m_renderTargetViews.Size();
+            m_frameContextCount = m_swapChain.m_renderTargetViews.Size();
         }
         else
         {
@@ -71,8 +79,7 @@ namespace KryneEngine
 
         m_resources.InitHeaps(m_device.Get());
 
-        m_descriptorSetManager = eastl::make_unique<Dx12DescriptorSetManager>();
-        m_descriptorSetManager->Init(m_device.Get(), m_frameContextCount, _currentFrameId % m_frameContextCount);
+        m_descriptorSetManager.Init(m_device.Get(), m_frameContextCount, _currentFrameId % m_frameContextCount);
 
         m_frameContexts.Resize(m_frameContextCount);
         m_frameContexts.InitAll(m_device.Get(),
@@ -107,10 +114,9 @@ namespace KryneEngine
 
         m_frameContexts.Clear();
 
-        if (m_swapChain != nullptr)
+        if (m_appInfo.m_features.m_present)
         {
-            m_swapChain->Destroy(m_resources);
-            m_swapChain.release();
+            m_swapChain.Destroy(m_resources);
         }
 
         SafeRelease(m_copyQueue);
@@ -158,9 +164,9 @@ namespace KryneEngine
         }
 
         // Present the frame (if applicable)
-        if (m_swapChain != nullptr)
+        if (m_appInfo.m_features.m_present)
         {
-            m_swapChain->Present();
+            m_swapChain.Present();
         }
 
         // Increment fence signal
@@ -188,7 +194,7 @@ namespace KryneEngine
         WaitForFrame(m_frameContexts[nextFrameIndex].m_frameId);
 
         // Duplicate descriptor in multi-frame heaps
-        m_descriptorSetManager->NextFrame(m_device.Get(), m_resources, nextFrameIndex);
+        m_descriptorSetManager.NextFrame(m_device.Get(), m_resources, nextFrameIndex);
     }
 
     bool Dx12GraphicsContext::IsFrameExecuted(KryneEngine::u64 _frameId) const
@@ -205,6 +211,16 @@ namespace KryneEngine
             Dx12Assert(m_frameFence->SetEventOnCompletion(_frameId, m_frameFenceEvent));
             WaitForSingleObject(m_frameFenceEvent, INFINITE);
         }
+    }
+
+    bool Dx12GraphicsContext::HasDedicatedTransferQueue() const
+    {
+        return m_copyQueue != nullptr;
+    }
+
+    bool Dx12GraphicsContext::HasDedicatedComputeQueue() const
+    {
+        return m_computeQueue != nullptr;
     }
 
     void Dx12GraphicsContext::_CreateDevice(IDXGIFactory4* _factory4)
@@ -344,15 +360,25 @@ namespace KryneEngine
         return m_resources.DestroySampler(_sampler);
     }
 
+    BufferCbvHandle Dx12GraphicsContext::CreateBufferCbv(const BufferCbvDesc &_cbvDesc)
+    {
+        return m_resources.CreateBufferCbv(_cbvDesc, m_device.Get());
+    }
+
+    bool Dx12GraphicsContext::DestroyBufferCbv(BufferCbvHandle _handle)
+    {
+        return m_resources.DestroyBufferCbv(_handle);
+    }
+
     RenderTargetViewHandle Dx12GraphicsContext::GetPresentRenderTargetView(u8 _index)
     {
-        return m_swapChain->m_renderTargetViews[_index];
+        return m_swapChain.m_renderTargetViews[_index];
     }
 
     TextureHandle Dx12GraphicsContext::GetPresentTexture(u8 _swapChainIndex)
     {
-        return (m_swapChain != nullptr)
-                   ? m_swapChain->m_renderTargetTextures[_swapChainIndex]
+        return (m_appInfo.m_features.m_present)
+                   ? m_swapChain.m_renderTargetTextures[_swapChainIndex]
                    : TextureHandle { GenPool::kInvalidHandle };
     }
 
@@ -362,15 +388,15 @@ namespace KryneEngine
 
         const u8 frameIndex = _frameId % m_frameContextCount;
         CommandList list = m_frameContexts[frameIndex].BeginDirectCommandList();
-        m_descriptorSetManager->OnBeginGraphicsCommandList(list, frameIndex);
+        m_descriptorSetManager.OnBeginGraphicsCommandList(list, frameIndex);
         return list;
     }
 
-    void Dx12GraphicsContext::EndGraphicsCommandList(u64 _frameId)
+    void Dx12GraphicsContext::EndGraphicsCommandList(CommandList _commandList, u64 _frameId)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::EndGraphicsCommand");
 
-        m_frameContexts[_frameId % m_frameContextCount].EndDirectCommandList();
+        m_frameContexts[_frameId % m_frameContextCount].EndDirectCommandList(_commandList);
     }
 
     void Dx12GraphicsContext::BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass)
@@ -433,7 +459,7 @@ namespace KryneEngine
         eastl::fixed_vector<D3D12_RENDER_PASS_RENDER_TARGET_DESC, RenderPassDesc::kMaxSupportedColorAttachments, false> colorAttachments;
         for (const auto& attachment: desc->m_colorAttachments)
         {
-            CD3DX12_CLEAR_VALUE clearValue(DXGI_FORMAT_R32G32B32A32_FLOAT,  &attachment.m_clearColor[0]);
+            CD3DX12_CLEAR_VALUE clearValue(DXGI_FORMAT_R32G32B32A32_FLOAT, attachment.m_clearColor.GetPtr());
 
             D3D12_RENDER_PASS_BEGINNING_ACCESS beginningAccess {
                 convertLoadOperation(attachment.m_loadOperation),
@@ -444,7 +470,9 @@ namespace KryneEngine
                 convertStoreOperation(attachment.m_storeOperation)
             };
 
-            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv.m_handle);
+            const GenPool::Handle handle = attachment.m_rtv.m_handle;
+            VERIFY_OR_RETURN_VOID((handle.m_index & Dx12Resources::kDsvFlag) == 0);
+            auto* rtvData = m_resources.m_renderTargetViews.Get(handle);
             VERIFY_OR_RETURN_VOID(rtvData != nullptr);
 
             colorAttachments.push_back(D3D12_RENDER_PASS_RENDER_TARGET_DESC { rtvData->m_cpuHandle, beginningAccess, endingAccess });
@@ -475,7 +503,10 @@ namespace KryneEngine
                 convertStoreOperation(attachment.m_stencilStoreOperation)
             };
 
-            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv.m_handle);
+            GenPool::Handle handle = attachment.m_rtv.m_handle;
+            VERIFY_OR_RETURN_VOID((handle.m_index & Dx12Resources::kDsvFlag) != 0);
+            handle.m_index &= ~Dx12Resources::kDsvFlag;
+            auto* rtvData = m_resources.m_depthStencilViews.Get(handle);
             VERIFY_OR_RETURN_VOID(rtvData != nullptr);
 
             depthStencilDesc = {
@@ -540,7 +571,11 @@ namespace KryneEngine
         if (desc->m_depthStencilAttachment.has_value())
         {
             const auto& attachment = desc->m_depthStencilAttachment.value();
-            auto* rtvData = m_resources.m_renderTargetViews.Get(attachment.m_rtv.m_handle);
+
+            GenPool::Handle handle = attachment.m_rtv.m_handle;
+            VERIFY_OR_RETURN_VOID((handle.m_index & Dx12Resources::kDsvFlag) != 0);
+            handle.m_index &= ~Dx12Resources::kDsvFlag;
+            auto* rtvData = m_resources.m_renderTargetViews.Get(handle);
             VERIFY_OR_RETURN_VOID(rtvData != nullptr);
 
             addBarrier(attachment, *m_resources.m_textures.Get(rtvData->m_resource.m_handle), true);
@@ -553,7 +588,7 @@ namespace KryneEngine
 
     u32 Dx12GraphicsContext::GetCurrentPresentImageIndex() const
     {
-        return m_swapChain->GetBackBufferIndex();
+        return m_swapChain.GetBackBufferIndex();
     }
 
     void Dx12GraphicsContext::SetTextureData(
@@ -640,12 +675,12 @@ namespace KryneEngine
 
         const u32 numSubResources = _desc.m_arraySize * _desc.m_mipCount;
 
-        DynamicArray<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> footprints;
+        DynamicArray<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> footprints(m_allocator);
         footprints.Resize(numSubResources);
 
         m_device->GetCopyableFootprints(&resourceDesc, 0, numSubResources, 0, footprints.Data(), nullptr, nullptr, nullptr);
 
-        eastl::vector<TextureMemoryFootprint> finalFootprints;
+        eastl::vector<TextureMemoryFootprint> finalFootprints(m_allocator);
         for (const auto& footprint: footprints)
         {
             finalFootprints.push_back(TextureMemoryFootprint {
@@ -678,10 +713,12 @@ namespace KryneEngine
         VERIFY_OR_RETURN_VOID(pAllocation != nullptr);
         D3D12MA::Allocation* allocation = *pAllocation;
 
+        const auto bufferSize = reinterpret_cast<u64>(allocation->GetPrivateData());
+
         KE_ASSERT_MSG(_mapping.m_ptr == nullptr, "Structure still holds a mapping");
-        KE_ASSERT(allocation->GetSize() >= _mapping.m_offset);
-        KE_ASSERT(_mapping.m_size == ~0 || allocation->GetSize() >= _mapping.m_offset + _mapping.m_size);
-        _mapping.m_size = eastl::min(_mapping.m_size, allocation->GetSize() - _mapping.m_offset);
+        KE_ASSERT(bufferSize >= _mapping.m_offset);
+        KE_ASSERT(_mapping.m_size == ~0 || bufferSize >= _mapping.m_offset + _mapping.m_size);
+        _mapping.m_size = eastl::min(_mapping.m_size, bufferSize - _mapping.m_offset);
 
         D3D12_RANGE range { 0, 0 };
         if (!_mapping.m_pureWrite)
@@ -691,7 +728,7 @@ namespace KryneEngine
 
         void* ptr;
         Dx12Assert(allocation->GetResource()->Map(0, &range, &ptr));
-        _mapping.m_ptr = (u8*)ptr + _mapping.m_offset;
+        _mapping.m_ptr = static_cast<std::byte*>(ptr) + _mapping.m_offset;
     }
 
     void Dx12GraphicsContext::UnmapBuffer(BufferMapping& _mapping)
@@ -737,10 +774,12 @@ namespace KryneEngine
         {
             eastl::fixed_vector<D3D12_BARRIER_GROUP, 3> barrierGroups;
 
+            DynamicArray<D3D12_GLOBAL_BARRIER> globalMemoryBarriers(m_allocator, _globalMemoryBarriers.size());
+            DynamicArray<D3D12_BUFFER_BARRIER> bufferMemoryBarriers(m_allocator, _bufferMemoryBarriers.size());
+            DynamicArray<D3D12_TEXTURE_BARRIER> textureMemoryBarriers(m_allocator, _textureMemoryBarriers.size());
+
             if (!_globalMemoryBarriers.empty())
             {
-                DynamicArray<D3D12_GLOBAL_BARRIER> globalMemoryBarriers(_globalMemoryBarriers.size());
-
                 for (auto i = 0u; i < globalMemoryBarriers.Size(); i++)
                 {
                     const GlobalMemoryBarrier& barrier = _globalMemoryBarriers[i];
@@ -762,8 +801,6 @@ namespace KryneEngine
 
             if (!_bufferMemoryBarriers.empty())
             {
-                DynamicArray<D3D12_BUFFER_BARRIER> bufferMemoryBarriers(_bufferMemoryBarriers.size());
-
                 for (auto i = 0u; i < bufferMemoryBarriers.Size(); i++)
                 {
                     const BufferMemoryBarrier& barrier = _bufferMemoryBarriers[i];
@@ -789,8 +826,6 @@ namespace KryneEngine
 
             if (!_textureMemoryBarriers.empty())
             {
-                DynamicArray<D3D12_TEXTURE_BARRIER> textureMemoryBarriers(_textureMemoryBarriers.size());
-
                 for (auto i = 0u; i < textureMemoryBarriers.Size(); i++)
                 {
                     const TextureMemoryBarrier& barrier = _textureMemoryBarriers[i];
@@ -805,12 +840,14 @@ namespace KryneEngine
                         .LayoutAfter = ToDx12BarrierLayout(barrier.m_layoutDst),
                         .pResource = texture == nullptr ? nullptr : *texture,
                         .Subresources =
-                            {.IndexOrFirstMipLevel = barrier.m_mipStart,
-                             .NumMipLevels = barrier.m_mipCount,
-                             .FirstArraySlice = barrier.m_arrayStart,
-                             .NumArraySlices = barrier.m_arrayCount,
-                             .FirstPlane = 0,
-                             .NumPlanes = (u32)std::popcount((u8)barrier.m_planes)},
+                            {
+                                .IndexOrFirstMipLevel = barrier.m_mipStart,
+                                .NumMipLevels = barrier.m_mipCount,
+                                .FirstArraySlice = barrier.m_arrayStart,
+                                .NumArraySlices = barrier.m_arrayCount,
+                                .FirstPlane = 0,
+                                .NumPlanes = static_cast<u32>(std::popcount(static_cast<u8>(barrier.m_planes)))
+                            },
                         .Flags = D3D12_TEXTURE_BARRIER_FLAG_NONE,
                     };
                 }
@@ -826,7 +863,7 @@ namespace KryneEngine
         }
         else
         {
-            eastl::vector<D3D12_RESOURCE_BARRIER> resourceBarriers {};
+            eastl::vector<D3D12_RESOURCE_BARRIER> resourceBarriers(m_allocator);
 
             for (const auto& barrier: _textureMemoryBarriers)
             {
@@ -924,17 +961,17 @@ namespace KryneEngine
         const DescriptorSetDesc& _desc,
         u32* _bindingIndices)
     {
-        return m_descriptorSetManager->CreateDescriptorSetLayout(_desc, _bindingIndices);
+        return m_descriptorSetManager.CreateDescriptorSetLayout(_desc, _bindingIndices);
     }
 
     DescriptorSetHandle Dx12GraphicsContext::CreateDescriptorSet(DescriptorSetLayoutHandle _layout)
     {
-        return m_descriptorSetManager->CreateDescriptorSet(_layout);
+        return m_descriptorSetManager.CreateDescriptorSet(_layout);
     }
 
     PipelineLayoutHandle Dx12GraphicsContext::CreatePipelineLayout(const PipelineLayoutDesc& _desc)
     {
-        return m_resources.CreatePipelineLayout(_desc, m_descriptorSetManager.get(), m_device.Get());
+        return m_resources.CreatePipelineLayout(_desc, m_descriptorSetManager, m_device.Get());
     }
 
     GraphicsPipelineHandle Dx12GraphicsContext::CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc)
@@ -954,12 +991,12 @@ namespace KryneEngine
 
     bool Dx12GraphicsContext::DestroyDescriptorSet(DescriptorSetHandle _set)
     {
-        return m_descriptorSetManager->DestroyDescriptorSet(_set);
+        return m_descriptorSetManager.DestroyDescriptorSet(_set);
     }
 
     bool Dx12GraphicsContext::DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout)
     {
-        return m_descriptorSetManager->DestroyDescriptorSetLayout(_layout);
+        return m_descriptorSetManager.DestroyDescriptorSetLayout(_layout);
     }
 
     bool Dx12GraphicsContext::FreeShaderModule(ShaderModuleHandle _module)
@@ -972,7 +1009,7 @@ namespace KryneEngine
         const eastl::span<const DescriptorSetWriteInfo>& _writes,
         u64 _frameId)
     {
-        m_descriptorSetManager->UpdateDescriptorSet(
+        m_descriptorSetManager.UpdateDescriptorSet(
             _descriptorSet,
             m_resources, _writes,
             m_device.Get(),
@@ -1089,11 +1126,22 @@ namespace KryneEngine
         const bool* _unchanged,
         u32 _frameId)
     {
-        m_descriptorSetManager->SetGraphicsDescriptorSets(
+        m_descriptorSetManager.SetGraphicsDescriptorSets(
             _commandList,
             _sets,
             _unchanged,
             _frameId % m_frameContextCount);
+    }
+
+    void Dx12GraphicsContext::DrawInstanced(CommandList _commandList, const DrawInstancedDesc& _desc)
+    {
+        KE_ZoneScopedFunction("Dx12GraphicsContext::DrawInstanced");
+
+        _commandList->DrawInstanced(
+            _desc.m_vertexCount,
+            _desc.m_instanceCount,
+            _desc.m_vertexOffset,
+            _desc.m_instanceOffset);
     }
 
     void Dx12GraphicsContext::DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc)
