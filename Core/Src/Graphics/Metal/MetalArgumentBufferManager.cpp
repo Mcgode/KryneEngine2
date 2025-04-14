@@ -61,16 +61,17 @@ namespace KryneEngine
         {
             NsPtr<MTL::ArgumentDescriptor>& desc = hot->m_argDescriptors[i];
             const DescriptorBindingDesc& binding = _desc.m_bindings[i];
+            const u32 bindingIndex = binding.m_bindingIndex != DescriptorBindingDesc::kImplicitBindingIndex ? i : binding.m_bindingIndex;
 
             desc = MTL::ArgumentDescriptor::alloc()->init();
             desc->setDataType(MetalConverters::GetDataType(binding.m_type));
             desc->setAccess(MetalConverters::GetBindingAccess(binding.m_type));
             desc->setArrayLength(binding.m_count);
-            desc->setIndex(i);
+            desc->setIndex(bindingIndex);
             desc->setTextureType(MetalConverters::GetTextureType(binding.m_textureType));
             _bindingIndices[i] = PackedIndex {
                 .m_type = static_cast<u32>(binding.m_type),
-                .m_index = static_cast<u32>(i),
+                .m_index = static_cast<u32>(bindingIndex),
             }.m_packedIndex;
 
             cold->m_shaderVisibility |= binding.m_visibility;

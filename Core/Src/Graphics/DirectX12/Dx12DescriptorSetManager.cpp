@@ -14,8 +14,8 @@ namespace KryneEngine
     union PackedIndex
     {
         struct {
-            u16 m_type;
-            u16 m_binding;
+            u32 m_type: 8;
+            u32 m_binding: 24;
         };
         u32 m_packed;
     };
@@ -81,7 +81,7 @@ namespace KryneEngine
             ShaderVisibility::None,
             ShaderVisibility::None,
             ShaderVisibility::None, };
-        eastl::array<u16, kRangeTypesCount> totals = { 0, 0, 0, 0 };
+        eastl::array<u32, kRangeTypesCount> totals = { 0, 0, 0, 0 };
 
         for (auto i = 0; i < _desc.m_bindings.size(); i++)
         {
@@ -107,12 +107,21 @@ namespace KryneEngine
                 break;
             }
 
-            const auto typeIndex = static_cast<u16>(type);
+            const auto typeIndex = static_cast<u32>(type);
+            u32& total = totals[typeIndex];
 
-            u16& total = totals[typeIndex];
             // Pack index data into a single u32
-            _bindingIndices[i] = PackedIndex { .m_type = typeIndex, .m_binding = total }.m_packed;
-            total += binding.m_count;
+            if (binding.m_bindingIndex != DescriptorBindingDesc::kImplicitBindingIndex)
+            {
+                _bindingIndices[i] = PackedIndex { .m_type = typeIndex, .m_binding = total }.m_packed;
+                total += binding.m_count;
+            }
+            else
+            {
+                KE_ASSERT(total <= binding.m_bindingIndex);
+                _bindingIndices[i] = PackedIndex { .m_type = typeIndex, .m_binding = binding.m_bindingIndex }.m_packed;
+                total = binding.m_bindingIndex + binding.m_count;
+            }
 
             visibilities[typeIndex] |= binding.m_visibility;
         }
@@ -134,7 +143,7 @@ namespace KryneEngine
         VERIFY_OR_RETURN(_layout != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
         LayoutData* pData = m_descriptorSetLayout.Get(_layout.m_handle);
         VERIFY_OR_RETURN(pData != nullptr, { GenPool::kInvalidHandle });
-        eastl::array<u16, kRangeTypesCount>& totals = pData->m_totals;
+        eastl::array<u32, kRangeTypesCount>& totals = pData->m_totals;
 
         const GenPool::Handle handle = m_descriptorSets.Allocate();
         DescriptorSetRanges* ranges = m_descriptorSets.Get(handle);

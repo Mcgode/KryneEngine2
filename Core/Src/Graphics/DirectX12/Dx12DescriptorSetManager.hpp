@@ -62,7 +62,7 @@ namespace KryneEngine
         struct LayoutData
         {
             eastl::array<ShaderVisibility, kRangeTypesCount> m_visibilities;
-            eastl::array<u16, kRangeTypesCount> m_totals;
+            eastl::array<u32, kRangeTypesCount> m_totals;
         };
 
         const LayoutData* GetDescriptorSetLayoutData(DescriptorSetLayoutHandle _layout);

@@ -60,8 +60,9 @@ namespace KryneEngine
         {
             const DescriptorBindingDesc& binding = _desc.m_bindings[i];
             const VkDescriptorType type = VkHelperFunctions::ToVkDescriptorType(binding.m_type);
+            const u32 bindingIndex = binding.m_bindingIndex != DescriptorBindingDesc::kImplicitBindingIndex ? i : binding.m_bindingIndex;
             bindings.push_back(VkDescriptorSetLayoutBinding {
-                .binding = i,
+                .binding = bindingIndex,
                 .descriptorType = type,
                 .descriptorCount = binding.m_count,
                 .stageFlags = VkHelperFunctions::ToVkShaderStageFlags(binding.m_visibility),
@@ -73,7 +74,7 @@ namespace KryneEngine
 
             const PackedIndex packedIndex {
                 .m_type = static_cast<u32>(type),
-                .m_binding = i,
+                .m_binding = bindingIndex,
             };
             _bindingIndices[i] = packedIndex.m_packed;
         }

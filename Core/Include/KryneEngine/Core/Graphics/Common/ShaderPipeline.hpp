@@ -298,14 +298,18 @@ namespace KryneEngine
             StorageReadWriteBuffer,
         };
 
+        static constexpr u16 kImplicitBindingIndex = ~0;
+
         Type m_type = Type::SampledTexture;
         ShaderVisibility m_visibility = ShaderVisibility::Fragment;
         u16 m_count = 1;
+        u16 m_bindingIndex = kImplicitBindingIndex; //< Specify explicit binding index. Leave to default value for implicit index.
         TextureTypes m_textureType = TextureTypes::Single2D;
     };
 
     struct DescriptorSetDesc
     {
+        // Note: Array is expected to be sorted by binding indices between descriptors of the same group type
         eastl::vector<DescriptorBindingDesc> m_bindings{};
     };
 
