@@ -12,4 +12,9 @@ namespace KryneEngine::Modules::ShaderReflection
     {
         return *reinterpret_cast<const u32*>(_data) == kMagicNumber;
     }
+
+    Blob* Blob::CreateBlob(AllocatorInstance _allocator, eastl::span<const EntryPointInput> _entryPoints)
+    {
+        return nullptr;
+    }
 }

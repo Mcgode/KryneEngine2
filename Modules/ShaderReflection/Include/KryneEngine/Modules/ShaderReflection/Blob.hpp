@@ -6,7 +6,10 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Common/Types.hpp"
+#include <KryneEngine/Core/Common/Types.hpp>
+
+#include "KryneEngine/Modules/ShaderReflection/Input/EntryPoint.hpp"
+
 namespace KryneEngine::Modules::ShaderReflection
 {
     /**
@@ -35,5 +38,8 @@ namespace KryneEngine::Modules::ShaderReflection
         } m_header;
 
         [[nodiscard]] static bool IsShaderReflectionBlob(const std::byte* _data);
+        [[nodiscard]] static Blob* CreateBlob(
+            AllocatorInstance _allocator,
+            eastl::span<const EntryPointInput> _entryPoints);
     };
 }

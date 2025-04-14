@@ -1,6 +1,10 @@
 add_library(KryneEngine_Modules_ShaderReflection STATIC
         Src/Blob.cpp
         Include/KryneEngine/Modules/ShaderReflection/Blob.hpp
+        Include/KryneEngine/Modules/ShaderReflection/Input/EntryPoint.hpp
+        Include/KryneEngine/Modules/ShaderReflection/Input/PushConstantInput.hpp
+        Include/KryneEngine/Modules/ShaderReflection/Input/DescriptorSetInput.hpp
+        Include/KryneEngine/Modules/ShaderReflection/Input/DescriptorInput.hpp
 )
 
 target_include_directories(KryneEngine_Modules_ShaderReflection PUBLIC Include)
