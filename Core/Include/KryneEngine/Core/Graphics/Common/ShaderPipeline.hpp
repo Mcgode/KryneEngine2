@@ -16,7 +16,7 @@
 
 namespace KryneEngine
 {
-    struct GraphicsShaderStage
+    struct ShaderStage
     {
         enum class Stage : u8
         {
@@ -25,6 +25,9 @@ namespace KryneEngine
             TesselationEvaluation,
             Geometry,
             Fragment,
+            Compute,
+            Mesh,
+            Task,
         };
 
         ShaderModuleHandle m_shaderModule { GenPool::kInvalidHandle };
@@ -335,7 +338,7 @@ namespace KryneEngine
 
     struct GraphicsPipelineDesc
     {
-        eastl::vector<GraphicsShaderStage> m_stages {};
+        eastl::vector<ShaderStage> m_stages {};
         VertexInputDesc m_vertexInput {};
         InputAssemblyDesc m_inputAssembly {};
         RasterStateDesc m_rasterState {};

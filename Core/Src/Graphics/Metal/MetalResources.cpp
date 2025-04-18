@@ -445,10 +445,10 @@ namespace KryneEngine
 
                 switch (stage.m_stage)
                 {
-                case GraphicsShaderStage::Stage::Vertex:
+                case ShaderStage::Stage::Vertex:
                     descriptor->setVertexFunction(function);
                     break;
-                case GraphicsShaderStage::Stage::Fragment:
+                case ShaderStage::Stage::Fragment:
                     descriptor->setFragmentFunction(function);
                     break;
                 default:

@@ -17,7 +17,7 @@ namespace KryneEngine::Modules::ShaderReflection
     struct EntryPointInput
     {
         eastl::string_view m_name;
-        GraphicsShaderStage::Stage m_stage;
+        ShaderStage::Stage m_stage;
         eastl::optional<PushConstantInput> m_pushConstants;
         eastl::span<const DescriptorSetInput> m_descriptorSets;
     };

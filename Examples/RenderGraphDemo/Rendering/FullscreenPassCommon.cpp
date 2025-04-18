@@ -46,14 +46,14 @@ namespace KryneEngine::Samples::RenderGraphDemo::FullscreenPassCommon
 
         GraphicsPipelineDesc psoDesc {
             .m_stages = {
-                GraphicsShaderStage {
+                    ShaderStage{
                     .m_shaderModule = vsModule,
-                    .m_stage = GraphicsShaderStage::Stage::Vertex,
+                    .m_stage = ShaderStage::Stage::Vertex,
                     .m_entryPoint = "FullScreenMain",
                 },
-                GraphicsShaderStage {
+                    ShaderStage{
                     .m_shaderModule = fsModule,
-                    .m_stage = GraphicsShaderStage::Stage::Fragment,
+                    .m_stage = ShaderStage::Stage::Fragment,
                     .m_entryPoint = _fsFunctionName,
                 },
             },

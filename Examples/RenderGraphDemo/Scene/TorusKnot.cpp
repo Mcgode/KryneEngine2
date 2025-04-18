@@ -61,14 +61,14 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         const GraphicsPipelineDesc psoDesc = {
             .m_stages = {
-                GraphicsShaderStage {
+                    ShaderStage{
                     .m_shaderModule = vsModule,
-                    .m_stage = GraphicsShaderStage::Stage::Vertex,
+                    .m_stage = ShaderStage::Stage::Vertex,
                     .m_entryPoint = "MainVs",
                 },
-                GraphicsShaderStage {
+                    ShaderStage{
                     .m_shaderModule = fsModule,
-                    .m_stage = GraphicsShaderStage::Stage::Fragment,
+                    .m_stage = ShaderStage::Stage::Fragment,
                     .m_entryPoint = "MainFs",
                 },
             },

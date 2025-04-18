@@ -344,7 +344,7 @@ namespace KryneEngine::VkHelperFunctions
     VkSamplerAddressMode ToVkAddressMode(SamplerDesc::AddressMode _addressMode);
     VkDescriptorType ToVkDescriptorType(DescriptorBindingDesc::Type _type);
     VkShaderStageFlags ToVkShaderStageFlags(ShaderVisibility _visibility);
-    VkShaderStageFlagBits ToVkShaderStageFlagBits(GraphicsShaderStage::Stage _stage);
+    VkShaderStageFlagBits ToVkShaderStageFlagBits(ShaderStage::Stage _stage);
     VkPrimitiveTopology ToVkPrimitiveTopology(InputAssemblyDesc::PrimitiveTopology _topology);
     VkPolygonMode ToVkPolygonMode(RasterStateDesc::FillMode _fillMode);
     VkCullModeFlags ToVkCullModeFlags(RasterStateDesc::CullMode _cullMode);

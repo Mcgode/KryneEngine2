@@ -83,14 +83,14 @@ void PreparePso(
     {
         _pso = _graphicsContext.CreateGraphicsPipeline({
             .m_stages = {
-                GraphicsShaderStage {
+                    ShaderStage{
                     .m_shaderModule = _vsModule,
-                    .m_stage = KryneEngine::GraphicsShaderStage::Stage::Vertex,
+                    .m_stage = KryneEngine::ShaderStage::Stage::Vertex,
                     .m_entryPoint = "MainVS",
                 },
-                GraphicsShaderStage {
+                    ShaderStage{
                     .m_shaderModule = _psModule,
-                    .m_stage = KryneEngine::GraphicsShaderStage::Stage::Fragment,
+                    .m_stage = KryneEngine::ShaderStage::Stage::Fragment,
                     .m_entryPoint = "MainPS",
                 },
             },

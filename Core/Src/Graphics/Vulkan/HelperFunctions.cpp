@@ -434,19 +434,19 @@ namespace KryneEngine::VkHelperFunctions
         return flags;
     }
 
-    VkShaderStageFlagBits ToVkShaderStageFlagBits(GraphicsShaderStage::Stage _stage)
+    VkShaderStageFlagBits ToVkShaderStageFlagBits(ShaderStage::Stage _stage)
     {
         switch (_stage)
         {
-        case GraphicsShaderStage::Stage::Vertex:
+        case ShaderStage::Stage::Vertex:
             return VK_SHADER_STAGE_VERTEX_BIT;
-        case GraphicsShaderStage::Stage::TesselationControl:
+        case ShaderStage::Stage::TesselationControl:
             return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        case GraphicsShaderStage::Stage::TesselationEvaluation:
+        case ShaderStage::Stage::TesselationEvaluation:
             return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        case GraphicsShaderStage::Stage::Geometry:
+        case ShaderStage::Stage::Geometry:
             return VK_SHADER_STAGE_GEOMETRY_BIT;
-        case GraphicsShaderStage::Stage::Fragment:
+        case ShaderStage::Stage::Fragment:
             return VK_SHADER_STAGE_FRAGMENT_BIT;
         }
     }

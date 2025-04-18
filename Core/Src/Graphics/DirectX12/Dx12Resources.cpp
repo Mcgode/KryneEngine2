@@ -854,23 +854,23 @@ namespace KryneEngine
 
             switch (stage.m_stage)
             {
-            case GraphicsShaderStage::Stage::Vertex:
+            case ShaderStage::Stage::Vertex:
                 KE_ASSERT_MSG(desc.VS.pShaderBytecode == nullptr, "Defined vertex shader stage twice");
                 desc.VS = *pByteCode;
                 break;
-            case GraphicsShaderStage::Stage::TesselationControl:
+            case ShaderStage::Stage::TesselationControl:
                 KE_ASSERT_MSG(desc.HS.pShaderBytecode == nullptr, "Defined tesselation control shader stage twice");
                 desc.HS = *pByteCode;
                 break;
-            case GraphicsShaderStage::Stage::TesselationEvaluation:
+            case ShaderStage::Stage::TesselationEvaluation:
                 KE_ASSERT_MSG(desc.DS.pShaderBytecode == nullptr, "Defined tesselation evaluation shader stage twice");
                 desc.DS = *pByteCode;
                 break;
-            case GraphicsShaderStage::Stage::Geometry:
+            case ShaderStage::Stage::Geometry:
                 KE_ASSERT_MSG(desc.GS.pShaderBytecode == nullptr, "Defined geometry shader stage twice");
                 desc.GS = *pByteCode;
                 break;
-            case GraphicsShaderStage::Stage::Fragment:
+            case ShaderStage::Stage::Fragment:
                 KE_ASSERT_MSG(desc.PS.pShaderBytecode == nullptr, "Defined fragment shader stage twice");
                 desc.PS = *pByteCode;
                 break;

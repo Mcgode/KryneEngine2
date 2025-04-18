@@ -610,14 +610,16 @@ namespace KryneEngine::Modules::ImGui
 #endif
             };
 
-            desc.m_stages.push_back(GraphicsShaderStage {
+            desc.m_stages.push_back(
+                ShaderStage{
                 .m_shaderModule = m_vsModule,
-                .m_stage = GraphicsShaderStage::Stage::Vertex,
+                .m_stage = ShaderStage::Stage::Vertex,
                 .m_entryPoint = "MainVS",
             });
-            desc.m_stages.push_back(GraphicsShaderStage {
+            desc.m_stages.push_back(
+                ShaderStage{
                 .m_shaderModule = m_fsModule,
-                .m_stage = GraphicsShaderStage::Stage::Fragment,
+                .m_stage = ShaderStage::Stage::Fragment,
                 .m_entryPoint = "MainPS",
             });
 

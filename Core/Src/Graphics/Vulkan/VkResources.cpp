@@ -752,7 +752,7 @@ namespace KryneEngine
         DynamicArray<VkPipelineShaderStageCreateInfo> shaderStages(_desc.m_stages.size());
         for (auto i = 0u; i < shaderStages.Size(); i++)
         {
-            const GraphicsShaderStage& stage = _desc.m_stages[i];
+            const ShaderStage& stage = _desc.m_stages[i];
 
             VkShaderModule* pModule = m_shaderModules.Get(stage.m_shaderModule.m_handle);
             VERIFY_OR_RETURN(pModule != nullptr, { GenPool::kInvalidHandle });
