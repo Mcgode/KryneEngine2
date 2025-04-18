@@ -14,7 +14,6 @@ namespace KryneEngine::Modules::ShaderReflection
     struct PushConstantInput
     {
         eastl::string_view m_name;
-        u64 m_signatureHash;
         u32 m_size;
     };
 }

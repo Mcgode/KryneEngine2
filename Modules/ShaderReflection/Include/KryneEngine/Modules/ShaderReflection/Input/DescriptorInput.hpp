@@ -15,9 +15,8 @@ namespace KryneEngine::Modules::ShaderReflection
     {
         eastl::string_view m_name;
         DescriptorBindingDesc::Type m_type;
+        TextureTypes m_textureType;
         u16 m_count;
         u16 m_bindingIndex;
-        TextureTypes m_textureType;
-        bool m_used;
     };
 }
