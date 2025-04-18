@@ -28,6 +28,18 @@ namespace KryneEngine::Hashing
     }
 
     template<typename T>
+    u64 Hash64(const T& _value)
+    {
+        return Hash64(&_value);
+    }
+
+    template<typename T>
+    u64 Hash64Append(const T& _value, u64 _accumulatedHash)
+    {
+        return Hash64Append(&_value, _accumulatedHash);
+    }
+
+    template<typename T>
     u64 Hash64(const T* _data, size_t _count)
     {
         return Hash64(reinterpret_cast<const std::byte*>(_data), _count * sizeof(T));
