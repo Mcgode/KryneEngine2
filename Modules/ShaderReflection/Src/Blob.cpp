@@ -87,7 +87,7 @@ namespace KryneEngine::Modules::ShaderReflection
             const u8 length = eastl::min<u32>(_name.size(), kMaxStringLength);
 
             KE_ASSERT_MSG(
-                stringIt + length + 1 - reinterpret_cast<const u8*>(blob) > (estimatedPreStringTotal + stringTotal),
+                stringIt + length + 1 - reinterpret_cast<const u8*>(blob) <= (estimatedPreStringTotal + stringTotal),
                 "Out of string space!");
 
             memcpy(stringIt + 1, _name.data(), length);
