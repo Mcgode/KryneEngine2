@@ -16,6 +16,7 @@ namespace KryneEngine
         {
         case TextureFormat::R8_UNorm:
         case TextureFormat::R8_SNorm:
+        case TextureFormat::R16_Float:
         case TextureFormat::R32_Float:
         case TextureFormat::D16:
         case TextureFormat::D24:
@@ -26,6 +27,7 @@ namespace KryneEngine
 
         case TextureFormat::RG8_UNorm:
         case TextureFormat::RG8_SNorm:
+        case TextureFormat::RG16_Float:
         case TextureFormat::RG32_Float:
         case TextureFormat::D24S8:
         case TextureFormat::D32FS8:
@@ -36,6 +38,7 @@ namespace KryneEngine
         case TextureFormat::RGB8_UNorm:
         case TextureFormat::RGB8_sRGB:
         case TextureFormat::RGB8_SNorm:
+        case TextureFormat::RGB16_Float:
         case TextureFormat::RGB32_Float:
         {
             return 3;
@@ -46,6 +49,7 @@ namespace KryneEngine
         case TextureFormat::BGRA8_UNorm:
         case TextureFormat::BGRA8_sRGB:
         case TextureFormat::RGBA8_SNorm:
+        case TextureFormat::RGBA16_Float:
         case TextureFormat::RGBA32_Float:
         {
             return 4;

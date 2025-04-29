@@ -107,6 +107,11 @@ namespace KryneEngine::VkHelperFunctions
             MAP(RGB8_SNorm, VK_FORMAT_R8G8B8_SNORM);
             MAP(RGBA8_SNorm, VK_FORMAT_R8G8B8A8_SNORM);
 
+            MAP(R16_Float, VK_FORMAT_R16_SFLOAT);
+            MAP(RG16_Float, VK_FORMAT_R16G16_SFLOAT);
+            MAP(RGB16_Float, VK_FORMAT_R16G16B16_SFLOAT);
+            MAP(RGBA16_Float, VK_FORMAT_R16G16B16A16_SFLOAT);
+
             MAP(R32_Float, VK_FORMAT_R32_SFLOAT);
             MAP(RG32_Float, VK_FORMAT_R32G32_SFLOAT);
             MAP(RGB32_Float, VK_FORMAT_R32G32B32_SFLOAT);

@@ -10,12 +10,16 @@ namespace KryneEngine::MetalConverters
 {
     size_t GetPixelByteSize(TextureFormat _format)
     {
-        static_assert(static_cast<u32>(TextureFormat::D32FS8) == 21, "Enum values changed, please update");
+        static_assert(static_cast<u32>(TextureFormat::D32FS8) == 25, "Enum values changed, please update");
 
         switch (_format)
         {
         case TextureFormat::NoFormat:
         case TextureFormat::D24:
+        case TextureFormat::RGB8_UNorm:
+        case TextureFormat::RGB8_sRGB:
+        case TextureFormat::RGB8_SNorm:
+        case TextureFormat::RGB16_Float:
         case TextureFormat::RGB32_Float:
             return 0;
         case TextureFormat::R8_UNorm:
@@ -23,21 +27,20 @@ namespace KryneEngine::MetalConverters
             return 1;
         case TextureFormat::RG8_UNorm:
         case TextureFormat::RG8_SNorm:
+        case TextureFormat::R16_Float:
         case TextureFormat::D16:
             return 2;
-        case TextureFormat::RGB8_UNorm:
-        case TextureFormat::RGB8_sRGB:
-        case TextureFormat::RGB8_SNorm:
-            return 3;
         case TextureFormat::RGBA8_UNorm:
         case TextureFormat::RGBA8_sRGB:
         case TextureFormat::BGRA8_UNorm:
         case TextureFormat::BGRA8_sRGB:
         case TextureFormat::RGBA8_SNorm:
+        case TextureFormat::RG16_Float:
         case TextureFormat::R32_Float:
         case TextureFormat::D24S8:
         case TextureFormat::D32F:
             return 4;
+        case TextureFormat::RGBA16_Float:
         case TextureFormat::RG32_Float:
         case TextureFormat::D32FS8:
             return 8;
@@ -48,7 +51,7 @@ namespace KryneEngine::MetalConverters
 
     MTL::PixelFormat ToPixelFormat(TextureFormat _format)
     {
-        static_assert(static_cast<u32>(TextureFormat::D32FS8) == 21, "Enum values changed, please update");
+        static_assert(static_cast<u32>(TextureFormat::D32FS8) == 25, "Enum values changed, please update");
 
         switch (_format)
         {
@@ -56,6 +59,7 @@ namespace KryneEngine::MetalConverters
         case TextureFormat::RGB8_UNorm:
         case TextureFormat::RGB8_sRGB:
         case TextureFormat::RGB8_SNorm:
+        case TextureFormat::RGB16_Float:
         case TextureFormat::RGB32_Float:
         case TextureFormat::D24:
             KE_ASSERT_FATAL_MSG(_format == TextureFormat::NoFormat, "Unsupported format");
@@ -78,6 +82,12 @@ namespace KryneEngine::MetalConverters
             return MTL::PixelFormatRG8Snorm;
         case TextureFormat::RGBA8_SNorm:
             return MTL::PixelFormatRGBA8Snorm;
+        case TextureFormat::R16_Float:
+            return MTL::PixelFormatR16Float;
+        case TextureFormat::RG16_Float:
+            return MTL::PixelFormatRG16Float;
+        case TextureFormat::RGBA16_Float:
+            return MTL::PixelFormatRGBA16Float;
         case TextureFormat::R32_Float:
             return MTL::PixelFormatR32Float;
         case TextureFormat::RG32_Float:
@@ -275,7 +285,7 @@ namespace KryneEngine::MetalConverters
 
     MTL::VertexFormat GetVertexFormat(TextureFormat _format)
     {
-        static_assert(static_cast<u32>(TextureFormat::D32FS8) == 21, "Please update switch table");
+        static_assert(static_cast<u32>(TextureFormat::D32FS8) == 25, "Please update switch table");
         switch (_format)
         {
         case TextureFormat::NoFormat:
@@ -296,6 +306,14 @@ namespace KryneEngine::MetalConverters
             return MTL::VertexFormatChar3Normalized;
         case TextureFormat::RGBA8_SNorm:
             return MTL::VertexFormatChar4Normalized;
+        case TextureFormat::R16_Float:
+            return MTL::VertexFormatHalf;
+        case TextureFormat::RG16_Float:
+            return MTL::VertexFormatHalf2;
+        case TextureFormat::RGB16_Float:
+            return MTL::VertexFormatHalf3;
+        case TextureFormat::RGBA16_Float:
+            return MTL::VertexFormatHalf4;
         case TextureFormat::R32_Float:
             return MTL::VertexFormatFloat;
         case TextureFormat::RG32_Float:
