@@ -222,7 +222,7 @@ int main()
             {
                 .m_desc = {
                     .m_dimensions = dimensions,
-                    .m_format = KryneEngine::TextureFormat::RGBA32_Float, // TODO: Implement RGBA16F support
+                    .m_format = KryneEngine::TextureFormat::RGBA16_Float,
 #if !defined(KE_FINAL)
                     .m_debugName = "Deferred GI",
 #endif
@@ -232,7 +232,8 @@ int main()
         deferredGiSrv = renderGraph.GetRegistry().CreateTextureSrv(
             graphicsContext,
             deferredGi,
-            { .m_format = KryneEngine::TextureFormat::RGBA32_Float });
+            { .m_format = KryneEngine::TextureFormat::RGBA16_Float },
+            "Deferred GI SRV");;
     }
 
     // Init scene PSOs
