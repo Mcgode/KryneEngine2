@@ -88,6 +88,7 @@ namespace KryneEngine::Modules::ShaderReflection
         [[nodiscard]] static bool IsShaderReflectionBlob(const std::byte* _data);
         [[nodiscard]] static Blob* CreateBlob(
             AllocatorInstance _allocator,
-            eastl::span<const EntryPointInput> _entryPoints);
+            eastl::span<const EntryPointInput> _entryPoints,
+            size_t& _blobSize);
     };
 }

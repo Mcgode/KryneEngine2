@@ -26,7 +26,10 @@ namespace KryneEngine::Modules::ShaderReflection
         return *reinterpret_cast<const u32*>(_data) == kMagicNumber;
     }
 
-    Blob* Blob::CreateBlob(AllocatorInstance _allocator, eastl::span<const EntryPointInput> _entryPoints)
+    Blob* Blob::CreateBlob(
+        AllocatorInstance _allocator,
+        eastl::span<const EntryPointInput> _entryPoints,
+        size_t& _blobSize)
     {
         // Account for header
         u32 estimatedPreStringTotal = sizeof(Header);
@@ -71,7 +74,8 @@ namespace KryneEngine::Modules::ShaderReflection
         }
 
         // Allocate blob with the correct size from the get-go
-        Blob* blob = reinterpret_cast<Blob*>(_allocator.allocate(estimatedPreStringTotal + stringTotal));
+        _blobSize = estimatedPreStringTotal + stringTotal;
+        Blob* blob = reinterpret_cast<Blob*>(_allocator.allocate(_blobSize));
 
         // Fill in the blob header
         blob->m_header.m_magic = kMagicNumber;
@@ -87,7 +91,7 @@ namespace KryneEngine::Modules::ShaderReflection
             const u8 length = eastl::min<u32>(_name.size(), kMaxStringLength);
 
             KE_ASSERT_MSG(
-                stringIt + length + 1 - reinterpret_cast<const u8*>(blob) <= (estimatedPreStringTotal + stringTotal),
+                stringIt + length + 1 - reinterpret_cast<const u8*>(blob) <= (_blobSize),
                 "Out of string space!");
 
             memcpy(stringIt + 1, _name.data(), length);
@@ -178,7 +182,7 @@ namespace KryneEngine::Modules::ShaderReflection
             }
         }
 
-        KE_ASSERT_MSG(stringIt == reinterpret_cast<u8*>(blob) + estimatedPreStringTotal + stringTotal, "Unused extra padding");
+        KE_ASSERT_MSG(stringIt == (reinterpret_cast<u8*>(blob) + _blobSize), "Unused extra padding");
 
         return blob;
     }
