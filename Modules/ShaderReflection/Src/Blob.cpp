@@ -137,7 +137,7 @@ namespace KryneEngine::Modules::ShaderReflection
         for (auto entryPointIdx = 0u; entryPointIdx < blob->GetEntryPointCount(); entryPointIdx++)
         {
             const u32 entryPointOffset = blob->GetEntryPointOffset(entryPointIdx);
-            auto* descriptorSetIndirectionIt = reinterpret_cast<u32*>(blob->GetByteBuffer() + entryPointOffset);
+            auto* descriptorSetIndirectionIt = reinterpret_cast<u32*>(blob->GetByteBuffer() + entryPointOffset + sizeof(EntryPointHeader));
 
             for (const auto& descriptorSet : _entryPoints[entryPointIdx].m_descriptorSets)
             {
