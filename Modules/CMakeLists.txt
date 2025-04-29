@@ -9,7 +9,7 @@ target_link_libraries(KryneEngine_Modules INTERFACE
         KryneEngine_Modules_GraphicsUtils
         KryneEngine_Modules_ImGui
         KryneEngine_Modules_RenderGraph
-        KryneEngine_Module_ShaderReflection
+        KryneEngine_Modules_ShaderReflection
 )
 
 add_library(KryneEngine INTERFACE)
