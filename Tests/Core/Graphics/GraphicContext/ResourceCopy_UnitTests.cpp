@@ -96,7 +96,7 @@ namespace KryneEngine::Tests::Graphics
         {
             BufferMapping dstMapping { dstBuffer, sizeof(payload), 0, false };
             graphicsContext->MapBuffer(dstMapping);
-            const size_t result = *static_cast<size_t*>(dstMapping.m_ptr);
+            const size_t result = *reinterpret_cast<size_t*>(dstMapping.m_ptr);
             EXPECT_EQ(result, payload);
             graphicsContext->UnmapBuffer(dstMapping);
         }
@@ -231,7 +231,7 @@ namespace KryneEngine::Tests::Graphics
         {
             BufferMapping dstMapping { dstBuffer, sizeof(payload), 0, false };
             graphicsContext->MapBuffer(dstMapping);
-            const size_t result = *static_cast<size_t*>(dstMapping.m_ptr);
+            const size_t result = *reinterpret_cast<size_t*>(dstMapping.m_ptr);
             EXPECT_EQ(result, payload);
             graphicsContext->UnmapBuffer(dstMapping);
         }
@@ -406,7 +406,7 @@ namespace KryneEngine::Tests::Graphics
         {
             BufferMapping dstMapping { dstBuffer, sizeof(payload), 0, false };
             graphicsContext->MapBuffer(dstMapping);
-            const size_t result = *static_cast<size_t*>(dstMapping.m_ptr);
+            const size_t result = *reinterpret_cast<size_t*>(dstMapping.m_ptr);
             EXPECT_EQ(result, payload);
             graphicsContext->UnmapBuffer(dstMapping);
         }
