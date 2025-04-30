@@ -56,6 +56,13 @@ void ExecuteSkyPass(
     std::cout << "Sky pass" << std::endl;
 }
 
+void ExecuteColorMappingPass(
+    RenderGraph::RenderGraph& _renderGraph,
+    RenderGraph::PassExecutionData& _passExecutionData)
+{
+    std::cout << "Color mapping pass" << std::endl;
+}
+
 int main()
 {
     TracySetProgramName("Render graph demo");
@@ -103,7 +110,10 @@ int main()
         deferredShadow,
         deferredShadowSrv,
         deferredGi,
-        deferredGiSrv;
+        deferredGiSrv,
+        hdr,
+        hdrRtv,
+        hdrSrv;
 
     DynamicArray<SimplePoolHandle> swapChainTextures(allocator, graphicsContext->GetFrameContextCount());
     DynamicArray<SimplePoolHandle> swapChainRtvs(allocator, graphicsContext->GetFrameContextCount());
@@ -215,7 +225,8 @@ int main()
         deferredShadowSrv = renderGraph.GetRegistry().CreateTextureSrv(
             graphicsContext,
             deferredShadow,
-            { .m_format = KryneEngine::TextureFormat::R8_UNorm });
+            { .m_format = KryneEngine::TextureFormat::R8_UNorm },
+            "Deferred shadow SRV");
 
         deferredGi = renderGraph.GetRegistry().CreateRawTexture(
             graphicsContext,
@@ -234,6 +245,32 @@ int main()
             deferredGi,
             { .m_format = KryneEngine::TextureFormat::RGBA16_Float },
             "Deferred GI SRV");;
+
+        hdr = renderGraph.GetRegistry().CreateRawTexture(
+            graphicsContext,
+            {
+                .m_desc = {
+                    .m_dimensions = dimensions,
+                    .m_format = KryneEngine::TextureFormat::RGBA16_Float,
+#if !defined(KE_FINAL)
+                    .m_debugName = "HDR render texture",
+#endif
+                },
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::SampledImage | MemoryUsage::ColorTargetImage,
+            });
+        hdrRtv = renderGraph.GetRegistry().CreateRenderTargetView(
+            graphicsContext,
+            RenderGraph::RenderTargetViewDesc {
+                .m_textureResource = hdr,
+                .m_format = KryneEngine::TextureFormat::RGBA16_Float,
+            },
+            "HDR render RTV");
+        hdrSrv = renderGraph.GetRegistry().CreateTextureSrv(
+            graphicsContext,
+            hdr,
+            { .m_format = KryneEngine::TextureFormat::RGBA16_Float },
+            "HDR render SRV"
+        );
     }
 
     // Init scene PSOs
@@ -398,7 +435,7 @@ int main()
                     .SetName("Deferred shading pass")
                     .SetRenderPassCallback([&deferredShadingPass](auto* _graphicsContext, RenderPassHandle _renderPass) { deferredShadingPass.CreatePso(_graphicsContext, _renderPass); })
                     .SetExecuteFunction([&deferredShadingPass](const auto& _, const auto& _passData) { deferredShadingPass.Render(_, _passData); })
-                    .AddColorAttachment(swapChainRtv)
+                    .AddColorAttachment(hdrRtv)
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::DontCare)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                         .Done()
@@ -439,7 +476,7 @@ int main()
                     .SetName("Sky pass")
                     .SetRenderPassCallback([&skyPass](auto* _graphicsContext, RenderPassHandle _renderPass) { skyPass.CreatePso(_graphicsContext, _renderPass); })
                     .SetExecuteFunction([&skyPass](const auto& _renderGraph, const auto& _passData) { skyPass.Render(_renderGraph, _passData); })
-                    .AddColorAttachment(swapChainRtv)
+                    .AddColorAttachment(hdrRtv)
                         .SetLoadOperation(RenderPassDesc::Attachment::LoadOperation::Load)
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::Store)
                         .Done()
@@ -448,6 +485,20 @@ int main()
                         .SetStoreOperation(RenderPassDesc::Attachment::StoreOperation::DontCare)
                         .Done()
                     .ReadDependency(frameCBufferReadDep)
+                    .Done()
+                .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
+                    .SetName("Color mapping pass")
+                    .SetExecuteFunction(ExecuteColorMappingPass)
+                    .AddColorAttachment(swapChainRtv)
+                        .SetLoadOperation(KryneEngine::RenderPassDesc::Attachment::LoadOperation::DontCare)
+                        .SetStoreOperation(KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store)
+                        .Done()
+                    .ReadDependency({
+                        .m_resource = hdrSrv,
+                        .m_targetSyncStage = BarrierSyncStageFlags::FragmentShading,
+                        .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
+                        .m_targetLayout = TextureLayout::ShaderResource,
+                    })
                     .Done()
                 .DeclareTargetResource(swapChainTexture);
         }
