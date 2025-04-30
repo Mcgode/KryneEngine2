@@ -115,4 +115,13 @@ namespace KryneEngine
         eastl::string m_debugName {};
 #endif
     };
+
+    enum class TextureViewAccess: u8
+    {
+        Read            = 1 << 0,
+        Write           = 1 << 1,
+        ReadWrite       = Read | Write,
+        RenderTarget    = 1 << 2,
+    };
+    KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(TextureViewAccess)
 }

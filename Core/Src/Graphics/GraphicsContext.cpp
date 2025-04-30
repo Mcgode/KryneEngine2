@@ -220,14 +220,14 @@ namespace KryneEngine
         return GetImplementation(this).DestroySampler(_sampler);
     }
 
-    BufferCbvHandle GraphicsContext::CreateBufferCbv(const BufferCbvDesc& _cbvDesc)
+    BufferViewHandle GraphicsContext::CreateBufferView(const BufferViewDesc& _viewDesc)
     {
-        return GetImplementation(this).CreateBufferCbv(_cbvDesc);
+        return GetImplementation(this).CreateBufferView(_viewDesc);
     }
 
-    bool GraphicsContext::DestroyBufferCbv(BufferCbvHandle _handle)
+    bool GraphicsContext::DestroyBufferView(BufferViewHandle _handle)
     {
-        return GetImplementation(this).DestroyBufferCbv(_handle);
+        return GetImplementation(this).DestroyBufferView(_handle);
     }
 
     RenderTargetViewHandle GraphicsContext::CreateRenderTargetView(const RenderTargetViewDesc& _desc)
@@ -369,13 +369,15 @@ namespace KryneEngine
             _textures);
     }
 
-    void GraphicsContext::DeclarePassBufferCbvUsage(
+    void GraphicsContext::DeclarePassBufferViewUsage(
         KryneEngine::CommandListHandle _commandList,
-        const eastl::span<const BufferCbvHandle>& _buffers)
+        const eastl::span<const BufferViewHandle>& _buffers,
+        BufferViewAccessType _accessType)
     {
-        GetImplementation(this).DeclarePassBufferCbvUsage(
+        GetImplementation(this).DeclarePassBufferViewUsage(
             reinterpret_cast<CommandList>(_commandList),
-            _buffers);
+            _buffers,
+            _accessType);
     }
 
     ShaderModuleHandle GraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
@@ -461,7 +463,7 @@ namespace KryneEngine
             _rect);
     }
 
-    void GraphicsContext::SetIndexBuffer(CommandListHandle _commandList, const BufferView& _indexBufferView, bool _isU16)
+    void GraphicsContext::SetIndexBuffer(CommandListHandle _commandList, const BufferSpan& _indexBufferView, bool _isU16)
     {
         GetImplementation(this).SetIndexBuffer(
             reinterpret_cast<CommandList>(_commandList),
@@ -469,7 +471,7 @@ namespace KryneEngine
             _isU16);
     }
 
-    void GraphicsContext::SetVertexBuffers(CommandListHandle _commandList, const eastl::span<const BufferView>& _bufferViews)
+    void GraphicsContext::SetVertexBuffers(CommandListHandle _commandList, const eastl::span<const BufferSpan>& _bufferViews)
     {
         GetImplementation(this).SetVertexBuffers(
             reinterpret_cast<CommandList>(_commandList),

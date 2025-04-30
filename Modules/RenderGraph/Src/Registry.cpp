@@ -37,9 +37,9 @@ namespace KryneEngine::Modules::RenderGraph
     SimplePoolHandle Registry::RegisterRawBuffer(BufferHandle _buffer, const eastl::string_view& _name)
     {
         const SimplePoolHandle handle = m_resources.AllocateAndInit(Resource {
-            .m_type = ResourceType::RawBuffer,
+            .m_type = ResourceType::Buffer,
             .m_owned = false,
-            .m_rawBufferData = {
+            .m_bufferData = {
                 .m_buffer = _buffer,
             },
 #if !defined(KE_FINAL)
@@ -73,19 +73,19 @@ namespace KryneEngine::Modules::RenderGraph
         return handle;
     }
 
-    SimplePoolHandle Registry::RegisterCbv(
-        BufferCbvHandle _cbv,
+    SimplePoolHandle Registry::RegisterBufferView(
+        BufferViewHandle _bufferView,
         SimplePoolHandle _bufferResource,
         const eastl::string_view& _name)
     {
-        KE_ASSERT(m_resources.Get(_bufferResource).m_type == ResourceType::RawBuffer);
+        KE_ASSERT(m_resources.Get(_bufferResource).m_type == ResourceType::Buffer);
 
         m_resources.AddRef(_bufferResource);
         const SimplePoolHandle handle = m_resources.AllocateAndInit(Resource {
-            .m_type = ResourceType::BufferCbv,
+            .m_type = ResourceType::BufferView,
             .m_owned = false,
-            .m_bufferCbvData = {
-                .m_cbv = _cbv,
+            .m_bufferViewData = {
+                .m_bufferView = _bufferView,
                 .m_bufferResource = _bufferResource,
             }
         });
@@ -197,12 +197,12 @@ namespace KryneEngine::Modules::RenderGraph
         {
         case ResourceType::TextureSrv:
             return resource.m_textureSrvData.m_textureResource;
-        case ResourceType::BufferCbv:
-            return resource.m_bufferCbvData.m_bufferResource;
+        case ResourceType::BufferView:
+            return resource.m_bufferViewData.m_bufferResource;
         case ResourceType::RenderTargetView:
             return resource.m_renderTargetViewData.m_textureResource;
         case ResourceType::RawTexture:
-        case ResourceType::RawBuffer:
+        case ResourceType::Buffer:
         case ResourceType::Sampler:
             return _resource;
         }

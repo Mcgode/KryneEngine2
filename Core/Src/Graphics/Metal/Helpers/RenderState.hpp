@@ -32,9 +32,9 @@ namespace KryneEngine
     struct RenderState
     {
         RenderDynamicState m_dynamicState {};
-        BufferView m_indexBufferView {};
+        BufferSpan m_indexBufferView {};
         bool m_indexBufferIsU16 = false;
         InputAssemblyDesc::PrimitiveTopology m_topology {};
-        eastl::fixed_vector<BufferView, 4> m_vertexBuffers;
+        eastl::fixed_vector<BufferSpan, 4> m_vertexBuffers;
     };
 }

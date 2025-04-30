@@ -17,6 +17,7 @@
 #include "KryneEngine/Core/Graphics/GraphicsCommon.hpp"
 #include "KryneEngine/Core/Graphics/Handles.hpp"
 #include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
 #include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Graphics/Texture.hpp"
 
@@ -88,8 +89,8 @@ namespace KryneEngine
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
         bool DestroySampler(SamplerHandle _sampler);
 
-        [[nodiscard]] BufferCbvHandle CreateBufferCbv(const BufferCbvDesc& _cbvDesc);
-        bool DestroyBufferCbv(BufferCbvHandle _handle);
+        [[nodiscard]] BufferViewHandle CreateBufferView(const BufferViewDesc& _viewDesc);
+        bool DestroyBufferView(BufferViewHandle _handle);
 
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc);
         bool DestroyRenderTargetView(RenderTargetViewHandle _handle);
@@ -133,7 +134,10 @@ namespace KryneEngine
         [[nodiscard]] static bool RenderPassNeedsUsageDeclaration() { return true; }
         [[nodiscard]] static bool ComputePassNeedsUsageDeclaration() { return true; }
         void DeclarePassTextureSrvUsage(CommandList _commandList, const eastl::span<const TextureSrvHandle>& _textures);
-        void DeclarePassBufferCbvUsage(CommandList _commandList, const eastl::span<const BufferCbvHandle>& _buffers);
+        void DeclarePassBufferViewUsage(
+            CommandList _commandList,
+            const eastl::span<const BufferViewHandle>& _buffers,
+            KryneEngine::BufferViewAccessType _accessType);
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
@@ -156,8 +160,8 @@ namespace KryneEngine
 
         void SetViewport(CommandList _commandList, const Viewport& _viewport);
         void SetScissorsRect(CommandList _commandList, const Rect& _rect);
-        void SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16);
-        void SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferView>& _bufferViews);
+        void SetIndexBuffer(CommandList _commandList, const BufferSpan& _indexBufferView, bool _isU16);
+        void SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferSpan>& _bufferViews);
         void SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline);
         void SetGraphicsPushConstant(
             CommandList _commandList,

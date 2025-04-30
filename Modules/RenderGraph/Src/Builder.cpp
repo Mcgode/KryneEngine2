@@ -179,7 +179,7 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(", Raw texture, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
                 << std::endl;
             break;
-        case ResourceType::RawBuffer:
+        case ResourceType::Buffer:
             std::cout
                 << eastl::string().sprintf(", Raw buffer, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
                 << std::endl;
@@ -194,9 +194,9 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(", Texture SRV, handle: Ox%x",(u32)resource.m_textureSrvData.m_textureSrv.m_handle).c_str()
                 << std::endl;
             break;
-        case ResourceType::BufferCbv:
+        case ResourceType::BufferView:
             std::cout
-                << eastl::string().sprintf(", Buffer CBV, handle: Ox%x",(u32)resource.m_bufferCbvData.m_cbv.m_handle).c_str()
+                << eastl::string().sprintf(", Buffer CBV, handle: Ox%x",(u32)resource.m_bufferViewData.m_bufferView.m_handle).c_str()
                 << std::endl;
             break;
         case ResourceType::RenderTargetView:

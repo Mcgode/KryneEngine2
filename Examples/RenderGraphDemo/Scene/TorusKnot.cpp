@@ -269,12 +269,12 @@ namespace KryneEngine::Samples::RenderGraphDemo
         CommandListHandle _commandList,
         DescriptorSetHandle _sceneConstantsSet)
     {
-        const BufferView vertexBufferView = {
+        const BufferSpan vertexBufferView = {
             .m_size = m_vertexBufferSize,
             .m_offset = 0,
             .m_buffer = m_vertexBuffer,
         };
-        const BufferView indexBufferView = {
+        const BufferSpan indexBufferView = {
             .m_size = m_indexBufferSize,
             .m_offset = 0,
             .m_buffer = m_indexBuffer,

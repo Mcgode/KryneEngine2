@@ -905,14 +905,14 @@ namespace KryneEngine
         return m_resources.DestroySampler(_sampler, m_device);
     }
 
-    BufferCbvHandle VkGraphicsContext::CreateBufferCbv(const BufferCbvDesc &_cbvDesc)
+    BufferViewHandle VkGraphicsContext::CreateBufferView(const BufferViewDesc& _viewDesc)
     {
-        return m_resources.CreateBufferCbv(_cbvDesc, m_device);
+        return m_resources.CreateBufferView(_viewDesc, m_device);
     }
 
-    bool VkGraphicsContext::DestroyBufferCbv(BufferCbvHandle _handle)
+    bool VkGraphicsContext::DestroyBufferView(BufferViewHandle _handle)
     {
-        return m_resources.DestroyBufferCbv(_handle, m_device);
+        return m_resources.DestroyBufferView(_handle, m_device);
     }
 
     RenderTargetViewHandle VkGraphicsContext::GetPresentRenderTargetView(u8 _index)
@@ -1359,7 +1359,7 @@ namespace KryneEngine
         vkCmdSetScissor(_commandList, 0, 1, &scissorRect);
     }
 
-    void VkGraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16)
+    void VkGraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferSpan& _indexBufferView, bool _isU16)
     {
         KE_ZoneScopedFunction("VkGraphicsContext::SetIndexBuffer");
 
@@ -1372,7 +1372,7 @@ namespace KryneEngine
             _isU16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
     }
 
-    void VkGraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferView>& _bufferViews)
+    void VkGraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferSpan>& _bufferViews)
     {
         KE_ZoneScopedFunction("VkGraphicsContext::SetVertexBuffers");
 

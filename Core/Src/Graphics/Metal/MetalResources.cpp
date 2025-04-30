@@ -10,7 +10,7 @@
 #include "Graphics/Metal/MetalArgumentBufferManager.hpp"
 #include "KryneEngine/Core/Common/StringHelpers.hpp"
 #include "KryneEngine/Core/Graphics/Buffer.hpp"
-#include "KryneEngine/Core/Graphics/ResourceViews/ConstantBufferView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp"
 #include "KryneEngine/Core/Graphics/Texture.hpp"
@@ -208,23 +208,23 @@ namespace KryneEngine
         return false;
     }
 
-    BufferCbvHandle MetalResources::RegisterBufferCbv(const BufferCbvDesc& _cbvDesc)
+    BufferViewHandle MetalResources::RegisterBufferView(const BufferViewDesc& _viewDesc)
     {
-        const BufferHotData* originalBuffer = m_buffers.Get(_cbvDesc.m_buffer.m_handle);
+        const BufferHotData* originalBuffer = m_buffers.Get(_viewDesc.m_buffer.m_handle);
         KE_ASSERT_FATAL(originalBuffer != nullptr);
 
-        const GenPool::Handle handle = m_bufferCbvs.Allocate();
-        BufferCbvHotData* hot = m_bufferCbvs.Get(handle);
+        const GenPool::Handle handle = m_bufferViews.Allocate();
+        BufferViewHotData* hot = m_bufferViews.Get(handle);
         hot->m_buffer = originalBuffer->m_buffer->retain();
-        hot->m_offset = _cbvDesc.m_offset;
+        hot->m_offset = _viewDesc.m_offset;
 
         return { handle };
     }
 
-    bool MetalResources::UnregisterBufferCbv(BufferCbvHandle _handle)
+    bool MetalResources::UnregisterBufferView(BufferViewHandle _handle)
     {
-        BufferCbvHotData hot;
-        if (m_bufferCbvs.Free(_handle.m_handle, &hot))
+        BufferViewHotData hot;
+        if (m_bufferViews.Free(_handle.m_handle, &hot))
         {
             hot.m_buffer.reset();
             return true;

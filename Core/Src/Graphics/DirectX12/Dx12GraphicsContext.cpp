@@ -360,14 +360,14 @@ namespace KryneEngine
         return m_resources.DestroySampler(_sampler);
     }
 
-    BufferCbvHandle Dx12GraphicsContext::CreateBufferCbv(const BufferCbvDesc &_cbvDesc)
+    BufferViewHandle Dx12GraphicsContext::CreateBufferView(const BufferViewDesc & _viewDesc)
     {
-        return m_resources.CreateBufferCbv(_cbvDesc, m_device.Get());
+        return m_resources.CreateBufferView(_viewDesc, m_device.Get());
     }
 
-    bool Dx12GraphicsContext::DestroyBufferCbv(BufferCbvHandle _handle)
+    bool Dx12GraphicsContext::DestroyBufferView(BufferViewHandle _handle)
     {
-        return m_resources.DestroyBufferCbv(_handle);
+        return m_resources.DestroyBufferView(_handle);
     }
 
     RenderTargetViewHandle Dx12GraphicsContext::GetPresentRenderTargetView(u8 _index)
@@ -1044,7 +1044,7 @@ namespace KryneEngine
         _commandList->RSSetScissorRects(1, &scissorRect);
     }
 
-    void Dx12GraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16)
+    void Dx12GraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferSpan& _indexBufferView, bool _isU16)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::SetIndexBuffer");
 
@@ -1061,7 +1061,7 @@ namespace KryneEngine
         _commandList->IASetIndexBuffer(&indexBufferView);
     }
 
-    void Dx12GraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferView>& _bufferViews)
+    void Dx12GraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferSpan>& _bufferViews)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::SetVertexBuffers");
 

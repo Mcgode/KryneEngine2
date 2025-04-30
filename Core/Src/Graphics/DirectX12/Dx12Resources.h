@@ -11,6 +11,7 @@
 #include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Graphics/Texture.hpp"
 #include "KryneEngine/Core/Memory/DynamicArray.hpp"
+#include "KryneEngine/Core/Memory/IndexAllocator.hpp"
 
 namespace D3D12MA
 {
@@ -20,7 +21,7 @@ namespace D3D12MA
 
 namespace KryneEngine
 {
-    struct BufferCbvDesc;
+    struct BufferViewDesc;
     struct BufferCreateDesc;
     struct TextureSrvDesc;
     struct RenderTargetViewDesc;
@@ -56,8 +57,8 @@ namespace KryneEngine
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc, ID3D12Device* _device);
         bool DestroySampler(SamplerHandle _sampler);
 
-        [[nodiscard]] BufferCbvHandle CreateBufferCbv(const BufferCbvDesc& _cbvDesc, ID3D12Device* _device);
-        bool DestroyBufferCbv(BufferCbvHandle _bufferCbv);
+        [[nodiscard]] BufferViewHandle CreateBufferView(const BufferViewDesc& _viewDesc, ID3D12Device* _device);
+        bool DestroyBufferView(BufferViewHandle _bufferCbv);
 
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc, ID3D12Device* _device);
         bool FreeRenderTargetView(RenderTargetViewHandle _rtv);
@@ -83,6 +84,20 @@ namespace KryneEngine
             TextureHandle m_resource {};
         };
 
+        struct BufferViewHotData
+        {
+            CD3DX12_CPU_DESCRIPTOR_HANDLE m_cbvHandle {};
+            CD3DX12_CPU_DESCRIPTOR_HANDLE m_srvHandle {};
+            CD3DX12_CPU_DESCRIPTOR_HANDLE m_uavHandle {};
+        };
+
+        struct BufferViewColdData
+        {
+            u32 m_cbvIndex{};
+            u32 m_srvIndex {};
+            u32 m_uavIndex {};
+        };
+
         struct PsoColdData
         {
             ID3D12RootSignature* m_signature;
@@ -91,8 +106,9 @@ namespace KryneEngine
 
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_buffers;
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_textures;
-        GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_cbvSrvUav;
+        IndexAllocator m_cbvSrvUavAllocator;
         GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_samplers;
+        GenerationalPool<BufferViewHotData, BufferViewColdData> m_bufferViews;
         GenerationalPool<RtvHotData, DXGI_FORMAT> m_renderTargetViews;
         GenerationalPool<RtvHotData, DXGI_FORMAT> m_depthStencilViews;
         GenerationalPool<RenderPassDesc> m_renderPasses;

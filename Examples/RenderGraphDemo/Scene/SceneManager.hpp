@@ -67,7 +67,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
         uint2 m_windowSize;
 
         Modules::GraphicsUtils::DynamicBuffer m_sceneConstantsBuffer;
-        DynamicArray<BufferCbvHandle> m_sceneCbvs;
+        DynamicArray<BufferViewHandle> m_sceneCbvs;
         eastl::vector<u32> m_sceneDescriptorSetIndices;
         DescriptorSetLayoutHandle m_sceneDescriptorSetLayout;
         DynamicArray<DescriptorSetHandle> m_sceneDescriptorSets;

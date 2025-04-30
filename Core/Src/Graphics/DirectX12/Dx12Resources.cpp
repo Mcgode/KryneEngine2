@@ -11,7 +11,7 @@
 #include "Graphics/DirectX12/Dx12Resources.h"
 #include "Graphics/DirectX12/HelperFunctions.hpp"
 #include "KryneEngine/Core/Graphics/Buffer.hpp"
-#include "KryneEngine/Core/Graphics/ResourceViews/ConstantBufferView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp"
 #include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
@@ -327,35 +327,121 @@ namespace KryneEngine
         return m_samplers.Free(_sampler.m_handle);
     }
 
-    BufferCbvHandle Dx12Resources::CreateBufferCbv(const BufferCbvDesc &_cbvDesc, ID3D12Device *_device)
+    BufferViewHandle Dx12Resources::CreateBufferView(const BufferViewDesc & _viewDesc, ID3D12Device *_device)
     {
-        KE_ZoneScopedFunction("Dx12Resources::CreateBufferCbv");
+        KE_ZoneScopedFunction("Dx12Resources::CreateBufferView");
 
-        ID3D12Resource** buffer = m_buffers.Get(_cbvDesc.m_buffer.m_handle);
+        ID3D12Resource** buffer = m_buffers.Get(_viewDesc.m_buffer.m_handle);
         if (buffer == nullptr)
         {
             return { GenPool::kInvalidHandle };
         }
 
-        const auto handle = m_cbvSrvUav.Allocate();
+        const auto handle = m_bufferViews.Allocate();
+        const auto [hot, cold] = m_bufferViews.GetAll(handle);
 
-        const D3D12_CONSTANT_BUFFER_VIEW_DESC desc {
-            .BufferLocation = (*buffer)->GetGPUVirtualAddress(),
-            .SizeInBytes = Alignment::AlignUpPot<u32>(_cbvDesc.m_size, 8),
-        };
+        if (BitUtils::EnumHasAny(_viewDesc.m_accessType, BufferViewAccessType::Constant))
+        {
+            const D3D12_CONSTANT_BUFFER_VIEW_DESC desc {
+                .BufferLocation = (*buffer)->GetGPUVirtualAddress(),
+                .SizeInBytes = Alignment::AlignUpPot<u32>(_viewDesc.m_size, 8),
+            };
 
-        const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
-            m_cbvSrvUavDescriptorStorageHeap->GetCPUDescriptorHandleForHeapStart(),
-            handle.m_index,
-            m_cbvSrvUavDescriptorSize);
-        _device->CreateConstantBufferView(&desc, cpuDescriptorHandle);
-        *m_cbvSrvUav.Get(handle) = cpuDescriptorHandle;
+            cold->m_cbvIndex = m_cbvSrvUavAllocator.Allocate();
+
+            const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
+                m_cbvSrvUavDescriptorStorageHeap->GetCPUDescriptorHandleForHeapStart(),
+                cold->m_cbvIndex,
+                m_cbvSrvUavDescriptorSize);
+            _device->CreateConstantBufferView(&desc, cpuDescriptorHandle);
+
+            hot->m_cbvHandle = cpuDescriptorHandle;
+        }
+        else
+        {
+            hot->m_cbvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE();
+            cold->m_cbvIndex = IndexAllocator::InvalidIndex();
+        }
+
+        if (BitUtils::EnumHasAny(_viewDesc.m_accessType, BufferViewAccessType::Read))
+        {
+            const D3D12_SHADER_RESOURCE_VIEW_DESC desc {
+                .Format = DXGI_FORMAT_UNKNOWN,
+                .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
+                .Buffer = {
+                    .FirstElement = _viewDesc.m_offset / _viewDesc.m_stride,
+                    .NumElements = static_cast<u32>(_viewDesc.m_size / _viewDesc.m_stride),
+                    .StructureByteStride = _viewDesc.m_stride,
+                },
+            };
+
+            cold->m_srvIndex = m_cbvSrvUavAllocator.Allocate();
+
+            const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
+                m_cbvSrvUavDescriptorStorageHeap->GetCPUDescriptorHandleForHeapStart(),
+                cold->m_srvIndex,
+                m_cbvSrvUavDescriptorSize);
+            _device->CreateShaderResourceView(*buffer, &desc, cpuDescriptorHandle);
+
+            hot->m_srvHandle = cpuDescriptorHandle;
+        }
+        else
+        {
+            hot->m_srvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE();
+            cold->m_srvIndex = IndexAllocator::InvalidIndex();
+        }
+
+        if (BitUtils::EnumHasAny(_viewDesc.m_accessType, BufferViewAccessType::Write))
+        {
+            const D3D12_UNORDERED_ACCESS_VIEW_DESC desc {
+                .Format = DXGI_FORMAT_UNKNOWN,
+                .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
+                .Buffer = {
+                    .FirstElement = _viewDesc.m_offset / _viewDesc.m_stride,
+                    .NumElements = static_cast<u32>(_viewDesc.m_size / _viewDesc.m_stride),
+                    .StructureByteStride = _viewDesc.m_stride,
+                },
+            };
+
+            cold->m_uavIndex = m_cbvSrvUavAllocator.Allocate();
+
+            const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
+                m_cbvSrvUavDescriptorStorageHeap->GetCPUDescriptorHandleForHeapStart(),
+                cold->m_uavIndex,
+                m_cbvSrvUavDescriptorSize);
+            _device->CreateUnorderedAccessView(*buffer, nullptr, &desc, cpuDescriptorHandle);
+
+            hot->m_uavHandle = cpuDescriptorHandle;
+        }
+        else
+        {
+            hot->m_uavHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE();
+            cold->m_uavIndex = IndexAllocator::InvalidIndex();
+        }
+
         return { handle };
     }
 
-    bool Dx12Resources::DestroyBufferCbv(BufferCbvHandle _bufferCbv)
+    bool Dx12Resources::DestroyBufferView(BufferViewHandle _bufferCbv)
     {
-        return m_cbvSrvUav.Free(_bufferCbv.m_handle);
+        BufferViewColdData cold;
+        if (m_bufferViews.Free(_bufferCbv.m_handle, nullptr, &cold))
+        {
+            if (cold.m_cbvIndex != IndexAllocator::InvalidIndex())
+            {
+                m_cbvSrvUavAllocator.Free(cold.m_cbvIndex);
+            }
+            if (cold.m_srvIndex != IndexAllocator::InvalidIndex())
+            {
+                m_cbvSrvUavAllocator.Free(cold.m_srvIndex);
+            }
+            if (cold.m_uavIndex != IndexAllocator::InvalidIndex())
+            {
+                m_cbvSrvUavAllocator.Free(cold.m_uavIndex);
+            }
+            return true;
+        }
+        return false;
     }
 
     RenderTargetViewHandle

@@ -13,10 +13,10 @@ namespace KryneEngine::Modules::RenderGraph
     enum class ResourceType
     {
         RawTexture,
-        RawBuffer,
+        Buffer,
         Sampler,
         TextureSrv,
-        BufferCbv,
+        BufferView,
         RenderTargetView,
     };
 
@@ -25,7 +25,7 @@ namespace KryneEngine::Modules::RenderGraph
         TextureHandle m_texture;
     };
 
-    struct RawBufferData
+    struct BufferData
     {
         BufferHandle m_buffer;
     };
@@ -41,9 +41,9 @@ namespace KryneEngine::Modules::RenderGraph
         SimplePoolHandle m_textureResource;
     };
 
-    struct BufferCbvData
+    struct BufferViewData
     {
-        BufferCbvHandle m_cbv;
+        BufferViewHandle m_bufferView;
         SimplePoolHandle m_bufferResource;
     };
 
@@ -59,10 +59,10 @@ namespace KryneEngine::Modules::RenderGraph
         bool m_owned;
         union {
             RawTextureData m_rawTextureData;
-            RawBufferData m_rawBufferData;
+            BufferData m_bufferData;
             SamplerData m_samplerData;
             TextureSrvData m_textureSrvData;
-            BufferCbvData m_bufferCbvData;
+            BufferViewData m_bufferViewData;
             RenderTargetViewData m_renderTargetViewData;
         };
 #if !defined(KE_FINAL)

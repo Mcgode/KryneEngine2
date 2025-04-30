@@ -138,8 +138,8 @@ void PrepareBuffers(
     GraphicsContext& _graphicsContext,
     BufferHandle& _vertexBuffer,
     BufferHandle& _indexBuffer,
-    BufferView& _vertexBufferView,
-    BufferView& _indexBufferView)
+    BufferSpan& _vertexBufferView,
+    BufferSpan& _indexBufferView)
 {
     constexpr float vertexData[] =
     {
@@ -270,7 +270,7 @@ int main()
     PipelineLayoutHandle trianglePipelineLayout;
     GraphicsPipelineHandle trianglePso;
     BufferHandle vertexBuffer, indexBuffer;
-    BufferView vertexBufferView, indexBufferView;
+    BufferSpan vertexBufferView, indexBufferView;
 
     // Prepare resources
     PrepareRenderPasses(*graphicsContext, renderPassHandles);

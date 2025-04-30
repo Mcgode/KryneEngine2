@@ -8,7 +8,7 @@
 
 #include "KryneEngine/Core/Graphics/Drawing.hpp"
 #include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
-#include <KryneEngine/Core/Graphics/ResourceViews/ConstantBufferView.hpp>
+#include <KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Window/Window.hpp>
 #include <KryneEngine/Modules/ImGui/Context.hpp>
@@ -85,11 +85,12 @@ namespace KryneEngine::Samples::RenderGraphDemo
         m_sceneCbvs.Resize(graphicsContext->GetFrameContextCount());
         for (auto i = 0u; i < graphicsContext->GetFrameContextCount(); ++i)
         {
-            m_sceneCbvs[i] = graphicsContext->CreateBufferCbv(BufferCbvDesc {
-                .m_buffer = m_sceneConstantsBuffer.GetBuffer(i),
-                .m_size = sizeof(SceneConstants),
-                .m_offset = 0,
-            });
+            m_sceneCbvs[i] = graphicsContext->CreateBufferView(
+                BufferViewDesc{
+                    .m_buffer = m_sceneConstantsBuffer.GetBuffer(i),
+                    .m_size = sizeof(SceneConstants),
+                    .m_offset = 0,
+                });
         }
 
         const DescriptorBindingDesc bindings[] {
@@ -126,7 +127,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
         for (auto i = 0u; i < m_cbRenderGraphHandles.Size(); ++i)
         {
             m_cbRenderGraphHandles[i] = _registry.RegisterRawBuffer(m_sceneConstantsBuffer.GetBuffer(i));
-            m_cbvRenderGraphHandles[i] = _registry.RegisterCbv(m_sceneCbvs[i], m_cbRenderGraphHandles[i]);
+            m_cbvRenderGraphHandles[i] = _registry.RegisterBufferView(m_sceneCbvs[i], m_cbRenderGraphHandles[i]);
         }
     }
 
@@ -211,9 +212,19 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
     void SceneManager::RenderGBuffer(GraphicsContext* _graphicsContext, CommandListHandle _commandList)
     {
-        _graphicsContext->DeclarePassBufferCbvUsage(_commandList, { &m_sceneCbvs[_graphicsContext->GetCurrentFrameContextIndex()], 1 });
-        _graphicsContext->SetViewport(_commandList, Viewport { .m_width = static_cast<s32>(m_windowSize.x), .m_height = static_cast<s32>(m_windowSize.y) });
-        _graphicsContext->SetScissorsRect(_commandList, Rect { .m_left = 0, .m_top = 0, .m_right = m_windowSize.x, .m_bottom = m_windowSize.y });
-        m_torusKnot->RenderGBuffer(_graphicsContext, _commandList, m_sceneDescriptorSets[_graphicsContext->GetCurrentFrameContextIndex()]);
+        _graphicsContext->DeclarePassBufferViewUsage(
+            _commandList,
+            { &m_sceneCbvs[_graphicsContext->GetCurrentFrameContextIndex()], 1 },
+            BufferViewAccessType::Constant);
+        _graphicsContext->SetViewport(
+            _commandList,
+            Viewport { .m_width = static_cast<s32>(m_windowSize.x), .m_height = static_cast<s32>(m_windowSize.y) });
+        _graphicsContext->SetScissorsRect(
+            _commandList,
+            Rect { .m_left = 0, .m_top = 0, .m_right = m_windowSize.x, .m_bottom = m_windowSize.y });
+        m_torusKnot->RenderGBuffer(
+            _graphicsContext,
+            _commandList,
+            m_sceneDescriptorSets[_graphicsContext->GetCurrentFrameContextIndex()]);
     }
 }

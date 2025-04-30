@@ -71,7 +71,7 @@ namespace KryneEngine::Modules::RenderGraph
                             .m_accessSrc = previousState.m_accessFlags,
                             .m_accessDst = dependency.m_targetAccessFlags,
                             .m_buffer = _registry.GetResource(underlyingResource)
-                                            .m_rawBufferData.m_buffer,
+                                            .m_bufferData.m_buffer,
                         });
                     }
 

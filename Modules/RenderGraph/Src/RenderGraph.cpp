@@ -273,7 +273,7 @@ namespace KryneEngine::Modules::RenderGraph
         const PassDeclaration& _pass)
     {
         eastl::vector<TextureSrvHandle> textureSrvs;
-        eastl::vector<BufferCbvHandle> bufferCbvs;
+        eastl::vector<BufferViewHandle> bufferCbvs;
 
         textureSrvs.reserve(_pass.m_readDependencies.size());
         bufferCbvs.reserve(_pass.m_readDependencies.size());
@@ -287,8 +287,8 @@ namespace KryneEngine::Modules::RenderGraph
             case ResourceType::TextureSrv:
                 textureSrvs.push_back(resource.m_textureSrvData.m_textureSrv);
                 break;
-            case ResourceType::BufferCbv:
-                bufferCbvs.push_back(resource.m_bufferCbvData.m_cbv);
+            case ResourceType::BufferView:
+                bufferCbvs.push_back(resource.m_bufferViewData.m_bufferView);
                 break;
             default:
                 break;
@@ -296,6 +296,6 @@ namespace KryneEngine::Modules::RenderGraph
         }
 
         _graphicsContext->DeclarePassTextureSrvUsage(_commandList, textureSrvs);
-        _graphicsContext->DeclarePassBufferCbvUsage(_commandList, bufferCbvs);
+        _graphicsContext->DeclarePassBufferViewUsage(_commandList, bufferCbvs, BufferViewAccessType::Constant);
     }
 } // namespace KryneEngine::Modules::RenderGraph

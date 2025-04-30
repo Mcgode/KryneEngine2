@@ -17,6 +17,7 @@
 #include "Graphics/Vulkan/VkSwapChain.hpp"
 #include "Graphics/Vulkan/VkTypes.hpp"
 #include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
 #include "KryneEngine/Core/Graphics/Texture.hpp"
 
 namespace KryneEngine
@@ -26,7 +27,7 @@ namespace KryneEngine
 
     struct BufferMapping;
     struct BufferCopyParameters;
-    struct BufferView;
+    struct BufferSpan;
     struct DrawIndexedInstancedDesc;
     struct DrawInstancedDesc;
     struct Viewport;
@@ -156,8 +157,8 @@ namespace KryneEngine
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
         bool DestroySampler(SamplerHandle _sampler);
 
-        [[nodiscard]] BufferCbvHandle CreateBufferCbv(const BufferCbvDesc& _cbvDesc);
-        bool DestroyBufferCbv(BufferCbvHandle _handle);
+        [[nodiscard]] BufferViewHandle CreateBufferView(const BufferViewDesc& _viewDesc);
+        bool DestroyBufferView(BufferViewHandle _handle);
 
         [[nodiscard]] inline RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
         {
@@ -196,6 +197,9 @@ namespace KryneEngine
         void BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass);
         void EndRenderPass(CommandList _commandList);
 
+        void BeginComputePass(CommandList _commandList) {};
+        void EndComputePass(CommandList _commandList) {};
+
         void SetTextureData(
             CommandList _commandList,
             BufferHandle _stagingBuffer,
@@ -218,7 +222,7 @@ namespace KryneEngine
         [[nodiscard]] static bool RenderPassNeedsUsageDeclaration() { return false; }
         [[nodiscard]] static bool ComputePassNeedsUsageDeclaration() { return false; }
         void DeclarePassTextureSrvUsage(CommandList, const eastl::span<const TextureSrvHandle>&) {}
-        void DeclarePassBufferCbvUsage(CommandList, const eastl::span<const BufferCbvHandle>&) {}
+        void DeclarePassBufferViewUsage(CommandList, const eastl::span<const BufferViewHandle>&, BufferViewAccessType) {}
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
@@ -238,8 +242,8 @@ namespace KryneEngine
 
         void SetViewport(CommandList  _commandList, const Viewport& _viewport);
         void SetScissorsRect(CommandList  _commandList, const Rect& _rect);
-        void SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16);
-        void SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferView>& _bufferViews);
+        void SetIndexBuffer(CommandList _commandList, const BufferSpan& _indexBufferView, bool _isU16);
+        void SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferSpan>& _bufferViews);
         void SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline);
         void SetGraphicsPushConstant(
             CommandList _commandList,

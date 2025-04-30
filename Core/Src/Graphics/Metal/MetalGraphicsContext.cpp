@@ -197,14 +197,14 @@ namespace KryneEngine
         return m_resources.DestroySampler(_sampler);
     }
 
-    BufferCbvHandle MetalGraphicsContext::CreateBufferCbv(const BufferCbvDesc& _cbvDesc)
+    BufferViewHandle MetalGraphicsContext::CreateBufferView(const BufferViewDesc& _viewDesc)
     {
-        return m_resources.RegisterBufferCbv(_cbvDesc);
+        return m_resources.RegisterBufferView(_viewDesc);
     }
 
-    bool MetalGraphicsContext::DestroyBufferCbv(BufferCbvHandle _handle)
+    bool MetalGraphicsContext::DestroyBufferView(BufferViewHandle _handle)
     {
-        return m_resources.UnregisterBufferCbv(_handle);
+        return m_resources.UnregisterBufferView(_handle);
     }
 
     RenderTargetViewHandle MetalGraphicsContext::CreateRenderTargetView(const RenderTargetViewDesc& _desc)
@@ -592,9 +592,9 @@ namespace KryneEngine
         UseResources(_commandList, { resources.Data(), resources.Size() });
     }
 
-    void MetalGraphicsContext::DeclarePassBufferCbvUsage(
+    void MetalGraphicsContext::DeclarePassBufferViewUsage(
         CommandList _commandList,
-        const eastl::span<const BufferCbvHandle>& _buffers)
+        const eastl::span<const BufferViewHandle>& _buffers, BufferViewAccessType _accessType)
     {
         KE_ASSERT(_commandList->m_encoder != nullptr
                   && (_commandList->m_type == CommandListData::EncoderType::Render
@@ -604,7 +604,7 @@ namespace KryneEngine
 
         for (auto i = 0u; i < _buffers.size(); ++i)
         {
-            resources[i] = m_resources.m_bufferCbvs.Get(_buffers[i].m_handle)->m_buffer.get();
+            resources[i] = m_resources.m_bufferViews.Get(_buffers[i].m_handle)->m_buffer.get();
         }
 
         UseResources(_commandList, { resources.Data(), resources.Size() });
@@ -712,7 +712,7 @@ namespace KryneEngine
         });
     }
 
-    void MetalGraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferView& _indexBufferView, bool _isU16)
+    void MetalGraphicsContext::SetIndexBuffer(CommandList _commandList, const BufferSpan& _indexBufferView, bool _isU16)
     {
         VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
         auto* renderState = static_cast<RenderState*>(_commandList->m_userData);
@@ -722,7 +722,7 @@ namespace KryneEngine
         renderState->m_indexBufferIsU16 = _isU16;
     }
 
-    void MetalGraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferView>& _bufferViews)
+    void MetalGraphicsContext::SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferSpan>& _bufferViews)
     {
         VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Render);
         auto* renderState = static_cast<RenderState*>(_commandList->m_userData);
@@ -808,7 +808,7 @@ namespace KryneEngine
         }
 
         u8 i = 0;
-        for (const BufferView& vertexBufferView: renderState->m_vertexBuffers)
+        for (const BufferSpan& vertexBufferView: renderState->m_vertexBuffers)
         {
             encoder->setVertexBuffer(
                 m_resources.m_buffers.Get(vertexBufferView.m_buffer.m_handle)->m_buffer.get(),

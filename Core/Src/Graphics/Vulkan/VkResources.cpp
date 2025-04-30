@@ -11,7 +11,7 @@
 #include "Graphics/Vulkan/VkDescriptorSetManager.hpp"
 #include "KryneEngine/Core/Common/Utils/Alignment.hpp"
 #include "KryneEngine/Core/Graphics/Buffer.hpp"
-#include "KryneEngine/Core/Graphics/ResourceViews/ConstantBufferView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp"
 #include "KryneEngine/Core/Graphics/GraphicsCommon.hpp"
@@ -377,22 +377,22 @@ namespace KryneEngine
         return false;
     }
 
-    BufferCbvHandle VkResources::CreateBufferCbv(const BufferCbvDesc &_cbvDesc, VkDevice _device)
+    BufferViewHandle VkResources::CreateBufferView(const BufferViewDesc & _viewDesc, VkDevice _device)
     {
-        KE_ZoneScopedFunction("VkResources::CreateBufferCbv");
+        KE_ZoneScopedFunction("VkResources::CreateBufferView");
 
-        const VkBuffer* buffer = m_buffers.Get(_cbvDesc.m_buffer.m_handle);
+        const VkBuffer* buffer = m_buffers.Get(_viewDesc.m_buffer.m_handle);
         const auto handle = m_bufferViews.Allocate();
 
-        BufferView* bufferView = m_bufferViews.Get(handle);
+        BufferSpan* bufferView = m_bufferViews.Get(handle);
         bufferView->m_buffer = *buffer;
-        bufferView->m_offset = _cbvDesc.m_offset;
-        bufferView->m_size = _cbvDesc.m_size;
+        bufferView->m_offset = _viewDesc.m_offset;
+        bufferView->m_size = _viewDesc.m_size;
 
         return { handle };
     }
 
-    bool VkResources::DestroyBufferCbv(BufferCbvHandle _handle, VkDevice _device)
+    bool VkResources::DestroyBufferView(BufferViewHandle _handle, VkDevice _device)
     {
         return m_bufferViews.Free(_handle.m_handle);
     }

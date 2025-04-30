@@ -301,7 +301,7 @@ namespace KryneEngine
                 }
                 else if (packedIndex.m_type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER || packedIndex.m_type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
                 {
-                    const VkResources::BufferView* bufferView = _resources.m_bufferViews.Get(descriptor.m_handle);
+                    const VkResources::BufferSpan* bufferView = _resources.m_bufferViews.Get(descriptor.m_handle);
                     data.m_bufferImageInfo.buffer = bufferView->m_buffer;
                     data.m_bufferImageInfo.offset = bufferView->m_offset;
                     data.m_bufferImageInfo.range = bufferView->m_size;

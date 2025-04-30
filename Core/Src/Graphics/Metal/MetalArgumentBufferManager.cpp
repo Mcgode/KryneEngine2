@@ -292,15 +292,13 @@ namespace KryneEngine
                 KE_ERROR("Not support yet");
                 break;
             case DescriptorBindingDesc::Type::ConstantBuffer:
-            {
-                MetalResources::BufferCbvHotData* cbv = _resources.m_bufferCbvs.Get(update.m_object);
-                encoder->setBuffer(cbv->m_buffer.get(), cbv->m_offset, index.m_index);
-                break;
-            }
             case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:
             case DescriptorBindingDesc::Type::StorageReadWriteBuffer:
-                KE_ERROR("Not supported yet");
+            {
+                MetalResources::BufferViewHotData* bufferView = _resources.m_bufferViews.Get(update.m_object);
+                encoder->setBuffer(bufferView->m_buffer.get(), bufferView->m_offset, index.m_index);
                 break;
+            }
             }
         }
 

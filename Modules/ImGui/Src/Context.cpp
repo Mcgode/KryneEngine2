@@ -432,7 +432,7 @@ namespace KryneEngine::Modules::ImGui
 
         // Set index buffer
         {
-            const BufferView bufferView {
+            const BufferSpan bufferView {
                 .m_size = m_dynamicIndexBuffer.GetSize(frameIndex),
                 .m_buffer = m_dynamicIndexBuffer.GetBuffer(frameIndex),
             };
@@ -441,7 +441,7 @@ namespace KryneEngine::Modules::ImGui
 
         // Set vertex buffer
         {
-            BufferView bufferView {
+            BufferSpan bufferView {
                 .m_size = m_dynamicVertexBuffer.GetSize(frameIndex),
                 .m_stride = sizeof(VertexEntry),
                 .m_buffer = m_dynamicVertexBuffer.GetBuffer(frameIndex),

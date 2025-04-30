@@ -36,8 +36,8 @@ namespace KryneEngine::Modules::RenderGraph
             TextureSrvHandle _textureSrv,
             SimplePoolHandle _textureResource,
             const eastl::string_view& _name = {});
-        SimplePoolHandle RegisterCbv(
-            BufferCbvHandle _cbv,
+        SimplePoolHandle RegisterBufferView(
+            BufferViewHandle _bufferView,
             SimplePoolHandle _bufferResource,
             const eastl::string_view& _name = {});
         SimplePoolHandle RegisterRenderTargetView(

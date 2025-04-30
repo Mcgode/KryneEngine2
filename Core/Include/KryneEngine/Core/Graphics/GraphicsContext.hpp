@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Handles.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
 #include "Texture.hpp"
 
 namespace KryneEngine
@@ -16,12 +17,11 @@ namespace KryneEngine
         struct ApplicationInfo;
     }
 
-    struct BufferCbvDesc;
     struct BufferCopyParameters;
     struct BufferCreateDesc;
     struct BufferMapping;
     struct BufferMemoryBarrier;
-    struct BufferView;
+    struct BufferSpan;
     struct ComputePipelineDesc;
     struct DescriptorSetDesc;
     struct DescriptorSetWriteInfo;
@@ -96,8 +96,8 @@ namespace KryneEngine
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
         bool DestroySampler(SamplerHandle _sampler);
 
-        [[nodiscard]] BufferCbvHandle CreateBufferCbv(const BufferCbvDesc& _cbvDesc);
-        bool DestroyBufferCbv(BufferCbvHandle _handle);
+        [[nodiscard]] BufferViewHandle CreateBufferView(const BufferViewDesc& _viewDesc);
+        bool DestroyBufferView(BufferViewHandle _handle);
 
         [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc);
         bool DestroyRenderTargetView(RenderTargetViewHandle _handle);
@@ -141,7 +141,10 @@ namespace KryneEngine
         [[nodiscard]] static bool RenderPassNeedsUsageDeclaration();
         [[nodiscard]] static bool ComputePassNeedsUsageDeclaration();
         void DeclarePassTextureSrvUsage(CommandListHandle _commandList, const eastl::span<const TextureSrvHandle>& _textures);
-        void DeclarePassBufferCbvUsage(CommandListHandle _commandList, const eastl::span<const BufferCbvHandle>& _buffers);
+        void DeclarePassBufferViewUsage(
+            CommandListHandle _commandList,
+            const eastl::span<const BufferViewHandle>& _buffers,
+            BufferViewAccessType _accessType);;
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
@@ -163,8 +166,8 @@ namespace KryneEngine
 
         void SetViewport(CommandListHandle _commandList, const Viewport& _viewport);
         void SetScissorsRect(CommandListHandle _commandList, const Rect& _rect);
-        void SetIndexBuffer(CommandListHandle _commandList, const BufferView& _indexBufferView, bool _isU16 = false);
-        void SetVertexBuffers(CommandListHandle _commandList, const eastl::span<const BufferView>& _bufferViews);
+        void SetIndexBuffer(CommandListHandle _commandList, const BufferSpan& _indexBufferView, bool _isU16 = false);
+        void SetVertexBuffers(CommandListHandle _commandList, const eastl::span<const BufferSpan>& _bufferViews);
         void SetGraphicsPipeline(CommandListHandle _commandList, GraphicsPipelineHandle _graphicsPipeline);
         void SetGraphicsPushConstant(
             CommandListHandle _commandList,

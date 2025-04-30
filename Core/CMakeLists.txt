@@ -44,6 +44,7 @@ set(GraphicsCommonFiles
         Include/KryneEngine/Core/Graphics/Handles.hpp
         Include/KryneEngine/Core/Graphics/ShaderPipeline.hpp
         Include/KryneEngine/Core/Graphics/Drawing.hpp
+        Include/KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp
 )
 
 set(MathSrc
@@ -84,6 +85,7 @@ set(MemorySrc
         Include/KryneEngine/Core/Memory/Allocators/DefaultHeapHeapAllocationTracker.hpp
         Src/Memory/Allocators/DefaultHeapHeapAllocationTracker.cpp
         Include/KryneEngine/Core/Memory/UniquePtr.hpp
+        Include/KryneEngine/Core/Memory/IndexAllocator.hpp
 )
 
 set(PlatformSrc
