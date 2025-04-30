@@ -115,7 +115,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
             m_allocator,
             _renderPass,
             m_pipelineLayout,
-            "Shaders/ColorMapping_ColorMappingMain",
+            "Shaders/Samples/RenderGraphDemo/ColorMapping_ColorMappingMain",
             "ColorMappingMain",
             false);
     }

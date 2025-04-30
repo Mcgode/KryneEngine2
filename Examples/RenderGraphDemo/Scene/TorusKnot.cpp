@@ -50,8 +50,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
             return _graphicsContext->RegisterShaderModule(data, size);
         };
 
-        ShaderModuleHandle vsModule = createShaderModule("Shaders/Torus_MainVs");
-        ShaderModuleHandle fsModule = createShaderModule("Shaders/Torus_MainFs");
+        ShaderModuleHandle vsModule = createShaderModule("Shaders/Samples/RenderGraphDemo/Torus_MainVs");
+        ShaderModuleHandle fsModule = createShaderModule("Shaders/Samples/RenderGraphDemo/Torus_MainFs");
 
         m_pipelineLayout = _graphicsContext->CreatePipelineLayout({
             .m_descriptorSets = { &_descriptorSetLayout, 1 },

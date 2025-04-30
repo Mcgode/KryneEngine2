@@ -59,7 +59,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
             m_allocator,
             _renderPass,
             m_pipelineLayout,
-            "Shaders/Sky/SkyRender_SkyMain",
+            "Shaders/Samples/RenderGraphDemo/Sky/SkyRender_SkyMain",
             "SkyMain",
             true);
     }

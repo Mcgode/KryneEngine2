@@ -41,7 +41,7 @@ namespace KryneEngine::Samples::RenderGraphDemo::FullscreenPassCommon
             return handle;
         };
 
-        ShaderModuleHandle vsModule = createShaderModule("Shaders/FullScreenVS_FullScreenMain", vsByteCode);
+        ShaderModuleHandle vsModule = createShaderModule("Shaders/Samples/RenderGraphDemo/FullScreenVS_FullScreenMain", vsByteCode);
         ShaderModuleHandle fsModule = createShaderModule(_fsShader, fsByteCode);
 
         const ShaderStage stages[] {

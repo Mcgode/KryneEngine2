@@ -179,7 +179,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
             m_allocator,
             _renderPass,
             m_pipelineLayout,
-            "Shaders/DeferredShading_DeferredShadingMain",
+            "Shaders/Samples/RenderGraphDemo/DeferredShading_DeferredShadingMain",
             "DeferredShadingMain",
             false);
     }
