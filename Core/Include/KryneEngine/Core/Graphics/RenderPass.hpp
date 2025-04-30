@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include <EASTL/fixed_vector.h>
-#include <EASTL/optional.h>
+#include "EASTL/fixed_vector.h"
+#include "EASTL/optional.h"
 
-#include "KryneEngine/Core/Graphics/Common/Enums.hpp"
-#include "KryneEngine/Core/Graphics/Common/Handles.hpp"
+#include "Enums.hpp"
+#include "Handles.hpp"
 #include "KryneEngine/Core/Math/Vector.hpp"
 
 namespace KryneEngine

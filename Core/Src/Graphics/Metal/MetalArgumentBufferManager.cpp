@@ -9,7 +9,7 @@
 #include "Graphics/Metal/Helpers/EnumConverters.hpp"
 #include "Graphics/Metal/MetalHeaders.hpp"
 #include "Graphics/Metal/MetalResources.hpp"
-#include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 
 namespace KryneEngine

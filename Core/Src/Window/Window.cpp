@@ -6,7 +6,7 @@
 
 #include "KryneEngine/Core/Window/Window.hpp"
 
-#include "KryneEngine/Core/Graphics/Common/GraphicsContext.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"
 #include "KryneEngine/Core/Window/Input/InputManager.hpp"
 

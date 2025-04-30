@@ -4,9 +4,9 @@
  * @date 19/10/2024.
  */
 
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
+#include "KryneEngine/Core/Graphics/Texture.hpp"
 #include <gtest/gtest.h>
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
-#include <KryneEngine/Core/Graphics/Common/Texture.hpp>
 
 #include "Utils/AssertUtils.hpp"
 

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp>
+#include "KryneEngine/Core/Graphics/GraphicsCommon.hpp"
 
 namespace KryneEngine::Tests::Graphics
 {

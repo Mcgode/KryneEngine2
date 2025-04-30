@@ -10,9 +10,9 @@
 
 #include "Graphics/Metal/Helpers/RenderState.hpp"
 #include "Graphics/Metal/MetalHeaders.hpp"
-#include "KryneEngine/Core/Graphics/Common/Enums.hpp"
-#include "KryneEngine/Core/Graphics/Common/Handles.hpp"
-#include "KryneEngine/Core/Graphics/Common/RenderPass.hpp"
+#include "KryneEngine/Core/Graphics/Enums.hpp"
+#include "KryneEngine/Core/Graphics/Handles.hpp"
+#include "KryneEngine/Core/Graphics/RenderPass.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.hpp"
 
 namespace KryneEngine

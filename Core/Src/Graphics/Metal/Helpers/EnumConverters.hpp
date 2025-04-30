@@ -7,11 +7,11 @@
 #pragma once
 
 #include "Graphics/Metal/MetalHeaders.hpp"
-#include "KryneEngine/Core/Graphics/Common/EnumHelpers.hpp"
-#include "KryneEngine/Core/Graphics/Common/RenderPass.hpp"
-#include "KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp"
-#include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
-#include "KryneEngine/Core/Graphics/Common/Texture.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp"
+#include "KryneEngine/Core/Graphics/EnumHelpers.hpp"
+#include "KryneEngine/Core/Graphics/RenderPass.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
+#include "KryneEngine/Core/Graphics/Texture.hpp"
 
 namespace KryneEngine::MetalConverters
 {

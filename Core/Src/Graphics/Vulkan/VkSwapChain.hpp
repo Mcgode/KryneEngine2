@@ -11,7 +11,7 @@
 
 #include "Graphics/Vulkan/CommonStructures.hpp"
 #include "Graphics/Vulkan/VkHeaders.hpp"
-#include "KryneEngine/Core/Graphics/Common/Handles.hpp"
+#include "KryneEngine/Core/Graphics/Handles.hpp"
 
 struct GLFWwindow;
 

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <KryneEngine/Core/Graphics/Common/Enums.hpp>
+#include "KryneEngine/Core/Graphics/Enums.hpp"
 #include <KryneEngine/Core/Memory/SimplePool.hpp>
 
 namespace KryneEngine::Modules::RenderGraph

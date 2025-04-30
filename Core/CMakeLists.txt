@@ -29,21 +29,21 @@ set(FilesSrc
         )
 
 set(GraphicsCommonFiles
-        Src/Graphics/Common/GraphicsContext.cpp
-        Include/KryneEngine/Core/Graphics/Common/GraphicsContext.hpp
-        Include/KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp
-        Include/KryneEngine/Core/Graphics/Common/Texture.hpp
-        Include/KryneEngine/Core/Graphics/Common/Enums.hpp
-        Src/Graphics/Common/EnumHelpers.cpp
-        Include/KryneEngine/Core/Graphics/Common/EnumHelpers.hpp
-        Include/KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp
-        Include/KryneEngine/Core/Graphics/Common/RenderPass.hpp
-        Include/KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp
-        Include/KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp
-        Include/KryneEngine/Core/Graphics/Common/Buffer.hpp
-        Include/KryneEngine/Core/Graphics/Common/Handles.hpp
-        Include/KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp
-        Include/KryneEngine/Core/Graphics/Common/Drawing.hpp
+        Src/Graphics/GraphicsContext.cpp
+        Include/KryneEngine/Core/Graphics/GraphicsContext.hpp
+        Include/KryneEngine/Core/Graphics/GraphicsCommon.hpp
+        Include/KryneEngine/Core/Graphics/Texture.hpp
+        Include/KryneEngine/Core/Graphics/Enums.hpp
+        Src/Graphics/EnumHelpers.cpp
+        Include/KryneEngine/Core/Graphics/EnumHelpers.hpp
+        Include/KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp
+        Include/KryneEngine/Core/Graphics/RenderPass.hpp
+        Include/KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp
+        Include/KryneEngine/Core/Graphics/MemoryBarriers.hpp
+        Include/KryneEngine/Core/Graphics/Buffer.hpp
+        Include/KryneEngine/Core/Graphics/Handles.hpp
+        Include/KryneEngine/Core/Graphics/ShaderPipeline.hpp
+        Include/KryneEngine/Core/Graphics/Drawing.hpp
 )
 
 set(MathSrc

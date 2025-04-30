@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Graphics/Common/Enums.hpp"
-#include "KryneEngine/Core/Graphics/Common/Handles.hpp"
+#include "Enums.hpp"
+#include "Handles.hpp"
 
 namespace KryneEngine
 {

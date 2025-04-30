@@ -6,8 +6,8 @@
 
 #include "SkyPass.hpp"
 
-#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
 #include "FullscreenPassCommon.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 
 namespace KryneEngine::Samples::RenderGraphDemo
 {

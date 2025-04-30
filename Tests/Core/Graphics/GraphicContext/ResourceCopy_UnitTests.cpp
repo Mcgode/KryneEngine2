@@ -4,12 +4,12 @@
  * @date 27/11/2024.
  */
 
+#include "KryneEngine/Core/Graphics/Buffer.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
+#include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
 #include <EASTL/initializer_list.h>
-#include <gtest/gtest.h>
 #include <KryneEngine/Core/Common/EastlHelpers.hpp>
-#include <KryneEngine/Core/Graphics/Common/Buffer.hpp>
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
-#include <KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp>
+#include <gtest/gtest.h>
 
 #include "Common.h"
 #include "Utils/AssertUtils.hpp"

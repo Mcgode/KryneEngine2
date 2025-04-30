@@ -7,8 +7,8 @@
 #include "DeferredShadingPass.hpp"
 #include "FullscreenPassCommon.hpp"
 
-#include <KryneEngine/Core/Graphics/Common/Drawing.hpp>
-#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
+#include "KryneEngine/Core/Graphics/Drawing.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include <fstream>
 
 namespace KryneEngine::Samples::RenderGraphDemo

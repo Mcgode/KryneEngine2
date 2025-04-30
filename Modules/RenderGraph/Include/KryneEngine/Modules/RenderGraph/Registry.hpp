@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <KryneEngine/Core/Graphics/Common/Handles.hpp>
+#include "KryneEngine/Core/Graphics/Handles.hpp"
 #include <KryneEngine/Core/Memory/SimplePool.hpp>
 
 namespace KryneEngine

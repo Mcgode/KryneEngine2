@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
 #include <EASTL/optional.h>
 #include <KryneEngine/Core/Memory/SimplePool.hpp>
-#include <KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp>
 
 
 namespace KryneEngine::Modules::RenderGraph

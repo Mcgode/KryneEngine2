@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include "Enums.hpp"
+#include "Handles.hpp"
 #include "KryneEngine/Core/Common/BitUtils.hpp"
-#include "KryneEngine/Core/Graphics/Common/Enums.hpp"
-#include "KryneEngine/Core/Graphics/Common/Handles.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.hpp"
 
 namespace KryneEngine

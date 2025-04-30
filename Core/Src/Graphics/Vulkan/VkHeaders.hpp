@@ -8,7 +8,7 @@
 
 #include "KryneEngine/Core/Common/Assert.hpp"
 #include "KryneEngine/Core/Common/Types.hpp"
-#include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsCommon.hpp"
 #include "KryneEngine/Core/Memory/DynamicArray.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"

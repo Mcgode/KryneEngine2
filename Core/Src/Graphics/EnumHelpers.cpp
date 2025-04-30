@@ -4,8 +4,8 @@
  * @date 18/04/2022.
  */
 
+#include "KryneEngine/Core/Graphics/EnumHelpers.hpp"
 #include "KryneEngine/Core/Common/Assert.hpp"
-#include "KryneEngine/Core/Graphics/Common/EnumHelpers.hpp"
 
 namespace KryneEngine
 {

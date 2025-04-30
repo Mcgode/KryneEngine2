@@ -14,8 +14,8 @@
 #include "Graphics/DirectX12/Dx12SwapChain.hpp"
 #include "Graphics/DirectX12/HelperFunctions.hpp"
 #include "KryneEngine/Core/Common/Utils/Alignment.hpp"
-#include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
-#include "KryneEngine/Core/Graphics/Common/Drawing.hpp"
+#include "KryneEngine/Core/Graphics/Buffer.hpp"
+#include "KryneEngine/Core/Graphics/Drawing.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 #include "KryneEngine/Core/Window/Window.hpp"
 

@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include <imgui.h>
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 #include <EASTL/chrono.h>
 #include <EASTL/unique_ptr.h>
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 #include <KryneEngine/Modules/GraphicsUtils/DynamicBuffer.hpp>
+#include <imgui.h>
 
 namespace KryneEngine
 {

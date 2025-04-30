@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
 #include <EASTL/hash_map.h>
 #include <EASTL/span.h>
 #include <EASTL/vector.h>
-#include <KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp>
 #include <KryneEngine/Core/Memory/SimplePool.hpp>
 
 namespace KryneEngine::Modules::RenderGraph

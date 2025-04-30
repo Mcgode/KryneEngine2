@@ -13,7 +13,7 @@
 #include <QuartzCore/CAMetalLayer.h>
 
 #include "Graphics/Metal/MetalResources.hpp"
-#include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp"
 #include "KryneEngine/Core/Window/Window.hpp"
 
 namespace KryneEngine

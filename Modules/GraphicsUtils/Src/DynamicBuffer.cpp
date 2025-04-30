@@ -6,7 +6,7 @@
 
 #include "KryneEngine/Modules/GraphicsUtils/DynamicBuffer.hpp"
 
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 
 namespace KryneEngine::Modules::GraphicsUtils
 {

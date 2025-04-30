@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <KryneEngine/Core/Graphics/Common/RenderPass.hpp>
+#include "KryneEngine/Core/Graphics/RenderPass.hpp"
 #include <KryneEngine/Core/Memory/SimplePool.hpp>
 
 #include "KryneEngine/Modules/RenderGraph/Utils/DeclarationBuilder.hpp"

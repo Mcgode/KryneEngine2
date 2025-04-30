@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Graphics/Common/GraphicsContext.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
+#include "KryneEngine/Core/Graphics/Handles.hpp"
 #include "KryneEngine/Modules/RenderGraph/Declarations/PassDeclaration.hpp"
 #include "KryneEngine/Modules/RenderGraph/RenderGraph.hpp"
-#include <KryneEngine/Core/Graphics/Common/Handles.hpp>
 
 namespace KryneEngine::Samples::RenderGraphDemo
 {

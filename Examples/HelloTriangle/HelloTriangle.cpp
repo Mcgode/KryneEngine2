@@ -6,11 +6,11 @@
 
 #include <fstream>
 
-#include <KryneEngine/Core/Graphics/Common/Buffer.hpp>
-#include <KryneEngine/Core/Graphics/Common/Drawing.hpp>
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
-#include <KryneEngine/Core/Graphics/Common/RenderPass.hpp>
-#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
+#include "KryneEngine/Core/Graphics/Buffer.hpp"
+#include "KryneEngine/Core/Graphics/Drawing.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
+#include "KryneEngine/Core/Graphics/RenderPass.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Window/Window.hpp>
 

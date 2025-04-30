@@ -6,10 +6,10 @@
 
 #include "KryneEngine/Modules/RenderGraph/Registry.hpp"
 
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
+#include <KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp>
+#include <KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp>
 #include <KryneEngine/Core/Memory/SimplePool.inl>
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
-#include <KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp>
-#include <KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp>
 
 #include "KryneEngine/Modules/RenderGraph/Descriptors/RenderTargetViewDesc.hpp"
 #include "KryneEngine/Modules/RenderGraph/Resource.hpp"

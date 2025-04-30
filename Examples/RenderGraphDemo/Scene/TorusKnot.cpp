@@ -6,15 +6,15 @@
 
 #include "TorusKnot.hpp"
 
-#include <KryneEngine/Core/Profiling/TracyHeader.hpp>
-#include <KryneEngine/Core/Graphics/Common/Buffer.hpp>
-#include <KryneEngine/Core/Graphics/Common/Drawing.hpp>
-#include <KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp>
-#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
+#include "KryneEngine/Core/Graphics/Buffer.hpp"
+#include "KryneEngine/Core/Graphics/Drawing.hpp"
+#include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include <KryneEngine/Core/Math/RotationConversion.hpp>
 #include <KryneEngine/Core/Math/Transform.hpp>
-#include <imgui.h>
+#include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <fstream>
+#include <imgui.h>
 
 #define _USE_MATH_DEFINES
 #include <math.h>

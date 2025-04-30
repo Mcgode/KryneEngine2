@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include <EASTL/fixed_vector.h>
+#include "EASTL/fixed_vector.h"
 
+#include "Enums.hpp"
+#include "Handles.hpp"
 #include "KryneEngine/Core/Common/BitUtils.hpp"
 #include "KryneEngine/Core/Common/Types.hpp"
-#include "KryneEngine/Core/Graphics/Common/Enums.hpp"
-#include "KryneEngine/Core/Graphics/Common/Handles.hpp"
 #include "KryneEngine/Core/Math/Vector.hpp"
 
 namespace KryneEngine

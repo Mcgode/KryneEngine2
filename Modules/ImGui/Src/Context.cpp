@@ -6,16 +6,16 @@
 
 #include "KryneEngine/Modules/ImGui/Context.hpp"
 
-#include <fstream>
-#include <imgui_internal.h>
+#include "KryneEngine/Core/Graphics/Drawing.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
+#include "KryneEngine/Core/Graphics/Texture.hpp"
 #include <KryneEngine/Core/Common/Utils/Alignment.hpp>
-#include <KryneEngine/Core/Graphics/Common/Drawing.hpp>
-#include <KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp>
-#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
-#include <KryneEngine/Core/Graphics/Common/Texture.hpp>
+#include <KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Window/Input/InputManager.hpp>
 #include <KryneEngine/Core/Window/Window.hpp>
+#include <fstream>
+#include <imgui_internal.h>
 
 #include "Input.hpp"
 

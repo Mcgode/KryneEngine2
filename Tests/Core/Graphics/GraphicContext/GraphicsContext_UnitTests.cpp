@@ -4,8 +4,8 @@
 * @date 11/10/2024.
 */
 
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 #include <gtest/gtest.h>
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 
 #include "Common.h"
 #include "Utils/AssertUtils.hpp"

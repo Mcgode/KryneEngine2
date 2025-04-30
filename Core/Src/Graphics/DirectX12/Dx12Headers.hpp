@@ -38,6 +38,6 @@ using Microsoft::WRL::ComPtr;
 
 // Kryne engine includes
 #include "KryneEngine/Core/Common/Types.hpp"
-#include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsCommon.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"

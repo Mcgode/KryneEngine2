@@ -13,7 +13,7 @@
 
 #include "Graphics/DirectX12/Dx12GraphicsContext.hpp"
 #include "Graphics/DirectX12/HelperFunctions.hpp"
-#include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp"
 #include "KryneEngine/Core/Window/Window.hpp"
 
 namespace KryneEngine

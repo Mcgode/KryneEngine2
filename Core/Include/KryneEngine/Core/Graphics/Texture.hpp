@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include <EASTL/span.h>
+#include "EASTL/span.h"
 
-#include "KryneEngine/Core/Graphics/Common/Enums.hpp"
-#include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
+#include "Enums.hpp"
+#include "GraphicsCommon.hpp"
 #include "KryneEngine/Core/Math/Vector.hpp"
 
 namespace KryneEngine

@@ -9,8 +9,8 @@
 #include "Graphics/Metal/Helpers/EnumConverters.hpp"
 #include "Graphics/Metal/MetalFrameContext.hpp"
 #include "Graphics/Metal/MetalSwapChain.hpp"
-#include "KryneEngine/Core/Graphics/Common/Drawing.hpp"
-#include "KryneEngine/Core/Graphics/Common/GraphicsContext.hpp"
+#include "KryneEngine/Core/Graphics/Drawing.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"
 
 namespace KryneEngine

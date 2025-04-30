@@ -6,14 +6,14 @@
 
 #include "SceneManager.hpp"
 
-#include <KryneEngine/Core/Graphics/Common/Drawing.hpp>
-#include <KryneEngine/Core/Graphics/Common/ResourceViews/ConstantBufferView.hpp>
-#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
+#include "KryneEngine/Core/Graphics/Drawing.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
+#include <KryneEngine/Core/Graphics/ResourceViews/ConstantBufferView.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
+#include <KryneEngine/Core/Window/Window.hpp>
 #include <KryneEngine/Modules/ImGui/Context.hpp>
 #include <KryneEngine/Modules/RenderGraph/Builder.hpp>
 #include <KryneEngine/Modules/RenderGraph/Registry.hpp>
-#include <KryneEngine/Core/Window/Window.hpp>
 
 #include "OrbitCamera.hpp"
 #include "SunLight.hpp"

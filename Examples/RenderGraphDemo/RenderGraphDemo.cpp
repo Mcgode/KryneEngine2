@@ -4,17 +4,17 @@
  * @date 13/11/2024.
  */
 
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
-#include <KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp>
-#include <KryneEngine/Core/Window/Window.hpp>
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
+#include <KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Threads/FibersManager.hpp>
+#include <KryneEngine/Core/Window/Window.hpp>
 #include <KryneEngine/Modules/ImGui/Context.hpp>
 #include <KryneEngine/Modules/RenderGraph/Builder.hpp>
 #include <KryneEngine/Modules/RenderGraph/Descriptors/RenderTargetViewDesc.hpp>
 #include <KryneEngine/Modules/RenderGraph/Registry.hpp>
-#include <KryneEngine/Modules/RenderGraph/Resource.hpp>
 #include <KryneEngine/Modules/RenderGraph/RenderGraph.hpp>
+#include <KryneEngine/Modules/RenderGraph/Resource.hpp>
 #include <iostream>
 
 #include "Rendering/ColorMappingPass.hpp"

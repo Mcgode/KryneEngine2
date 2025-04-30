@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include <EASTL/string_view.h>
-#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
 
 namespace KryneEngine::Modules::ShaderReflection
 {

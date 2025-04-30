@@ -2,9 +2,9 @@
  * @file
  */
 
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
+#include "KryneEngine/Core/Graphics/RenderPass.hpp"
 #include "KryneEngine/Core/Memory/Allocators/TlsfAllocator.hpp"
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
-#include <KryneEngine/Core/Graphics/Common/RenderPass.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Threads/FibersManager.hpp>
 #include <KryneEngine/Core/Window/Window.hpp>

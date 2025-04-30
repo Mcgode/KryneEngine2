@@ -10,7 +10,7 @@
 
 #include "Graphics/Vulkan/HelperFunctions.hpp"
 #include "Graphics/Vulkan/VkResources.hpp"
-#include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 
 namespace KryneEngine

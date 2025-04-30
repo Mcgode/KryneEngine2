@@ -6,10 +6,10 @@
 
 #include "FullscreenPassCommon.hpp"
 
+#include "KryneEngine/Core/Graphics/Drawing.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include <fstream>
-#include <KryneEngine/Core/Graphics/Common/Drawing.hpp>
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
-#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
 
 namespace KryneEngine::Samples::RenderGraphDemo::FullscreenPassCommon
 {

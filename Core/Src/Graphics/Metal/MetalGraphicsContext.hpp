@@ -13,12 +13,12 @@
 #include "Graphics/Metal/MetalResources.hpp"
 #include "Graphics/Metal/MetalSwapChain.hpp"
 #include "Graphics/Metal/MetalTypes.hpp"
-#include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
-#include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
-#include "KryneEngine/Core/Graphics/Common/Handles.hpp"
-#include "KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp"
-#include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
-#include "KryneEngine/Core/Graphics/Common/Texture.hpp"
+#include "KryneEngine/Core/Graphics/Buffer.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsCommon.hpp"
+#include "KryneEngine/Core/Graphics/Handles.hpp"
+#include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
+#include "KryneEngine/Core/Graphics/Texture.hpp"
 
 namespace KryneEngine
 {

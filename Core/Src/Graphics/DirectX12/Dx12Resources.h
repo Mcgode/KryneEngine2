@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Graphics/Common/Handles.hpp"
-#include "KryneEngine/Core/Graphics/Common/RenderPass.hpp"
-#include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
-#include "KryneEngine/Core/Graphics/Common/Texture.hpp"
+#include "KryneEngine/Core/Graphics/Handles.hpp"
+#include "KryneEngine/Core/Graphics/RenderPass.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
+#include "KryneEngine/Core/Graphics/Texture.hpp"
 #include "KryneEngine/Core/Memory/DynamicArray.hpp"
 
 namespace D3D12MA

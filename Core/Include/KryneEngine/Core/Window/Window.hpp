@@ -11,7 +11,7 @@
 #include <GLFW/glfw3.h>
 
 #include "KryneEngine/Core/Common/Types.hpp"
-#include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsCommon.hpp"
 #include "KryneEngine/Core/Threads/LightweightMutex.hpp"
 
 namespace KryneEngine

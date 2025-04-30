@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 
 namespace KryneEngine::Samples::RenderGraphDemo::FullscreenPassCommon
 {

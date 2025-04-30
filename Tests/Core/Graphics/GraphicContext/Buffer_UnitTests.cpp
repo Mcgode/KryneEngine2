@@ -4,9 +4,9 @@
  * @date 18/10/2024.
  */
 
+#include "KryneEngine/Core/Graphics/Buffer.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 #include <gtest/gtest.h>
-#include <KryneEngine/Core/Graphics/Common/Buffer.hpp>
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 
 #include "Common.h"
 #include "Utils/AssertUtils.hpp"

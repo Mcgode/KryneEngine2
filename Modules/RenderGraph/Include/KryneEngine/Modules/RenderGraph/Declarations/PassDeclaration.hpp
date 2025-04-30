@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 #include <KryneEngine/Core/Common/StringHelpers.hpp>
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
 
 #include "KryneEngine/Modules/RenderGraph/Declarations/Dependency.hpp"
 #include "KryneEngine/Modules/RenderGraph/Declarations/PassAttachmentDeclaration.hpp"

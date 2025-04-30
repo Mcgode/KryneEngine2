@@ -4,9 +4,9 @@
  * @date 19/03/2022.
  */
 
-#include "KryneEngine/Core/Graphics/Common/GraphicsContext.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 
-#include "KryneEngine/Core/Graphics/Common/EnumHelpers.hpp"
+#include "KryneEngine/Core/Graphics/EnumHelpers.hpp"
 #include "KryneEngine/Core/Window/Window.hpp"
 
 #if defined(KE_GRAPHICS_API_VK)

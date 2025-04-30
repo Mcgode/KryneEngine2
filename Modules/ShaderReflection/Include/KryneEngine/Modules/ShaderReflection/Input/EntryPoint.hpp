@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include <EASTL/optional.h>
-#include <KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp>
 
 #include "KryneEngine/Modules/ShaderReflection/Input/PushConstantInput.hpp"
 #include "KryneEngine/Modules/ShaderReflection/Input/DescriptorSetInput.hpp"

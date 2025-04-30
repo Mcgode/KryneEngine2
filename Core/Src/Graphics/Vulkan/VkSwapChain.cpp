@@ -14,7 +14,7 @@
 #include "Graphics/Vulkan/VkSurface.hpp"
 #include "KryneEngine/Core/Common/Assert.hpp"
 #include "KryneEngine/Core/Common/EastlHelpers.hpp"
-#include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp"
 
 namespace KryneEngine
 {

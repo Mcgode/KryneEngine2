@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
-#include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
+#include "KryneEngine/Core/Graphics/Buffer.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 
 namespace KryneEngine
 {

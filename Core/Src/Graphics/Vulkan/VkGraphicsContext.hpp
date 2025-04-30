@@ -16,8 +16,8 @@
 #include "Graphics/Vulkan/VkSurface.hpp"
 #include "Graphics/Vulkan/VkSwapChain.hpp"
 #include "Graphics/Vulkan/VkTypes.hpp"
-#include "KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp"
-#include "KryneEngine/Core/Graphics/Common/Texture.hpp"
+#include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
+#include "KryneEngine/Core/Graphics/Texture.hpp"
 
 namespace KryneEngine
 {

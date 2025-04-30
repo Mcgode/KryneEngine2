@@ -14,9 +14,9 @@
 #include "Graphics/DirectX12/Dx12Resources.h"
 #include "Graphics/DirectX12/Dx12SwapChain.hpp"
 #include "Graphics/DirectX12/Dx12Types.hpp"
-#include "KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp"
-#include "KryneEngine/Core/Graphics/Common/Texture.hpp"
-#include "KryneEngine/Core/Graphics/Common/ResourceViews/ConstantBufferView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/ConstantBufferView.hpp"
+#include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
+#include "KryneEngine/Core/Graphics/Texture.hpp"
 #include "KryneEngine/Core/Memory/DynamicArray.hpp"
 
 namespace KryneEngine

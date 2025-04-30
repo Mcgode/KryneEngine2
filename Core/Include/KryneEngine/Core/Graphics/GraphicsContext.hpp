@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Graphics/Common/Handles.hpp"
-#include "KryneEngine/Core/Graphics/Common/Texture.hpp"
+#include "Handles.hpp"
+#include "Texture.hpp"
 
 namespace KryneEngine
 {

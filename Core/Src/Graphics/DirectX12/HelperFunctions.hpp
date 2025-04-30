@@ -10,11 +10,11 @@
 
 #include "Graphics/DirectX12/Dx12Headers.hpp"
 #include "KryneEngine/Core/Common/Assert.hpp"
-#include "KryneEngine/Core/Graphics/Common/Enums.hpp"
-#include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
-#include "KryneEngine/Core/Graphics/Common/MemoryBarriers.hpp"
-#include "KryneEngine/Core/Graphics/Common/ShaderPipeline.hpp"
-#include "KryneEngine/Core/Graphics/Common/Texture.hpp"
+#include "KryneEngine/Core/Graphics/Enums.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsCommon.hpp"
+#include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
+#include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
+#include "KryneEngine/Core/Graphics/Texture.hpp"
 
 namespace KryneEngine
 {

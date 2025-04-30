@@ -6,7 +6,7 @@
 
 #include "KryneEngine/Modules/RenderGraph/RenderGraph.hpp"
 
-#include <KryneEngine/Core/Graphics/Common/GraphicsContext.hpp>
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Threads/FibersManager.hpp>
 

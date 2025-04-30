@@ -10,12 +10,12 @@
 #include "Graphics/Vulkan/VkDebugHandler.hpp"
 #include "Graphics/Vulkan/VkDescriptorSetManager.hpp"
 #include "KryneEngine/Core/Common/Utils/Alignment.hpp"
-#include "KryneEngine/Core/Graphics/Common/Buffer.hpp"
-#include "KryneEngine/Core/Graphics/Common/GraphicsCommon.hpp"
-#include "KryneEngine/Core/Graphics/Common/RenderPass.hpp"
-#include "KryneEngine/Core/Graphics/Common/ResourceViews/ConstantBufferView.hpp"
-#include "KryneEngine/Core/Graphics/Common/ResourceViews/RenderTargetView.hpp"
-#include "KryneEngine/Core/Graphics/Common/ResourceViews/ShaderResourceView.hpp"
+#include "KryneEngine/Core/Graphics/Buffer.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/ConstantBufferView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsCommon.hpp"
+#include "KryneEngine/Core/Graphics/RenderPass.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 
 namespace KryneEngine
