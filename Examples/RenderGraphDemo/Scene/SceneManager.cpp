@@ -27,11 +27,13 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         float4x4 m_viewProjection;
 
+        float4x4 m_torusKnotInverseWorldMatrix;
+
         float3 m_torusKnotAlbedo;
-        u32 m_padding0;
+        u32 m_torusKnotQ;
 
         float3 m_sunLightDirection;
-        u32 m_padding1;
+        u32 m_torusKnotP;
 
         float3 m_sunDiffuse;
         float m_tanHalfFov;
@@ -42,7 +44,10 @@ namespace KryneEngine::Samples::RenderGraphDemo
         float4 m_cameraQuaternion;
 
         float3 m_cameraTranslation;
-        u32 m_padding2;
+        float m_torusKnotTubeRadius;
+
+        float m_torusKnotRadius;
+        uint m_padding[3];
     };
 
     SceneManager::SceneManager(
@@ -181,7 +186,12 @@ namespace KryneEngine::Samples::RenderGraphDemo
         sceneConstants->m_screenResolution = float2(m_windowSize);
 
         sceneConstants->m_torusKnotModel = m_torusKnot->GetModelMatrix();
+        sceneConstants->m_torusKnotInverseWorldMatrix = m_torusKnot->GetModelMatrix().Inverse();
         sceneConstants->m_torusKnotAlbedo = m_torusKnot->GetAlbedo();
+        sceneConstants->m_torusKnotRadius = m_torusKnot->GetKnotRadius();
+        sceneConstants->m_torusKnotTubeRadius = m_torusKnot->GetTubeRadius();
+        sceneConstants->m_torusKnotP = m_torusKnot->GetPValue();
+        sceneConstants->m_torusKnotQ = m_torusKnot->GetQValue();
 
         sceneConstants->m_sunLightDirection = m_sunLight->GetDirection();
         sceneConstants->m_sunDiffuse = m_sunLight->GetDiffuse();

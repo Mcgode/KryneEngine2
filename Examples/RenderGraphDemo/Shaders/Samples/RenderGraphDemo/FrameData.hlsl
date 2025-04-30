@@ -11,11 +11,13 @@ struct FrameData {
 
     float4x4 m_viewProjectionMatrix;
 
+    float4x4 m_torusKnotInverseWorldMatrix;
+
     float3 m_torusAlbedo;
-    uint m_padding0;
+    uint m_torusKnotQ;
 
     float3 m_sunLightDirection;
-    uint m_padding1;
+    uint m_torusKnotP;
 
     float3 m_sunDiffuse;
     float m_tanHalfFov;
@@ -26,5 +28,8 @@ struct FrameData {
     float4 m_cameraQuaternion;
 
     float3 m_cameraTranslation;
-    uint m_padding2;
+    float m_torusKnotTubeRadius;
+
+    float m_torusKnotRadius;
+    uint m_padding[3];
 };

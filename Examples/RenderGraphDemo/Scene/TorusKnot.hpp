@@ -32,6 +32,11 @@ namespace KryneEngine::Samples::RenderGraphDemo
         [[nodiscard]] const float& GetRoughness() const { return m_roughness; }
         [[nodiscard]] const float& GetMetalness() const { return m_metalness; }
 
+        [[nodiscard]] float GetKnotRadius() const { return m_knotRadius; }
+        [[nodiscard]] float GetTubeRadius() const { return m_tubeRadius; }
+        [[nodiscard]] u32 GetPValue() const { return m_pValue; }
+        [[nodiscard]] u32 GetQValue() const { return m_qValue; }
+
         void RenderGBuffer(
             GraphicsContext* _graphicsContext,
             CommandListHandle _commandList,
