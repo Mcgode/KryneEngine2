@@ -289,6 +289,16 @@ namespace KryneEngine
         GetImplementation(this).EndRenderPass(reinterpret_cast<CommandList>(_commandList));
     }
 
+    void GraphicsContext::BeginComputePass(KryneEngine::CommandListHandle _commandList)
+    {
+        GetImplementation(this).BeginComputePass(reinterpret_cast<CommandList>(_commandList));
+    }
+
+    void GraphicsContext::EndComputePass(KryneEngine::CommandListHandle _commandList)
+    {
+        GetImplementation(this).EndComputePass(reinterpret_cast<CommandList>(_commandList));
+    }
+
     void GraphicsContext::SetTextureData(
         CommandListHandle _commandList,
         BufferHandle _stagingBuffer,
@@ -420,6 +430,16 @@ namespace KryneEngine
         return GetImplementation(this).FreeShaderModule(_module);
     }
 
+    ComputePipelineHandle GraphicsContext::CreateComputePipeline(const ComputePipelineDesc& _desc)
+    {
+        return GetImplementation(this).CreateComputePipeline(_desc);
+    }
+
+    bool GraphicsContext::DestroyComputePipeline(ComputePipelineHandle _pipeline)
+    {
+        return GetImplementation(this).DestroyComputePipeline(_pipeline);
+    }
+
     void GraphicsContext::UpdateDescriptorSet(
         DescriptorSetHandle _descriptorSet,
         const eastl::span<const DescriptorSetWriteInfo>& _writes)
@@ -504,5 +524,45 @@ namespace KryneEngine
         GetImplementation(this).DrawIndexedInstanced(
             reinterpret_cast<CommandList>(_commandList),
             _desc);
+    }
+
+    void GraphicsContext::SetComputePipeline(CommandListHandle _commandList, ComputePipelineHandle _pipeline)
+    {
+        GetImplementation(this).SetComputePipeline(
+            reinterpret_cast<CommandList>(_commandList),
+            _pipeline);
+    }
+
+    void GraphicsContext::SetComputeDescriptorSets(
+        CommandListHandle _commandList,
+        PipelineLayoutHandle _layout,
+        eastl::span<const DescriptorSetHandle> _sets,
+        u32 _offset)
+    {
+        GetImplementation(this).SetComputeDescriptorSets(
+            reinterpret_cast<CommandList>(_commandList),
+            _layout,
+            _sets,
+            _offset,
+            m_frameId);
+    }
+
+    void GraphicsContext::SetComputePushConstant(
+        CommandListHandle _commandList,
+        PipelineLayoutHandle _layout,
+        eastl::span<const u32> _data)
+    {
+        GetImplementation(this).SetComputePushConstant(
+            reinterpret_cast<CommandList>(_commandList),
+            _layout,
+            _data);
+    }
+
+    void GraphicsContext::Dispatch(CommandListHandle _commandList, uint3 _threadGroupCount, uint3 _threadGroupSize)
+    {
+        GetImplementation(this).Dispatch(
+            reinterpret_cast<CommandList>(_commandList),
+            _threadGroupCount,
+            _threadGroupSize);
     }
 }

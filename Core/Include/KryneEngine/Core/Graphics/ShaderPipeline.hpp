@@ -351,4 +351,14 @@ namespace KryneEngine
         eastl::string m_debugName = "";
 #endif
     };
+
+    struct ComputePipelineDesc
+    {
+        ShaderStage m_computeStage {};
+        PipelineLayoutHandle m_pipelineLayout { GenPool::kInvalidHandle };
+
+#if !defined(KE_FINAL)
+        eastl::string m_debugName = "";
+#endif
+    };
 }

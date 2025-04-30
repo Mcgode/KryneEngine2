@@ -22,6 +22,7 @@ namespace KryneEngine
     struct BufferMapping;
     struct BufferMemoryBarrier;
     struct BufferView;
+    struct ComputePipelineDesc;
     struct DescriptorSetDesc;
     struct DescriptorSetWriteInfo;
     struct DrawIndexedInstancedDesc;
@@ -114,6 +115,9 @@ namespace KryneEngine
         void BeginRenderPass(CommandListHandle _commandList, RenderPassHandle _handle);
         void EndRenderPass(CommandListHandle _commandList);
 
+        void BeginComputePass(CommandListHandle _commandList);
+        void EndComputePass(CommandListHandle _commandList);
+
         void SetTextureData(
             CommandListHandle _commandList,
             BufferHandle _stagingBuffer,
@@ -150,6 +154,9 @@ namespace KryneEngine
         bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout);
         bool FreeShaderModule(ShaderModuleHandle _module);
 
+        [[nodiscard]] ComputePipelineHandle CreateComputePipeline(const ComputePipelineDesc& _desc);
+        bool DestroyComputePipeline(ComputePipelineHandle _pipeline);
+
         void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,
             const eastl::span<const DescriptorSetWriteInfo>& _writes);
@@ -170,8 +177,22 @@ namespace KryneEngine
             PipelineLayoutHandle _layout,
             const eastl::span<const DescriptorSetHandle>& _sets,
             const bool* _unchanged = nullptr);
+
         void DrawInstanced(CommandListHandle _commandList, const DrawInstancedDesc& _desc);
         void DrawIndexedInstanced(CommandListHandle _commandList, const DrawIndexedInstancedDesc& _desc);
+
+        void SetComputePipeline(CommandListHandle _commandList, ComputePipelineHandle _pipeline);
+        void SetComputeDescriptorSets(
+            CommandListHandle _commandList,
+            PipelineLayoutHandle _layout,
+            eastl::span<const DescriptorSetHandle> _sets,
+            u32 _offset = 0);
+        void SetComputePushConstant(
+            CommandListHandle _commandList,
+            PipelineLayoutHandle _layout,
+            eastl::span<const u32> _data);
+
+        void Dispatch(CommandListHandle _commandList, uint3 _threadGroupCount, uint3 _threadGroupSize);
     };
 }
 

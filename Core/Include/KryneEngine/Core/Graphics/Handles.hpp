@@ -22,4 +22,5 @@ namespace KryneEngine
     KE_GENPOOL_DECLARE_HANDLE(DescriptorSetHandle);
     KE_GENPOOL_DECLARE_HANDLE(PipelineLayoutHandle);
     KE_GENPOOL_DECLARE_HANDLE(GraphicsPipelineHandle);
+    KE_GENPOOL_DECLARE_HANDLE(ComputePipelineHandle);
 }
