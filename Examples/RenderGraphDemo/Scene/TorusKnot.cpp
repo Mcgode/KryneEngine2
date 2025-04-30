@@ -54,44 +54,41 @@ namespace KryneEngine::Samples::RenderGraphDemo
         ShaderModuleHandle fsModule = createShaderModule("Shaders/Torus_MainFs");
 
         m_pipelineLayout = _graphicsContext->CreatePipelineLayout({
-            .m_descriptorSets = {
-                _descriptorSetLayout,
-            },
+            .m_descriptorSets = { &_descriptorSetLayout, 1 },
         });
 
-        const GraphicsPipelineDesc psoDesc = {
-            .m_stages = {
-                    ShaderStage{
-                    .m_shaderModule = vsModule,
-                    .m_stage = ShaderStage::Stage::Vertex,
-                    .m_entryPoint = "MainVs",
-                },
-                    ShaderStage{
-                    .m_shaderModule = fsModule,
-                    .m_stage = ShaderStage::Stage::Fragment,
-                    .m_entryPoint = "MainFs",
-                },
+        const ShaderStage stages[] {
+            {
+                .m_shaderModule = vsModule,
+                .m_stage = ShaderStage::Stage::Vertex,
+                .m_entryPoint = "MainVs",
             },
+            {
+                .m_shaderModule = fsModule,
+                .m_stage = ShaderStage::Stage::Fragment,
+                .m_entryPoint = "MainFs",
+            }
+        };
+        const VertexLayoutElement vertexLayoutElements[] {
+            {
+                .m_semanticName = VertexLayoutElement::SemanticName::Position,
+                .m_format = TextureFormat::RGB32_Float,
+                .m_offset = 0,
+                .m_location = 0,
+            },
+            {
+                .m_semanticName = VertexLayoutElement::SemanticName::Normal,
+                .m_format = TextureFormat::RGB32_Float,
+                .m_offset = sizeof(float3),
+                .m_location = 1,
+            }
+        };
+        const VertexBindingDesc vertexBindings[] {{ .m_stride = sizeof(float3) + sizeof(float3) }};
+        const GraphicsPipelineDesc psoDesc = {
+            .m_stages = stages,
             .m_vertexInput = {
-                .m_elements = {
-                    VertexLayoutElement {
-                        .m_semanticName = VertexLayoutElement::SemanticName::Position,
-                        .m_format = TextureFormat::RGB32_Float,
-                        .m_offset = 0,
-                        .m_location = 0,
-                    },
-                    VertexLayoutElement {
-                        .m_semanticName = VertexLayoutElement::SemanticName::Normal,
-                        .m_format = TextureFormat::RGB32_Float,
-                        .m_offset = sizeof(float3),
-                        .m_location = 1,
-                    },
-                },
-                .m_bindings = {
-                    VertexBindingDesc {
-                        .m_stride = sizeof(float3) + sizeof(float3),
-                    }
-                }
+                .m_elements = vertexLayoutElements,
+                .m_bindings = vertexBindings,
             },
             .m_rasterState = {},
             .m_colorBlending = {

@@ -32,13 +32,15 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         // Create input color descriptor set layout
         {
-            DescriptorSetDesc desc {
-                .m_bindings = {
-                    DescriptorBindingDesc {
-                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
-                        .m_visibility = ShaderVisibility::Fragment
-                    }, // Input color
-                }
+            const DescriptorBindingDesc bindings[] {
+                // Input color
+                {
+                    .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                    .m_visibility = ShaderVisibility::Fragment
+                },
+            };
+            const DescriptorSetDesc desc {
+                .m_bindings = bindings,
             };
 
             m_inputColorDescriptorSetLayout = _graphicsContext->CreateDescriptorSetLayout(desc, indices);
@@ -48,13 +50,16 @@ namespace KryneEngine::Samples::RenderGraphDemo
         {
             m_inputColorDescriptorSet = _graphicsContext->CreateDescriptorSet(m_inputColorDescriptorSetLayout);
 
+            const DescriptorSetWriteInfo::DescriptorData descriptorData[] {
+                {
+                    .m_textureLayout = TextureLayout::ShaderResource,
+                    .m_handle = _hdrSrv.m_handle,
+                }
+            };
             const DescriptorSetWriteInfo writeInfo[] = {
                 {
                     .m_index = indices[0],
-                    .m_descriptorData = { DescriptorSetWriteInfo::DescriptorData{
-                        .m_textureLayout = TextureLayout::ShaderResource,
-                        .m_handle = _hdrSrv.m_handle,
-                    } }
+                    .m_descriptorData = descriptorData
                 },
             };
 
@@ -63,17 +68,19 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         // Create PSO layout
         {
-            PipelineLayoutDesc layoutDesc = {
-                .m_descriptorSets = {
-                    _sceneConstantsDescriptorSetLayout,
-                    m_inputColorDescriptorSetLayout
-                },
-                .m_pushConstants = {
-                    PushConstantDesc {
-                        .m_sizeInBytes = sizeof(u32),
-                        .m_visibility = ShaderVisibility::Vertex,
-                    }
+            const DescriptorSetLayoutHandle descriptorSetLayouts[] {
+                _sceneConstantsDescriptorSetLayout,
+                m_inputColorDescriptorSetLayout
+            };
+            const PushConstantDesc pushConstants[] {
+                {
+                    .m_sizeInBytes = sizeof(u32),
+                    .m_visibility = ShaderVisibility::Vertex,
                 }
+            };
+            const PipelineLayoutDesc layoutDesc = {
+                .m_descriptorSets = descriptorSetLayouts,
+                .m_pushConstants = pushConstants
             };
 
             m_pipelineLayout = _graphicsContext->CreatePipelineLayout(layoutDesc);

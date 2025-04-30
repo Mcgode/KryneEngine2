@@ -81,41 +81,43 @@ void PreparePso(
     }
 
     {
-        _pso = _graphicsContext.CreateGraphicsPipeline({
-            .m_stages = {
-                    ShaderStage{
-                    .m_shaderModule = _vsModule,
-                    .m_stage = KryneEngine::ShaderStage::Stage::Vertex,
-                    .m_entryPoint = "MainVS",
-                },
-                    ShaderStage{
-                    .m_shaderModule = _psModule,
-                    .m_stage = KryneEngine::ShaderStage::Stage::Fragment,
-                    .m_entryPoint = "MainPS",
-                },
+        const ShaderStage stages[] {
+            ShaderStage {
+                .m_shaderModule = _vsModule,
+                .m_stage = KryneEngine::ShaderStage::Stage::Vertex,
+                .m_entryPoint = "MainVS",
             },
+            ShaderStage {
+                .m_shaderModule = _psModule,
+                .m_stage = KryneEngine::ShaderStage::Stage::Fragment,
+                .m_entryPoint = "MainPS",
+            },
+        };
+        const VertexLayoutElement vertexElements[] {
+            // Position element
+            {
+                .m_semanticName = KryneEngine::VertexLayoutElement::SemanticName::Position,
+                .m_semanticIndex = 0,
+                .m_format = KryneEngine::TextureFormat::RGB32_Float,
+                .m_offset = 0,
+                .m_location = 0,
+            },
+            // Color element
+            {
+                .m_semanticName = KryneEngine::VertexLayoutElement::SemanticName::Color,
+                .m_semanticIndex = 0,
+                .m_format = KryneEngine::TextureFormat::RGB32_Float,
+                .m_offset = sizeof(float3),
+                .m_location = 0,
+            }
+        };
+        const VertexBindingDesc vertexBindings[] {{ .m_stride = sizeof(float3) * 2 }};
+
+        _pso = _graphicsContext.CreateGraphicsPipeline({
+            .m_stages = stages,
             .m_vertexInput = {
-                .m_elements = {
-                    // Position element
-                    VertexLayoutElement {
-                        .m_semanticName = KryneEngine::VertexLayoutElement::SemanticName::Position,
-                        .m_semanticIndex = 0,
-                        .m_format = KryneEngine::TextureFormat::RGB32_Float,
-                        .m_offset = 0,
-                        .m_location = 0,
-                    },
-                    // Color element
-                    VertexLayoutElement {
-                        .m_semanticName = KryneEngine::VertexLayoutElement::SemanticName::Color,
-                        .m_semanticIndex = 0,
-                        .m_format = KryneEngine::TextureFormat::RGB32_Float,
-                        .m_offset = sizeof(float3),
-                        .m_location = 1,
-                    },
-                },
-                .m_bindings = {
-                    VertexBindingDesc { .m_stride = sizeof(float3) * 2 },
-                },
+                .m_elements = vertexElements,
+                .m_bindings = vertexBindings,
             },
             .m_colorBlending = {
                 .m_attachments = {

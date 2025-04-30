@@ -7,6 +7,7 @@
 #pragma once
 
 #include "EASTL/fixed_vector.h"
+#include "EASTL/span.h"
 
 #include "Enums.hpp"
 #include "Handles.hpp"
@@ -65,8 +66,8 @@ namespace KryneEngine
 
     struct VertexInputDesc
     {
-        eastl::vector<VertexLayoutElement> m_elements{};
-        eastl::vector<VertexBindingDesc> m_bindings {};
+        eastl::span<const VertexLayoutElement> m_elements{};
+        eastl::span<const VertexBindingDesc> m_bindings {};
     };
 
     struct InputAssemblyDesc
@@ -313,7 +314,7 @@ namespace KryneEngine
     struct DescriptorSetDesc
     {
         // Note: Array is expected to be sorted by binding indices between descriptors of the same group type
-        eastl::vector<DescriptorBindingDesc> m_bindings{};
+        eastl::span<const DescriptorBindingDesc> m_bindings{};
     };
 
     struct DescriptorSetWriteInfo
@@ -326,19 +327,19 @@ namespace KryneEngine
             TextureLayout m_textureLayout = TextureLayout::Unknown;
             GenPool::Handle m_handle = GenPool::kInvalidHandle;
         };
-        eastl::vector<DescriptorData> m_descriptorData;
+        eastl::span<const DescriptorData> m_descriptorData;
     };
 
     struct PipelineLayoutDesc
     {
-        eastl::vector<DescriptorSetLayoutHandle> m_descriptorSets {};
-        eastl::vector<PushConstantDesc> m_pushConstants {};
+        eastl::span<const DescriptorSetLayoutHandle> m_descriptorSets {};
+        eastl::span<const PushConstantDesc> m_pushConstants {};
         bool m_useVertexLayout = true;
     };
 
     struct GraphicsPipelineDesc
     {
-        eastl::vector<ShaderStage> m_stages {};
+        eastl::span<const ShaderStage> m_stages {};
         VertexInputDesc m_vertexInput {};
         InputAssemblyDesc m_inputAssembly {};
         RasterStateDesc m_rasterState {};

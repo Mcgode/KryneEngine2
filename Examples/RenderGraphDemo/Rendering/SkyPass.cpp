@@ -19,14 +19,15 @@ namespace KryneEngine::Samples::RenderGraphDemo
         GraphicsContext* _graphicsContext,
         DescriptorSetLayoutHandle _sceneConstantsDescriptorSetLayout)
     {
-        m_pipelineLayout = _graphicsContext->CreatePipelineLayout(PipelineLayoutDesc {
-            .m_descriptorSets = { _sceneConstantsDescriptorSetLayout },
-            .m_pushConstants = {
-                PushConstantDesc {
-                    .m_sizeInBytes = sizeof(float),
-                    .m_visibility = ShaderVisibility::Vertex,
-                }
+        const PushConstantDesc pushConstants[] {
+            {
+                .m_sizeInBytes = sizeof(float),
+                .m_visibility = ShaderVisibility::Vertex,
             }
+        };
+        m_pipelineLayout = _graphicsContext->CreatePipelineLayout(PipelineLayoutDesc {
+            .m_descriptorSets = { &_sceneConstantsDescriptorSetLayout, 1 },
+            .m_pushConstants = pushConstants,
         });
     }
 

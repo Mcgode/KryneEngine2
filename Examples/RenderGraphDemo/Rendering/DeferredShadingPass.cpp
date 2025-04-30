@@ -36,29 +36,35 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         // Create texture descriptor set layout
         {
-            DescriptorSetDesc desc {
-                .m_bindings = {
-                    DescriptorBindingDesc {
-                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
-                        .m_visibility = ShaderVisibility::Fragment
-                    }, // Albedo
-                    DescriptorBindingDesc {
-                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
-                        .m_visibility = ShaderVisibility::Fragment
-                    }, // Normal
-                    DescriptorBindingDesc {
-                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
-                        .m_visibility = ShaderVisibility::Fragment
-                    }, // Depth
-                    DescriptorBindingDesc {
-                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
-                        .m_visibility = ShaderVisibility::Fragment
-                    }, // Ambient
-                    DescriptorBindingDesc {
-                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
-                        .m_visibility = ShaderVisibility::Fragment
-                    }, // Deferred shadows
-                }
+            const DescriptorBindingDesc bindings[] {
+                // Albedo
+                {
+                    .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                    .m_visibility = ShaderVisibility::Fragment
+                },
+                // Normal
+                {
+                    .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                    .m_visibility = ShaderVisibility::Fragment
+                },
+                // Depth
+                {
+                    .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                    .m_visibility = ShaderVisibility::Fragment
+                },
+                // Ambient
+                {
+                    .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                    .m_visibility = ShaderVisibility::Fragment
+                },
+                // Deferred shadows
+                {
+                    .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                    .m_visibility = ShaderVisibility::Fragment
+                },
+            };
+            const DescriptorSetDesc desc {
+                .m_bindings = bindings
             };
 
             m_texturesDescriptorSetLayout = _graphicsContext->CreateDescriptorSetLayout(desc, indices);
@@ -68,41 +74,56 @@ namespace KryneEngine::Samples::RenderGraphDemo
         {
             m_textureDescriptors = _graphicsContext->CreateDescriptorSet(m_texturesDescriptorSetLayout);
 
+            const DescriptorSetWriteInfo::DescriptorData gBufferAlbedoDescriptorData[] {
+                {
+                    .m_textureLayout = TextureLayout::ShaderResource,
+                    .m_handle = _gBufferAlbedo.m_handle,
+                }
+            };
+            const DescriptorSetWriteInfo::DescriptorData gBufferNormalDescriptorData[] {
+                {
+                    .m_textureLayout = TextureLayout::ShaderResource,
+                    .m_handle = _gBufferNormal.m_handle,
+                }
+            };
+            const DescriptorSetWriteInfo::DescriptorData gBufferDepthDescriptorData[] {
+                {
+                    .m_textureLayout = TextureLayout::ShaderResource,
+                    .m_handle = _gBufferDepth.m_handle,
+                }
+            };
+            const DescriptorSetWriteInfo::DescriptorData gBufferAmbientDescriptorData[] {
+                {
+                    .m_textureLayout = TextureLayout::ShaderResource,
+                    .m_handle = _gBufferAmbient.m_handle,
+                }
+            };
+            const DescriptorSetWriteInfo::DescriptorData deferredShadowsDescriptorData[] {
+                {
+                    .m_textureLayout = TextureLayout::ShaderResource,
+                    .m_handle = _deferredShadows.m_handle,
+                }
+            };
             const DescriptorSetWriteInfo writeInfo[] = {
                 {
                     .m_index = indices[0],
-                    .m_descriptorData = { DescriptorSetWriteInfo::DescriptorData{
-                        .m_textureLayout = TextureLayout::ShaderResource,
-                        .m_handle = _gBufferAlbedo.m_handle,
-                    } }
+                    .m_descriptorData = gBufferAlbedoDescriptorData
                 },
                 {
                     .m_index = indices[1],
-                    .m_descriptorData = { DescriptorSetWriteInfo::DescriptorData{
-                        .m_textureLayout = TextureLayout::ShaderResource,
-                        .m_handle = _gBufferNormal.m_handle,
-                    } }
+                    .m_descriptorData = gBufferNormalDescriptorData
                 },
                 {
                     .m_index = indices[2],
-                    .m_descriptorData = { DescriptorSetWriteInfo::DescriptorData{
-                        .m_textureLayout = TextureLayout::ShaderResource,
-                        .m_handle = _gBufferDepth.m_handle,
-                    } }
+                    .m_descriptorData = gBufferDepthDescriptorData
                 },
                 {
                     .m_index = indices[3],
-                    .m_descriptorData = { DescriptorSetWriteInfo::DescriptorData{
-                        .m_textureLayout = TextureLayout::ShaderResource,
-                        .m_handle = _gBufferAmbient.m_handle,
-                    } }
+                    .m_descriptorData = gBufferAmbientDescriptorData
                 },
                 {
                     .m_index = indices[4],
-                    .m_descriptorData = { DescriptorSetWriteInfo::DescriptorData{
-                        .m_textureLayout = TextureLayout::ShaderResource,
-                        .m_handle = _deferredShadows.m_handle,
-                    } }
+                    .m_descriptorData = deferredShadowsDescriptorData
                 },
             };
             _graphicsContext->UpdateDescriptorSet(m_textureDescriptors, { writeInfo });
@@ -110,17 +131,20 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         // Create PSO layout
         {
-            PipelineLayoutDesc layoutDesc = {
-                .m_descriptorSets = {
-                    _sceneConstantsDescriptorSetLayout,
-                    m_texturesDescriptorSetLayout
-                },
-                .m_pushConstants = {
-                    PushConstantDesc {
-                        .m_sizeInBytes = sizeof(u32),
-                        .m_visibility = ShaderVisibility::Vertex,
-                    }
+            const DescriptorSetLayoutHandle descriptorSetLayouts[] {
+                _sceneConstantsDescriptorSetLayout,
+                m_texturesDescriptorSetLayout
+            };
+            const PushConstantDesc pushConstants[] {
+                {
+                    .m_sizeInBytes = sizeof(u32),
+                    .m_visibility = ShaderVisibility::Vertex,
                 }
+            };
+
+            const PipelineLayoutDesc layoutDesc = {
+                .m_descriptorSets = descriptorSetLayouts,
+                .m_pushConstants = pushConstants,
             };
 
             m_pipelineLayout = _graphicsContext->CreatePipelineLayout(layoutDesc);

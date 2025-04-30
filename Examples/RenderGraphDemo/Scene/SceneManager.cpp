@@ -92,13 +92,14 @@ namespace KryneEngine::Samples::RenderGraphDemo
             });
         }
 
-        const DescriptorSetDesc sceneDesc = {
-            .m_bindings = {
-                DescriptorBindingDesc {
-                    .m_type = DescriptorBindingDesc::Type::ConstantBuffer,
-                    .m_visibility = ShaderVisibility::All
-                }
+        const DescriptorBindingDesc bindings[] {
+            {
+                .m_type = DescriptorBindingDesc::Type::ConstantBuffer,
+                .m_visibility = ShaderVisibility::All
             }
+        };
+        const DescriptorSetDesc sceneDesc = {
+            .m_bindings = bindings
         };
 
         m_sceneDescriptorSetIndices.resize(sceneDesc.m_bindings.size());
@@ -112,9 +113,10 @@ namespace KryneEngine::Samples::RenderGraphDemo
             DescriptorSetHandle& set = m_sceneDescriptorSets[i];
             set = graphicsContext->CreateDescriptorSet(m_sceneDescriptorSetLayout);
 
+            const DescriptorSetWriteInfo::DescriptorData data[] {{ .m_handle = m_sceneCbvs[i].m_handle }};
             const DescriptorSetWriteInfo writeInfo {
                 .m_index = m_sceneDescriptorSetIndices[0],
-                .m_descriptorData = { DescriptorSetWriteInfo::DescriptorData { .m_handle = m_sceneCbvs[i].m_handle } },
+                .m_descriptorData = data,
             };
             graphicsContext->UpdateDescriptorSet(set,{ &writeInfo, 1 });
         }

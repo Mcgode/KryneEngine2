@@ -44,19 +44,20 @@ namespace KryneEngine::Samples::RenderGraphDemo::FullscreenPassCommon
         ShaderModuleHandle vsModule = createShaderModule("Shaders/FullScreenVS_FullScreenMain", vsByteCode);
         ShaderModuleHandle fsModule = createShaderModule(_fsShader, fsByteCode);
 
-        GraphicsPipelineDesc psoDesc {
-            .m_stages = {
-                    ShaderStage{
-                    .m_shaderModule = vsModule,
-                    .m_stage = ShaderStage::Stage::Vertex,
-                    .m_entryPoint = "FullScreenMain",
-                },
-                    ShaderStage{
-                    .m_shaderModule = fsModule,
-                    .m_stage = ShaderStage::Stage::Fragment,
-                    .m_entryPoint = _fsFunctionName,
-                },
+        const ShaderStage stages[] {
+            {
+                .m_shaderModule = vsModule,
+                .m_stage = ShaderStage::Stage::Vertex,
+                .m_entryPoint = "FullScreenMain",
             },
+            {
+                .m_shaderModule = fsModule,
+                .m_stage = ShaderStage::Stage::Fragment,
+                .m_entryPoint = _fsFunctionName,
+            },
+        };
+        const GraphicsPipelineDesc psoDesc {
+            .m_stages = stages,
             .m_colorBlending = { .m_attachments = { ColorAttachmentBlendDesc() } },
             .m_depthStencil = {
                 .m_depthTest = _depthTest,

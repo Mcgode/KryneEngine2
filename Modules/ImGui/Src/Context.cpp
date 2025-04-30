@@ -228,21 +228,25 @@ namespace KryneEngine::Modules::ImGui
                 m_fontSamplerHandle = graphicsContext->CreateSampler(samplerDesc);
 
                 // Set font descriptor set values
+                const DescriptorSetWriteInfo::DescriptorData fontTextureData[] = {
+                    {
+                        .m_textureLayout = TextureLayout::ShaderResource,
+                        .m_handle = m_fontTextureSrvHandle.m_handle
+                    }
+                };
+                const DescriptorSetWriteInfo::DescriptorData fontSamplerData[] = {
+                    {
+                        .m_handle = m_fontSamplerHandle.m_handle
+                    }
+                };
                 DescriptorSetWriteInfo writeInfo[2] = {
                     {
                         .m_index = m_setIndices[0],
-                        .m_descriptorData = {
-                            DescriptorSetWriteInfo::DescriptorData {
-                                .m_textureLayout = TextureLayout::ShaderResource,
-                                .m_handle = m_fontTextureSrvHandle.m_handle,
-                            }
-                        },
+                        .m_descriptorData = fontTextureData,
                     },
                     {
                         .m_index = m_setIndices[1],
-                        .m_descriptorData = {
-                            DescriptorSetWriteInfo::DescriptorData { .m_handle = m_fontSamplerHandle.m_handle, },
-                        },
+                        .m_descriptorData = fontSamplerData,
                     }
                 };
                 graphicsContext->UpdateDescriptorSet(
@@ -551,17 +555,18 @@ namespace KryneEngine::Modules::ImGui
 
         // Set up descriptor set layout
         {
-            const DescriptorSetDesc descriptorSetDesc {
-                .m_bindings = {
-                    {
-                        .m_type = DescriptorBindingDesc::Type::SampledTexture,
-                        .m_visibility = ShaderVisibility::Fragment,
-                    },
-                    {
-                        .m_type = DescriptorBindingDesc::Type::Sampler,
-                        .m_visibility = ShaderVisibility::Fragment,
-                    },
+            const DescriptorBindingDesc descriptorSetBindings[] {
+                {
+                    .m_type = DescriptorBindingDesc::Type::SampledTexture,
+                    .m_visibility = ShaderVisibility::Fragment,
+                },
+                {
+                    .m_type = DescriptorBindingDesc::Type::Sampler,
+                    .m_visibility = ShaderVisibility::Fragment,
                 }
+            };
+            const DescriptorSetDesc descriptorSetDesc {
+                .m_bindings = descriptorSetBindings
             };
             m_setIndices.resize(descriptorSetDesc.m_bindings.size());
             m_fontDescriptorSetLayout = _graphicsContext->CreateDescriptorSetLayout(
@@ -576,15 +581,18 @@ namespace KryneEngine::Modules::ImGui
 
         // Pipeline layout creation
         {
-            PipelineLayoutDesc pipelineLayoutDesc {};
-
-            pipelineLayoutDesc.m_descriptorSets.push_back(m_fontDescriptorSetLayout);
-
             // Scale and translate push constant
-            pipelineLayoutDesc.m_pushConstants.push_back(PushConstantDesc {
-                .m_sizeInBytes = sizeof(PushConstants),
-                .m_visibility = ShaderVisibility::Vertex,
-            });
+            const PushConstantDesc pushConstantDesc[] {
+                {
+                    .m_sizeInBytes = sizeof(PushConstants),
+                    .m_visibility = ShaderVisibility::Vertex,
+                },
+            };
+
+            PipelineLayoutDesc pipelineLayoutDesc {
+                .m_descriptorSets = { &m_fontDescriptorSetLayout, 1 },
+                .m_pushConstants = pushConstantDesc,
+            };
 
             m_pipelineLayout = _graphicsContext->CreatePipelineLayout(pipelineLayoutDesc);
         }
@@ -610,52 +618,55 @@ namespace KryneEngine::Modules::ImGui
 #endif
             };
 
-            desc.m_stages.push_back(
-                ShaderStage{
-                .m_shaderModule = m_vsModule,
-                .m_stage = ShaderStage::Stage::Vertex,
-                .m_entryPoint = "MainVS",
-            });
-            desc.m_stages.push_back(
-                ShaderStage{
-                .m_shaderModule = m_fsModule,
-                .m_stage = ShaderStage::Stage::Fragment,
-                .m_entryPoint = "MainPS",
-            });
+            const ShaderStage stages[] {
+                {
+                    .m_shaderModule = m_vsModule,
+                    .m_stage = ShaderStage::Stage::Vertex,
+                    .m_entryPoint = "MainVS",
+                },
+                {
+                    .m_shaderModule = m_fsModule,
+                    .m_stage = ShaderStage::Stage::Fragment,
+                    .m_entryPoint = "MainPS",
+                }
+            };
+            desc.m_stages = stages;
 
+            const VertexLayoutElement vertexLayoutElements[] {
+                {
+                    .m_semanticName = VertexLayoutElement::SemanticName::Position,
+                    .m_semanticIndex = 0,
+                    .m_bindingIndex = 0,
+                    .m_format = TextureFormat::RG32_Float,
+                    .m_offset = offsetof(VertexEntry, m_position),
+                    .m_location = 0,
+                },
+                {
+                    .m_semanticName = VertexLayoutElement::SemanticName::Uv,
+                    .m_semanticIndex = 0,
+                    .m_bindingIndex = 0,
+                    .m_format = TextureFormat::RG32_Float,
+                    .m_offset = offsetof(VertexEntry, m_uv),
+                    .m_location = 1,
+                },
+                {
+                    .m_semanticName = VertexLayoutElement::SemanticName::Color,
+                    .m_semanticIndex = 0,
+                    .m_bindingIndex = 0,
+                    .m_format = TextureFormat::RGBA8_UNorm,
+                    .m_offset = offsetof(VertexEntry, m_color),
+                    .m_location = 2,
+                },
+            };
+            const VertexBindingDesc vertexBindings[] {
+                {
+                    .m_stride = sizeof(VertexEntry),
+                    .m_binding = 0,
+                }
+            };
             desc.m_vertexInput = VertexInputDesc {
-                .m_elements = {
-                    VertexLayoutElement {
-                        .m_semanticName = VertexLayoutElement::SemanticName::Position,
-                        .m_semanticIndex = 0,
-                        .m_bindingIndex = 0,
-                        .m_format = TextureFormat::RG32_Float,
-                        .m_offset = offsetof(VertexEntry, m_position),
-                        .m_location = 0,
-                    },
-                    VertexLayoutElement {
-                        .m_semanticName = VertexLayoutElement::SemanticName::Uv,
-                        .m_semanticIndex = 0,
-                        .m_bindingIndex = 0,
-                        .m_format = TextureFormat::RG32_Float,
-                        .m_offset = offsetof(VertexEntry, m_uv),
-                        .m_location = 1,
-                    },
-                    VertexLayoutElement {
-                        .m_semanticName = VertexLayoutElement::SemanticName::Color,
-                        .m_semanticIndex = 0,
-                        .m_bindingIndex = 0,
-                        .m_format = TextureFormat::RGBA8_UNorm,
-                        .m_offset = offsetof(VertexEntry, m_color),
-                        .m_location = 2,
-                    },
-                },
-                .m_bindings = {
-                    VertexBindingDesc {
-                        .m_stride = sizeof(VertexEntry),
-                        .m_binding = 0,
-                    },
-                },
+                .m_elements = vertexLayoutElements,
+                .m_bindings = vertexBindings,
             };
 
             m_pso = _graphicsContext->CreateGraphicsPipeline(desc);
