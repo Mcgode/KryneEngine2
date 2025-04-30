@@ -194,5 +194,20 @@ namespace KryneEngine
         };
 
         GenerationalPool<GraphicsPsoHotData> m_graphicsPso;
+
+    public:
+        [[nodiscard]] ComputePipelineHandle CreateComputePso(
+            MTL::Device& _device,
+            MetalArgumentBufferManager& _argBufferManager,
+            const ComputePipelineDesc& _desc);
+        bool DestroyComputePso(ComputePipelineHandle _pso);
+
+    private:
+        struct ComputePsoHotData
+        {
+            NsPtr<MTL::ComputePipelineState> m_pso;
+        };
+
+        GenerationalPool<ComputePsoHotData> m_computePso;
     };
 } // namespace KryneEngine

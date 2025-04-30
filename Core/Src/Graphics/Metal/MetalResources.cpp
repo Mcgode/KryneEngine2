@@ -630,4 +630,48 @@ namespace KryneEngine
         }
         return false;
     }
+
+    ComputePipelineHandle MetalResources::CreateComputePso(
+        MTL::Device& _device,
+        MetalArgumentBufferManager& _argBufferManager,
+        const ComputePipelineDesc& _desc)
+    {
+        KE_AUTO_RELEASE_POOL;
+
+        MTL::ComputePipelineDescriptor* descriptor = MTL::ComputePipelineDescriptor::alloc()->init();
+
+        {
+            ShaderModuleHotData* libHot = m_libraries.Get(_desc.m_computeStage.m_shaderModule.m_handle);
+            KE_ASSERT_FATAL(libHot != nullptr);
+            MTL::Library* library = libHot->m_library.get();
+            MTL::Function* function = library->newFunction(NS::String::string(_desc.m_computeStage.m_entryPoint.c_str(), NS::UTF8StringEncoding));
+            descriptor->setComputeFunction(function);
+        }
+
+#if !defined(KE_FINAL)
+        descriptor->setLabel(NS::String::string(_desc.m_debugName.c_str(), NS::UTF8StringEncoding));
+#endif
+
+        GenPool::Handle handle = m_computePso.Allocate();
+        ComputePsoHotData& hot = *m_computePso.Get(handle);
+
+        {
+            NS::Error* error;
+            hot.m_pso = _device.newComputePipelineState(descriptor, MTL::PipelineOptionNone, nullptr, &error);
+            KE_ASSERT_FATAL_MSG(hot.m_pso != nullptr, error->localizedDescription()->cString(NS::UTF8StringEncoding));
+        }
+
+        return { handle };
+    }
+
+    bool MetalResources::DestroyComputePso(ComputePipelineHandle _pso)
+    {
+        ComputePsoHotData hot;
+        if (m_computePso.Free(_pso.m_handle, &hot))
+        {
+            hot.m_pso.reset();
+            return true;
+        }
+        return false;
+    }
 } // namespace KryneEngine

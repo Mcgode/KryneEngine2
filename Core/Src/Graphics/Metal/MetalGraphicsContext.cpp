@@ -279,13 +279,31 @@ namespace KryneEngine
         _commandList->m_encoder->setLabel(string);
 #endif
 
-        _commandList->m_userData = new RenderState();
+        _commandList->m_userData = m_allocator.Allocate<RenderState>();
     }
 
     void MetalGraphicsContext::EndRenderPass(CommandList _commandList)
     {
-        delete static_cast<RenderState*>(_commandList->m_userData);
+        m_allocator.Delete(static_cast<RenderState*>(_commandList->m_userData));
         _commandList->m_userData = nullptr;
+        _commandList->ResetEncoder();
+    }
+
+    void MetalGraphicsContext::BeginComputePass(CommandList _commandList)
+    {
+        KE_ASSERT(_commandList->m_encoder == nullptr || _commandList->m_type == CommandListData::EncoderType::Blit);
+        KE_ASSERT(_commandList->m_userData == nullptr);
+
+        KE_AUTO_RELEASE_POOL;
+
+        _commandList->ResetEncoder(CommandListData::EncoderType::Compute);
+        _commandList->m_encoder = _commandList->m_commandBuffer->computeCommandEncoder(MTL::DispatchTypeSerial)->retain();
+    }
+
+    void MetalGraphicsContext::EndComputePass(CommandList _commandList)
+    {
+        KE_ASSERT(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Compute);
+
         _commandList->ResetEncoder();
     }
 
@@ -644,6 +662,16 @@ namespace KryneEngine
         return m_resources.FreeLibrary(_module);
     }
 
+    ComputePipelineHandle MetalGraphicsContext::CreateComputePipeline(const ComputePipelineDesc& _desc)
+    {
+        return m_resources.CreateComputePso(*m_device, m_argumentBufferManager, _desc);;
+    }
+
+    bool MetalGraphicsContext::DestroyComputePipeline(ComputePipelineHandle _pipeline)
+    {
+        return m_resources.DestroyComputePso(_pipeline);;
+    }
+
     void MetalGraphicsContext::UpdateDescriptorSet(
         DescriptorSetHandle _descriptorSet,
         const eastl::span<const DescriptorSetWriteInfo>& _writes,
@@ -898,6 +926,79 @@ namespace KryneEngine
             _desc.m_instanceCount,
             _desc.m_vertexOffset,
             _desc.m_instanceOffset);
+    }
+
+    void MetalGraphicsContext::SetComputePipeline(CommandList _commandList, ComputePipelineHandle _pipeline)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Compute);
+        auto* encoder = reinterpret_cast<MTL::ComputeCommandEncoder*>(_commandList->m_encoder.get());
+
+        MetalResources::ComputePsoHotData* hot = m_resources.m_computePso.Get(_pipeline.m_handle);
+        encoder->setComputePipelineState(hot->m_pso.get());
+    }
+
+    void MetalGraphicsContext::SetComputeDescriptorSets(
+        CommandList _commandList,
+        PipelineLayoutHandle _layout,
+        eastl::span<const DescriptorSetHandle> _sets,
+        u32 _offset,
+        u64 _frameId)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Compute);
+        auto* encoder = reinterpret_cast<MTL::ComputeCommandEncoder*>(_commandList->m_encoder.get());
+
+        const MetalArgumentBufferManager::PipelineLayoutHotData* layoutData = m_argumentBufferManager.m_pipelineLayouts.Get(_layout.m_handle);
+        const u8 frameIndex = _frameId % m_frameContextCount;
+
+        for (u32 i = 0; i < _sets.size(); ++i)
+        {
+            const u32 index = i + _offset;
+
+            const ShaderVisibility visibility = layoutData->m_setVisibilities[index];
+            KE_ASSERT(BitUtils::EnumHasAny(visibility, ShaderVisibility::Compute) || visibility == ShaderVisibility::None);
+
+            const MetalArgumentBufferManager::ArgumentBufferHotData& argBuffer =
+                    *m_argumentBufferManager.m_argumentBufferSets.Get(_sets[i].m_handle);
+
+            encoder->setBuffer(
+                argBuffer.m_argumentBuffer.get(),
+                frameIndex * argBuffer.m_encoder->encodedLength(),
+                index);
+        }
+    }
+
+    void MetalGraphicsContext::SetComputePushConstant(
+        CommandList _commandList, PipelineLayoutHandle _layout, eastl::span<const u32> _data)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Compute);
+        auto* encoder = reinterpret_cast<MTL::ComputeCommandEncoder*>(_commandList->m_encoder.get());
+
+        const MetalArgumentBufferManager::PushConstantData& pushConstantData =
+            m_argumentBufferManager.m_pipelineLayouts.Get(_layout.m_handle)->m_pushConstantsData[0];
+
+        KE_ASSERT(pushConstantData.m_data.size() == 1);
+        KE_ASSERT(pushConstantData.m_data[0].m_visibility == ShaderVisibility::Compute);
+        encoder->setBytes(_data.data(), _data.size_bytes(), pushConstantData.m_data[0].m_bufferIndex);
+    }
+
+    void MetalGraphicsContext::Dispatch(CommandList _commandList, uint3 _threadGroupCount, uint3 _threadGroupSize)
+    {
+        VERIFY_OR_RETURN_VOID(_commandList->m_encoder != nullptr && _commandList->m_type == CommandListData::EncoderType::Compute);
+        auto* encoder = reinterpret_cast<MTL::ComputeCommandEncoder*>(_commandList->m_encoder.get());
+
+        const MTL::Size threadGroupCount {
+            _threadGroupCount.x,
+            _threadGroupCount.y,
+            _threadGroupCount.z
+        };
+
+        const MTL::Size threadGroupSize {
+            _threadGroupSize.x,
+            _threadGroupSize.y,
+            _threadGroupSize.z
+        };
+
+        encoder->dispatchThreadgroups(threadGroupCount, threadGroupSize);
     }
 
     void MetalGraphicsContext::UseResources(CommandList _commandList, eastl::span<MTL::Resource*> _resources)
