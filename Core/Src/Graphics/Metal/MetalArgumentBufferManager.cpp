@@ -61,7 +61,7 @@ namespace KryneEngine
         {
             NsPtr<MTL::ArgumentDescriptor>& desc = hot->m_argDescriptors[i];
             const DescriptorBindingDesc& binding = _desc.m_bindings[i];
-            const u32 bindingIndex = binding.m_bindingIndex != DescriptorBindingDesc::kImplicitBindingIndex ? i : binding.m_bindingIndex;
+            const u32 bindingIndex = binding.m_bindingIndex == DescriptorBindingDesc::kImplicitBindingIndex ? i : binding.m_bindingIndex;
 
             desc = MTL::ArgumentDescriptor::alloc()->init();
             desc->setDataType(MetalConverters::GetDataType(binding.m_type));
@@ -218,6 +218,8 @@ namespace KryneEngine
         {
             PackedIndex packedIndex = { .m_packedIndex = writeInfo.m_index };
             packedIndex.m_index += writeInfo.m_arrayOffset;
+            KE_ASSERT(packedIndex.m_index != 0xFFFF);
+
             for (auto& data: writeInfo.m_descriptorData)
             {
                 ArgumentBufferWriteInfo& info = updates.emplace_back();
