@@ -18,6 +18,8 @@ add_executable(RenderGraphDemo
         Rendering/FullscreenPassCommon.hpp
         Rendering/SkyPass.cpp
         Rendering/SkyPass.hpp
+        Rendering/ColorMappingPass.cpp
+        Rendering/ColorMappingPass.hpp
 )
 
 # Link to cpp libraries

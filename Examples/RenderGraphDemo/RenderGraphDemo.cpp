@@ -17,6 +17,7 @@
 #include <KryneEngine/Modules/RenderGraph/RenderGraph.hpp>
 #include <iostream>
 
+#include "Rendering/ColorMappingPass.hpp"
 #include "Rendering/DeferredShadingPass.hpp"
 #include "Rendering/SkyPass.hpp"
 #include "Scene/SceneManager.hpp"
@@ -96,6 +97,7 @@ int main()
 
     DeferredShadingPass deferredShadingPass { allocator };
     SkyPass skyPass { allocator };
+    ColorMappingPass colorMappingPass { allocator };
 
     KryneEngine::SimplePoolHandle
         gBufferAlbedo,
@@ -314,6 +316,10 @@ int main()
     skyPass.Initialize(
         graphicsContext,
         sceneManager.GetDescriptorSetLayout());
+    colorMappingPass.Initialize(
+        graphicsContext,
+        sceneManager.GetDescriptorSetLayout(),
+        renderGraph.GetRegistry().GetResource(hdrSrv).m_textureSrvData.m_textureSrv);
 
     do
     {
@@ -344,6 +350,7 @@ int main()
 
         deferredShadingPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
         skyPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
+        colorMappingPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
 
         RenderGraph::Builder& builder = renderGraph.BeginFrame(*graphicsContext);
 
@@ -488,7 +495,8 @@ int main()
                     .Done()
                 .DeclarePass(KryneEngine::Modules::RenderGraph::PassType::Render)
                     .SetName("Color mapping pass")
-                    .SetExecuteFunction(ExecuteColorMappingPass)
+                    .SetRenderPassCallback([&colorMappingPass](auto* _graphicsContext, auto _renderPass) { colorMappingPass.CreatePso(_graphicsContext, _renderPass); })
+                    .SetExecuteFunction([&colorMappingPass](const auto& _renderGraph, const auto& _passData) { colorMappingPass.Render(_renderGraph, _passData); })
                     .AddColorAttachment(swapChainRtv)
                         .SetLoadOperation(KryneEngine::RenderPassDesc::Attachment::LoadOperation::DontCare)
                         .SetStoreOperation(KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store)
