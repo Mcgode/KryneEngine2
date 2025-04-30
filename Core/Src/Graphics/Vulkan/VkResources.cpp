@@ -979,6 +979,49 @@ namespace KryneEngine
         return false;
     }
 
+    ComputePipelineHandle VkResources::CreateComputePipeline(const ComputePipelineDesc& _desc, VkDevice _device)
+    {
+        VkShaderModule* pModule = m_shaderModules.Get(_desc.m_computeStage.m_shaderModule.m_handle);
+        VkPipelineLayout* pLayout = m_pipelineLayouts.Get(_desc.m_pipelineLayout.m_handle);
+
+        KE_ASSERT_FATAL(pModule != nullptr && pLayout != nullptr);
+
+        const VkComputePipelineCreateInfo pipelineCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+            .stage = VkPipelineShaderStageCreateInfo {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+                .module = *pModule,
+                .pName = _desc.m_computeStage.m_entryPoint.c_str(),
+            },
+            .layout = *pLayout,
+        };
+
+        const GenPool::Handle handle = m_pipelines.Allocate();
+
+        VkAssert(vkCreateComputePipelines(
+            _device,
+            VK_NULL_HANDLE,
+            1,
+            &pipelineCreateInfo,
+            nullptr,
+            m_pipelines.Get(handle)
+            ));
+
+        return { handle };
+    }
+
+    bool VkResources::DestroyComputePipeline(ComputePipelineHandle _pipeline, VkDevice _device)
+    {
+        VkPipeline pipeline;
+        if (m_pipelines.Free(_pipeline.m_handle, &pipeline))
+        {
+            vkDestroyPipeline(_device, pipeline, nullptr);
+            return true;
+        }
+        return false;
+    }
+
     VkImageView VkResources::CreateImageView(
         VkDevice _device,
         VkImage _image,

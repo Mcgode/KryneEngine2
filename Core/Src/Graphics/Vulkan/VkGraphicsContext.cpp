@@ -1318,6 +1318,16 @@ namespace KryneEngine
         return m_resources.DestroyShaderModule(_module, m_device);
     }
 
+    ComputePipelineHandle VkGraphicsContext::CreateComputePipeline(const ComputePipelineDesc& _desc)
+    {
+        return m_resources.CreateComputePipeline(_desc, m_device);
+    }
+
+    bool VkGraphicsContext::DestroyComputePipeline(ComputePipelineHandle _pipeline)
+    {
+        return m_resources.DestroyComputePipeline(_pipeline, m_device);
+    }
+
     void VkGraphicsContext::UpdateDescriptorSet(
         DescriptorSetHandle _descriptorSet,
         const eastl::span<const DescriptorSetWriteInfo>& _writes,
@@ -1486,5 +1496,81 @@ namespace KryneEngine
             _desc.m_indexOffset,
             _desc.m_vertexOffset,
             _desc.m_instanceOffset);
+    }
+
+    void VkGraphicsContext::SetComputePipeline(CommandList _commandList, ComputePipelineHandle _pipeline)
+    {
+        KE_ZoneScopedFunction("VkGraphicsContext::SetComputePipeline");
+
+        VkPipeline* pPipeline = m_resources.m_pipelines.Get(_pipeline.m_handle);
+
+        VERIFY_OR_RETURN_VOID(pPipeline != nullptr);
+
+        vkCmdBindPipeline(
+            _commandList,
+            VK_PIPELINE_BIND_POINT_COMPUTE,
+            *pPipeline);
+    }
+
+    void VkGraphicsContext::SetComputeDescriptorSets(
+        CommandList _commandList,
+        PipelineLayoutHandle _layout,
+        eastl::span<const DescriptorSetHandle> _sets,
+        u32 _offset,
+        u64 _frameId)
+    {
+        KE_ZoneScopedFunction("VkGraphicsContext::SetComputeDescriptorSets");
+
+        const u8 frameIndex = _frameId % m_frameContextCount;
+
+        VkPipelineLayout* pLayout = m_resources.m_pipelineLayouts.Get(_layout.m_handle);
+        VERIFY_OR_RETURN_VOID(pLayout != nullptr);
+
+        for (auto i = 0; i < _sets.size(); i++)
+        {
+            VERIFY_OR_RETURN_VOID(m_descriptorSetManager.m_descriptorSetPools.Get(_sets[i].m_handle) != nullptr);
+            const u64 offset = m_frameContextCount * _sets[i].m_handle.m_index + frameIndex;
+
+            vkCmdBindDescriptorSets(
+                _commandList,
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                *pLayout,
+                i + _offset,
+                1,
+                m_descriptorSetManager.m_descriptorSets.begin() + offset,
+                0,
+                nullptr);
+        }
+    }
+
+    void VkGraphicsContext::SetComputePushConstant(
+        CommandList _commandList,
+        PipelineLayoutHandle _layout,
+        eastl::span<const u32> _data)
+    {
+        KE_ZoneScopedFunction("VkGraphicsContext::SetComputePushConstant");
+
+        auto [pLayout, pColdData] = m_resources.m_pipelineLayouts.GetAll(_layout.m_handle);
+        VERIFY_OR_RETURN_VOID(pLayout != nullptr);
+        VERIFY_OR_RETURN_VOID(!pColdData->m_pushConstants.empty());
+
+        vkCmdPushConstants(
+            _commandList,
+            *pLayout,
+            VkHelperFunctions::ToVkShaderStageFlags(pColdData->m_pushConstants[0].m_visibility),
+            (pColdData->m_pushConstants[0].m_offset) * sizeof(u32),
+            _data.size_bytes(),
+            _data.data());
+    }
+
+    void VkGraphicsContext::Dispatch(CommandList _commandList, uint3 _threadGroupCount, uint3)
+    {
+        KE_ZoneScopedFunction("VkGraphicsContext::Dispatch");
+
+        vkCmdDispatch(
+            _commandList,
+            _threadGroupCount.x,
+            _threadGroupCount.y,
+            _threadGroupCount.z);
     }
 }

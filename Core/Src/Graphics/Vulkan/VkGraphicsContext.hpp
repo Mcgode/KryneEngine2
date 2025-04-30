@@ -235,6 +235,9 @@ namespace KryneEngine
         bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout);
         bool FreeShaderModule(ShaderModuleHandle _module);
 
+        [[nodiscard]] ComputePipelineHandle CreateComputePipeline(const ComputePipelineDesc& _desc);
+        bool DestroyComputePipeline(ComputePipelineHandle _pipeline);
+
         void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,
             const eastl::span<const DescriptorSetWriteInfo>& _writes,
@@ -259,6 +262,20 @@ namespace KryneEngine
             u32 _frameId);
         void DrawInstanced(CommandList _commandList, const DrawInstancedDesc& _desc);
         void DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc);
+
+    void SetComputePipeline(CommandList _commandList, ComputePipelineHandle _pipeline);
+    void SetComputeDescriptorSets(
+        CommandList _commandList,
+        PipelineLayoutHandle _layout,
+        eastl::span<const DescriptorSetHandle> _sets,
+        u32 _offset,
+        u64 _frameId);
+    void SetComputePushConstant(
+        CommandList _commandList,
+        PipelineLayoutHandle _layout,
+        eastl::span<const u32> _data);
+
+    void Dispatch(CommandList _commandList, uint3 _threadGroupCount, uint3);
 
     private:
         VkResources m_resources;

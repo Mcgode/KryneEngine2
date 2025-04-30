@@ -149,6 +149,9 @@ namespace KryneEngine
         [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc, VkDevice _device);
         bool DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline, VkDevice _device);
 
+        [[nodiscard]] ComputePipelineHandle CreateComputePipeline(const ComputePipelineDesc& _desc, VkDevice _device);
+        bool DestroyComputePipeline(ComputePipelineHandle _pipeline, VkDevice _device);
+
     private:
         VmaAllocator m_allocator;
 
