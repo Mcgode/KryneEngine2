@@ -13,7 +13,7 @@
 #include "KryneEngine/Core/Graphics/Buffer.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp"
-#include "KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
 #include "KryneEngine/Core/Graphics/GraphicsCommon.hpp"
 #include "KryneEngine/Core/Graphics/RenderPass.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
@@ -273,11 +273,11 @@ namespace KryneEngine
         return false;
     }
 
-    TextureSrvHandle VkResources::CreateTextureSrv(const TextureSrvDesc& _srvDesc, VkDevice _device)
+    TextureViewHandle VkResources::CreateTextureView(const TextureViewDesc& _viewDesc, VkDevice _device)
     {
-        KE_ZoneScopedFunction("VkResources::CreateTextureSrv");
+        KE_ZoneScopedFunction("VkResources::CreateTextureView");
 
-        auto* image = m_textures.Get(_srvDesc.m_texture.m_handle);
+        auto* image = m_textures.Get(_viewDesc.m_texture.m_handle);
         if (image == nullptr)
         {
             return { GenPool::kInvalidHandle };
@@ -288,20 +288,20 @@ namespace KryneEngine
         VkImageView imageView = CreateImageView(
             _device,
             *image,
-            VkHelperFunctions::RetrieveImageViewType(_srvDesc.m_viewType),
-            VkHelperFunctions::ToVkFormat(_srvDesc.m_format),
-            VkHelperFunctions::ToVkComponentMapping(_srvDesc.m_componentsMapping),
-            VkHelperFunctions::RetrieveAspectMask(_srvDesc.m_plane),
-            _srvDesc.m_minMip,
-            _srvDesc.m_maxMip - _srvDesc.m_minMip + 1,
-            _srvDesc.m_arrayStart,
-            _srvDesc.m_arrayRange);
+            VkHelperFunctions::RetrieveImageViewType(_viewDesc.m_viewType),
+            VkHelperFunctions::ToVkFormat(_viewDesc.m_format),
+            VkHelperFunctions::ToVkComponentMapping(_viewDesc.m_componentsMapping),
+            VkHelperFunctions::RetrieveAspectMask(_viewDesc.m_plane),
+            _viewDesc.m_minMip,
+            _viewDesc.m_maxMip - _viewDesc.m_minMip + 1,
+            _viewDesc.m_arrayStart,
+            _viewDesc.m_arrayRange);
 
 #if !defined(KE_FINAL)
         {
             const u64 handle = reinterpret_cast<u64>(imageView);
-            m_debugHandler->SetName(_device, VK_OBJECT_TYPE_IMAGE_VIEW, handle, _srvDesc.m_debugName.c_str());
-            ZoneText(_srvDesc.m_debugName.c_str(), _srvDesc.m_debugName.size());
+            m_debugHandler->SetName(_device, VK_OBJECT_TYPE_IMAGE_VIEW, handle, _viewDesc.m_debugName.c_str());
+            ZoneText(_viewDesc.m_debugName.c_str(), _viewDesc.m_debugName.size());
         }
 #endif
 
@@ -310,13 +310,13 @@ namespace KryneEngine
         return { srvHandle };
     }
 
-    bool VkResources::DestroyTextureSrv(TextureSrvHandle _textureSrv, VkDevice _device)
+    bool VkResources::DestroyTextureView(TextureViewHandle _textureView, VkDevice _device)
     {
-        KE_ZoneScopedFunction("VkResources::DestroyTextureSrv");
+        KE_ZoneScopedFunction("VkResources::DestroyTextureView");
 
         VkImageView imageView;
 
-        if (m_imageViews.Free(_textureSrv.m_handle, &imageView))
+        if (m_imageViews.Free(_textureView.m_handle, &imageView))
         {
             vkDestroyImageView(_device, imageView, nullptr);
             return true;

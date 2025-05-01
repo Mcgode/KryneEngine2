@@ -23,7 +23,7 @@ namespace KryneEngine
     struct RenderPassDesc;
     struct SamplerDesc;
     struct TextureCreateDesc;
-    struct TextureSrvDesc;
+    struct TextureViewDesc;
 
     class MetalArgumentBufferManager;
 
@@ -84,16 +84,16 @@ namespace KryneEngine
         GenerationalPool<SamplerHotData> m_samplers;
 
     public:
-        TextureSrvHandle RegisterTextureSrv(const TextureSrvDesc& _desc);
-        bool UnregisterTextureSrv(TextureSrvHandle _textureSrv);
+        TextureViewHandle RegisterTextureView(const TextureViewDesc& _desc);
+        bool UnregisterTextureView(TextureViewHandle _textureView);
 
     private:
-        struct TextureSrvHotData
+        struct TextureViewHotData
         {
             NsPtr<MTL::Texture> m_texture;
         };
 
-        GenerationalPool<TextureSrvHotData> m_textureSrvs;
+        GenerationalPool<TextureViewHotData> m_textureViews;
 
     public:
         [[nodiscard]] BufferViewHandle RegisterBufferView(const BufferViewDesc& _viewDesc);

@@ -92,7 +92,7 @@ namespace KryneEngine::Modules::ImGui
         StagingData* m_stagingData = nullptr;
         BufferHandle m_fontsStagingHandle { GenPool::kInvalidHandle };
         TextureHandle m_fontsTextureHandle { GenPool::kInvalidHandle };
-        TextureSrvHandle m_fontTextureSrvHandle{ GenPool::kInvalidHandle };
+        TextureViewHandle m_fontTextureViewHandle{ GenPool::kInvalidHandle };
         SamplerHandle m_fontSamplerHandle { GenPool::kInvalidHandle };
 
         DescriptorSetLayoutHandle m_fontDescriptorSetLayout { GenPool::kInvalidHandle };

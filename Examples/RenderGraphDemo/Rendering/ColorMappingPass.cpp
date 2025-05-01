@@ -26,7 +26,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
     void ColorMappingPass::Initialize(
         GraphicsContext* _graphicsContext,
         DescriptorSetLayoutHandle _sceneConstantsDescriptorSetLayout,
-        TextureSrvHandle _hdrSrv)
+        TextureViewHandle _hdrSrv)
     {
         u32 indices[1];
 

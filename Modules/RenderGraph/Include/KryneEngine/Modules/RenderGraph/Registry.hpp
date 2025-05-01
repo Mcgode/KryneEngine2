@@ -13,7 +13,7 @@ namespace KryneEngine
 {
     class GraphicsContext;
     struct TextureCreateDesc;
-    struct TextureSrvDesc;
+    struct TextureViewDesc;
 }
 
 namespace KryneEngine::Modules::RenderGraph
@@ -32,8 +32,8 @@ namespace KryneEngine::Modules::RenderGraph
     public:
         SimplePoolHandle RegisterRawTexture(TextureHandle _texture, const eastl::string_view& _name = "");
         SimplePoolHandle RegisterRawBuffer(BufferHandle _buffer, const eastl::string_view& _name = "");
-        SimplePoolHandle RegisterTextureSrv(
-            TextureSrvHandle _textureSrv,
+        SimplePoolHandle RegisterTextureView(
+            TextureViewHandle _textureView,
             SimplePoolHandle _textureResource,
             const eastl::string_view& _name = {});
         SimplePoolHandle RegisterBufferView(
@@ -52,10 +52,10 @@ namespace KryneEngine::Modules::RenderGraph
             GraphicsContext* _graphicsContext,
             const RenderTargetViewDesc& _desc,
             eastl::string_view _name = {});
-        SimplePoolHandle CreateTextureSrv(
+        SimplePoolHandle CreateTextureView(
             GraphicsContext* _graphicsContext,
             SimplePoolHandle _texture,
-            const KryneEngine::TextureSrvDesc& _desc,
+            const KryneEngine::TextureViewDesc& _desc,
             eastl::string_view _name = {});
 
         [[nodiscard]] SimplePoolHandle GetUnderlyingResource(SimplePoolHandle _resource) const;
@@ -64,7 +64,7 @@ namespace KryneEngine::Modules::RenderGraph
 
         [[nodiscard]] bool IsRenderTargetView(SimplePoolHandle _resource) const;
         [[nodiscard]] RenderTargetViewHandle GetRenderTargetView(SimplePoolHandle _resource) const;
-        [[nodiscard]] TextureSrvHandle GetTextureSrv(SimplePoolHandle _resource) const;
+        [[nodiscard]] TextureViewHandle GetTextureView(SimplePoolHandle _resource) const;
 
     private:
         SimplePool<Resource, void, true> m_resources;

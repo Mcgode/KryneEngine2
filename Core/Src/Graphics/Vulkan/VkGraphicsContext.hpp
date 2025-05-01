@@ -144,14 +144,14 @@ namespace KryneEngine
             return m_resources.ReleaseTexture(_handle, m_device);
         }
 
-        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 /*_frameId*/)
+        [[nodiscard]] TextureViewHandle CreateTextureView(const TextureViewDesc& _viewDesc, u64 /*_frameId*/)
         {
-            return m_resources.CreateTextureSrv(_srvDesc, m_device);
+            return m_resources.CreateTextureView(_viewDesc, m_device);
         }
 
-        inline bool DestroyTextureSrv(TextureSrvHandle _handle)
+        inline bool DestroyTextureView(TextureViewHandle _handle)
         {
-            return m_resources.DestroyTextureSrv(_handle, m_device);
+            return m_resources.DestroyTextureView(_handle, m_device);
         }
 
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
@@ -221,7 +221,7 @@ namespace KryneEngine
 
         [[nodiscard]] static bool RenderPassNeedsUsageDeclaration() { return false; }
         [[nodiscard]] static bool ComputePassNeedsUsageDeclaration() { return false; }
-        void DeclarePassTextureSrvUsage(CommandList, const eastl::span<const TextureSrvHandle>&) {}
+        void DeclarePassTextureViewUsage(CommandList, const eastl::span<const TextureViewHandle>&) {}
         void DeclarePassBufferViewUsage(CommandList, const eastl::span<const BufferViewHandle>&, BufferViewAccessType) {}
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);

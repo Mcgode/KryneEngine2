@@ -15,7 +15,7 @@ namespace KryneEngine::Modules::RenderGraph
         RawTexture,
         Buffer,
         Sampler,
-        TextureSrv,
+        TextureView,
         BufferView,
         RenderTargetView,
     };
@@ -35,9 +35,9 @@ namespace KryneEngine::Modules::RenderGraph
         SamplerHandle m_sampler;
     };
 
-    struct TextureSrvData
+    struct TextureViewData
     {
-        TextureSrvHandle m_textureSrv;
+        TextureViewHandle m_textureView;
         SimplePoolHandle m_textureResource;
     };
 
@@ -61,7 +61,7 @@ namespace KryneEngine::Modules::RenderGraph
             RawTextureData m_rawTextureData;
             BufferData m_bufferData;
             SamplerData m_samplerData;
-            TextureSrvData m_textureSrvData;
+            TextureViewData m_textureViewData;
             BufferViewData m_bufferViewData;
             RenderTargetViewData m_renderTargetViewData;
         };
@@ -74,7 +74,7 @@ namespace KryneEngine::Modules::RenderGraph
             switch (m_type)
             {
                 case ResourceType::RawTexture:
-                case ResourceType::TextureSrv:
+                case ResourceType::TextureView:
                 case ResourceType::RenderTargetView:
                     return true;
                 default:

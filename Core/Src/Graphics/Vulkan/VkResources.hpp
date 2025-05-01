@@ -25,9 +25,9 @@ namespace KryneEngine
     struct BufferCreateDesc;
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
-    struct TextureSrvDesc;
+    struct TextureViewDesc;
     struct BufferCreateDesc;
-    struct TextureSrvDesc;
+    struct TextureViewDesc;
     struct RenderTargetViewDesc;
 
     class VkDebugHandler;
@@ -122,8 +122,8 @@ namespace KryneEngine
         [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _desc, VkDevice _device);
         bool ReleaseTexture(TextureHandle _texture, VkDevice _device, bool _free = true);
 
-        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, VkDevice _device);
-        bool DestroyTextureSrv(TextureSrvHandle _textureSrv, VkDevice _device);
+        [[nodiscard]] TextureViewHandle CreateTextureView(const TextureViewDesc& _viewDesc, VkDevice _device);
+        bool DestroyTextureView(TextureViewHandle _textureView, VkDevice _device);
 
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc, VkDevice _device);
         bool DestroySampler(SamplerHandle _sampler, VkDevice _device);

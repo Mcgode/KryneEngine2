@@ -177,14 +177,14 @@ namespace KryneEngine
         return m_resources.UnregisterTexture(_handle);
     }
 
-    TextureSrvHandle MetalGraphicsContext::CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64)
+    TextureViewHandle MetalGraphicsContext::CreateTextureView(const TextureViewDesc& _viewDesc, u64)
     {
-        return m_resources.RegisterTextureSrv(_srvDesc);
+        return m_resources.RegisterTextureView(_viewDesc);
     }
 
-    bool MetalGraphicsContext::DestroyTextureSrv(TextureSrvHandle _handle)
+    bool MetalGraphicsContext::DestroyTextureView(TextureViewHandle _handle)
     {
-        return m_resources.UnregisterTextureSrv(_handle);
+        return m_resources.UnregisterTextureView(_handle);
     }
 
     SamplerHandle MetalGraphicsContext::CreateSampler(const SamplerDesc& _samplerDesc)
@@ -574,9 +574,9 @@ namespace KryneEngine
         }
     }
 
-    void MetalGraphicsContext::DeclarePassTextureSrvUsage(
+    void MetalGraphicsContext::DeclarePassTextureViewUsage(
         CommandList _commandList,
-        const eastl::span<const TextureSrvHandle>& _textures)
+        const eastl::span<const TextureViewHandle>& _textures)
     {
         KE_ASSERT(_commandList->m_encoder != nullptr
                   && (_commandList->m_type == CommandListData::EncoderType::Render
@@ -586,7 +586,7 @@ namespace KryneEngine
 
         for (auto i = 0u; i < _textures.size(); ++i)
         {
-            resources[i] = m_resources.m_textureSrvs.Get(_textures[i].m_handle)->m_texture.get();
+            resources[i] = m_resources.m_textureViews.Get(_textures[i].m_handle)->m_texture.get();
         }
 
         UseResources(_commandList, { resources.Data(), resources.Size() });

@@ -12,7 +12,7 @@
 #include "KryneEngine/Core/Graphics/Buffer.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp"
-#include "KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
 #include "KryneEngine/Core/Graphics/Texture.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 
@@ -22,7 +22,7 @@ namespace KryneEngine
         : m_buffers(_allocator)
         , m_textures(_allocator)
         , m_samplers(_allocator)
-        , m_textureSrvs(_allocator)
+        , m_textureViews(_allocator)
         , m_renderTargetViews(_allocator)
         , m_renderPasses(_allocator)
         , m_libraries(_allocator)
@@ -168,13 +168,13 @@ namespace KryneEngine
         return false;
     }
 
-    TextureSrvHandle MetalResources::RegisterTextureSrv(const TextureSrvDesc& _desc)
+    TextureViewHandle MetalResources::RegisterTextureView(const TextureViewDesc& _desc)
     {
         const TextureHotData* originalTexture = m_textures.Get(_desc.m_texture.m_handle);
         KE_ASSERT_FATAL(originalTexture != nullptr);
 
-        const GenPool::Handle handle = m_textureSrvs.Allocate();
-        TextureSrvHotData* hot = m_textureSrvs.Get(handle);
+        const GenPool::Handle handle = m_textureViews.Allocate();
+        TextureViewHotData* hot = m_textureViews.Get(handle);
         hot->m_texture = originalTexture->m_texture->newTextureView(
             MetalConverters::ToPixelFormat(_desc.m_format),
             MetalConverters::GetTextureType(_desc.m_viewType),
@@ -197,10 +197,10 @@ namespace KryneEngine
         return { handle };
     }
 
-    bool MetalResources::UnregisterTextureSrv(TextureSrvHandle _textureSrv)
+    bool MetalResources::UnregisterTextureView(TextureViewHandle _textureView)
     {
-        TextureSrvHotData hot;
-        if (m_textureSrvs.Free(_textureSrv.m_handle, &hot))
+        TextureViewHotData hot;
+        if (m_textureViews.Free(_textureView.m_handle, &hot))
         {
             hot.m_texture.reset();
             return true;

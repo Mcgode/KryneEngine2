@@ -26,11 +26,11 @@ namespace KryneEngine::Samples::RenderGraphDemo
     void DeferredShadingPass::Initialize(
         GraphicsContext* _graphicsContext,
         DescriptorSetLayoutHandle _sceneConstantsDescriptorSetLayout,
-        TextureSrvHandle _gBufferAlbedo,
-        TextureSrvHandle _gBufferNormal,
-        TextureSrvHandle _gBufferDepth,
-        TextureSrvHandle _gBufferAmbient,
-        TextureSrvHandle _deferredShadows)
+        TextureViewHandle _gBufferAlbedo,
+        TextureViewHandle _gBufferNormal,
+        TextureViewHandle _gBufferDepth,
+        TextureViewHandle _gBufferAmbient,
+        TextureViewHandle _deferredShadows)
     {
         u32 indices[5];
 

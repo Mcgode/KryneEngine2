@@ -189,14 +189,14 @@ namespace KryneEngine::Modules::RenderGraph
                 << eastl::string().sprintf(", Sampler, handle: Ox%x",(u32)resource.m_rawTextureData.m_texture.m_handle).c_str()
                 << std::endl;
             break;
-        case ResourceType::TextureSrv:
+        case ResourceType::TextureView:
             std::cout
-                << eastl::string().sprintf(", Texture SRV, handle: Ox%x",(u32)resource.m_textureSrvData.m_textureSrv.m_handle).c_str()
+                << eastl::string().sprintf(", Texture View, handle: Ox%x",(u32)resource.m_textureViewData.m_textureView.m_handle).c_str()
                 << std::endl;
             break;
         case ResourceType::BufferView:
             std::cout
-                << eastl::string().sprintf(", Buffer CBV, handle: Ox%x",(u32)resource.m_bufferViewData.m_bufferView.m_handle).c_str()
+                << eastl::string().sprintf(", Buffer View, handle: Ox%x",(u32)resource.m_bufferViewData.m_bufferView.m_handle).c_str()
                 << std::endl;
             break;
         case ResourceType::RenderTargetView:

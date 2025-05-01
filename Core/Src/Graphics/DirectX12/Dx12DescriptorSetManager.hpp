@@ -51,13 +51,17 @@ namespace KryneEngine
 
         enum class RangeType: u32
         {
-            CBV = 0,
-            SRV,
-            UAV,
+            BufferCbv = 0,
+            BufferSrv,
+            BufferUav,
+            TextureSrv,
+            TextureUav,
             Sampler,
             COUNT,
         };
         static constexpr u32 kRangeTypesCount = static_cast<u32>(RangeType::COUNT);
+        static constexpr u32 kRangeTypeBits = 3;
+        static_assert(kRangeTypesCount <= (1 << kRangeTypeBits), "Not enough bits for RangeType");;
 
         struct LayoutData
         {

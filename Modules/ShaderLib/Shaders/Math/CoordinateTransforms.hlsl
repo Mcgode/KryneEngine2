@@ -9,6 +9,11 @@ float2 ScreenSpaceToUv(const in float2 _ssCoords, const in float2 _resolution)
     return _ssCoords / _resolution;
 }
 
+float2 ScreenSpaceToUv(const in uint2 _pixelCoordinates, const in float2 _resolution)
+{
+    return ScreenSpaceToUv(float2(_pixelCoordinates) + 0.5, _resolution);
+}
+
 float2 UvToNdc(const in float2 _uvCoords)
 {
     return float2(

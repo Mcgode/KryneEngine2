@@ -13,7 +13,7 @@
 #include "KryneEngine/Core/Graphics/Buffer.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp"
-#include "KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
 #include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 
@@ -235,9 +235,22 @@ namespace KryneEngine
         return false;
     }
 
-    bool Dx12Resources::DestroyTextureSrv(TextureSrvHandle _textureSrv)
+    bool Dx12Resources::DestroyTextureView(TextureViewHandle _textureView)
     {
-        return m_cbvSrvUav.Free(_textureSrv.m_handle);
+        TextureViewColdData cold;
+        if (m_textureViews.Free(_textureView.m_handle, nullptr, &cold))
+        {
+            if (cold.m_srvIndex != IndexAllocator::InvalidIndex())
+            {
+                m_cbvSrvUavAllocator.Free(cold.m_srvIndex);
+            }
+            if (cold.m_uavIndex != IndexAllocator::InvalidIndex())
+            {
+                m_cbvSrvUavAllocator.Free(cold.m_uavIndex);
+            }
+            return true;
+        }
+        return false;
     }
 
     SamplerHandle Dx12Resources::CreateSampler(const SamplerDesc& _samplerDesc, ID3D12Device* _device)
@@ -620,15 +633,15 @@ namespace KryneEngine
         return m_renderPasses.Free(_handle.m_handle);
     }
 
-    TextureSrvHandle Dx12Resources::CreateTextureSrv(const TextureSrvDesc& _srvDesc, ID3D12Device* _device)
+    TextureViewHandle Dx12Resources::CreateTextureView(const TextureViewDesc& _viewDesc, ID3D12Device* _device)
     {
-        KE_ZoneScopedFunction("Dx12Resources::CreateTextureSrv");
+        KE_ZoneScopedFunction("Dx12Resources::CreateTextureView");
 
-        auto* texturePtr = m_textures.Get(_srvDesc.m_texture.m_handle);
+        auto* texturePtr = m_textures.Get(_viewDesc.m_texture.m_handle);
         VERIFY_OR_RETURN(texturePtr != nullptr, { GenPool::kInvalidHandle });
         ID3D12Resource* texture = *texturePtr;
 
-        const GenPool::Handle handle = m_cbvSrvUav.Allocate();
+        const GenPool::Handle handle = m_textureViews.Allocate();
 
         static_assert(static_cast<u8>(TextureComponentMapping::Red)   == D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_0);
         static_assert(static_cast<u8>(TextureComponentMapping::Green) == D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_1);
@@ -638,91 +651,142 @@ namespace KryneEngine
         static_assert(static_cast<u8>(TextureComponentMapping::One)   == D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_1);
 
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc {
-            .Format = Dx12Converters::ToDx12Format(_srvDesc.m_format),
+            .Format = Dx12Converters::ToDx12Format(_viewDesc.m_format),
             .Shader4ComponentMapping = (u32)D3D12_ENCODE_SHADER_4_COMPONENT_MAPPING(
-                static_cast<u8>(_srvDesc.m_componentsMapping[0]),
-                static_cast<u8>(_srvDesc.m_componentsMapping[1]),
-                static_cast<u8>(_srvDesc.m_componentsMapping[2]),
-                static_cast<u8>(_srvDesc.m_componentsMapping[3]))
+                static_cast<u8>(_viewDesc.m_componentsMapping[0]),
+                static_cast<u8>(_viewDesc.m_componentsMapping[1]),
+                static_cast<u8>(_viewDesc.m_componentsMapping[2]),
+                static_cast<u8>(_viewDesc.m_componentsMapping[3]))
+        };
+        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc {
+            .Format = Dx12Converters::ToDx12Format(_viewDesc.m_format),
         };
 
-        switch (_srvDesc.m_viewType)
+        switch (_viewDesc.m_viewType)
         {
         case TextureTypes::Single1D:
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
             srvDesc.Texture1D = {
-                .MostDetailedMip = _srvDesc.m_minMip,
-                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
+                .MostDetailedMip = _viewDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_viewDesc.m_maxMip - _viewDesc.m_minMip + 1),
                 .ResourceMinLODClamp = 0.f
+            };
+            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
+            uavDesc.Texture1D = {
+                .MipSlice = _viewDesc.m_minMip,
             };
             break;
         case TextureTypes::Single2D:
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
             srvDesc.Texture2D = {
-                .MostDetailedMip = _srvDesc.m_minMip,
-                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
-                .PlaneSlice = _srvDesc.m_arrayStart,
+                .MostDetailedMip = _viewDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_viewDesc.m_maxMip - _viewDesc.m_minMip + 1),
+                .PlaneSlice = _viewDesc.m_arrayStart,
                 .ResourceMinLODClamp = 0.f
+            };
+            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+            uavDesc.Texture2D = {
+                .MipSlice = _viewDesc.m_minMip,
+                .PlaneSlice = _viewDesc.m_arrayStart,
             };
             break;
         case TextureTypes::Single3D:
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
             srvDesc.Texture3D = {
-                .MostDetailedMip = _srvDesc.m_minMip,
-                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
+                .MostDetailedMip = _viewDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_viewDesc.m_maxMip - _viewDesc.m_minMip + 1),
                 .ResourceMinLODClamp = 0.f
+            };
+            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+            uavDesc.Texture3D = {
+                .MipSlice = _viewDesc.m_minMip,
+                .FirstWSlice = _viewDesc.m_arrayStart,
+                .WSize = _viewDesc.m_arrayRange,
             };
             break;
         case TextureTypes::Array1D:
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
             srvDesc.Texture1DArray = {
-                .MostDetailedMip = _srvDesc.m_minMip,
-                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
-                .FirstArraySlice = _srvDesc.m_arrayStart,
-                .ArraySize = _srvDesc.m_arrayRange,
+                .MostDetailedMip = _viewDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_viewDesc.m_maxMip - _viewDesc.m_minMip + 1),
+                .FirstArraySlice = _viewDesc.m_arrayStart,
+                .ArraySize = _viewDesc.m_arrayRange,
                 .ResourceMinLODClamp = 0.f
+            };
+            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
+            uavDesc.Texture1DArray = {
+                .MipSlice = _viewDesc.m_minMip,
+                .FirstArraySlice = _viewDesc.m_arrayStart,
+                .ArraySize = _viewDesc.m_arrayRange,
             };
             break;
         case TextureTypes::Array2D:
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
             srvDesc.Texture2DArray = {
-                .MostDetailedMip = _srvDesc.m_minMip,
-                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
-                .FirstArraySlice = _srvDesc.m_arrayStart,
-                .ArraySize = _srvDesc.m_arrayRange,
+                .MostDetailedMip = _viewDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_viewDesc.m_maxMip - _viewDesc.m_minMip + 1),
+                .FirstArraySlice = _viewDesc.m_arrayStart,
+                .ArraySize = _viewDesc.m_arrayRange,
                 .PlaneSlice = 0,
                 .ResourceMinLODClamp = 0.f
+            };
+            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+            uavDesc.Texture2DArray = {
+                .MipSlice = _viewDesc.m_minMip,
+                .FirstArraySlice = _viewDesc.m_arrayStart,
+                .ArraySize = _viewDesc.m_arrayRange,
+                .PlaneSlice = 0,
             };
             break;
         case TextureTypes::SingleCube:
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
             srvDesc.TextureCube = {
-                .MostDetailedMip = _srvDesc.m_minMip,
-                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
+                .MostDetailedMip = _viewDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_viewDesc.m_maxMip - _viewDesc.m_minMip + 1),
                 .ResourceMinLODClamp = 0.f
             };
+            KE_ASSERT(!BitUtils::EnumHasAny(_viewDesc.m_accessType, TextureViewAccessType::Write));
             break;
         case TextureTypes::ArrayCube:
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
             srvDesc.TextureCubeArray = {
-                .MostDetailedMip = _srvDesc.m_minMip,
-                .MipLevels = static_cast<u32>(_srvDesc.m_maxMip - _srvDesc.m_minMip + 1),
-                .First2DArrayFace = _srvDesc.m_arrayStart,
-                .NumCubes = _srvDesc.m_arrayRange,
+                .MostDetailedMip = _viewDesc.m_minMip,
+                .MipLevels = static_cast<u32>(_viewDesc.m_maxMip - _viewDesc.m_minMip + 1),
+                .First2DArrayFace = _viewDesc.m_arrayStart,
+                .NumCubes = _viewDesc.m_arrayRange,
                 .ResourceMinLODClamp = 0.f
             };
+            KE_ASSERT(!BitUtils::EnumHasAny(_viewDesc.m_accessType, TextureViewAccessType::Write));
             break;
         }
 
+        auto [hot, cold] = m_textureViews.GetAll(handle);
+
         // Create SRV and copy to current shader visible heap
+        if (BitUtils::EnumHasAny(_viewDesc.m_accessType, TextureViewAccessType::Read))
         {
+            cold->m_srvIndex = m_cbvSrvUavAllocator.Allocate();
+
             const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
                 m_cbvSrvUavDescriptorStorageHeap->GetCPUDescriptorHandleForHeapStart(),
-                handle.m_index,
+                cold->m_srvIndex,
                 m_cbvSrvUavDescriptorSize);
             _device->CreateShaderResourceView(texture, &srvDesc, cpuDescriptorHandle);
 
-            *m_cbvSrvUav.Get(handle) = cpuDescriptorHandle;
+            hot->m_srvHandle = cpuDescriptorHandle;
+        }
+
+        if (BitUtils::EnumHasAny(_viewDesc.m_accessType, TextureViewAccessType::Write))
+        {
+            cold->m_uavIndex = m_cbvSrvUavAllocator.Allocate();
+
+            const CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle(
+                m_cbvSrvUavDescriptorStorageHeap->GetCPUDescriptorHandleForHeapStart(),
+                cold->m_srvIndex,
+                m_cbvSrvUavDescriptorSize);
+            _device->CreateUnorderedAccessView(texture, nullptr, &uavDesc, cpuDescriptorHandle);
+
+            hot->m_uavHandle = cpuDescriptorHandle;
         }
 
         return { handle };

@@ -38,13 +38,14 @@ set(GraphicsCommonFiles
         Include/KryneEngine/Core/Graphics/EnumHelpers.hpp
         Include/KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp
         Include/KryneEngine/Core/Graphics/RenderPass.hpp
-        Include/KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp
+        Include/KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp
         Include/KryneEngine/Core/Graphics/MemoryBarriers.hpp
         Include/KryneEngine/Core/Graphics/Buffer.hpp
         Include/KryneEngine/Core/Graphics/Handles.hpp
         Include/KryneEngine/Core/Graphics/ShaderPipeline.hpp
         Include/KryneEngine/Core/Graphics/Drawing.hpp
         Include/KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp
+        Include/KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp
 )
 
 set(MathSrc

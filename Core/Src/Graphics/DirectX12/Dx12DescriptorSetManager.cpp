@@ -91,16 +91,20 @@ namespace KryneEngine
             switch (binding.m_type)
             {
             case DescriptorBindingDesc::Type::ConstantBuffer:
-                type = RangeType::CBV;
+                type = RangeType::BufferCbv;
                 break;
-            case DescriptorBindingDesc::Type::SampledTexture:
             case DescriptorBindingDesc::Type::StorageReadOnlyTexture:
             case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:
-                type = RangeType::SRV;
+                type = RangeType::BufferSrv;
+                break;
+            case DescriptorBindingDesc::Type::SampledTexture:
+                type = RangeType::TextureSrv;
                 break;
             case DescriptorBindingDesc::Type::StorageReadWriteBuffer:
+                type = RangeType::BufferUav;
+                break;
             case DescriptorBindingDesc::Type::StorageReadWriteTexture:
-                type = RangeType::UAV;
+                type = RangeType::TextureUav;
                 break;
             case DescriptorBindingDesc::Type::Sampler:
                 type = RangeType::Sampler;
@@ -200,7 +204,7 @@ namespace KryneEngine
                 TrackedData data {
                     .m_descriptorSet = _descriptorSet,
                     .m_object = writeDesc.m_descriptorData[i].m_handle,
-                    .m_packedIndex = writeDesc.m_index + (static_cast<u32>(writeDesc.m_arrayOffset + i) << 16),
+                    .m_packedIndex = writeDesc.m_index | ((static_cast<u32>(writeDesc.m_arrayOffset + i) << kRangeTypeBits)),
                 };
                 _ProcessUpdate(_device, _resources, data, _frameIndex);
                 m_multiFrameUpdateTracker.TrackForOtherFrames(data);
@@ -295,20 +299,42 @@ namespace KryneEngine
     {
         KE_ZoneScopedFunction("Dx12DescriptorSetManager::_ProcessUpdate");
 
-        const auto type = static_cast<RangeType>(_data.m_packedIndex & BitUtils::BitMask<u32>(16));
+        const auto type = static_cast<RangeType>(_data.m_packedIndex & BitUtils::BitMask<u32>(kRangeTypeBits));
         const bool isSampler = type == RangeType::Sampler;
 
         auto* dstHeap = (isSampler ? m_samplerGpuDescriptorHeaps : m_cbvSrvUavGpuDescriptorHeaps)[_currentFrame].Get();
 
-        auto* pSrcCpuHandle = isSampler
-                                  ? _resources.m_samplers.Get(_data.m_object)
-                                  : _resources.m_cbvSrvUav.Get(_data.m_object);
-        if (pSrcCpuHandle == nullptr)
+        CD3DX12_CPU_DESCRIPTOR_HANDLE srcCpuHandle {};
+        switch (type)
+        {
+        case RangeType::BufferCbv:
+            srcCpuHandle = _resources.m_bufferViews.Get(_data.m_object)->m_cbvHandle;
+            break;
+        case RangeType::BufferSrv:
+            srcCpuHandle = _resources.m_bufferViews.Get(_data.m_object)->m_srvHandle;
+            break;
+        case RangeType::BufferUav:
+            srcCpuHandle = _resources.m_bufferViews.Get(_data.m_object)->m_uavHandle;
+            break;
+        case RangeType::TextureSrv:
+            srcCpuHandle = _resources.m_textureViews.Get(_data.m_object)->m_srvHandle;
+            break;
+        case RangeType::TextureUav:
+            srcCpuHandle = _resources.m_textureViews.Get(_data.m_object)->m_uavHandle;
+            break;
+        case RangeType::Sampler:
+            srcCpuHandle = *_resources.m_samplers.Get(_data.m_object);
+            break;
+        default:
+            KE_ERROR("Invalid descriptor type");
+            break;
+        }
+        if (srcCpuHandle.ptr == 0)
         {
             return;
         }
 
-        const u32 relativeIndex = _data.m_packedIndex >> 16;
+        const u32 relativeIndex = _data.m_packedIndex >> kRangeTypeBits;
         DescriptorSetRanges* pRanges = m_descriptorSets.Get(_data.m_descriptorSet.m_handle);
         if (pRanges == nullptr)
         {
@@ -325,7 +351,7 @@ namespace KryneEngine
         _device->CopyDescriptorsSimple(
             1,
             dstCpuHandle,
-            *pSrcCpuHandle,
+            srcCpuHandle,
             isSampler ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
 } // namespace KryneEngine

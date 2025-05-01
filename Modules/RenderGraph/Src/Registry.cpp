@@ -8,7 +8,7 @@
 
 #include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 #include <KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp>
-#include <KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp>
+#include <KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp>
 #include <KryneEngine/Core/Memory/SimplePool.inl>
 
 #include "KryneEngine/Modules/RenderGraph/Descriptors/RenderTargetViewDesc.hpp"
@@ -49,8 +49,8 @@ namespace KryneEngine::Modules::RenderGraph
         return handle;
     }
 
-    SimplePoolHandle Registry::RegisterTextureSrv(
-        TextureSrvHandle _textureSrv,
+    SimplePoolHandle Registry::RegisterTextureView(
+        TextureViewHandle _textureView,
         SimplePoolHandle _textureResource,
         const eastl::string_view& _name)
     {
@@ -60,10 +60,10 @@ namespace KryneEngine::Modules::RenderGraph
         m_resources.AddRef(_textureResource);
 
         const SimplePoolHandle handle = m_resources.AllocateAndInit(Resource {
-            .m_type = ResourceType::TextureSrv,
+            .m_type = ResourceType::TextureView,
             .m_owned = false,
-            .m_textureSrvData = {
-                .m_textureSrv = _textureSrv,
+            .m_textureViewData = {
+                .m_textureView = _textureView,
                 .m_textureResource = _textureResource,
             },
 #if !defined(KE_FINAL)
@@ -168,22 +168,22 @@ namespace KryneEngine::Modules::RenderGraph
         });
     }
 
-    SimplePoolHandle Registry::CreateTextureSrv(
+    SimplePoolHandle Registry::CreateTextureView(
         GraphicsContext* _graphicsContext,
         SimplePoolHandle _texture,
-        const KryneEngine::TextureSrvDesc& _desc,
+        const KryneEngine::TextureViewDesc& _desc,
         eastl::string_view _name)
     {
         Resource& resource = m_resources.Get(_texture);
 
-        KryneEngine::TextureSrvDesc desc = _desc;
+        KryneEngine::TextureViewDesc desc = _desc;
         desc.m_texture = resource.m_rawTextureData.m_texture;
 
         return m_resources.AllocateAndInit(Resource {
-            .m_type = ResourceType::TextureSrv,
+            .m_type = ResourceType::TextureView,
             .m_owned = true,
-            .m_textureSrvData = {
-                .m_textureSrv = _graphicsContext->CreateTextureSrv(desc),
+            .m_textureViewData = {
+                .m_textureView = _graphicsContext->CreateTextureView(desc),
                 .m_textureResource = _texture,
             },
         });
@@ -195,8 +195,8 @@ namespace KryneEngine::Modules::RenderGraph
 
         switch (resource.m_type)
         {
-        case ResourceType::TextureSrv:
-            return resource.m_textureSrvData.m_textureResource;
+        case ResourceType::TextureView:
+            return resource.m_textureViewData.m_textureResource;
         case ResourceType::BufferView:
             return resource.m_bufferViewData.m_bufferResource;
         case ResourceType::RenderTargetView:
@@ -225,11 +225,11 @@ namespace KryneEngine::Modules::RenderGraph
         return resource.m_renderTargetViewData.m_renderTargetView;
     }
 
-    TextureSrvHandle Registry::GetTextureSrv(SimplePoolHandle _resource) const
+    TextureViewHandle Registry::GetTextureView(SimplePoolHandle _resource) const
     {
         const Resource& resource = m_resources.Get(_resource);
-        VERIFY_OR_RETURN(resource.m_type == ResourceType::TextureSrv, TextureSrvHandle { GenPool::kInvalidHandle });
-        return resource.m_textureSrvData.m_textureSrv;
+        VERIFY_OR_RETURN(resource.m_type == ResourceType::TextureView, TextureViewHandle { GenPool::kInvalidHandle });
+        return resource.m_textureViewData.m_textureView;
     }
 } // namespace KryneEngine::Modules::RenderGraph
 

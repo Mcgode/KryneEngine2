@@ -10,7 +10,7 @@
 #include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Graphics/Texture.hpp"
 #include <KryneEngine/Core/Common/Utils/Alignment.hpp>
-#include <KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp>
+#include <KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Window/Input/InputManager.hpp>
 #include <KryneEngine/Core/Window/Window.hpp>
@@ -114,9 +114,9 @@ namespace KryneEngine::Modules::ImGui
             graphicsContext->DestroySampler(m_fontSamplerHandle);
         }
 
-        if (m_fontTextureSrvHandle != GenPool::kInvalidHandle)
+        if (m_fontTextureViewHandle != GenPool::kInvalidHandle)
         {
-            graphicsContext->DestroyTextureSrv(m_fontTextureSrvHandle);
+            graphicsContext->DestroyTextureView(m_fontTextureViewHandle);
         }
 
         if (m_fontsTextureHandle != GenPool::kInvalidHandle)
@@ -204,7 +204,7 @@ namespace KryneEngine::Modules::ImGui
 
             {
                 // Set up font srv
-                const TextureSrvDesc srvDesc {
+                const TextureViewDesc srvDesc {
                     .m_texture = m_fontsTextureHandle,
                     .m_componentsMapping = {
                         TextureComponentMapping::Red,
@@ -217,7 +217,7 @@ namespace KryneEngine::Modules::ImGui
                     .m_debugName = textureCreateDesc.m_desc.m_debugName + "View",
 #endif
                 };
-                m_fontTextureSrvHandle = graphicsContext->CreateTextureSrv(srvDesc);
+                m_fontTextureViewHandle = graphicsContext->CreateTextureView(srvDesc);
 
                 // Set up font sampler
                 const SamplerDesc samplerDesc { // Default sampler works great for us
@@ -231,7 +231,7 @@ namespace KryneEngine::Modules::ImGui
                 const DescriptorSetWriteInfo::DescriptorData fontTextureData[] = {
                     {
                         .m_textureLayout = TextureLayout::ShaderResource,
-                        .m_handle = m_fontTextureSrvHandle.m_handle
+                        .m_handle = m_fontTextureViewHandle.m_handle
                     }
                 };
                 const DescriptorSetWriteInfo::DescriptorData fontSamplerData[] = {
@@ -254,7 +254,7 @@ namespace KryneEngine::Modules::ImGui
                     writeInfo);
             }
 
-            io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontTextureSrvHandle.m_handle)));
+            io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontTextureViewHandle.m_handle)));
         }
 
         if (m_stagingData != nullptr && graphicsContext->IsFrameExecuted(m_stagingData->m_stagingFrame))
@@ -451,9 +451,9 @@ namespace KryneEngine::Modules::ImGui
 
         // Declare texture SRVs
         {
-            _graphicsContext->DeclarePassTextureSrvUsage(
+            _graphicsContext->DeclarePassTextureViewUsage(
                 _commandList,
-                { &m_fontTextureSrvHandle, 1 }
+                { &m_fontTextureViewHandle, 1 }
                 );
         }
 

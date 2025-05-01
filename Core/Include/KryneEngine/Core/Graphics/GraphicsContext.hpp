@@ -32,7 +32,7 @@ namespace KryneEngine
     struct PipelineLayoutDesc;
     struct RenderTargetViewDesc;
     struct RenderPassDesc;
-    struct TextureSrvDesc;
+    struct TextureViewDesc;
     struct TextureMemoryBarrier;
     struct Viewport;
 
@@ -90,8 +90,8 @@ namespace KryneEngine
             const eastl::span<const TextureMemoryFootprint>& _footprints);
         bool DestroyTexture(TextureHandle _handle);
 
-        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc);
-        bool DestroyTextureSrv(TextureSrvHandle _handle);
+        [[nodiscard]] TextureViewHandle CreateTextureView(const TextureViewDesc& _viewDesc);
+        bool DestroyTextureView(TextureViewHandle _handle);
 
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
         bool DestroySampler(SamplerHandle _sampler);
@@ -140,7 +140,7 @@ namespace KryneEngine
 
         [[nodiscard]] static bool RenderPassNeedsUsageDeclaration();
         [[nodiscard]] static bool ComputePassNeedsUsageDeclaration();
-        void DeclarePassTextureSrvUsage(CommandListHandle _commandList, const eastl::span<const TextureSrvHandle>& _textures);
+        void DeclarePassTextureViewUsage(CommandListHandle _commandList, const eastl::span<const TextureViewHandle>& _textures);
         void DeclarePassBufferViewUsage(
             CommandListHandle _commandList,
             const eastl::span<const BufferViewHandle>& _buffers,

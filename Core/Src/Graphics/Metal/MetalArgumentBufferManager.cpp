@@ -286,10 +286,8 @@ namespace KryneEngine
                 break;
             case DescriptorBindingDesc::Type::SampledTexture:
             case DescriptorBindingDesc::Type::StorageReadOnlyTexture:
-                encoder->setTexture(_resources.m_textureSrvs.Get(update.m_object)->m_texture.get(), index.m_index);
-                break;
             case DescriptorBindingDesc::Type::StorageReadWriteTexture:
-                KE_ERROR("Not support yet");
+                encoder->setTexture(_resources.m_textureViews.Get(update.m_object)->m_texture.get(), index.m_index);
                 break;
             case DescriptorBindingDesc::Type::ConstantBuffer:
             case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:

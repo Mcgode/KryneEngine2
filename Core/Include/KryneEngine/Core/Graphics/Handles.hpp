@@ -12,8 +12,8 @@ namespace KryneEngine
 {
     KE_GENPOOL_DECLARE_HANDLE(BufferHandle);
     KE_GENPOOL_DECLARE_HANDLE(TextureHandle);
-    KE_GENPOOL_DECLARE_HANDLE(TextureSrvHandle);
     KE_GENPOOL_DECLARE_HANDLE(SamplerHandle);
+    KE_GENPOOL_DECLARE_HANDLE(TextureViewHandle);
     KE_GENPOOL_DECLARE_HANDLE(BufferViewHandle);
     KE_GENPOOL_DECLARE_HANDLE(RenderTargetViewHandle);
     KE_GENPOOL_DECLARE_HANDLE(RenderPassHandle);

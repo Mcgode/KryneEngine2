@@ -1,17 +1,26 @@
 /**
  * @file
  * @author Max Godefroy
- * @date 26/07/2024.
+ * @date 01/05/2025.
  */
 
 #pragma once
 
+#include "KryneEngine/Core/Common/BitUtils.hpp"
 #include "KryneEngine/Core/Graphics/Enums.hpp"
 #include "KryneEngine/Core/Graphics/Handles.hpp"
 
 namespace KryneEngine
 {
-    struct TextureSrvDesc
+    enum class TextureViewAccessType : u8
+    {
+        Read            = 1 << 0,
+        Write           = 1 << 1,
+        ReadWrite       = Read | Write,
+    };
+    KE_ENUM_IMPLEMENT_BITWISE_OPERATORS(TextureViewAccessType)
+
+    struct TextureViewDesc
     {
         TextureHandle m_texture;
 
@@ -26,6 +35,8 @@ namespace KryneEngine
         u8 m_minMip = 0;
         u8 m_maxMip = 0;
         TexturePlane m_plane = TexturePlane::Color;
+
+        TextureViewAccessType m_accessType = TextureViewAccessType::Read;
 
 #if !defined(KE_FINAL)
         eastl::string m_debugName = "";

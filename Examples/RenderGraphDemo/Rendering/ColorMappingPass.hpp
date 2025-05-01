@@ -19,7 +19,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
         void Initialize(
             GraphicsContext* _graphicsContext,
             DescriptorSetLayoutHandle _sceneConstantsDescriptorSetLayout,
-            TextureSrvHandle _hdrSrv);
+            TextureViewHandle _hdrSrv);
 
         void UpdateSceneConstants(DescriptorSetHandle _sceneConstantsDescriptorSet)
         {

@@ -23,7 +23,7 @@ namespace KryneEngine
 {
     struct BufferViewDesc;
     struct BufferCreateDesc;
-    struct TextureSrvDesc;
+    struct TextureViewDesc;
     struct RenderTargetViewDesc;
 
     class Dx12FrameContext;
@@ -51,8 +51,8 @@ namespace KryneEngine
         [[nodiscard]] TextureHandle RegisterTexture(ID3D12Resource* _texture, D3D12MA::Allocation* _allocation = nullptr);
         bool ReleaseTexture(TextureHandle _texture, bool _free);
 
-        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, ID3D12Device* _device);
-        bool DestroyTextureSrv(TextureSrvHandle _textureSrv);
+        [[nodiscard]] TextureViewHandle CreateTextureView(const TextureViewDesc& _viewDesc, ID3D12Device* _device);
+        bool DestroyTextureView(TextureViewHandle _textureView);
 
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc, ID3D12Device* _device);
         bool DestroySampler(SamplerHandle _sampler);
@@ -84,6 +84,18 @@ namespace KryneEngine
             TextureHandle m_resource {};
         };
 
+        struct TextureViewHotData
+        {
+            CD3DX12_CPU_DESCRIPTOR_HANDLE m_srvHandle {};
+            CD3DX12_CPU_DESCRIPTOR_HANDLE m_uavHandle {};
+        };
+
+        struct TextureViewColdData
+        {
+            u32 m_srvIndex {};
+            u32 m_uavIndex {};
+        };
+
         struct BufferViewHotData
         {
             CD3DX12_CPU_DESCRIPTOR_HANDLE m_cbvHandle {};
@@ -108,6 +120,7 @@ namespace KryneEngine
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_textures;
         IndexAllocator m_cbvSrvUavAllocator;
         GenerationalPool<CD3DX12_CPU_DESCRIPTOR_HANDLE> m_samplers;
+        GenerationalPool<TextureViewHotData, TextureViewColdData> m_textureViews;
         GenerationalPool<BufferViewHotData, BufferViewColdData> m_bufferViews;
         GenerationalPool<RtvHotData, DXGI_FORMAT> m_renderTargetViews;
         GenerationalPool<RtvHotData, DXGI_FORMAT> m_depthStencilViews;

@@ -7,6 +7,7 @@
 #include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 
 #include "KryneEngine/Core/Graphics/EnumHelpers.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
 #include "KryneEngine/Core/Window/Window.hpp"
 
 #if defined(KE_GRAPHICS_API_VK)
@@ -200,14 +201,20 @@ namespace KryneEngine
         return GetImplementation(this).DestroyTexture(_handle);
     }
 
-    TextureSrvHandle GraphicsContext::CreateTextureSrv(const TextureSrvDesc& _srvDesc)
+    TextureViewHandle GraphicsContext::CreateTextureView(const TextureViewDesc& _viewDesc)
     {
-        return GetImplementation(this).CreateTextureSrv(_srvDesc, m_frameId);
+        KE_ASSERT_MSG(!BitUtils::EnumHasAny(_viewDesc.m_accessType, TextureViewAccessType::Write)
+                      || memcmp(
+                         _viewDesc.m_componentsMapping,
+                         (Texture4ComponentsMapping KE_DEFAULT_TEXTURE_COMPONENTS_MAPPING),
+                         sizeof(Texture4ComponentsMapping)) == 0,
+                      "Component remapping is not supported for write access");
+        return GetImplementation(this).CreateTextureView(_viewDesc, m_frameId);
     }
 
-    bool GraphicsContext::DestroyTextureSrv(TextureSrvHandle _handle)
+    bool GraphicsContext::DestroyTextureView(TextureViewHandle _handle)
     {
-        return GetImplementation(this).DestroyTextureSrv(_handle);
+        return GetImplementation(this).DestroyTextureView(_handle);
     }
 
     SamplerHandle GraphicsContext::CreateSampler(const SamplerDesc& _samplerDesc)
@@ -360,11 +367,11 @@ namespace KryneEngine
         return Implementation::ComputePassNeedsUsageDeclaration();
     }
 
-    void GraphicsContext::DeclarePassTextureSrvUsage(
+    void GraphicsContext::DeclarePassTextureViewUsage(
         CommandListHandle _commandList,
-        const eastl::span<const TextureSrvHandle>& _textures)
+        const eastl::span<const TextureViewHandle>& _textures)
     {
-        GetImplementation(this).DeclarePassTextureSrvUsage(
+        GetImplementation(this).DeclarePassTextureViewUsage(
             reinterpret_cast<CommandList>(_commandList),
             _textures);
     }

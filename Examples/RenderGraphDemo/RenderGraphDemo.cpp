@@ -5,7 +5,7 @@
  */
 
 #include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
-#include <KryneEngine/Core/Graphics/ResourceViews/ShaderResourceView.hpp>
+#include <KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Threads/FibersManager.hpp>
 #include <KryneEngine/Core/Window/Window.hpp>
@@ -157,7 +157,7 @@ int main()
                 .m_format = KryneEngine::TextureFormat::RGBA8_UNorm,
             },
             "GBuffer albedo RTV");
-        gBufferAlbedoSrv = renderGraph.GetRegistry().CreateTextureSrv(
+        gBufferAlbedoSrv = renderGraph.GetRegistry().CreateTextureView(
             graphicsContext,
             gBufferAlbedo,
             { .m_format = KryneEngine::TextureFormat::RGBA8_UNorm });
@@ -181,7 +181,7 @@ int main()
                 .m_format = KryneEngine::TextureFormat::RGBA8_UNorm, // TODO: Implement RGB10A2 format support
             },
             "GBuffer normal RTV");
-        gBufferNormalSrv = renderGraph.GetRegistry().CreateTextureSrv(
+        gBufferNormalSrv = renderGraph.GetRegistry().CreateTextureView(
             graphicsContext,
             gBufferNormal,
             { .m_format = KryneEngine::TextureFormat::RGBA8_UNorm });
@@ -207,7 +207,7 @@ int main()
                 .m_plane = TexturePlane::Depth,
             },
             "GBuffer depth RTV");
-        gBufferDepthSrv = renderGraph.GetRegistry().CreateTextureSrv(
+        gBufferDepthSrv = renderGraph.GetRegistry().CreateTextureView(
             graphicsContext,
             gBufferDepth,
             { .m_format = KryneEngine::TextureFormat::D32F, .m_plane = TexturePlane::Depth });
@@ -224,7 +224,7 @@ int main()
                 },
                 .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ReadWriteImage | MemoryUsage::SampledImage,
             });
-        deferredShadowSrv = renderGraph.GetRegistry().CreateTextureSrv(
+        deferredShadowSrv = renderGraph.GetRegistry().CreateTextureView(
             graphicsContext,
             deferredShadow,
             { .m_format = KryneEngine::TextureFormat::R8_UNorm },
@@ -242,7 +242,7 @@ int main()
                 },
                 .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::ReadWriteImage | MemoryUsage::SampledImage,
             });
-        deferredGiSrv = renderGraph.GetRegistry().CreateTextureSrv(
+        deferredGiSrv = renderGraph.GetRegistry().CreateTextureView(
             graphicsContext,
             deferredGi,
             { .m_format = KryneEngine::TextureFormat::RGBA16_Float },
@@ -267,7 +267,7 @@ int main()
                 .m_format = KryneEngine::TextureFormat::RGBA16_Float,
             },
             "HDR render RTV");
-        hdrSrv = renderGraph.GetRegistry().CreateTextureSrv(
+        hdrSrv = renderGraph.GetRegistry().CreateTextureView(
             graphicsContext,
             hdr,
             { .m_format = KryneEngine::TextureFormat::RGBA16_Float },
@@ -308,18 +308,18 @@ int main()
     deferredShadingPass.Initialize(
         graphicsContext,
         sceneManager.GetDescriptorSetLayout(),
-        renderGraph.GetRegistry().GetResource(gBufferAlbedoSrv).m_textureSrvData.m_textureSrv,
-        renderGraph.GetRegistry().GetResource(gBufferNormalSrv).m_textureSrvData.m_textureSrv,
-        renderGraph.GetRegistry().GetResource(gBufferDepthSrv).m_textureSrvData.m_textureSrv,
-        renderGraph.GetRegistry().GetResource(deferredGiSrv).m_textureSrvData.m_textureSrv,
-        renderGraph.GetRegistry().GetResource(deferredShadowSrv).m_textureSrvData.m_textureSrv);
+        renderGraph.GetRegistry().GetResource(gBufferAlbedoSrv).m_textureViewData.m_textureView,
+        renderGraph.GetRegistry().GetResource(gBufferNormalSrv).m_textureViewData.m_textureView,
+        renderGraph.GetRegistry().GetResource(gBufferDepthSrv).m_textureViewData.m_textureView,
+        renderGraph.GetRegistry().GetResource(deferredGiSrv).m_textureViewData.m_textureView,
+        renderGraph.GetRegistry().GetResource(deferredShadowSrv).m_textureViewData.m_textureView);
     skyPass.Initialize(
         graphicsContext,
         sceneManager.GetDescriptorSetLayout());
     colorMappingPass.Initialize(
         graphicsContext,
         sceneManager.GetDescriptorSetLayout(),
-        renderGraph.GetRegistry().GetResource(hdrSrv).m_textureSrvData.m_textureSrv);
+        renderGraph.GetRegistry().GetResource(hdrSrv).m_textureViewData.m_textureView);
 
     do
     {

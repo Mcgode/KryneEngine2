@@ -28,7 +28,7 @@ namespace KryneEngine
     struct RenderPassDesc;
     struct RenderTargetViewDesc;
     struct TextureCreateDesc;
-    struct TextureSrvDesc;
+    struct TextureViewDesc;
     struct Viewport;
 
     class MetalFrameContext;
@@ -83,8 +83,8 @@ namespace KryneEngine
         [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _createDesc);
         bool DestroyTexture(TextureHandle _handle);
 
-        [[nodiscard]] TextureSrvHandle CreateTextureSrv(const TextureSrvDesc& _srvDesc, u64 _frameId);
-        bool DestroyTextureSrv(TextureSrvHandle _handle);
+        [[nodiscard]] TextureViewHandle CreateTextureView(const TextureViewDesc& _viewDesc, u64 _frameId);
+        bool DestroyTextureView(TextureViewHandle _handle);
 
         [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
         bool DestroySampler(SamplerHandle _sampler);
@@ -133,7 +133,7 @@ namespace KryneEngine
 
         [[nodiscard]] static bool RenderPassNeedsUsageDeclaration() { return true; }
         [[nodiscard]] static bool ComputePassNeedsUsageDeclaration() { return true; }
-        void DeclarePassTextureSrvUsage(CommandList _commandList, const eastl::span<const TextureSrvHandle>& _textures);
+        void DeclarePassTextureViewUsage(CommandList _commandList, const eastl::span<const TextureViewHandle>& _textures);
         void DeclarePassBufferViewUsage(
             CommandList _commandList,
             const eastl::span<const BufferViewHandle>& _buffers,
