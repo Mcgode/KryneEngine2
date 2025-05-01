@@ -95,6 +95,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
                     .m_buffer = m_sceneConstantsBuffer.GetBuffer(i),
                     .m_size = sizeof(SceneConstants),
                     .m_offset = 0,
+                    .m_accessType = BufferViewAccessType::Constant,
                 });
         }
 
