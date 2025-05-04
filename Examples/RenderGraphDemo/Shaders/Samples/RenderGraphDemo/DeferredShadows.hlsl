@@ -72,6 +72,8 @@ void DeferredShadowsMain(const uint3 id: SV_DispatchThreadID)
             shadow = 1.f;
             break;
         }
+
+        depth += distance;
     }
 
     DeferredShadows[pixelCoordinates] = shadow;
