@@ -8,6 +8,7 @@
 
 #include "Handles.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
 #include "Texture.hpp"
 
 namespace KryneEngine
@@ -140,7 +141,10 @@ namespace KryneEngine
 
         [[nodiscard]] static bool RenderPassNeedsUsageDeclaration();
         [[nodiscard]] static bool ComputePassNeedsUsageDeclaration();
-        void DeclarePassTextureViewUsage(CommandListHandle _commandList, const eastl::span<const TextureViewHandle>& _textures);
+        void DeclarePassTextureViewUsage(
+            CommandListHandle _commandList,
+            const eastl::span<const TextureViewHandle>& _textures,
+            KryneEngine::TextureViewAccessType _accessType);
         void DeclarePassBufferViewUsage(
             CommandListHandle _commandList,
             const eastl::span<const BufferViewHandle>& _buffers,

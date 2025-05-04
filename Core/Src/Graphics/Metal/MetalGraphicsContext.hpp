@@ -18,6 +18,7 @@
 #include "KryneEngine/Core/Graphics/Handles.hpp"
 #include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
 #include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Graphics/Texture.hpp"
 
@@ -133,11 +134,14 @@ namespace KryneEngine
 
         [[nodiscard]] static bool RenderPassNeedsUsageDeclaration() { return true; }
         [[nodiscard]] static bool ComputePassNeedsUsageDeclaration() { return true; }
-        void DeclarePassTextureViewUsage(CommandList _commandList, const eastl::span<const TextureViewHandle>& _textures);
+        void DeclarePassTextureViewUsage(
+            CommandList _commandList,
+            const eastl::span<const TextureViewHandle>& _textures,
+            TextureViewAccessType _accessType);
         void DeclarePassBufferViewUsage(
             CommandList _commandList,
             const eastl::span<const BufferViewHandle>& _buffers,
-            KryneEngine::BufferViewAccessType _accessType);
+            BufferViewAccessType _accessType);
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
         [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
@@ -196,6 +200,6 @@ namespace KryneEngine
         MetalResources m_resources;
         MetalArgumentBufferManager m_argumentBufferManager;
 
-        void UseResources(CommandList _commandList, eastl::span<MTL::Resource*> _resources);
+        void UseResources(CommandList _commandList, eastl::span<MTL::Resource*> _resources, MTL::ResourceUsage _usage);
     };
 } // KryneEngine

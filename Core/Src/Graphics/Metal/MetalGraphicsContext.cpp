@@ -576,7 +576,8 @@ namespace KryneEngine
 
     void MetalGraphicsContext::DeclarePassTextureViewUsage(
         CommandList _commandList,
-        const eastl::span<const TextureViewHandle>& _textures)
+        const eastl::span<const TextureViewHandle>& _textures,
+        TextureViewAccessType _accessType)
     {
         KE_ASSERT(_commandList->m_encoder != nullptr
                   && (_commandList->m_type == CommandListData::EncoderType::Render
@@ -584,17 +585,28 @@ namespace KryneEngine
 
         DynamicArray<MTL::Resource*> resources(m_allocator, _textures.size());
 
+        MTL::ResourceUsage usage = 0;
+        if (BitUtils::EnumHasAny(_accessType, TextureViewAccessType::Read))
+        {
+            usage |= MTL::ResourceUsageRead;
+        }
+        if (BitUtils::EnumHasAny(_accessType, TextureViewAccessType::Write))
+        {
+            usage |= MTL::ResourceUsageWrite;
+        }
+
         for (auto i = 0u; i < _textures.size(); ++i)
         {
             resources[i] = m_resources.m_textureViews.Get(_textures[i].m_handle)->m_texture.get();
         }
 
-        UseResources(_commandList, { resources.Data(), resources.Size() });
+        UseResources(_commandList, {resources.Data(), resources.Size()}, usage);
     }
 
     void MetalGraphicsContext::DeclarePassBufferViewUsage(
         CommandList _commandList,
-        const eastl::span<const BufferViewHandle>& _buffers, BufferViewAccessType _accessType)
+        const eastl::span<const BufferViewHandle>& _buffers,
+        BufferViewAccessType _accessType)
     {
         KE_ASSERT(_commandList->m_encoder != nullptr
                   && (_commandList->m_type == CommandListData::EncoderType::Render
@@ -602,12 +614,22 @@ namespace KryneEngine
 
         DynamicArray<MTL::Resource*> resources(m_allocator, _buffers.size());
 
+        MTL::ResourceUsage usage = 0;
+        if (BitUtils::EnumHasAny(_accessType, BufferViewAccessType::Read | BufferViewAccessType::Constant))
+        {
+            usage |= MTL::ResourceUsageRead;
+        }
+        if (BitUtils::EnumHasAny(_accessType, BufferViewAccessType::Write))
+        {
+            usage |= MTL::ResourceUsageWrite;
+        }
+
         for (auto i = 0u; i < _buffers.size(); ++i)
         {
             resources[i] = m_resources.m_bufferViews.Get(_buffers[i].m_handle)->m_buffer.get();
         }
 
-        UseResources(_commandList, { resources.Data(), resources.Size() });
+        UseResources(_commandList, {resources.Data(), resources.Size()}, usage);
     }
 
     ShaderModuleHandle MetalGraphicsContext::RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize)
@@ -1001,20 +1023,23 @@ namespace KryneEngine
         encoder->dispatchThreadgroups(threadGroupCount, threadGroupSize);
     }
 
-    void MetalGraphicsContext::UseResources(CommandList _commandList, eastl::span<MTL::Resource*> _resources)
+    void MetalGraphicsContext::UseResources(
+        CommandList _commandList,
+        eastl::span<MTL::Resource*> _resources,
+        MTL::ResourceUsage _usage)
     {
         switch (_commandList->m_type)
         {
         case CommandListData::EncoderType::Render:
         {
             auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(_commandList->m_encoder.get());
-            encoder->useResources(_resources.data(), _resources.size(), MTL::ResourceUsageRead);
+            encoder->useResources(_resources.data(), _resources.size(), _usage);
             break;
         }
         case CommandListData::EncoderType::Compute:
         {
             auto* encoder = reinterpret_cast<MTL::ComputeCommandEncoder*>(_commandList->m_encoder.get());
-            encoder->useResources(_resources.data(), _resources.size(), MTL::ResourceUsageRead);
+            encoder->useResources(_resources.data(), _resources.size(), _usage);
             break;
         }
         default:

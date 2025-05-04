@@ -18,6 +18,7 @@
 #include "Graphics/Vulkan/VkTypes.hpp"
 #include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
 #include "KryneEngine/Core/Graphics/Texture.hpp"
 
 namespace KryneEngine
@@ -221,7 +222,7 @@ namespace KryneEngine
 
         [[nodiscard]] static bool RenderPassNeedsUsageDeclaration() { return false; }
         [[nodiscard]] static bool ComputePassNeedsUsageDeclaration() { return false; }
-        void DeclarePassTextureViewUsage(CommandList, const eastl::span<const TextureViewHandle>&) {}
+        void DeclarePassTextureViewUsage(CommandList, const eastl::span<const TextureViewHandle>&, TextureViewAccessType) {}
         void DeclarePassBufferViewUsage(CommandList, const eastl::span<const BufferViewHandle>&, BufferViewAccessType) {}
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);

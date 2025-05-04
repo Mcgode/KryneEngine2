@@ -14,8 +14,9 @@
 #include "Graphics/DirectX12/Dx12Resources.h"
 #include "Graphics/DirectX12/Dx12SwapChain.hpp"
 #include "Graphics/DirectX12/Dx12Types.hpp"
-#include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
 #include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
+#include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
 #include "KryneEngine/Core/Graphics/Texture.hpp"
 #include "KryneEngine/Core/Memory/DynamicArray.hpp"
 
@@ -180,7 +181,7 @@ namespace KryneEngine
 
         [[nodiscard]] static bool RenderPassNeedsUsageDeclaration() { return false; }
         [[nodiscard]] static bool ComputePassNeedsUsageDeclaration() { return false; }
-        void DeclarePassTextureViewUsage(CommandList, const eastl::span<const TextureViewHandle>&) {}
+        void DeclarePassTextureViewUsage(CommandList, const eastl::span<const TextureViewHandle>&, TextureViewAccessType) {}
         void DeclarePassBufferViewUsage(CommandList, const eastl::span<const BufferViewHandle>&, BufferViewAccessType) {}
 
         [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);

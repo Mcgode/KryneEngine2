@@ -369,11 +369,13 @@ namespace KryneEngine
 
     void GraphicsContext::DeclarePassTextureViewUsage(
         CommandListHandle _commandList,
-        const eastl::span<const TextureViewHandle>& _textures)
+        const eastl::span<const TextureViewHandle>& _textures,
+        TextureViewAccessType _accessType)
     {
         GetImplementation(this).DeclarePassTextureViewUsage(
             reinterpret_cast<CommandList>(_commandList),
-            _textures);
+            _textures,
+            _accessType);
     }
 
     void GraphicsContext::DeclarePassBufferViewUsage(
