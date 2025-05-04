@@ -20,6 +20,8 @@ add_executable(RenderGraphDemo
         Rendering/SkyPass.hpp
         Rendering/ColorMappingPass.cpp
         Rendering/ColorMappingPass.hpp
+        Rendering/DeferredShadowPass.cpp
+        Rendering/DeferredShadowPass.hpp
 )
 
 # Link to cpp libraries

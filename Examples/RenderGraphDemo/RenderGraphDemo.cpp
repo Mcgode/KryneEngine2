@@ -19,6 +19,7 @@
 
 #include "Rendering/ColorMappingPass.hpp"
 #include "Rendering/DeferredShadingPass.hpp"
+#include "Rendering/DeferredShadowPass.hpp"
 #include "Rendering/SkyPass.hpp"
 #include "Scene/SceneManager.hpp"
 
@@ -95,6 +96,7 @@ int main()
     RenderGraph::RenderGraph renderGraph {};
     SceneManager sceneManager(allocator, mainWindow, renderGraph.GetRegistry());
 
+    DeferredShadowPass deferredShadowPass { allocator };
     DeferredShadingPass deferredShadingPass { allocator };
     SkyPass skyPass { allocator };
     ColorMappingPass colorMappingPass { allocator };
@@ -311,6 +313,11 @@ int main()
             renderGraph.FetchRenderPass(*graphicsContext, gBufferDummyPass));
     }
 
+    deferredShadowPass.Initialize(
+        graphicsContext,
+        sceneManager.GetDescriptorSetLayout(),
+        renderGraph.GetRegistry().GetResource(gBufferDepthView).m_textureViewData.m_textureView,
+        renderGraph.GetRegistry().GetResource(deferredShadowView).m_textureViewData.m_textureView);;
     deferredShadingPass.Initialize(
         graphicsContext,
         sceneManager.GetDescriptorSetLayout(),
@@ -354,6 +361,7 @@ int main()
 
         imGuiContext->NewFrame(&mainWindow);
 
+        deferredShadowPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
         deferredShadingPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
         skyPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
         colorMappingPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
@@ -398,7 +406,7 @@ int main()
                     .Done()
                 .DeclarePass(RenderGraph::PassType::Compute)
                     .SetName("Deferred shadow pass")
-                    .SetExecuteFunction(ExecuteDeferredShadowPass)
+                    .SetExecuteFunction([&deferredShadowPass](const auto&, const auto& _passData) { deferredShadowPass.Render(_passData); })
                     .ReadDependency(frameCBufferReadDep)
                     .ReadDependency({
                         .m_resource = gBufferDepth,
