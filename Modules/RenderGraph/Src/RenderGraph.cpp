@@ -10,6 +10,7 @@
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Threads/FibersManager.hpp>
 
+#include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
 #include "KryneEngine/Modules/RenderGraph/Builder.hpp"
 #include "KryneEngine/Modules/RenderGraph/Registry.hpp"
 #include "KryneEngine/Modules/RenderGraph/Resource.hpp"
@@ -283,29 +284,47 @@ namespace KryneEngine::Modules::RenderGraph
         const PassDeclaration& _pass)
     {
         eastl::vector<TextureViewHandle> textureViews;
-        eastl::vector<BufferViewHandle> bufferCbvs;
+        eastl::vector<BufferViewHandle> bufferViews;
 
-        textureViews.reserve(_pass.m_readDependencies.size());
-        bufferCbvs.reserve(_pass.m_readDependencies.size());
-
-        for (const auto& dependency : _pass.m_readDependencies)
+        const auto markUsage = [&](const auto& _dependencies, BufferViewAccessType _bufferAccessType, TextureViewAccessType _textureAccessType)
         {
-            const Resource& resource = m_registry->GetResource(dependency.m_resource);
+            textureViews.reserve(_dependencies.size());
+            bufferViews.reserve(_dependencies.size());
 
-            switch (resource.m_type)
+            for (const auto& dependency : _dependencies)
             {
-            case ResourceType::TextureView:
-                textureViews.push_back(resource.m_textureViewData.m_textureView);
-                break;
-            case ResourceType::BufferView:
-                bufferCbvs.push_back(resource.m_bufferViewData.m_bufferView);
-                break;
-            default:
-                break;
-            }
-        }
+                const Resource& resource = m_registry->GetResource(dependency.m_resource);
 
-        _graphicsContext->DeclarePassTextureViewUsage(_commandList, textureViews);
-        _graphicsContext->DeclarePassBufferViewUsage(_commandList, bufferCbvs, BufferViewAccessType::Constant);
+                switch (resource.m_type)
+                {
+                case ResourceType::TextureView:
+                    textureViews.push_back(resource.m_textureViewData.m_textureView);
+                    break;
+                case ResourceType::BufferView:
+                    bufferViews.push_back(resource.m_bufferViewData.m_bufferView);
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            _graphicsContext->DeclarePassTextureViewUsage(
+                _commandList,
+                textureViews,
+                _textureAccessType);
+            _graphicsContext->DeclarePassBufferViewUsage(
+                _commandList,
+                bufferViews,
+                _bufferAccessType);
+        };
+
+        markUsage(
+            _pass.m_readDependencies,
+            BufferViewAccessType::Read,
+            TextureViewAccessType::Read); // Don't differentiate between read and constant here.
+        markUsage(
+            _pass.m_writeDependencies,
+            BufferViewAccessType::Write,
+            TextureViewAccessType::Write);
     }
 } // namespace KryneEngine::Modules::RenderGraph
