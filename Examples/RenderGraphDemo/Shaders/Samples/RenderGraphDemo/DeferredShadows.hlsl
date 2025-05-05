@@ -55,11 +55,12 @@ void DeferredShadowsMain(const uint3 id: SV_DispatchThreadID)
     const float maxDist = 10.f;
     const uint maxSteps = 32;
 
-    float depth = minDist;
-    float shadow = 0.f;
+    float t = minDist;
+    const float f = 8.f; // Soft shadow factor
+    float shadow = 1.f;
     for (uint i = 0; i < maxSteps; i++)
     {
-        const float3 position = positionM + depth * directionM;
+        const float3 position = positionM + t * directionM;
         const float distance = sdTorusKnot(
             position,
             SceneConstants.m_torusKnotRadius,
@@ -69,11 +70,11 @@ void DeferredShadowsMain(const uint3 id: SV_DispatchThreadID)
 
         if (distance <= 0.01f)
         {
-            shadow = 1.f;
+            shadow = 0.f;
             break;
         }
-
-        depth += distance;
+        shadow = min(shadow, distance * k / t);
+        t += distance;
     }
 
     DeferredShadows[pixelCoordinates] = shadow;
