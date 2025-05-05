@@ -33,6 +33,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
             const DescriptorBindingDesc bindings[] {
                 // GBuffer depth
                 {
+                    .m_type = DescriptorBindingDesc::Type::SampledTexture,
                     .m_visibility = ShaderVisibility::Compute,
                 },
                 // Deferred shadows
