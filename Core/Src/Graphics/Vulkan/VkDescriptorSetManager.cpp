@@ -60,7 +60,7 @@ namespace KryneEngine
         {
             const DescriptorBindingDesc& binding = _desc.m_bindings[i];
             const VkDescriptorType type = VkHelperFunctions::ToVkDescriptorType(binding.m_type);
-            const u32 bindingIndex = binding.m_bindingIndex != DescriptorBindingDesc::kImplicitBindingIndex ? i : binding.m_bindingIndex;
+            const u32 bindingIndex = binding.m_bindingIndex == DescriptorBindingDesc::kImplicitBindingIndex ? i : binding.m_bindingIndex;
             bindings.push_back(VkDescriptorSetLayoutBinding {
                 .binding = bindingIndex,
                 .descriptorType = type,
