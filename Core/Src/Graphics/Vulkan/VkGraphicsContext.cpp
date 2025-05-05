@@ -1533,7 +1533,7 @@ namespace KryneEngine
 
             vkCmdBindDescriptorSets(
                 _commandList,
-                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                VK_PIPELINE_BIND_POINT_COMPUTE,
                 *pLayout,
                 i + _offset,
                 1,
