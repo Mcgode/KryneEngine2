@@ -56,7 +56,7 @@ void DeferredShadowsMain(const uint3 id: SV_DispatchThreadID)
     const uint maxSteps = 32;
 
     float t = minDist;
-    const float f = 8.f; // Soft shadow factor
+    const float k = 8.f; // Soft shadow factor
     float shadow = 1.f;
     for (uint i = 0; i < maxSteps; i++)
     {
