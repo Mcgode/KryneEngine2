@@ -209,7 +209,13 @@ namespace KryneEngine
         {
             WriteOp& writeOp = m_tmpWriteOps.emplace_back();
             writeOp.m_descriptorSet = _descriptorSet;
-            writeOp.m_info = write;
+            writeOp.m_index = write.m_index;
+            writeOp.m_arrayOffset = write.m_arrayOffset;
+
+            writeOp.m_descriptorData.set_allocator(GetAllocator());
+            writeOp.m_descriptorData.reserve(write.m_descriptorData.size());
+            writeOp.m_descriptorData.insert(writeOp.m_descriptorData.end(), write.m_descriptorData.begin(), write.m_descriptorData.end());;
+
             m_multiFrameTracker.TrackForOtherFrames(writeOp);
         }
 
@@ -268,7 +274,7 @@ namespace KryneEngine
                 continue;
             }
 
-            const PackedIndex packedIndex = { .m_packed = writeOp.m_info.m_index };
+            const PackedIndex packedIndex = { .m_packed = writeOp.m_index };
             const bool isImageInfo = packedIndex.m_type <= VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 
             m_tmpWrites.push_back(VkWriteDescriptorSet {
@@ -277,12 +283,12 @@ namespace KryneEngine
                 .pNext = reinterpret_cast<void*>(m_tmpDescriptorData.size()),
                 .dstSet = set,
                 .dstBinding = packedIndex.m_binding,
-                .dstArrayElement = writeOp.m_info.m_arrayOffset,
-                .descriptorCount = static_cast<u32>(writeOp.m_info.m_descriptorData.size()),
+                .dstArrayElement = writeOp.m_arrayOffset,
+                .descriptorCount = static_cast<u32>(writeOp.m_descriptorData.size()),
                 .descriptorType = static_cast<VkDescriptorType>(packedIndex.m_type),
             });
 
-            for (const auto& descriptor : writeOp.m_info.m_descriptorData)
+            for (const auto& descriptor : writeOp.m_descriptorData)
             {
                 auto& data = m_tmpDescriptorData.emplace_back();
 

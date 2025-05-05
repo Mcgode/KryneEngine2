@@ -61,8 +61,10 @@ namespace KryneEngine
 
         struct WriteOp
         {
+            eastl::vector<DescriptorSetWriteInfo::DescriptorData> m_descriptorData;
             DescriptorSetHandle m_descriptorSet;
-            DescriptorSetWriteInfo m_info;
+            u32 m_index;
+            u16 m_arrayOffset;
         };
 
         MultiFrameDataTracker<WriteOp> m_multiFrameTracker;
