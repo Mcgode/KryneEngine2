@@ -289,7 +289,10 @@ namespace KryneEngine::Modules::RenderGraph
 
         const auto markUsage = [&](const auto& _dependencies, BufferViewAccessType _bufferAccessType, TextureViewAccessType _textureAccessType)
         {
+            textureViews.clear();
             textureViews.reserve(_dependencies.size());
+
+            bufferViews.clear();
             bufferViews.reserve(_dependencies.size());
 
             for (const auto& dependency : _dependencies)
