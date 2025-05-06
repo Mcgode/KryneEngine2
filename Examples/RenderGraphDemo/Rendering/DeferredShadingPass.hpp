@@ -22,8 +22,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
             TextureViewHandle _gBufferAlbedo,
             TextureViewHandle _gBufferNormal,
             TextureViewHandle _gBufferDepth,
-            TextureViewHandle _gBufferAmbient,
-            TextureViewHandle _deferredShadows);
+            TextureViewHandle _deferredShadows,
+            TextureViewHandle _gBufferAmbient);
 
         void UpdateSceneConstants(DescriptorSetHandle _sceneConstantsDescriptorSet)
         {

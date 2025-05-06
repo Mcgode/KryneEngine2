@@ -324,8 +324,8 @@ int main()
         renderGraph.GetRegistry().GetResource(gBufferAlbedoView).m_textureViewData.m_textureView,
         renderGraph.GetRegistry().GetResource(gBufferNormalView).m_textureViewData.m_textureView,
         renderGraph.GetRegistry().GetResource(gBufferDepthView).m_textureViewData.m_textureView,
-        renderGraph.GetRegistry().GetResource(deferredGiView).m_textureViewData.m_textureView,
-        renderGraph.GetRegistry().GetResource(deferredShadowView).m_textureViewData.m_textureView);
+        renderGraph.GetRegistry().GetResource(deferredShadowView).m_textureViewData.m_textureView,
+        renderGraph.GetRegistry().GetResource(deferredGiView).m_textureViewData.m_textureView);
     skyPass.Initialize(
         graphicsContext,
         sceneManager.GetDescriptorSetLayout());

@@ -58,7 +58,8 @@ FsOutput DeferredShadingMain(const in FsInput _input)
     const float3 albedo = gBufferAlbedo.Load(int3(pixelCoords, 0)).rgb;
 
     float3 directLighting = saturate(dot(normalW, -frameData.m_sunLightDirection)) * frameData.m_sunDiffuse;
-    directLighting *= (1 - deferredShadows.Load(int3(pixelCoords, 0)).rrr);
+    const float shadow = deferredShadows.Load(int3(pixelCoords, 0)).r;
+    directLighting *= shadow;
 
     const float3 diffuse = albedo * (directLighting + gBufferLight.Load(int3(pixelCoords, 0)).rgb);
 
