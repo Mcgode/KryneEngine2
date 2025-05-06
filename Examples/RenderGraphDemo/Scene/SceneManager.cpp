@@ -47,7 +47,9 @@ namespace KryneEngine::Samples::RenderGraphDemo
         float m_torusKnotTubeRadius;
 
         float m_torusKnotRadius;
-        uint m_padding[3];
+        float m_torusRoughness;
+        float m_torusMetalness;
+        uint m_padding[1];
     };
 
     SceneManager::SceneManager(
@@ -193,6 +195,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
         sceneConstants->m_torusKnotTubeRadius = m_torusKnot->GetTubeRadius();
         sceneConstants->m_torusKnotP = m_torusKnot->GetPValue();
         sceneConstants->m_torusKnotQ = m_torusKnot->GetQValue();
+        sceneConstants->m_torusRoughness = m_torusKnot->GetRoughness();
+        sceneConstants->m_torusMetalness = m_torusKnot->GetMetalness();
 
         sceneConstants->m_sunLightDirection = m_sunLight->GetDirection();
         sceneConstants->m_sunDiffuse = m_sunLight->GetDiffuse();

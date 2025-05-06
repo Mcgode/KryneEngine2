@@ -5,6 +5,7 @@
  */
 
 #include "Platform.hlsl"
+#include "Lighting/PbrBsdf.hlsl"
 #include "Math/CoordinateTransforms.hlsl"
 #include "Math/Quaternion.hlsl"
 #include "FrameData.hlsl"
@@ -61,9 +62,18 @@ FsOutput DeferredShadingMain(const in FsInput _input)
     const float shadow = deferredShadows.Load(int3(pixelCoords, 0)).r;
     directLighting *= shadow;
 
-    const float3 diffuse = albedo * (directLighting + gBufferLight.Load(int3(pixelCoords, 0)).rgb);
+    const float3 diffuseColor = albedo * (1.f - frameData.m_torusMetalness);
+    const float3 specularColor = lerp(0.04f.xxx, albedo, frameData.m_torusMetalness.xxx);
 
-    _output.color.xyz = diffuse;
+    const float3 diffuse = diffuseColor * (directLighting + gBufferLight.Load(int3(pixelCoords, 0)).rgb);
+    const float3 specular = directLighting * BRDFSpecularGGX(
+        -frameData.m_sunLightDirection,
+        cameraW,
+        normalW,
+        specularColor,
+        frameData.m_torusRoughness);
+
+    _output.color.xyz = diffuse + specular;
 
     return _output;
 }

@@ -31,5 +31,7 @@ struct FrameData {
     float m_torusKnotTubeRadius;
 
     float m_torusKnotRadius;
-    uint m_padding[3];
+    float m_torusRoughness;
+    float m_torusMetalness;
+    uint m_padding[1];
 };
