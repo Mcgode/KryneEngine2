@@ -191,7 +191,8 @@ namespace KryneEngine::Modules::RenderGraph
                     jobData->m_passExecutionData.m_commandList);
             }
 
-            if (pass.m_type == PassType::Render && GraphicsContext::RenderPassNeedsUsageDeclaration())
+            if (pass.m_type == PassType::Render && GraphicsContext::RenderPassNeedsUsageDeclaration()
+                || pass.m_type == PassType::Compute && GraphicsContext::ComputePassNeedsUsageDeclaration())
             {
                 jobData->m_renderGraph->HandleResourceUsage(
                     jobData->m_passExecutionData.m_graphicsContext,
