@@ -305,6 +305,7 @@ namespace KryneEngine::Modules::RenderGraph
                     bufferViews.push_back(resource.m_bufferViewData.m_bufferView);
                     break;
                 default:
+                    KE_ERROR("Unhandled resource type");
                     break;
                 }
             }
