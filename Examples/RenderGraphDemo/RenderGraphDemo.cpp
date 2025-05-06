@@ -409,14 +409,14 @@ int main()
                     .SetExecuteFunction([&deferredShadowPass](const auto&, const auto& _passData) { deferredShadowPass.Render(_passData); })
                     .ReadDependency(frameCBufferReadDep)
                     .ReadDependency({
-                        .m_resource = gBufferDepth,
+                        .m_resource = gBufferDepthView,
                         .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
                         .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
                         .m_targetLayout = TextureLayout::ShaderResource,
                         .m_planes = TexturePlane::Depth,
                     })
                     .WriteDependency({
-                        .m_resource = deferredShadow,
+                        .m_resource = deferredShadowView,
                         .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
                         .m_targetAccessFlags = BarrierAccessFlags::UnorderedAccess,
                         .m_targetLayout = TextureLayout::UnorderedAccess,
@@ -427,26 +427,26 @@ int main()
                     .SetExecuteFunction(ExecuteDeferredGiPass)
                     .ReadDependency(frameCBufferReadDep)
                     .ReadDependency({
-                        .m_resource = gBufferAlbedo,
+                        .m_resource = gBufferAlbedoView,
                         .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
                         .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
                         .m_targetLayout = TextureLayout::ShaderResource,
                     })
                     .ReadDependency({
-                        .m_resource = gBufferNormal,
+                        .m_resource = gBufferNormalView,
                         .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
                         .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
                         .m_targetLayout = TextureLayout::ShaderResource,
                     })
                     .ReadDependency({
-                        .m_resource = gBufferDepth,
+                        .m_resource = gBufferDepthView,
                         .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
                         .m_targetAccessFlags = BarrierAccessFlags::ShaderResource,
                         .m_targetLayout = TextureLayout::ShaderResource,
                         .m_planes = TexturePlane::Depth,
                     })
                     .WriteDependency({
-                        .m_resource = deferredGi,
+                        .m_resource = deferredGiView,
                         .m_targetSyncStage = BarrierSyncStageFlags::ComputeShading,
                         .m_targetAccessFlags = BarrierAccessFlags::UnorderedAccess,
                         .m_targetLayout = TextureLayout::UnorderedAccess,
