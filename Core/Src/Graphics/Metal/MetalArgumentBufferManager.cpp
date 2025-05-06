@@ -213,6 +213,7 @@ namespace KryneEngine
         u8 _frameIndex)
     {
         eastl::fixed_vector<ArgumentBufferWriteInfo, 128> updates;
+        updates.set_overflow_allocator(GetAllocator());
 
         for (const DescriptorSetWriteInfo& writeInfo: _writes)
         {
