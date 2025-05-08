@@ -19,6 +19,13 @@ def __lldb_init_module(debugger, internal_dict):
 
     add_summary("KryneEngine::DynamicArray<.*>", dynamic_array_summary.__name__)
     add_synthetic_children_provider("KryneEngine::DynamicArray<.*>", DynamicArrayChildrenProvider.__name__)
+
+    add_summary("KryneEngine::VectorBase<.*>", vector_base_summary.__name__)
+    for type in ["float", "double", "int", "uint"]:
+        for count in [2, 3, 4]:
+            add_summary(f"KryneEngine::{type}{count}", vector_base_summary.__name__)
+            add_summary(f"KryneEngine::{type}{count}_simd", vector_base_summary.__name__)
+
     debugger.HandleCommand("type category enable KryneEngine")
 
 def dynamic_array_summary(value_object, internal_dict):
@@ -61,3 +68,9 @@ class DynamicArrayChildrenProvider:
 
     def has_children(self):
         return self.count > 0
+
+def vector_base_summary(value_object, internal_dict):
+    x = value_object.GetChildMemberWithName("x").GetValue()
+    y = value_object.GetChildMemberWithName("y").GetValue()
+    z = value_object.GetChildMemberWithName("z").GetValue()
+    return f'({x}, {y}, {z})'
