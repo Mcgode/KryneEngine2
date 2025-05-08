@@ -1,7 +1,7 @@
 import lldb
 
 def __lldb_init_module(debugger, internal_dict):
-    def addSummary(type_name, summary_name, templated=True):
+    def add_summary(type_name, summary_name, templated=True):
         command = None
         if templated:
             command = f'type summary add -x "^{type_name}" -F {__name__}.{summary_name} -w KryneEngine'
@@ -9,7 +9,7 @@ def __lldb_init_module(debugger, internal_dict):
             command = f'type synthetic add {type_name} -F {__name__}.{summary_name} -w KryneEngine'
         debugger.HandleCommand(command)
 
-    def addSytheticChildrenProvider(type_name, provider_name, templated=True):
+    def add_synthetic_children_provider(type_name, provider_name, templated=True):
         command = None
         if templated:
             command = f'type synthetic add -x "^{type_name}" --python-class {__name__}.{provider_name} -w KryneEngine'
@@ -17,8 +17,8 @@ def __lldb_init_module(debugger, internal_dict):
             command = f'type synthetic add {type_name} --python-class {__name__}.{provider_name} -w KryneEngine'
         debugger.HandleCommand(command)
 
-    addSummary("KryneEngine::DynamicArray<.*>", dynamic_array_summary.__name__)
-    addSytheticChildrenProvider("KryneEngine::DynamicArray<.*>", DynamicArrayChildrenProvider.__name__)
+    add_summary("KryneEngine::DynamicArray<.*>", dynamic_array_summary.__name__)
+    add_synthetic_children_provider("KryneEngine::DynamicArray<.*>", DynamicArrayChildrenProvider.__name__)
     debugger.HandleCommand("type category enable KryneEngine")
 
 def dynamic_array_summary(value_object, internal_dict):
