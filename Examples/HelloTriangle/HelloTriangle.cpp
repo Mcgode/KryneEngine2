@@ -108,7 +108,7 @@ void PreparePso(
                 .m_semanticIndex = 0,
                 .m_format = KryneEngine::TextureFormat::RGB32_Float,
                 .m_offset = sizeof(float3),
-                .m_location = 0,
+                .m_location = 1,
             }
         };
         const VertexBindingDesc vertexBindings[] {{ .m_stride = sizeof(float3) * 2 }};

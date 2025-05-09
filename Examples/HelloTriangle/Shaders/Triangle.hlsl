@@ -3,7 +3,7 @@
 struct IaToVs
 {
     vkLocation(0) float3 m_position: POSITION0;
-    vkLocation(1) float4 m_color: COLOR0;
+    vkLocation(1) float3 m_color: COLOR0;
 };
 
 struct VsToPs
@@ -21,7 +21,7 @@ VsToPs MainVS(IaToVs _input)
 {
     VsToPs output;
 
-    output.m_color = _input.m_color;
+    output.m_color = float4(_input.m_color, 1.f);
     output.m_position = float4(_input.m_position, 1);
 
     return output;
