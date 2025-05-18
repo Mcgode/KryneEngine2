@@ -61,7 +61,7 @@ void DeferredShadowsMain(const uint3 id: SV_DispatchThreadID)
     for (uint i = 0; i < maxSteps; i++)
     {
         const float3 position = positionM + t * directionM;
-        const float distance = sdTorusKnot(
+        const float distance = SdTorusKnot(
             position,
             SceneConstants.m_torusKnotRadius,
             SceneConstants.m_torusKnotTubeRadius,
