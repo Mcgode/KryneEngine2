@@ -1,19 +1,22 @@
 // SDF functions
 // Parametric equation of the (p, q)-Torus Knot.
-float3 torusKnot(in float t, in float R, in float r, in int pParam, in int qParam) {
+float3 torusKnot(in float t, in float R, in float r, in float pParam, in float qParam) {
     return float3(
-        (R + r * cos(float(qParam) * t)) * cos(float(pParam) * t),
-        (R + r * cos(float(qParam) * t)) * sin(float(pParam) * t),
-        r * sin(float(qParam) * t)
+        R * (2 + cos(qParam * t)) * cos(pParam * t) * 0.5,
+        R * (2 + cos(qParam * t)) * sin(pParam * t) * 0.5,
+        R * sin(qParam * t) * 0.5
     );
 }
 
 // First derivative of the parametric equation.
-float3 torusKnotDerived(in float t, in float R, in float r, in int pParam, in int qParam) {
+float3 torusKnotDerived(in float t, in float R, in float r, in float pParam, in float qParam) {
+    const float pt = pParam * t;
+    const float qt = qParam * t;
+
     return float3(
-        -r * float(qParam) * sin(float(qParam) * t) * cos(float(pParam) * t) - (R + r * cos(float(qParam) * t)) * float(pParam) * sin(float(pParam) * t),
-        -r * float(qParam) * sin(float(qParam) * t) * sin(float(pParam) * t) + (R + r * cos(float(qParam) * t)) * float(pParam) * cos(float(pParam) * t),
-        r * float(qParam) * cos(float(qParam) * t)
+        -0.5 * pParam * R * sin(pt) * (cos(qt) + 2) - 0.5 * qParam * R * cos(pt) * sin(qt),
+         0.5 * pParam * R * cos(pt) * (cos(qt) + 2) - 0.5 * qParam * R * sin(pt) * sin(qt),
+         0.5 * qParam * R * cos(qt)
     );
 }
 
