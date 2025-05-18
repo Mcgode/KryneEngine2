@@ -35,7 +35,7 @@ void DeferredShadowsMain(const uint3 id: SV_DispatchThreadID)
 
     const float2 ndc = ScreenSpaceToNdc(pixelCoordinates.xy, resolution);
 
-    const float aspect = resolution.x / resolution.y;
+    const float aspect = float(resolution.x) / float(resolution.y);
     const float3 cameraV = float3(
         ndc.x * aspect * SceneConstants.m_tanHalfFov,
         1.0f,
