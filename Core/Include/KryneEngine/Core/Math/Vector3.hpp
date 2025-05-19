@@ -74,6 +74,9 @@ namespace KryneEngine::Math
         template<class U> requires std::is_constructible_v<T, U>
         Vector3Base operator/(U _scalar) const { return *this / Vector3Base(_scalar); }
 
+        void MinComponents(const Vector3Base& _other);
+        void MaxComponents(const Vector3Base& _other);
+
         T& operator[](size_t _index);
         const T& operator[](size_t _index) const;
 

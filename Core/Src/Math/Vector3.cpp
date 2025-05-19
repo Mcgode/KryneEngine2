@@ -90,6 +90,58 @@ namespace KryneEngine::Math
     }
 
     template <typename T, bool SimdOptimal>
+    void Vector3Base<T, SimdOptimal>::MinComponents(const Vector3Base<T, SimdOptimal>& _other)
+    {
+        using Vector3 = Vector3Base<T, SimdOptimal>;
+
+        constexpr bool alignedOps = SimdOptimal;
+        using Operability = SimdOperability<T, Vector3>;
+
+        if constexpr (Operability::kSimdOperable)
+        {
+            using OptimalArch = Operability::OptimalArch;
+            for (size_t i = 0; i < Operability::kBatchCount; ++i)
+            {
+                xsimd::batch vecA = XsimdLoad<alignedOps, T, OptimalArch>(GetPtr() + i * Operability::kBatchSize);
+                xsimd::batch vecB = XsimdLoad<alignedOps, T, OptimalArch>(_other.GetPtr() + i * Operability::kBatchSize);
+                XsimdStore<alignedOps, T, OptimalArch>(GetPtr() + i * Operability::kBatchSize, xsimd::min(vecA, vecB));
+            }
+        }
+        else
+        {
+            x = eastl::min(x, _other.x);
+            y = eastl::min(y, _other.y);
+            z = eastl::min(z, _other.z);
+        }
+    }
+
+    template <typename T, bool SimdOptimal>
+    void Vector3Base<T, SimdOptimal>::MaxComponents(const Vector3Base<T, SimdOptimal>& _other)
+    {
+        using Vector3 = Vector3Base<T, SimdOptimal>;
+
+        constexpr bool alignedOps = SimdOptimal;
+        using Operability = SimdOperability<T, Vector3>;
+
+        if constexpr (Operability::kSimdOperable)
+        {
+            using OptimalArch = Operability::OptimalArch;
+            for (size_t i = 0; i < Operability::kBatchCount; ++i)
+            {
+                xsimd::batch vecA = XsimdLoad<alignedOps, T, OptimalArch>(GetPtr() + i * Operability::kBatchSize);
+                xsimd::batch vecB = XsimdLoad<alignedOps, T, OptimalArch>(_other.GetPtr() + i * Operability::kBatchSize);
+                XsimdStore<alignedOps, T, OptimalArch>(GetPtr() + i * Operability::kBatchSize, xsimd::max(vecA, vecB));
+            }
+        }
+        else
+        {
+            x = eastl::max(x, _other.x);
+            y = eastl::max(y, _other.y);
+            z = eastl::max(z, _other.z);
+        }
+    }
+
+    template <typename T, bool SimdOptimal>
     T& Vector3Base<T, SimdOptimal>::operator[](size_t _index)
     {
         return reinterpret_cast<T*>(this)[_index];
