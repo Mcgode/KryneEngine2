@@ -20,6 +20,7 @@
 #include "Rendering/ColorMappingPass.hpp"
 #include "Rendering/DeferredShadingPass.hpp"
 #include "Rendering/DeferredShadowPass.hpp"
+#include "Rendering/GiPass.hpp"
 #include "Rendering/SkyPass.hpp"
 #include "Scene/SceneManager.hpp"
 
@@ -97,6 +98,7 @@ int main()
     SceneManager sceneManager(allocator, mainWindow, renderGraph.GetRegistry());
 
     DeferredShadowPass deferredShadowPass { allocator };
+    GiPass giPass { allocator };
     DeferredShadingPass deferredShadingPass { allocator };
     SkyPass skyPass { allocator };
     ColorMappingPass colorMappingPass { allocator };
@@ -317,7 +319,14 @@ int main()
         graphicsContext,
         sceneManager.GetDescriptorSetLayout(),
         renderGraph.GetRegistry().GetResource(gBufferDepthView).m_textureViewData.m_textureView,
-        renderGraph.GetRegistry().GetResource(deferredShadowView).m_textureViewData.m_textureView);;
+        renderGraph.GetRegistry().GetResource(deferredShadowView).m_textureViewData.m_textureView);
+    giPass.Initialize(
+        graphicsContext,
+        sceneManager.GetDescriptorSetLayout(),
+        renderGraph.GetRegistry().GetResource(gBufferAlbedoView).m_textureViewData.m_textureView,
+        renderGraph.GetRegistry().GetResource(gBufferNormalView).m_textureViewData.m_textureView,
+        renderGraph.GetRegistry().GetResource(gBufferDepthView).m_textureViewData.m_textureView,
+        renderGraph.GetRegistry().GetResource(deferredGiView).m_textureViewData.m_textureView);
     deferredShadingPass.Initialize(
         graphicsContext,
         sceneManager.GetDescriptorSetLayout(),
@@ -361,10 +370,15 @@ int main()
 
         imGuiContext->NewFrame(&mainWindow);
 
-        deferredShadowPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
-        deferredShadingPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
-        skyPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
-        colorMappingPass.UpdateSceneConstants(sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex()));
+        {
+            const DescriptorSetHandle sceneConstantsDescriptorSet =
+                sceneManager.GetSceneDescriptorSet(graphicsContext->GetCurrentFrameContextIndex());
+            deferredShadowPass.UpdateSceneConstants(sceneConstantsDescriptorSet);
+            giPass.UpdateSceneConstants(sceneConstantsDescriptorSet);
+            deferredShadingPass.UpdateSceneConstants(sceneConstantsDescriptorSet);
+            skyPass.UpdateSceneConstants(sceneConstantsDescriptorSet);
+            colorMappingPass.UpdateSceneConstants(sceneConstantsDescriptorSet);
+        }
 
         RenderGraph::Builder& builder = renderGraph.BeginFrame(*graphicsContext);
 
@@ -424,7 +438,7 @@ int main()
                     .Done()
                 .DeclarePass(RenderGraph::PassType::Compute)
                     .SetName("Deferred 'GI' pass")
-                    .SetExecuteFunction(ExecuteDeferredGiPass)
+                    .SetExecuteFunction([&giPass](const auto&, const auto& _passData) { giPass.Render(_passData); })
                     .ReadDependency(frameCBufferReadDep)
                     .ReadDependency({
                         .m_resource = gBufferAlbedoView,

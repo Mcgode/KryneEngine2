@@ -22,6 +22,8 @@ add_executable(RenderGraphDemo
         Rendering/ColorMappingPass.hpp
         Rendering/DeferredShadowPass.cpp
         Rendering/DeferredShadowPass.hpp
+        Rendering/GiPass.cpp
+        Rendering/GiPass.hpp
 )
 
 # Link to cpp libraries
