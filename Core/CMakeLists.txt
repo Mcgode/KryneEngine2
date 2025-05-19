@@ -69,6 +69,7 @@ set(MathSrc
         Include/KryneEngine/Core/Math/Matrix44.hpp
         Include/KryneEngine/Core/Math/Transform.hpp
         Include/KryneEngine/Core/Math/Projection.hpp
+        Include/KryneEngine/Core/Math/BoundingBox.hpp
 )
 
 set(MemorySrc
