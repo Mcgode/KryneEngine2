@@ -34,5 +34,18 @@ namespace KryneEngine::Math
             m_min.MinComponents(_point);
             m_max.MaxComponents(_point);
         }
+
+        [[nodiscard]] bool IsValid() const
+        {
+            return m_min.x != FLT_MAX && m_min.y != FLT_MAX && m_min.z != FLT_MAX;
+        }
+
+        static BoundingBox FromCenterAndSize(const float3& _center, const float3& _size)
+        {
+            return {
+                _center - _size * 0.5f,
+                _center + _size * 0.5f
+            };
+        }
     };
 }
