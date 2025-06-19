@@ -3,6 +3,7 @@ add_subdirectory(GraphicsUtils)
 add_subdirectory(ImGui)
 add_subdirectory(RenderGraph)
 add_subdirectory(ShaderReflection)
+add_subdirectory(SdfTexture)
 
 add_library(KryneEngine_Modules INTERFACE)
 target_link_libraries(KryneEngine_Modules INTERFACE
@@ -10,6 +11,7 @@ target_link_libraries(KryneEngine_Modules INTERFACE
         KryneEngine_Modules_ImGui
         KryneEngine_Modules_RenderGraph
         KryneEngine_Modules_ShaderReflection
+        KryneEngine_Modules_SdfTexture
 )
 
 add_library(KryneEngine INTERFACE)
