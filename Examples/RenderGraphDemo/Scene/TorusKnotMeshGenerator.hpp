@@ -7,6 +7,7 @@
 #pragma once
 
 #include "KryneEngine/Core/Common/Types.hpp"
+#include "KryneEngine/Core/Math/BoundingBox.hpp"
 #include "KryneEngine/Core/Math/Vector.hpp"
 
 namespace KryneEngine::Samples::RenderGraphDemo::TorusKnotMeshGenerator
@@ -17,6 +18,7 @@ namespace KryneEngine::Samples::RenderGraphDemo::TorusKnotMeshGenerator
         std::byte* m_indices;
         u32 m_vertexCount;
         u32 m_indexCount;
+        Math::BoundingBox m_boundingBox;
     };
 
     using VertexPositionType = float3;

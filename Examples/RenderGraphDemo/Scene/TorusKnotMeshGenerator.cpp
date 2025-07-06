@@ -49,6 +49,8 @@ namespace KryneEngine::Samples::RenderGraphDemo::TorusKnotMeshGenerator
         mesh.m_indices = static_cast<std::byte*>(_allocator.allocate(mesh.m_indexCount * sizeof(u32)));
         mesh.m_vertices = static_cast<std::byte*>(_allocator.allocate(mesh.m_vertexCount * kVertexSize));
 
+        mesh.m_boundingBox = Math::BoundingBox();
+
         const auto p = static_cast<float>(_p);
         const auto q = static_cast<float>(_q);
 
@@ -75,6 +77,7 @@ namespace KryneEngine::Samples::RenderGraphDemo::TorusKnotMeshGenerator
                 const float3_simd cy(_tubeRadius * std::sin(v));
 
                 const float3_simd position = p1 + (cx * n) + (cy * b);
+                mesh.m_boundingBox.Expand(float3(position));
                 memcpy(
                     mesh.m_vertices + vertexId * kVertexSize + kVertexPositionOffset,
                     position.GetPtr(),

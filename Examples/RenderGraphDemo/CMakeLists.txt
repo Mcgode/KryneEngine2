@@ -30,6 +30,7 @@ add_executable(RenderGraphDemo
 target_link_libraries(RenderGraphDemo
         KryneEngine_Modules_RenderGraph
         KryneEngine_Modules_ImGui
+        KryneEngine_Modules_SdfTexture
 )
 
 # Link shader libraries and compile sample shaders

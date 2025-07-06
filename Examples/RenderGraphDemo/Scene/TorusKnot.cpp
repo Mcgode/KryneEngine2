@@ -13,6 +13,7 @@
 #include <KryneEngine/Core/Math/RotationConversion.hpp>
 #include <KryneEngine/Core/Math/Transform.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
+#include <KryneEngine/Modules/SdfTexture/Generator.hpp>
 #include <fstream>
 #include <imgui.h>
 
@@ -118,14 +119,18 @@ namespace KryneEngine::Samples::RenderGraphDemo
         {
             _graphicsContext->DestroyBuffer(m_previousIndexBuffer);
             _graphicsContext->DestroyBuffer(m_previousVertexBuffer);
+            _graphicsContext->DestroyTexture(m_previousSdfTexture);
             m_previousIndexBuffer = GenPool::kInvalidHandle;
             m_previousVertexBuffer = GenPool::kInvalidHandle;
+            m_previousSdfTexture = GenPool::kInvalidHandle;
         }
 
         if (m_transferBuffer != GenPool::kInvalidHandle && _graphicsContext->IsFrameExecuted(m_transferFrameId))
         {
             _graphicsContext->DestroyBuffer(m_transferBuffer);
+            _graphicsContext->DestroyBuffer(m_sdfTransferBuffer);
             m_transferBuffer = GenPool::kInvalidHandle;
+            m_sdfTransferBuffer = GenPool::kInvalidHandle;
         }
 
         if (m_windowOpen)
@@ -162,6 +167,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
 
         m_previousIndexBuffer = m_indexBuffer;
         m_previousVertexBuffer = m_vertexBuffer;
+        m_previousSdfTexture = m_sdfTexture;
 
         m_indexBuffer = _graphicsContext->CreateBuffer({
             .m_desc = {
@@ -182,11 +188,43 @@ namespace KryneEngine::Samples::RenderGraphDemo
             .m_usage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::VertexBuffer | MemoryUsage::TransferDstBuffer,
         });
 
-        BufferMapping mapping(m_transferBuffer, m_indexBufferSize + m_vertexBufferSize);
-        _graphicsContext->MapBuffer(mapping);
+        {
+            m_sdfGenerator = m_allocator.New<Modules::SdfTexture::Generator>(m_allocator);
+            m_sdfGenerator->SetMeshBoundingBox(meshData.m_boundingBox);
+            m_sdfGenerator->ComputeDimensionsFromBudget(16*8*8);
+            m_sdfDesc = {
+                .m_dimensions = m_sdfGenerator->GetDimensions(),
+                .m_format = TextureFormat::R16_Float,
+                .m_type = TextureTypes::Single3D,
+#if !defined(KE_FINAL)
+                .m_debugName = "TorusKnotSdfTexture",
+#endif
+            };
+            m_sdfFootprint = _graphicsContext->FetchTextureSubResourcesMemoryFootprints(m_sdfDesc).front();
+            m_sdfTransferBuffer = _graphicsContext->CreateStagingBuffer(m_sdfDesc, { &m_sdfFootprint, 1 });
+            m_sdfTexture = _graphicsContext->CreateTexture({
+                .m_desc = m_sdfDesc,
+                .m_footprintPerSubResource = { 1, m_sdfFootprint, m_allocator },
+                .m_memoryUsage = MemoryUsage::GpuOnly_UsageType | MemoryUsage::TransferDstImage | MemoryUsage::SampledImage,
+            });
 
-        memcpy(mapping.m_ptr, meshData.m_indices, m_indexBufferSize);
-        memcpy(mapping.m_ptr + m_indexBufferSize, meshData.m_vertices, m_vertexBufferSize);
+            m_sdfGenerator->Generate(
+                {meshData.m_indices, m_indexBufferSize},
+                {meshData.m_vertices, m_vertexBufferSize},
+                false,
+                TorusKnotMeshGenerator::kVertexSize,
+                TorusKnotMeshGenerator::kVertexPositionOffset);
+        }
+
+        {
+            BufferMapping mapping(m_transferBuffer, m_indexBufferSize + m_vertexBufferSize);
+            _graphicsContext->MapBuffer(mapping);
+
+            memcpy(mapping.m_ptr, meshData.m_indices, m_indexBufferSize);
+            memcpy(mapping.m_ptr + m_indexBufferSize, meshData.m_vertices, m_vertexBufferSize);
+
+            _graphicsContext->UnmapBuffer(mapping);
+        }
 
         m_allocator.Delete(meshData.m_indices);
         m_allocator.Delete(meshData.m_vertices);
@@ -225,8 +263,26 @@ namespace KryneEngine::Samples::RenderGraphDemo
                 .m_accessDst = BarrierAccessFlags::TransferDst,
                 .m_buffer = m_vertexBuffer,
             },
+            {
+                .m_stagesSrc = BarrierSyncStageFlags::None,
+                .m_stagesDst = BarrierSyncStageFlags::Transfer,
+                .m_accessSrc = BarrierAccessFlags::None,
+                .m_accessDst = BarrierAccessFlags::TransferSrc,
+                .m_buffer = m_transferBuffer,
+            }
         };
-        _graphicsContext->PlaceMemoryBarriers(_commandList, {}, initBarriers, {});
+        const TextureMemoryBarrier initTextureBarriers[] = {
+            {
+                .m_stagesSrc = BarrierSyncStageFlags::None,
+                .m_stagesDst = BarrierSyncStageFlags::Transfer,
+                .m_accessSrc = BarrierAccessFlags::None,
+                .m_accessDst = BarrierAccessFlags::TransferSrc,
+                .m_texture = m_sdfTexture,
+                .m_layoutSrc = TextureLayout::Unknown,
+                .m_layoutDst = TextureLayout::TransferDst,
+            }
+        };
+        _graphicsContext->PlaceMemoryBarriers(_commandList, {}, initBarriers, initTextureBarriers);
 
         _graphicsContext->CopyBuffer(
             _commandList,
@@ -245,7 +301,17 @@ namespace KryneEngine::Samples::RenderGraphDemo
                 .m_offsetSrc = m_indexBufferSize,
             });
 
-        const BufferMemoryBarrier postCopyBarriers[] = {
+        _graphicsContext->SetTextureData(
+            _commandList,
+            m_sdfTransferBuffer,
+            m_sdfTexture,
+            m_sdfFootprint,
+            SubResourceIndexing(m_sdfDesc, 0),
+            m_sdfGenerator->GetOutputBuffer());
+        m_allocator.Delete(m_sdfGenerator);
+        m_sdfGenerator = nullptr;
+
+        const BufferMemoryBarrier postCopyBufferBarriers[] = {
             {
                 .m_stagesSrc = BarrierSyncStageFlags::Transfer,
                 .m_stagesDst = BarrierSyncStageFlags::IndexInputAssembly,
@@ -261,7 +327,22 @@ namespace KryneEngine::Samples::RenderGraphDemo
                 .m_buffer = m_vertexBuffer,
             }
         };
-        _graphicsContext->PlaceMemoryBarriers(_commandList, {}, postCopyBarriers, {});
+        const TextureMemoryBarrier postCopyTextureBarriers[] = {
+            {
+                .m_stagesSrc = BarrierSyncStageFlags::Transfer,
+                .m_stagesDst = BarrierSyncStageFlags::ComputeShading,
+                .m_accessSrc = BarrierAccessFlags::TransferSrc,
+                .m_accessDst = BarrierAccessFlags::ShaderResource,
+                .m_texture = m_sdfTexture,
+                .m_layoutSrc = TextureLayout::TransferDst,
+                .m_layoutDst = TextureLayout::ShaderResource,
+            }
+        };
+        _graphicsContext->PlaceMemoryBarriers(
+            _commandList,
+            {},
+            postCopyBufferBarriers,
+            postCopyTextureBarriers);
     }
 
     void TorusKnot::RenderGBuffer(

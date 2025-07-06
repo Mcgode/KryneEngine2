@@ -11,6 +11,11 @@
 #include "KryneEngine/Core/Math/Matrix.hpp"
 #include <KryneEngine/Core/Math/Quaternion.hpp>
 
+namespace KryneEngine::Modules::SdfTexture
+{
+    class Generator;
+}
+
 namespace KryneEngine::Samples::RenderGraphDemo
 {
     class TorusKnot
@@ -46,8 +51,8 @@ namespace KryneEngine::Samples::RenderGraphDemo
         AllocatorInstance m_allocator;
         bool m_meshDirty = true;
 
-        u32 m_radialSegments = 32;
-        u32 m_tubularSegments = 256;
+        u32 m_radialSegments = 16;
+        u32 m_tubularSegments = 64;
         float m_knotRadius = 1.0f;
         float m_tubeRadius = 0.2f;
         u32 m_pValue = 2;
@@ -58,10 +63,18 @@ namespace KryneEngine::Samples::RenderGraphDemo
         BufferHandle m_previousVertexBuffer {};
         BufferHandle m_previousIndexBuffer {};
 
+        Modules::SdfTexture::Generator* m_sdfGenerator = nullptr;
+        BufferHandle m_sdfTransferBuffer {};
+        TextureHandle m_sdfTexture {};
+        TextureHandle m_previousSdfTexture {};
+        TextureMemoryFootprint m_sdfFootprint {};
+        TextureDesc m_sdfDesc;
+
         BufferHandle m_transferBuffer {};
         u64 m_transferFrameId = 0;
         size_t m_indexBufferSize = 0;
         size_t m_vertexBufferSize = 0;
+        size_t m_sdfTextureSize = 0;
 
         PipelineLayoutHandle m_pipelineLayout { GenPool::kInvalidHandle };
         GraphicsPipelineHandle m_pso { GenPool::kInvalidHandle };
