@@ -14,6 +14,14 @@ namespace KryneEngine::Modules::SdfTexture
         : m_allocator(_allocator)
     {}
 
+    Generator::~Generator()
+    {
+        if (m_outputBuffer != nullptr)
+        {
+            m_allocator.deallocate(m_outputBuffer);
+        }
+    }
+
     void Generator::ForceDimensions(const uint3& _dimensions)
     {
         KE_ASSERT(_dimensions.x > kMinDimension && _dimensions.y > kMinDimension && _dimensions.z > kMinDimension);
@@ -26,7 +34,7 @@ namespace KryneEngine::Modules::SdfTexture
     void Generator::ComputeDimensionsFromBudget(u32 _texelBudget)
     {
         KE_ASSERT(m_boundingBox.IsValid());
-        KE_ASSERT(_texelBudget > kMinDimension * kMinDimension * kMinDimension);
+        KE_ASSERT(_texelBudget >= kMinDimension * kMinDimension * kMinDimension);
 
         const float3 size = m_boundingBox.GetSize();
         KE_ASSERT(size.x > 0 && size.y > 0 && size.z > 0);
@@ -79,5 +87,103 @@ namespace KryneEngine::Modules::SdfTexture
             referential -= 1.f;
         }
         KE_ASSERT(totalUsedTexels <= _texelBudget && referential > kMinDimension);
+    }
+
+    void Generator::Generate(
+        eastl::span<const std::byte> _indexBuffer,
+        eastl::span<const std::byte> _vertexBuffer,
+        bool _16BitsIndex,
+        u64 _vertexStride,
+        u64 _vertexPositionOffset)
+    {
+        const size_t indexCount = _indexBuffer.size_bytes() / (_16BitsIndex ? sizeof(u16) : sizeof(u32));
+        const size_t vertexCount = _vertexBuffer.size_bytes() / _vertexStride;
+
+        const auto loadIndex = [&](const size_t _index)
+        {
+            return _16BitsIndex
+                ? *(reinterpret_cast<const u16*>(_indexBuffer.data() + _index * sizeof(u16)))
+                : *(reinterpret_cast<const u32*>(_indexBuffer.data() + _index * sizeof(u32)));
+        };
+
+        const auto loadPosition = [&](const size_t _index)
+        {
+            const size_t vertexOffset = _index * _vertexStride;
+            const float3 position = *(reinterpret_cast<const float3*>(_vertexBuffer.data() + vertexOffset + _vertexPositionOffset));
+            return float3_simd { position };
+        };
+
+        const float3_simd positionStart {
+            m_boundingBox.GetCenter()
+            - float3 { m_dimensions } * m_texelSize * 0.5f
+        };
+
+        m_outputBuffer = m_allocator.Allocate<Math::Float16>(m_dimensions.x * m_dimensions.y * m_dimensions.z);
+
+        for (u32 z = 0; z < m_dimensions.z; z++)
+        {
+            for (u32 y = 0; y < m_dimensions.y; y++)
+            {
+                for (u32 x = 0; x < m_dimensions.x; x++)
+                {
+                    const float3_simd offset = (float3_simd { x, y, z } + 0.5f) * m_texelSize;
+                    const float3_simd position = positionStart + offset;
+                    float dist = FLT_MAX;
+
+                    for (u32 i = 0; i < indexCount; i += 3)
+                    {
+                        const float3_simd a = loadPosition(loadIndex(i));
+                        const float3_simd b = loadPosition(loadIndex(i + 1));
+                        const float3_simd c = loadPosition(loadIndex(i + 2));
+
+                        const float sdf = TriangleSdf(position, a, b, c);
+                        if (std::fabs(sdf) < std::fabs(dist))
+                        {
+                            dist = sdf;
+                        }
+                    }
+
+                    m_outputBuffer[x + y * m_dimensions.x + z * m_dimensions.x * m_dimensions.y] = Math::Float16 { dist };
+                }
+            }
+        }
+    }
+
+    float
+    Generator::TriangleSdf(const float3_simd& _p, const float3_simd& _a, const float3_simd& _b, const float3_simd& _c)
+    {
+        const float3_simd ba = _b - _a;
+        const float3_simd cb = _c - _b;
+        const float3_simd ac = _a - _c;
+
+        const float3_simd pa = _p - _a;
+        const float3_simd pb = _p - _b;
+        const float3_simd pc = _p - _c;
+
+        const float3_simd n = float3_simd::CrossProduct(ba, ac);
+
+        const s32 signs =
+            std::signbit(float3_simd::Dot(float3_simd::CrossProduct(ba, n), pa))
+            + std::signbit(float3_simd::Dot(float3_simd::CrossProduct(cb, n), pb))
+            + std::signbit(float3_simd::Dot(float3_simd::CrossProduct(ac, n), pc));
+
+        const float sign = float3_simd::Dot(pa, n) >= 0 ? 1.f : -1.f;
+
+        constexpr auto saturate = [](const float _value)
+        {
+            return std::fmin(std::fmax(_value, 0.f), 1.f);
+        };
+
+        if (signs < 2)
+        {
+            const float abEdgeSdf = (ba * saturate(float3_simd::Dot(ba, pa) / ba.LengthSquared()) - pa).LengthSquared();
+            const float bcEdgeSdf = (cb * saturate(float3_simd::Dot(cb, pb) / cb.LengthSquared()) - pb).LengthSquared();
+            const float caEdgeSdf = (ac * saturate(float3_simd::Dot(ac, pc) / ac.LengthSquared()) - pc).LengthSquared();
+            return sign * std::sqrt(std::fmin(std::fmin(abEdgeSdf, bcEdgeSdf), caEdgeSdf));
+        }
+        else
+        {
+            return sign * std::sqrt(float3_simd::Dot(n, pa) * float3_simd::Dot(n, pa) / n.LengthSquared());
+        }
     }
 }
