@@ -207,7 +207,7 @@ namespace KryneEngine
             TextureHandle _dstTexture,
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
-            void* _data);
+            const void* _data);
 
         void MapBuffer(BufferMapping& _mapping);
         void UnmapBuffer(BufferMapping& _mapping);

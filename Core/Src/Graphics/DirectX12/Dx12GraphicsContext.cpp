@@ -597,7 +597,7 @@ namespace KryneEngine
         TextureHandle _dstTexture,
         const TextureMemoryFootprint& _footprint,
         const SubResourceIndexing& _subResourceIndex,
-        void* _data)
+        const void* _data)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::SetTextureData");
 

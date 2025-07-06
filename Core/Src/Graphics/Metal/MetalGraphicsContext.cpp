@@ -313,7 +313,7 @@ namespace KryneEngine
         TextureHandle _dstTexture,
         const TextureMemoryFootprint& _footprint,
         const SubResourceIndexing& _subResourceIndex,
-        void* _data)
+        const void* _data)
     {
         MTL::Buffer* stagingBuffer = m_resources.m_buffers.Get(_stagingBuffer.m_handle)->m_buffer.get();
 
