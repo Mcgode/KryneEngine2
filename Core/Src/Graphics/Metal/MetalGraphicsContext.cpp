@@ -335,7 +335,7 @@ namespace KryneEngine
             stagingBuffer,
             _footprint.m_offset,
             _footprint.m_lineByteAlignedSize,
-            _footprint.m_lineByteAlignedSize * _footprint.m_height * _footprint.m_depth,
+            _footprint.m_depth == 1 ? 0 : _footprint.m_lineByteAlignedSize * _footprint.m_height,
             MTL::Size { _footprint.m_width, _footprint.m_height, _footprint.m_depth },
             m_resources.m_textures.Get(_dstTexture.m_handle)->m_texture.get(),
             _subResourceIndex.m_arraySlice,
