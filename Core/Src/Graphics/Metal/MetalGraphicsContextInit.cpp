@@ -15,10 +15,8 @@ namespace KryneEngine
     MetalGraphicsContext::MetalGraphicsContext(
         AllocatorInstance _allocator,
         const GraphicsCommon::ApplicationInfo& _appInfo,
-        const Window* _window,
-        u64 _initialFrameId)
-        : m_allocator(_allocator)
-        , m_applicationInfo(_appInfo)
+        const Window* _window)
+        : GraphicsContext(_allocator, _appInfo, _window)
         , m_frameContexts(_allocator)
         , m_resources(_allocator)
         , m_argumentBufferManager(_allocator)
@@ -57,7 +55,7 @@ namespace KryneEngine
         }
 
         m_frameContextCount = 2;
-        const u8 frameIndex = _initialFrameId % m_frameContextCount;
+        const u8 frameIndex = m_frameId % m_frameContextCount;
 
         KE_ASSERT_FATAL_MSG(!_appInfo.m_features.m_present || _appInfo.m_features.m_graphics,
                             "Metal graphics context does not support presentation without graphics queue");
@@ -74,9 +72,9 @@ namespace KryneEngine
             m_graphicsQueue != nullptr,
             m_computeQueue != nullptr,
             m_ioQueue != nullptr,
-            m_applicationInfo.m_features.m_validationLayers);
+            m_appInfo.m_features.m_validationLayers);
 
-        m_frameContexts[frameIndex].PrepareForNextFrame(_initialFrameId);
+        m_frameContexts[frameIndex].PrepareForNextFrame(m_frameId);
 
         m_argumentBufferManager.Init(m_frameContextCount, frameIndex);
     }

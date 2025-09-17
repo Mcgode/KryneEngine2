@@ -26,7 +26,7 @@ namespace KryneEngine
         , m_samplers(_allocator)
         , m_renderTargetViews(_allocator)
         , m_renderPasses(_allocator)
-        , m_rootSignatures(_allocator)
+        , m_pipelineLayouts(_allocator)
         , m_shaderBytecodes(_allocator)
         , m_pipelineStateObjects(_allocator)
     {}
@@ -820,9 +820,17 @@ namespace KryneEngine
 
         eastl::vector<D3D12_DESCRIPTOR_RANGE> ranges {};
         eastl::vector<u32> offsets {};
+
+        const GenPool::Handle handle = m_pipelineLayouts.Allocate();
+        PipelineLayoutHotData& hotData = *m_pipelineLayouts.Get(handle);
+        hotData.m_tableSetOffsets = m_pipelineStateObjects.GetAllocator().Allocate<u16>(_desc.m_descriptorSets.size());
+
         for (auto setIndex = 0u; setIndex < _desc.m_descriptorSets.size(); setIndex++)
         {
             auto layout = _desc.m_descriptorSets[setIndex];
+
+            hotData.m_tableSetOffsets[setIndex] = ranges.size();
+            KE_ASSERT(ranges.size() <= UINT16_MAX);
 
             const Dx12DescriptorSetManager::LayoutData* layoutData = _setManager.GetDescriptorSetLayoutData(layout);
 
@@ -848,10 +856,10 @@ namespace KryneEngine
 
                         switch (static_cast<Dx12DescriptorSetManager::RangeType>(i))
                         {
-                        case Dx12DescriptorSetManager::RangeType::CBV:
+                        case Dx12DescriptorSetManager::RangeType::Cbv:
                             range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
                             break;
-                        case Dx12DescriptorSetManager::RangeType::SRV:
+                        case Dx12DescriptorSetManager::RangeType::Srv:
                             range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
                             break;
                         case Dx12DescriptorSetManager::RangeType::UAV:
@@ -875,8 +883,8 @@ namespace KryneEngine
                             .NumDescriptorRanges = rangesCount,
                         },
                         .ShaderVisibility = Dx12Converters::ToDx12ShaderVisibility(
-                            layoutData->m_visibilities[static_cast<u32>(Dx12DescriptorSetManager::RangeType::CBV)] |
-                            layoutData->m_visibilities[static_cast<u32>(Dx12DescriptorSetManager::RangeType::SRV)] |
+                            layoutData->m_visibilities[static_cast<u32>(Dx12DescriptorSetManager::RangeType::Cbv)] |
+                            layoutData->m_visibilities[static_cast<u32>(Dx12DescriptorSetManager::RangeType::Srv)] |
                             layoutData->m_visibilities[static_cast<u32>(Dx12DescriptorSetManager::RangeType::UAV)]),
                     });
                     offsets.push_back(rangesOffset);
@@ -948,13 +956,12 @@ namespace KryneEngine
         {
             KE_ERROR((const char*)errorBlob->GetBufferPointer());
         }
-        const GenPool::Handle handle = m_rootSignatures.Allocate();
         Dx12Assert(_device->CreateRootSignature(
             0,
             serializedRootBlob->GetBufferPointer(),
             serializedRootBlob->GetBufferSize(),
-            IID_PPV_ARGS(m_rootSignatures.Get(handle))));
-        *m_rootSignatures.GetCold(handle) = rootConstantsStart;
+            IID_PPV_ARGS(&hotData.m_signature)));
+        *m_pipelineLayouts.GetCold(handle) = rootConstantsStart;
 
         return { handle };
     }
@@ -963,10 +970,10 @@ namespace KryneEngine
     {
         KE_ZoneScopedFunction("Dx12Resources::DestroyPipelineLayout");
 
-        ID3D12RootSignature* rootSignature;
-        if (m_rootSignatures.Free(_layout.m_handle, &rootSignature))
+        PipelineLayoutHotData hotData;
+        if (m_pipelineLayouts.Free(_layout.m_handle, &hotData))
         {
-            SafeRelease(rootSignature);
+            SafeRelease(hotData.m_signature);;
             return true;
         }
         return false;
@@ -987,10 +994,10 @@ namespace KryneEngine
         // Set root signature
         {
             VERIFY_OR_RETURN(_desc.m_pipelineLayout != GenPool::kInvalidHandle, { GenPool::kInvalidHandle });
-            ID3D12RootSignature** pSignature = m_rootSignatures.Get(_desc.m_pipelineLayout.m_handle);
-            VERIFY_OR_RETURN(pSignature != nullptr, { GenPool::kInvalidHandle });
+            PipelineLayoutHotData* pipelineLayout = m_pipelineLayouts.Get(_desc.m_pipelineLayout.m_handle);
+            VERIFY_OR_RETURN(pipelineLayout != nullptr, { GenPool::kInvalidHandle });
 
-            desc.pRootSignature = *pSignature;
+            desc.pRootSignature = pipelineLayout->m_signature;
         }
 
         // Set shader stages

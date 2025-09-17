@@ -108,7 +108,9 @@ namespace KryneEngine::Samples::RenderGraphDemo::FullscreenPassCommon
         _graphicsContext->SetGraphicsPushConstant(
             _commandList,
             _pipelineLayout,
-            { (u32*)(&_fullscreenDepth), 1 });
+            { (u32*)(&_fullscreenDepth), 1 },
+            0,
+            0);
 
         _graphicsContext->DrawInstanced(
             _commandList,

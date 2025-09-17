@@ -14,8 +14,8 @@ namespace KryneEngine
     union PackedIndex
     {
         struct {
-            u32 m_type: 8;
-            u32 m_binding: 24;
+            u32 m_type: Dx12DescriptorSetManager::kDescriptorTypeBits;
+            u32 m_binding: 32 - Dx12DescriptorSetManager::kDescriptorTypeBits;
         };
         u32 m_packed;
     };
@@ -87,47 +87,52 @@ namespace KryneEngine
         {
             DescriptorBindingDesc binding = _desc.m_bindings[i];
 
-            RangeType type;
+            RangeType rangeType;
+            DescriptorType descriptorType;
             switch (binding.m_type)
             {
             case DescriptorBindingDesc::Type::ConstantBuffer:
-                type = RangeType::BufferCbv;
+                rangeType = RangeType::Cbv;
+                descriptorType = DescriptorType::BufferCbv;
                 break;
-            case DescriptorBindingDesc::Type::StorageReadOnlyTexture:
             case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:
-                type = RangeType::BufferSrv;
-                break;
+                rangeType = RangeType::Srv;
+                descriptorType = DescriptorType::BufferSrv;
+            case DescriptorBindingDesc::Type::StorageReadOnlyTexture:
             case DescriptorBindingDesc::Type::SampledTexture:
-                type = RangeType::TextureSrv;
+                rangeType = RangeType::Srv;
+                descriptorType = DescriptorType::TextureSrv;
                 break;
             case DescriptorBindingDesc::Type::StorageReadWriteBuffer:
-                type = RangeType::BufferUav;
+                rangeType = RangeType::Uav;
+                descriptorType = DescriptorType::BufferUav;
                 break;
             case DescriptorBindingDesc::Type::StorageReadWriteTexture:
-                type = RangeType::TextureUav;
+                rangeType = RangeType::Uav;
+                descriptorType = DescriptorType::TextureUav;
                 break;
             case DescriptorBindingDesc::Type::Sampler:
-                type = RangeType::Sampler;
+                rangeType = RangeType::Sampler;
+                descriptorType = DescriptorType::Sampler;
                 break;
             }
 
-            const auto typeIndex = static_cast<u32>(type);
-            u32& total = totals[typeIndex];
+            u32& total = totals[static_cast<u32>(rangeType)];
 
             // Pack index data into a single u32
             if (binding.m_bindingIndex != DescriptorBindingDesc::kImplicitBindingIndex)
             {
-                _bindingIndices[i] = PackedIndex { .m_type = typeIndex, .m_binding = total }.m_packed;
+                _bindingIndices[i] = PackedIndex { .m_type = static_cast<u32>(descriptorType), .m_binding = total }.m_packed;
                 total += binding.m_count;
             }
             else
             {
                 KE_ASSERT(total <= binding.m_bindingIndex);
-                _bindingIndices[i] = PackedIndex { .m_type = typeIndex, .m_binding = binding.m_bindingIndex }.m_packed;
+                _bindingIndices[i] = PackedIndex { .m_type = static_cast<u32>(descriptorType), .m_binding = binding.m_bindingIndex }.m_packed;
                 total = binding.m_bindingIndex + binding.m_count;
             }
 
-            visibilities[typeIndex] |= binding.m_visibility;
+            visibilities[rangeTypeIndex] |= binding.m_visibility;
         }
 
         const GenPool::Handle handle = m_descriptorSetLayout.Allocate();
@@ -199,12 +204,16 @@ namespace KryneEngine
 
         for (const auto& writeDesc: _writes)
         {
+            const PackedIndex baseIndex { .m_packed = writeDesc.m_index };
             for (auto i = 0u; i < writeDesc.m_descriptorData.size(); i++)
             {
                 TrackedData data {
                     .m_descriptorSet = _descriptorSet,
                     .m_object = writeDesc.m_descriptorData[i].m_handle,
-                    .m_packedIndex = writeDesc.m_index | ((static_cast<u32>(writeDesc.m_arrayOffset + i) << kRangeTypeBits)),
+                    .m_packedIndex = PackedIndex {
+                        .m_type = baseIndex.m_type,
+                        .m_binding = baseIndex.m_binding + writeDesc.m_arrayOffset + i
+                    }.m_packed,
                 };
                 _ProcessUpdate(_device, _resources, data, _frameIndex);
                 m_multiFrameUpdateTracker.TrackForOtherFrames(data);
@@ -215,48 +224,41 @@ namespace KryneEngine
     void Dx12DescriptorSetManager::SetGraphicsDescriptorSets(
         CommandList _commandList,
         const eastl::span<const DescriptorSetHandle>& _sets,
-        const bool* _unchanged,
+        u16* _tableSetOffsets,
+        u32 _offset,
         u8 _currentFrame)
     {
         KE_ZoneScopedFunction("Dx12DescriptorSetManager::SetGraphicsDescriptorSets");
 
         constexpr u32 samplerIndex = static_cast<u32>(RangeType::Sampler);
 
-        u32 tableIndex = 0;
+        u32 tableIndex = _tableSetOffsets[_offset];
         for (auto setIndex = 0u; setIndex < _sets.size(); setIndex++)
         {
             DescriptorSetHandle set = _sets[setIndex];
             DescriptorSetRanges* pRanges = m_descriptorSets.Get(set.m_handle);
             VERIFY_OR_RETURN_VOID(pRanges != nullptr);
 
-            bool unchanged = _unchanged != nullptr && _unchanged[setIndex];
-
             u32 cbvSrvUavTotal = 0;
             for (auto i = 0u; i < samplerIndex; i++) { cbvSrvUavTotal += pRanges->m_sizes[i]; }
 
             if (cbvSrvUavTotal > 0)
             {
-                if (!unchanged)
-                {
-                    CD3DX12_GPU_DESCRIPTOR_HANDLE handle(
-                        m_cbvSrvUavGpuDescriptorHeaps[_currentFrame]->GetGPUDescriptorHandleForHeapStart(),
-                        pRanges->m_offsets[0],
-                        m_cbvSrvUavDescriptorSize);
-                    _commandList->SetGraphicsRootDescriptorTable(tableIndex, handle);
-                }
+                CD3DX12_GPU_DESCRIPTOR_HANDLE handle(
+                    m_cbvSrvUavGpuDescriptorHeaps[_currentFrame]->GetGPUDescriptorHandleForHeapStart(),
+                    pRanges->m_offsets[0],
+                    m_cbvSrvUavDescriptorSize);
+                _commandList->SetGraphicsRootDescriptorTable(tableIndex, handle);
                 tableIndex++;
             }
 
             if (pRanges->m_sizes[samplerIndex] > 0)
             {
-                if (!unchanged)
-                {
-                    CD3DX12_GPU_DESCRIPTOR_HANDLE handle(
-                        m_samplerGpuDescriptorHeaps[_currentFrame]->GetGPUDescriptorHandleForHeapStart(),
-                        pRanges->m_offsets[samplerIndex],
-                        m_samplerDescriptorSize);
-                    _commandList->SetGraphicsRootDescriptorTable(tableIndex, handle);
-                }
+                CD3DX12_GPU_DESCRIPTOR_HANDLE handle(
+                    m_samplerGpuDescriptorHeaps[_currentFrame]->GetGPUDescriptorHandleForHeapStart(),
+                    pRanges->m_offsets[samplerIndex],
+                    m_samplerDescriptorSize);
+                _commandList->SetGraphicsRootDescriptorTable(tableIndex, handle);
                 tableIndex++;
             }
         }
@@ -299,31 +301,39 @@ namespace KryneEngine
     {
         KE_ZoneScopedFunction("Dx12DescriptorSetManager::_ProcessUpdate");
 
-        const auto type = static_cast<RangeType>(_data.m_packedIndex & BitUtils::BitMask<u32>(kRangeTypeBits));
-        const bool isSampler = type == RangeType::Sampler;
+        const PackedIndex packedIndex { .m_packed = _data.m_packedIndex };
+        const auto descriptorType = static_cast<DescriptorType>(packedIndex.m_type);
+        const bool isSampler = descriptorType == DescriptorType::Sampler;
 
         auto* dstHeap = (isSampler ? m_samplerGpuDescriptorHeaps : m_cbvSrvUavGpuDescriptorHeaps)[_currentFrame].Get();
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE srcCpuHandle {};
-        switch (type)
+        RangeType rangeType;
+        switch (descriptorType)
         {
-        case RangeType::BufferCbv:
+        case DescriptorType::BufferCbv:
             srcCpuHandle = _resources.m_bufferViews.Get(_data.m_object)->m_cbvHandle;
+            rangeType = RangeType::Cbv;
             break;
-        case RangeType::BufferSrv:
+        case DescriptorType::BufferSrv:
             srcCpuHandle = _resources.m_bufferViews.Get(_data.m_object)->m_srvHandle;
+            rangeType = RangeType::Srv;
             break;
-        case RangeType::BufferUav:
+        case DescriptorType::BufferUav:
             srcCpuHandle = _resources.m_bufferViews.Get(_data.m_object)->m_uavHandle;
+            rangeType = RangeType::Uav;
             break;
-        case RangeType::TextureSrv:
+        case DescriptorType::TextureSrv:
             srcCpuHandle = _resources.m_textureViews.Get(_data.m_object)->m_srvHandle;
+            rangeType = RangeType::Srv;
             break;
-        case RangeType::TextureUav:
+        case DescriptorType::TextureUav:
             srcCpuHandle = _resources.m_textureViews.Get(_data.m_object)->m_uavHandle;
+            rangeType = RangeType::Uav;
             break;
-        case RangeType::Sampler:
+        case DescriptorType::Sampler:
             srcCpuHandle = *_resources.m_samplers.Get(_data.m_object);
+            rangeType = RangeType::Sampler;
             break;
         default:
             KE_ERROR("Invalid descriptor type");
@@ -334,14 +344,14 @@ namespace KryneEngine
             return;
         }
 
-        const u32 relativeIndex = _data.m_packedIndex >> kRangeTypeBits;
+        const u32 relativeIndex = packedIndex.m_binding;
         DescriptorSetRanges* pRanges = m_descriptorSets.Get(_data.m_descriptorSet.m_handle);
         if (pRanges == nullptr)
         {
             return;
         }
 
-        u32 index = relativeIndex + pRanges->m_offsets[static_cast<u32>(type)];
+        const u32 index = relativeIndex + pRanges->m_offsets[static_cast<u32>(rangeType)];
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE dstCpuHandle(
             dstHeap->GetCPUDescriptorHandleForHeapStart(),

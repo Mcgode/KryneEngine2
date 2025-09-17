@@ -43,6 +43,11 @@ namespace KryneEngine
                 static_cast<IndexType>(0),
                 static_cast<GenerationType>(~0)
         };
+
+        static constexpr Handle kUndefinedHandle = {
+                static_cast<IndexType>(~0),
+                static_cast<GenerationType>(~0)
+        };
     }
 
 #define KE_GENPOOL_DECLARE_HANDLE(HandleName) struct HandleName                                 \

@@ -14,6 +14,7 @@
 #include "Graphics/DirectX12/Dx12Resources.h"
 #include "Graphics/DirectX12/Dx12SwapChain.hpp"
 #include "Graphics/DirectX12/Dx12Types.hpp"
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 #include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
@@ -32,34 +33,28 @@ namespace KryneEngine
     struct DrawInstancedDesc;
     struct Viewport;
 
-    class Dx12GraphicsContext
+    class Dx12GraphicsContext: public GraphicsContext
     {
     public:
         explicit Dx12GraphicsContext(
             AllocatorInstance _allocator,
             const GraphicsCommon::ApplicationInfo& _appInfo,
-            Window* _window,
-            u64 _currentFrameId);
+            Window* _window);
 
         ~Dx12GraphicsContext();
 
-        [[nodiscard]] u8 GetFrameContextCount() const { return m_frameContextCount; }
+        [[nodiscard]] u8 GetFrameContextCount() const override { return m_frameContextCount; }
 
-        void EndFrame(u64 _frameId);
+        [[nodiscard]] bool IsFrameExecuted(u64 _frameId) const override;
 
-        [[nodiscard]] bool IsFrameExecuted(u64 _frameId) const;
+        [[nodiscard]] bool HasDedicatedTransferQueue() const override;
+        [[nodiscard]] bool HasDedicatedComputeQueue() const override;
 
-        void WaitForFrame(u64 _frameId) const;
-
-        [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_appInfo; }
-
-        [[nodiscard]] bool HasDedicatedTransferQueue() const;
-        [[nodiscard]] bool HasDedicatedComputeQueue() const;
+    protected:
+        void InternalEndFrame() override;
+        void WaitForFrame(u64 _frameId) const override;
 
     private:
-        AllocatorInstance m_allocator;
-        GraphicsCommon::ApplicationInfo m_appInfo;
-
         ComPtr<ID3D12Device> m_device;
 
         ComPtr<ID3D12CommandQueue> m_directQueue;
@@ -83,142 +78,103 @@ namespace KryneEngine
         void _CreateCommandQueues();
 
     public:
-        [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc);
+        [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc) override;
+        [[nodiscard]] bool NeedsStagingBuffer(BufferHandle _buffer) override;
+        bool DestroyBuffer(BufferHandle _buffer) override;
 
-        [[nodiscard]] inline BufferHandle CreateBuffer(const BufferCreateDesc& _desc)
-        {
-            return m_resources.CreateBuffer(_desc);
-        }
-
-        [[nodiscard]] inline BufferHandle CreateStagingBuffer(
+        [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _createDesc) override;
+        [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(
+            const TextureDesc& _desc) override;
+        [[nodiscard]] BufferHandle CreateStagingBuffer(
             const TextureDesc& _createDesc,
-            const eastl::span<const TextureMemoryFootprint>& _footprints)
-        {
-            return m_resources.CreateStagingBuffer(_createDesc, _footprints);
-        }
+            const eastl::span<const TextureMemoryFootprint>& _footprints) override;
+        bool DestroyTexture(TextureHandle _texture) override;
 
-        [[nodiscard]] bool NeedsStagingBuffer(BufferHandle _buffer);
+        [[nodiscard]] TextureViewHandle CreateTextureView(const TextureViewDesc& _viewDesc) override;
+        bool DestroyTextureView(TextureViewHandle _textureView) override;
 
-        inline bool DestroyBuffer(BufferHandle _buffer)
-        {
-            return m_resources.DestroyBuffer(_buffer);
-        }
+        [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc) override;
+        bool DestroySampler(SamplerHandle _sampler) override;
 
-        [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _createDesc)
-        {
-            return m_resources.CreateTexture(_createDesc, m_device.Get());
-        }
+        [[nodiscard]] BufferViewHandle CreateBufferView(const BufferViewDesc& _viewDesc) override;
+        bool DestroyBufferView(BufferViewHandle _handle) override;
 
-        inline bool DestroyTexture(TextureHandle _texture)
-        {
-            return m_resources.ReleaseTexture(_texture, true);
-        }
+        [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc) override;
+        bool DestroyRenderTargetView(RenderTargetViewHandle _rtv) override;
 
-        [[nodiscard]] inline TextureViewHandle CreateTextureView(const TextureViewDesc& _viewDesc, u64 _frameId)
-        {
-            return m_resources.CreateTextureView(_viewDesc, m_device.Get());
-        }
+        [[nodiscard]] RenderTargetViewHandle GetPresentRenderTargetView(u8 _index) override;
+        [[nodiscard]] TextureHandle GetPresentTexture(u8 _swapChainIndex) override;
+        [[nodiscard]] u32 GetCurrentPresentImageIndex() const override;
 
-        inline bool DestroyTextureView(TextureViewHandle _textureView)
-        {
-            return m_resources.DestroyTextureView(_textureView);
-        }
+        RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc) override;
+        bool DestroyRenderPass(RenderPassHandle _renderPass) override;
 
-        [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
-        bool DestroySampler(SamplerHandle _sampler);
+        CommandListHandle BeginGraphicsCommandList() override;
+        void EndGraphicsCommandList(CommandListHandle _commandList) override;
 
-        [[nodiscard]] BufferViewHandle CreateBufferView(const BufferViewDesc& _viewDesc);
-        bool DestroyBufferView(BufferViewHandle _handle);
-
-        [[nodiscard]] inline RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc)
-        {
-            return m_resources.CreateRenderTargetView(_desc, m_device.Get());
-        }
-
-        bool DestroyRenderTargetView(RenderTargetViewHandle _rtv)
-        {
-            return m_resources.FreeRenderTargetView(_rtv);
-        }
-
-        [[nodiscard]] RenderTargetViewHandle GetPresentRenderTargetView(u8 _index);
-        [[nodiscard]] TextureHandle GetPresentTexture(u8 _swapChainIndex);
-        [[nodiscard]] u32 GetCurrentPresentImageIndex() const;
-
-        RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc)
-        {
-            return m_resources.CreateRenderPass(_desc);
-        }
-
-        bool DestroyRenderPass(RenderPassHandle _renderPass)
-        {
-            return m_resources.FreeRenderPass(_renderPass);
-        }
-
-        CommandList BeginGraphicsCommandList(u64 _frameId);
-        void EndGraphicsCommandList(CommandList _commandList, u64 _frameId);
-
-        void BeginRenderPass(CommandList _commandList, RenderPassHandle _renderPass);
-        void EndRenderPass(CommandList _commandList);
+        void BeginRenderPass(CommandListHandle _commandList, RenderPassHandle _renderPass) override;
+        void EndRenderPass(CommandListHandle _commandList) override;
 
         void SetTextureData(
-            CommandList _commandList,
+            CommandListHandle _commandList,
             BufferHandle _stagingBuffer,
             TextureHandle _dstTexture,
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
-            const void* _data);
+            const void* _data) override;
 
-        void MapBuffer(BufferMapping& _mapping);
-        void UnmapBuffer(BufferMapping& _mapping);
-        void CopyBuffer(CommandList _commandList, const BufferCopyParameters& _params);
+        void MapBuffer(BufferMapping& _mapping) override;
+        void UnmapBuffer(BufferMapping& _mapping) override;
+        void CopyBuffer(CommandListHandle _commandList, const BufferCopyParameters& _params) override;
 
-        [[nodiscard]] static bool SupportsNonGlobalBarriers() { return true; }
         void PlaceMemoryBarriers(
-            CommandList _commandList,
+            CommandListHandle _commandList,
             const eastl::span<const GlobalMemoryBarrier>& _globalMemoryBarriers,
             const eastl::span<const BufferMemoryBarrier>& _bufferMemoryBarriers,
-            const eastl::span<const TextureMemoryBarrier>& _textureMemoryBarriers);
+            const eastl::span<const TextureMemoryBarrier>& _textureMemoryBarriers) override;
 
-        [[nodiscard]] static bool RenderPassNeedsUsageDeclaration() { return false; }
-        [[nodiscard]] static bool ComputePassNeedsUsageDeclaration() { return false; }
-        void DeclarePassTextureViewUsage(CommandList, const eastl::span<const TextureViewHandle>&, TextureViewAccessType) {}
-        void DeclarePassBufferViewUsage(CommandList, const eastl::span<const BufferViewHandle>&, BufferViewAccessType) {}
+        void DeclarePassTextureViewUsage(
+            CommandListHandle,
+            const eastl::span<const TextureViewHandle>&,
+                TextureViewAccessType) override {}
+        void DeclarePassBufferViewUsage(
+            CommandListHandle,
+            const eastl::span<const BufferViewHandle>&,
+            BufferViewAccessType) override {}
 
-        [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
-        [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
-        [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout);
-        [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
-        [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
-        bool DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline);
-        bool DestroyPipelineLayout(PipelineLayoutHandle _layout);
-        bool DestroyDescriptorSet(DescriptorSetHandle _set);
-        bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout);
-        bool FreeShaderModule(ShaderModuleHandle _module);
+        [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize) override;
+        [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices) override;
+        [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout) override;
+        [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc) override;
+        [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc) override;
+        bool DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline) override;
+        bool DestroyPipelineLayout(PipelineLayoutHandle _layout) override;
+        bool DestroyDescriptorSet(DescriptorSetHandle _set) override;
+        bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout) override;
+        bool FreeShaderModule(ShaderModuleHandle _module) override;
 
         void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,
-            const eastl::span<const DescriptorSetWriteInfo>& _writes,
-            u64 _frameId);
+            const eastl::span<const DescriptorSetWriteInfo>& _writes) override;
 
-        void SetViewport(CommandList  _commandList, const Viewport& _viewport);
-        void SetScissorsRect(CommandList  _commandList, const Rect& _rect);
-        void SetIndexBuffer(CommandList _commandList, const BufferSpan& _indexBufferView, bool _isU16);
-        void SetVertexBuffers(CommandList _commandList, const eastl::span<const BufferSpan>& _bufferViews);
-        void SetGraphicsPipeline(CommandList _commandList, GraphicsPipelineHandle _graphicsPipeline);
+        void SetViewport(CommandListHandle  _commandList, const Viewport& _viewport) override;
+        void SetScissorsRect(CommandListHandle  _commandList, const Rect& _rect) override;
+        void SetIndexBuffer(CommandListHandle _commandList, const BufferSpan& _indexBufferView, bool _isU16) override;
+        void SetVertexBuffers(CommandListHandle _commandList, const eastl::span<const BufferSpan>& _bufferViews) override;
+        void SetGraphicsPipeline(CommandListHandle _commandList, GraphicsPipelineHandle _graphicsPipeline) override;
         void SetGraphicsPushConstant(
-            CommandList _commandList,
+            CommandListHandle _commandList,
             PipelineLayoutHandle _layout,
             const eastl::span<const u32>& _data,
             u32 _index,
-            u32 _offset);
-        void SetGraphicsDescriptorSets(
-            CommandList _commandList,
+            u32 _offset) override;
+        void SetGraphicsDescriptorSetsWithOffset(
+            CommandListHandle _commandList,
             PipelineLayoutHandle _layout,
             const eastl::span<const DescriptorSetHandle>& _sets,
-            const bool* _unchanged,
-            u32 _frameId);
-        void DrawInstanced(CommandList _commandList, const DrawInstancedDesc& _desc);
-        void DrawIndexedInstanced(CommandList _commandList, const DrawIndexedInstancedDesc& _desc);
+            u32 _offset) override;
+        void DrawInstanced(CommandListHandle _commandList, const DrawInstancedDesc& _desc) override;
+        void DrawIndexedInstanced(CommandListHandle _commandList, const DrawIndexedInstancedDesc& _desc) override;
 
     private:
         Dx12Resources m_resources;

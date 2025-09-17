@@ -54,152 +54,176 @@ namespace KryneEngine
         {
             return m_frameId;
         }
-        [[nodiscard]] u8 GetFrameContextCount() const;
+        [[nodiscard]] virtual u8 GetFrameContextCount() const = 0;
         [[nodiscard]] inline u8 GetCurrentFrameContextIndex() const
         {
             return m_frameId % GetFrameContextCount();
         }
 
         bool EndFrame();
-        void WaitForLastFrame() const;
-        [[nodiscard]] bool IsFrameExecuted(u64 _frameId) const;
+        inline void WaitForLastFrame() const { WaitForFrame(m_frameId - 1); }
+        [[nodiscard]] virtual bool IsFrameExecuted(u64 _frameId) const = 0;
 
-        [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const;
+        [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_appInfo; }
         [[nodiscard]] static const char* GetShaderFileExtension();
 
-        [[nodiscard]] bool HasDedicatedTransferQueue() const;
-        [[nodiscard]] bool HasDedicatedComputeQueue() const;
+        [[nodiscard]] virtual bool HasDedicatedTransferQueue() const = 0;
+        [[nodiscard]] virtual bool HasDedicatedComputeQueue() const = 0;
 
-    private:
+    protected:
 
+        GraphicsContext(
+            AllocatorInstance _allocator,
+            const GraphicsCommon::ApplicationInfo& _appInfo,
+            const Window* _window);
+
+        GraphicsCommon::ApplicationInfo m_appInfo;
         AllocatorInstance m_allocator;
         const Window* m_window;
 
         static constexpr u64 kInitialFrameId = 1;
         u64 m_frameId;
 
+        virtual void InternalEndFrame() = 0;
+        virtual void WaitForFrame(u64 _frameId) const = 0;
+
     public:
 
-        [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc);
-        [[nodiscard]] bool NeedsStagingBuffer(BufferHandle _buffer);
-        bool DestroyBuffer(BufferHandle _bufferHandle);
+        [[nodiscard]] virtual BufferHandle CreateBuffer(const BufferCreateDesc& _desc) = 0;
+        [[nodiscard]] virtual bool NeedsStagingBuffer(BufferHandle _buffer) = 0;
+        virtual bool DestroyBuffer(BufferHandle _bufferHandle) = 0;
 
-        [[nodiscard]] TextureHandle CreateTexture(const TextureCreateDesc& _createDesc);
-        [[nodiscard]] eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(const TextureDesc& _desc);
-        [[nodiscard]] BufferHandle CreateStagingBuffer(
+        [[nodiscard]] virtual TextureHandle CreateTexture(const TextureCreateDesc& _createDesc);
+        [[nodiscard]] virtual eastl::vector<TextureMemoryFootprint> FetchTextureSubResourcesMemoryFootprints(
+            const TextureDesc& _desc) = 0;
+        [[nodiscard]] virtual BufferHandle CreateStagingBuffer(
             const TextureDesc& _createDesc,
-            const eastl::span<const TextureMemoryFootprint>& _footprints);
-        bool DestroyTexture(TextureHandle _handle);
+            const eastl::span<const TextureMemoryFootprint>& _footprints) = 0;
+        virtual bool DestroyTexture(TextureHandle _handle) = 0;
 
-        [[nodiscard]] TextureViewHandle CreateTextureView(const TextureViewDesc& _viewDesc);
-        bool DestroyTextureView(TextureViewHandle _handle);
+        [[nodiscard]] virtual TextureViewHandle CreateTextureView(const TextureViewDesc& _viewDesc);
+        virtual bool DestroyTextureView(TextureViewHandle _handle) = 0;
 
-        [[nodiscard]] SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc);
-        bool DestroySampler(SamplerHandle _sampler);
+        [[nodiscard]] virtual SamplerHandle CreateSampler(const SamplerDesc& _samplerDesc) = 0;
+        virtual bool DestroySampler(SamplerHandle _sampler) = 0;
 
-        [[nodiscard]] BufferViewHandle CreateBufferView(const BufferViewDesc& _viewDesc);
-        bool DestroyBufferView(BufferViewHandle _handle);
+        [[nodiscard]] virtual BufferViewHandle CreateBufferView(const BufferViewDesc& _viewDesc) = 0;
+        virtual bool DestroyBufferView(BufferViewHandle _handle) = 0;
 
-        [[nodiscard]] RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc);
-        bool DestroyRenderTargetView(RenderTargetViewHandle _handle);
+        [[nodiscard]] virtual RenderTargetViewHandle CreateRenderTargetView(const RenderTargetViewDesc& _desc) = 0;
+        virtual bool DestroyRenderTargetView(RenderTargetViewHandle _handle) = 0;
 
-        [[nodiscard]] RenderTargetViewHandle GetPresentRenderTargetView(u8 _swapChainIndex);
-        [[nodiscard]] TextureHandle GetPresentTexture(u8 _swapChainIndex);
-        [[nodiscard]] u32 GetCurrentPresentImageIndex() const;
+        [[nodiscard]] virtual RenderTargetViewHandle GetPresentRenderTargetView(u8 _swapChainIndex) = 0;
+        [[nodiscard]] virtual TextureHandle GetPresentTexture(u8 _swapChainIndex) = 0;
+        [[nodiscard]] virtual u32 GetCurrentPresentImageIndex() const = 0;
 
-        [[nodiscard]] RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc);
-        bool DestroyRenderPass(RenderPassHandle _handle);
+        [[nodiscard]] virtual RenderPassHandle CreateRenderPass(const RenderPassDesc& _desc) = 0;
+        virtual bool DestroyRenderPass(RenderPassHandle _handle) = 0;
 
-        CommandListHandle BeginGraphicsCommandList();
-        void EndGraphicsCommandList(CommandListHandle _commandList);
+        virtual CommandListHandle BeginGraphicsCommandList() = 0;
+        virtual void EndGraphicsCommandList(CommandListHandle _commandList) = 0;
 
-        void BeginRenderPass(CommandListHandle _commandList, RenderPassHandle _handle);
-        void EndRenderPass(CommandListHandle _commandList);
+        virtual void BeginRenderPass(CommandListHandle _commandList, RenderPassHandle _handle) = 0;
+        virtual void EndRenderPass(CommandListHandle _commandList) = 0;
 
-        void BeginComputePass(CommandListHandle _commandList);
-        void EndComputePass(CommandListHandle _commandList);
+        virtual void BeginComputePass(CommandListHandle _commandList) = 0;
+        virtual void EndComputePass(CommandListHandle _commandList) = 0;
 
-        void SetTextureData(
+        virtual void SetTextureData(
             CommandListHandle _commandList,
             BufferHandle _stagingBuffer,
             TextureHandle _dstTexture,
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
-            const void* _data);
+            const void* _data) = 0;
 
-        void MapBuffer(BufferMapping& _mapping);
-        void UnmapBuffer(BufferMapping& _mapping);
+        virtual void MapBuffer(BufferMapping& _mapping) = 0;
+        virtual void UnmapBuffer(BufferMapping& _mapping) = 0;
 
-        void CopyBuffer(CommandListHandle _commandList, const BufferCopyParameters& _params);
+        virtual void CopyBuffer(CommandListHandle _commandList, const BufferCopyParameters& _params) = 0;
 
         [[nodiscard]] static bool SupportsNonGlobalBarriers();
-        void PlaceMemoryBarriers(
+        virtual void PlaceMemoryBarriers(
             CommandListHandle _commandList,
             const eastl::span<const GlobalMemoryBarrier>& _globalMemoryBarriers,
             const eastl::span<const BufferMemoryBarrier>& _bufferMemoryBarriers,
-            const eastl::span<const TextureMemoryBarrier>& _textureMemoryBarriers);
+            const eastl::span<const TextureMemoryBarrier>& _textureMemoryBarriers) = 0;
 
         [[nodiscard]] static bool RenderPassNeedsUsageDeclaration();
         [[nodiscard]] static bool ComputePassNeedsUsageDeclaration();
-        void DeclarePassTextureViewUsage(
+        virtual void DeclarePassTextureViewUsage(
             CommandListHandle _commandList,
             const eastl::span<const TextureViewHandle>& _textures,
-            KryneEngine::TextureViewAccessType _accessType);
-        void DeclarePassBufferViewUsage(
+            KryneEngine::TextureViewAccessType _accessType) = 0;
+        virtual void DeclarePassBufferViewUsage(
             CommandListHandle _commandList,
             const eastl::span<const BufferViewHandle>& _buffers,
-            BufferViewAccessType _accessType);;
+            BufferViewAccessType _accessType) = 0;
 
-        [[nodiscard]] ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize);
-        [[nodiscard]] DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices);
-        [[nodiscard]] DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout);
-        [[nodiscard]] PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc);
-        [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc);
-        bool DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline);
-        bool DestroyPipelineLayout(PipelineLayoutHandle _layout);
-        bool DestroyDescriptorSet(DescriptorSetHandle _set);
-        bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout);
-        bool FreeShaderModule(ShaderModuleHandle _module);
+        [[nodiscard]] virtual ShaderModuleHandle RegisterShaderModule(void* _bytecodeData, u64 _bytecodeSize) = 0;
+        [[nodiscard]] virtual DescriptorSetLayoutHandle CreateDescriptorSetLayout(const DescriptorSetDesc& _desc, u32* _bindingIndices) = 0;
+        [[nodiscard]] virtual DescriptorSetHandle CreateDescriptorSet(DescriptorSetLayoutHandle _layout) = 0;
+        [[nodiscard]] virtual PipelineLayoutHandle CreatePipelineLayout(const PipelineLayoutDesc& _desc) = 0;
+        [[nodiscard]] virtual GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& _desc) = 0;
+        virtual bool DestroyGraphicsPipeline(GraphicsPipelineHandle _pipeline) = 0;
+        virtual bool DestroyPipelineLayout(PipelineLayoutHandle _layout) = 0;
+        virtual bool DestroyDescriptorSet(DescriptorSetHandle _set) = 0;
+        virtual bool DestroyDescriptorSetLayout(DescriptorSetLayoutHandle _layout) = 0;
+        virtual bool FreeShaderModule(ShaderModuleHandle _module) = 0;
 
-        [[nodiscard]] ComputePipelineHandle CreateComputePipeline(const ComputePipelineDesc& _desc);
-        bool DestroyComputePipeline(ComputePipelineHandle _pipeline);
+        [[nodiscard]] virtual ComputePipelineHandle CreateComputePipeline(const ComputePipelineDesc& _desc) = 0;
+        virtual bool DestroyComputePipeline(ComputePipelineHandle _pipeline) = 0;
 
-        void UpdateDescriptorSet(
+        virtual void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,
-            const eastl::span<const DescriptorSetWriteInfo>& _writes);
+            const eastl::span<const DescriptorSetWriteInfo>& _writes) = 0;
 
-        void SetViewport(CommandListHandle _commandList, const Viewport& _viewport);
-        void SetScissorsRect(CommandListHandle _commandList, const Rect& _rect);
-        void SetIndexBuffer(CommandListHandle _commandList, const BufferSpan& _indexBufferView, bool _isU16 = false);
-        void SetVertexBuffers(CommandListHandle _commandList, const eastl::span<const BufferSpan>& _bufferViews);
-        void SetGraphicsPipeline(CommandListHandle _commandList, GraphicsPipelineHandle _graphicsPipeline);
-        void SetGraphicsPushConstant(
+        virtual void SetViewport(CommandListHandle _commandList, const Viewport& _viewport) = 0;
+        virtual void SetScissorsRect(CommandListHandle _commandList, const Rect& _rect) = 0;
+        virtual void SetIndexBuffer(CommandListHandle _commandList, const BufferSpan& _indexBufferView, bool _isU16) = 0;
+        virtual void SetVertexBuffers(CommandListHandle _commandList, const eastl::span<const BufferSpan>& _bufferViews) = 0;
+        virtual void SetGraphicsPipeline(CommandListHandle _commandList, GraphicsPipelineHandle _graphicsPipeline) = 0;
+        virtual void SetGraphicsPushConstant(
             CommandListHandle _commandList,
             PipelineLayoutHandle _layout,
             const eastl::span<const u32>& _data,
-            u32 _index = 0,
-            u32 _offset = 0);
-        void SetGraphicsDescriptorSets(
+            u32 _index,
+            u32 _offset) = 0;
+        virtual void SetGraphicsDescriptorSetsWithOffset(
             CommandListHandle _commandList,
             PipelineLayoutHandle _layout,
             const eastl::span<const DescriptorSetHandle>& _sets,
-            const bool* _unchanged = nullptr);
+            u32 _offset) = 0;
+        void SetGraphicsDescriptorSets(
+            CommandListHandle _commandList,
+            PipelineLayoutHandle _layout,
+            const eastl::span<const DescriptorSetHandle>& _sets)
+        {
+            SetComputeDescriptorSetsWithOffset(_commandList, _layout, _sets, 0);
+        }
 
-        void DrawInstanced(CommandListHandle _commandList, const DrawInstancedDesc& _desc);
-        void DrawIndexedInstanced(CommandListHandle _commandList, const DrawIndexedInstancedDesc& _desc);
+        virtual void DrawInstanced(CommandListHandle _commandList, const DrawInstancedDesc& _desc) = 0;
+        virtual void DrawIndexedInstanced(CommandListHandle _commandList, const DrawIndexedInstancedDesc& _desc) = 0;
 
-        void SetComputePipeline(CommandListHandle _commandList, ComputePipelineHandle _pipeline);
-        void SetComputeDescriptorSets(
+        virtual void SetComputePipeline(CommandListHandle _commandList, ComputePipelineHandle _pipeline) = 0;
+        virtual void SetComputeDescriptorSetsWithOffset(
             CommandListHandle _commandList,
             PipelineLayoutHandle _layout,
             eastl::span<const DescriptorSetHandle> _sets,
-            u32 _offset = 0);
-        void SetComputePushConstant(
+            u32 _offset) = 0;
+        void SetComputeDescriptorSets(
             CommandListHandle _commandList,
             PipelineLayoutHandle _layout,
-            eastl::span<const u32> _data);
+            eastl::span<const DescriptorSetHandle> _sets)
+        {
+            SetComputeDescriptorSetsWithOffset(_commandList, _layout, _sets, 0);
+        }
+        virtual void SetComputePushConstant(
+            CommandListHandle _commandList,
+            PipelineLayoutHandle _layout,
+            eastl::span<const u32> _data) = 0;
 
-        void Dispatch(CommandListHandle _commandList, uint3 _threadGroupCount, uint3 _threadGroupSize);
+        virtual void Dispatch(CommandListHandle _commandList, uint3 _threadGroupCount, uint3 _threadGroupSize) = 0;
     };
 }
 

@@ -287,7 +287,7 @@ int main()
         graphicsContext->BeginRenderPass(commandList, renderPassHandles[index]);
 
         graphicsContext->SetVertexBuffers(commandList, { &vertexBufferView, 1 });
-        graphicsContext->SetIndexBuffer(commandList, indexBufferView);
+        graphicsContext->SetIndexBuffer(commandList, indexBufferView, false);
         graphicsContext->SetGraphicsPipeline(commandList, trianglePso);
         graphicsContext->SetViewport(
             commandList,

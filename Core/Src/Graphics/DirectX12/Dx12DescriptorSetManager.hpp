@@ -42,7 +42,8 @@ namespace KryneEngine
         void SetGraphicsDescriptorSets(
             CommandList _commandList,
             const eastl::span<const DescriptorSetHandle>& _sets,
-            const bool* _unchanged,
+            u16* _tableSetOffsets,
+            u32 _offset,
             u8 _currentFrame);
 
         void OnBeginGraphicsCommandList(CommandList _commandList, u8 _frameIndex);
@@ -51,17 +52,27 @@ namespace KryneEngine
 
         enum class RangeType: u32
         {
-            BufferCbv = 0,
-            BufferSrv,
-            BufferUav,
-            TextureSrv,
-            TextureUav,
+            Cbv = 0,
+            Srv,
+            Uav,
             Sampler,
             COUNT,
         };
         static constexpr u32 kRangeTypesCount = static_cast<u32>(RangeType::COUNT);
-        static constexpr u32 kRangeTypeBits = 3;
-        static_assert(kRangeTypesCount <= (1 << kRangeTypeBits), "Not enough bits for RangeType");;
+
+        enum class DescriptorType: u8
+        {
+            BufferCbv,
+            BufferSrv,
+            TextureSrv,
+            BufferUav,
+            TextureUav,
+            Sampler,
+            COUNT,
+        };
+        static constexpr u32 kDescriptorTypesCount = static_cast<u32>(DescriptorType::COUNT);
+        static constexpr u32 kDescriptorTypeBits = 3;
+        static_assert(kDescriptorTypesCount <= (1 << kDescriptorTypeBits), "Not enough bits for DescriptorType");;
 
         struct LayoutData
         {

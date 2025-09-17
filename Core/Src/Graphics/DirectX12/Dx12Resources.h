@@ -116,6 +116,12 @@ namespace KryneEngine
             InputAssemblyDesc::PrimitiveTopology m_topology;
         };
 
+        struct PipelineLayoutHotData
+        {
+            ID3D12RootSignature* m_signature;
+            u16* m_tableSetOffsets;
+        };
+
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_buffers;
         GenerationalPool<ID3D12Resource*, D3D12MA::Allocation*> m_textures;
         IndexAllocator m_cbvSrvUavAllocator;
@@ -125,7 +131,7 @@ namespace KryneEngine
         GenerationalPool<RtvHotData, DXGI_FORMAT> m_renderTargetViews;
         GenerationalPool<RtvHotData, DXGI_FORMAT> m_depthStencilViews;
         GenerationalPool<RenderPassDesc> m_renderPasses;
-        GenerationalPool<ID3D12RootSignature*, u32> m_rootSignatures;
+        GenerationalPool<PipelineLayoutHotData, u32> m_pipelineLayouts;
         GenerationalPool<D3D12_SHADER_BYTECODE> m_shaderBytecodes;
         GenerationalPool<ID3D12PipelineState*, PsoColdData> m_pipelineStateObjects;
 
