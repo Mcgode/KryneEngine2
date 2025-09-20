@@ -14,12 +14,12 @@
 
 #include "Graphics/Vulkan/HelperFunctions.hpp"
 #include "Graphics/Vulkan/VkDebugHandler.hpp"
-#include "Graphics/Vulkan/VkDescriptorSetManager.hpp"
 #include "Graphics/Vulkan/VkSurface.hpp"
 #include "Graphics/Vulkan/VkSwapChain.hpp"
 #include "KryneEngine/Core/Common/StringHelpers.hpp"
 #include "KryneEngine/Core/Graphics/Buffer.hpp"
 #include "KryneEngine/Core/Graphics/Drawing.hpp"
+#include "KryneEngine/Core/Math/Color.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
 #include "KryneEngine/Core/Window/Window.hpp"
 
@@ -406,7 +406,11 @@ namespace KryneEngine
 
         if (_appInfo.m_features.m_debugTags == GraphicsCommon::SoftEnable::ForceEnabled)
         {
-            result.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+            if (!m_debugUtils)
+            {
+                result.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+                m_debugUtils = true;
+            }
             m_debugMarkers = true;
         }
 
@@ -432,9 +436,13 @@ namespace KryneEngine
 
         if (_appInfo.m_features.m_debugTags == GraphicsCommon::SoftEnable::TryEnable)
         {
-            if (find(VK_EXT_DEBUG_MARKER_EXTENSION_NAME))
+            if (find(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
             {
-                _currentList.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+                if (!m_debugUtils)
+                {
+                    _currentList.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+                    m_debugUtils = true;
+                }
                 m_debugMarkers = true;
             }
         }
@@ -782,6 +790,16 @@ namespace KryneEngine
         if (m_synchronization2)
         {
             m_vkCmdPipelineBarrier2KHR = reinterpret_cast<PFN_vkCmdPipelineBarrier2KHR>(vkGetDeviceProcAddr(m_device, "vkCmdPipelineBarrier2KHR"));
+        }
+
+        if (m_debugMarkers)
+        {
+            m_vkCmdBeginDebugUtilsLabelExt = reinterpret_cast<PFN_vkCmdBeginDebugUtilsLabelEXT>(
+                vkGetDeviceProcAddr(m_device, "vkCmdBeginDebugUtilsLabelEXT"));
+            m_vkCmdEndDebugUtilsLabelExt = reinterpret_cast<PFN_vkCmdEndDebugUtilsLabelEXT>(
+                vkGetDeviceProcAddr(m_device, "vkCmdEndDebugUtilsLabelEXT"));
+            m_vkCmdInsertDebugUtilsLabelExt = reinterpret_cast<PFN_vkCmdInsertDebugUtilsLabelEXT>(
+                vkGetDeviceProcAddr(m_device, "vkCmdInsertDebugUtilsLabelEXT"));
         }
     }
 
@@ -1644,5 +1662,60 @@ namespace KryneEngine
             _threadGroupCount.x,
             _threadGroupCount.y,
             _threadGroupCount.z);
+    }
+
+    void VkGraphicsContext::PushDebugMarker(
+        CommandListHandle _commandList,
+        const eastl::string_view& _markerName,
+        const Color& _color)
+    {
+        if (m_vkCmdBeginDebugUtilsLabelExt == nullptr)
+            return;
+
+        const VkDebugUtilsLabelEXT label {
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+            .pNext = nullptr,
+            .pLabelName = _markerName.data(),
+            .color = {
+                _color.m_value.a,
+                _color.m_value.r,
+                _color.m_value.g,
+                _color.m_value.b,
+            }};
+        m_vkCmdBeginDebugUtilsLabelExt(
+            reinterpret_cast<CommandList>(_commandList),
+            &label);
+    }
+
+    void VkGraphicsContext::PopDebugMarker(CommandListHandle _commandList)
+    {
+        if (m_vkCmdEndDebugUtilsLabelExt == nullptr)
+            return;
+
+        m_vkCmdEndDebugUtilsLabelExt(reinterpret_cast<CommandList>(_commandList));
+    }
+
+    void VkGraphicsContext::InsertDebugMarker(
+        CommandListHandle _commandList,
+        const eastl::string_view& _markerName,
+        const Color& _color)
+    {
+        if (m_vkCmdInsertDebugUtilsLabelExt == nullptr)
+            return;
+
+        const VkDebugUtilsLabelEXT label {
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+            .pNext = nullptr,
+            .pLabelName = _markerName.data(),
+            .color = {
+                _color.m_value.a,
+                _color.m_value.r,
+                _color.m_value.g,
+                _color.m_value.b,
+            },
+        };
+        m_vkCmdInsertDebugUtilsLabelExt(
+            reinterpret_cast<CommandList>(_commandList),
+            &label);
     }
 }

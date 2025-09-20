@@ -23,6 +23,7 @@ namespace KryneEngine
     struct BufferMapping;
     struct BufferMemoryBarrier;
     struct BufferSpan;
+    struct Color;
     struct ComputePipelineDesc;
     struct DescriptorSetDesc;
     struct DescriptorSetWriteInfo;
@@ -199,7 +200,7 @@ namespace KryneEngine
             PipelineLayoutHandle _layout,
             const eastl::span<const DescriptorSetHandle>& _sets)
         {
-            SetComputeDescriptorSetsWithOffset(_commandList, _layout, _sets, 0);
+            SetGraphicsDescriptorSetsWithOffset(_commandList, _layout, _sets, 0);
         }
 
         virtual void DrawInstanced(CommandListHandle _commandList, const DrawInstancedDesc& _desc) = 0;
@@ -224,6 +225,64 @@ namespace KryneEngine
             eastl::span<const u32> _data) = 0;
 
         virtual void Dispatch(CommandListHandle _commandList, uint3 _threadGroupCount, uint3 _threadGroupSize) = 0;
+
+        /**
+         * @brief Inserts a debug marker into the command list to assist with GPU profiling and debugging.
+         *
+         * @details
+         * The debug marker can be used to annotate specific regions of the command list with a name
+         * and optional color to make debugging or performance analysis easier. This allows graphics
+         * tools to display meaningful annotations in the GPU command timeline.
+         *
+         * Make sure to pop the marker using `PopDebugMarker`
+         *
+         * @param _commandList The handle to the command list where the debug marker will be pushed.
+         * @param _markerName A null-terminated string representing the name of the debug marker.
+         * @param _color The color to associate with the debug marker. It is used for visualization in compatible debugging tools.
+         *
+         * @note
+         * This API might not utilize color information on platforms that do not support it (e.g., Metal).
+         */
+        virtual void PushDebugMarker(
+            CommandListHandle _commandList,
+            const eastl::string_view& _markerName,
+            const Color& _color) = 0;
+
+        /**
+         * @brief Removes the most recently pushed debug marker from the command list.
+         *
+         * @details
+         * This function is used to end a region of GPU commands that was previously annotated with a debug marker using
+         * `PushDebugMarker`. It ensures that debug markers are properly balanced for profiling and debugging purposes.
+         *
+         * @param _commandList The handle to the command list from which the debug marker should be removed.
+         */
+        virtual void PopDebugMarker(
+            CommandListHandle _commandList) = 0;
+
+        /**
+         * @brief Inserts a debug marker directly into the command list for GPU debugging and profiling purposes.
+         *
+         * @details
+         * This function adds an inline annotation within the command list to aid in GPU debugging and performance analysis.
+         * The marker is associated with a name and an optional color that can be used by compatible debugging tools
+         * to display meaningful visual annotations in the GPU command timeline.
+         *
+         * @param _commandList The handle to the command list where the debug marker will be inserted.
+         * @param _markerName A null-terminated string describing the marker to be inserted.
+         * @param _color The color to associate with the debug marker for better visualization in compatible tools.
+         *
+         * @note
+         * Unlike `PushDebugMarker` and `PopDebugMarker`, this does not create a region but rather a single-point annotation.
+         * This API might not utilize color information on platforms that do not support it (e.g., Metal).
+         *
+         * @warning
+         * Due to API restriction (see Metal), this should only be used during compute or render passes
+         */
+        virtual void InsertDebugMarker(
+            CommandListHandle _commandList,
+            const eastl::string_view& _markerName,
+            const Color& _color) = 0;
     };
 }
 

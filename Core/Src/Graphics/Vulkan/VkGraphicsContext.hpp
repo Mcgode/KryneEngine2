@@ -75,6 +75,9 @@ namespace KryneEngine
 
         bool m_debugUtils = false;
         bool m_debugMarkers = false;
+        PFN_vkCmdBeginDebugUtilsLabelEXT m_vkCmdBeginDebugUtilsLabelExt = nullptr;
+        PFN_vkCmdEndDebugUtilsLabelEXT m_vkCmdEndDebugUtilsLabelExt = nullptr;
+        PFN_vkCmdInsertDebugUtilsLabelEXT m_vkCmdInsertDebugUtilsLabelExt = nullptr;
 
         bool m_synchronization2 = false;
         PFN_vkCmdPipelineBarrier2KHR m_vkCmdPipelineBarrier2KHR = nullptr;
@@ -230,7 +233,18 @@ namespace KryneEngine
 
     void Dispatch(CommandListHandle _commandList, uint3 _threadGroupCount, uint3) override;
 
-    private:
+    void PushDebugMarker(
+        CommandListHandle _commandList,
+        const eastl::string_view& _markerName,
+        const Color& _color) override;
+    void PopDebugMarker(
+        CommandListHandle _commandList) override;
+    void InsertDebugMarker(
+        CommandListHandle _commandList,
+        const eastl::string_view& _markerName,
+        const Color& _color) override;
+
+private:
         VkResources m_resources;
         VkDescriptorSetManager m_descriptorSetManager;
     };

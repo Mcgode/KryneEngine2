@@ -189,6 +189,17 @@ namespace KryneEngine
 
         void Dispatch(CommandListHandle _commandList, uint3 _threadGroupCount, uint3 _threadGroupSize) override;
 
+        void PushDebugMarker(
+            CommandListHandle _commandList,
+            const eastl::string_view& _markerName,
+            const Color& _color) override;
+        void PopDebugMarker(
+            CommandListHandle _commandList) override;
+        void InsertDebugMarker(
+            CommandListHandle _commandList,
+            const eastl::string_view& _markerName,
+            const Color& _color) override;
+
     private:
         MetalResources m_resources;
         MetalArgumentBufferManager m_argumentBufferManager;

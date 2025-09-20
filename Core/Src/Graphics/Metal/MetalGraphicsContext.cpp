@@ -1076,4 +1076,47 @@ namespace KryneEngine
             break;
         }
     }
+
+    void MetalGraphicsContext::PushDebugMarker(
+        CommandListHandle _commandList,
+        const eastl::string_view& _markerName,
+        const Color&)
+    {
+        if (m_appInfo.m_features.m_debugTags == GraphicsCommon::SoftEnable::Disabled)
+            return;
+
+        auto commandList = reinterpret_cast<CommandList>(_commandList);
+
+        KE_AUTO_RELEASE_POOL;
+        auto* string = NS::String::string(_markerName.data(), NS::UTF8StringEncoding);
+        commandList->m_commandBuffer->pushDebugGroup(string);
+    }
+
+    void MetalGraphicsContext::PopDebugMarker(CommandListHandle _commandList)
+    {
+        if (m_appInfo.m_features.m_debugTags == GraphicsCommon::SoftEnable::Disabled)
+            return;
+
+        auto commandList = reinterpret_cast<CommandList>(_commandList);
+
+        commandList->m_commandBuffer->popDebugGroup();
+    }
+
+    void MetalGraphicsContext::InsertDebugMarker(
+        CommandListHandle _commandList,
+        const eastl::string_view& _markerName,
+        const Color&)
+    {
+        if (m_appInfo.m_features.m_debugTags == GraphicsCommon::SoftEnable::Disabled)
+            return;
+
+        auto commandList = reinterpret_cast<CommandList>(_commandList);
+
+        if (commandList->m_encoder == nullptr)
+            return;
+
+        KE_AUTO_RELEASE_POOL;
+        auto* string = NS::String::string(_markerName.data(), NS::UTF8StringEncoding);
+        commandList->m_encoder->insertDebugSignpost(string);
+    }
 }
