@@ -6,11 +6,12 @@
 
 #include "KryneEngine/Modules/RenderGraph/RenderGraph.hpp"
 
-#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
+#include <KryneEngine/Core/Graphics/GraphicsContext.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Threads/FibersManager.hpp>
+#include <KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp>
+#include <KryneEngine/Core/Math/Color.hpp>
 
-#include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
 #include "KryneEngine/Modules/RenderGraph/Builder.hpp"
 #include "KryneEngine/Modules/RenderGraph/Registry.hpp"
 #include "KryneEngine/Modules/RenderGraph/Resource.hpp"
@@ -165,6 +166,10 @@ namespace KryneEngine::Modules::RenderGraph
             const PassDeclaration& pass = jobData->m_renderGraph->m_builder->m_declaredPasses[i];
 
             const std::chrono::time_point start = std::chrono::steady_clock::now();
+            jobData->m_passExecutionData.m_graphicsContext->PushDebugMarker(
+                jobData->m_passExecutionData.m_commandList,
+                pass.m_name.m_string,
+                ColorPalette::kWhite);
 
             if (GraphicsContext::SupportsNonGlobalBarriers())
             {
@@ -214,6 +219,9 @@ namespace KryneEngine::Modules::RenderGraph
                 jobData->m_passExecutionData.m_graphicsContext->EndComputePass(
                     jobData->m_passExecutionData.m_commandList);
             }
+
+            jobData->m_passExecutionData.m_graphicsContext->PopDebugMarker(
+                jobData->m_passExecutionData.m_commandList);
 
             const std::chrono::time_point end = std::chrono::steady_clock::now();
 
