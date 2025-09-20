@@ -73,6 +73,7 @@ set(MathSrc
         Include/KryneEngine/Core/Math/BoundingBox.hpp
         Include/KryneEngine/Core/Math/Float16.hpp
         Src/Math/Float16.cpp
+        Include/KryneEngine/Core/Math/Color.hpp
 )
 
 set(MemorySrc
