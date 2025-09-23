@@ -1188,9 +1188,11 @@ namespace KryneEngine
         }
         auto commandList = reinterpret_cast<CommandList>(_commandList);
 
-        const u32 index = frameContext.AllocateTimestamp();
-        if (KE_VERIFY(commandList->m_encoder != nullptr))
+        u32 index = ~0u;
+
+        if (commandList->m_encoder != nullptr)
         {
+            index = frameContext.AllocateTimestamp();
             switch (commandList->m_type)
             {
             case CommandListData::EncoderType::Render:
