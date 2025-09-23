@@ -75,7 +75,7 @@ namespace KryneEngine::Modules::RenderGraph
                         });
                     }
 
-                    m_trackedStates[dependency.m_resource] = {
+                    m_trackedStates[underlyingResource] = {
                         .m_syncStage = dependency.m_targetSyncStage,
                         .m_accessFlags = dependency.m_targetAccessFlags,
                         .m_layout = dependency.m_targetLayout,
