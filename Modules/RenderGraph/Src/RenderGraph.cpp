@@ -7,7 +7,7 @@
 #include "KryneEngine/Modules/RenderGraph/RenderGraph.hpp"
 
 #include <KryneEngine/Core/Graphics/GraphicsContext.hpp>
-#include <KryneEngine/Core/Profiling/TracyHeader.hpp>
+#include <KryneEngine/Core/Profiling/TracyGpuScope.hpp>
 #include <KryneEngine/Core/Threads/FibersManager.hpp>
 #include <KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp>
 #include <KryneEngine/Core/Math/Color.hpp>
@@ -165,6 +165,13 @@ namespace KryneEngine::Modules::RenderGraph
 
             const PassDeclaration& pass = jobData->m_renderGraph->m_builder->m_declaredPasses[i];
 
+            KE_GpuZoneScopedF(
+                jobData->m_passExecutionData.m_graphicsContext,
+                jobData->m_passExecutionData.m_graphicsContext->GetProfilerContext(),
+                jobData->m_passExecutionData.m_commandList,
+                "%s",
+                pass.m_name.m_string.c_str());
+
             const std::chrono::time_point start = std::chrono::steady_clock::now();
             jobData->m_passExecutionData.m_graphicsContext->PushDebugMarker(
                 jobData->m_passExecutionData.m_commandList,
@@ -174,11 +181,19 @@ namespace KryneEngine::Modules::RenderGraph
             if (GraphicsContext::SupportsNonGlobalBarriers())
             {
                 const ResourceStateTracker::PassBarriers barriers = jobData->m_renderGraph->m_resourceStateTracker->GetPassBarriers(i);
-                jobData->m_passExecutionData.m_graphicsContext->PlaceMemoryBarriers(
-                    jobData->m_passExecutionData.m_commandList,
-                    {},
-                    barriers.m_bufferMemoryBarriers,
-                    barriers.m_textureMemoryBarriers);
+                if (!barriers.m_bufferMemoryBarriers.empty() || !barriers.m_textureMemoryBarriers.empty())
+                {
+                    KE_GpuZoneScoped(
+                        jobData->m_passExecutionData.m_graphicsContext,
+                        jobData->m_passExecutionData.m_graphicsContext->GetProfilerContext(),
+                        jobData->m_passExecutionData.m_commandList,
+                        "Dispatching memory barriers");
+                    jobData->m_passExecutionData.m_graphicsContext->PlaceMemoryBarriers(
+                        jobData->m_passExecutionData.m_commandList,
+                        {},
+                        barriers.m_bufferMemoryBarriers,
+                        barriers.m_textureMemoryBarriers);
+                }
             }
 
             if (pass.m_type == PassType::Render)
