@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Handles.hpp"
+#include "KryneEngine/Core/Graphics/Handles.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/BufferView.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
 #include "Texture.hpp"
@@ -38,6 +38,7 @@ namespace KryneEngine
     struct TextureMemoryBarrier;
     struct Viewport;
 
+    class TracyGpuProfilerContext;
     class Window;
 
     using CommandListHandle = void*;
@@ -71,6 +72,8 @@ namespace KryneEngine
         [[nodiscard]] virtual bool HasDedicatedTransferQueue() const = 0;
         [[nodiscard]] virtual bool HasDedicatedComputeQueue() const = 0;
 
+        [[nodiscard]] TracyGpuProfilerContext* GetProfilerContext() { return m_profilerContext; }
+
     protected:
 
         GraphicsContext(
@@ -84,6 +87,8 @@ namespace KryneEngine
 
         static constexpr u64 kInitialFrameId = 1;
         u64 m_frameId;
+
+        TracyGpuProfilerContext* m_profilerContext = nullptr;
 
         virtual void InternalEndFrame() = 0;
         virtual void WaitForFrame(u64 _frameId) const = 0;
@@ -283,6 +288,28 @@ namespace KryneEngine
             CommandListHandle _commandList,
             const eastl::string_view& _markerName,
             const Color& _color) = 0;
+
+        /**
+         * @brief Calibrates the time synchronization between CPU and GPU clocks.
+         *
+         * @details
+         * This function ensures accurate timing and synchronization between the CPU and GPU. It is particularly useful
+         * for profiling or scenarios where precise time alignment between the two processing units is necessary for
+         * debugging or performance analysis.
+         *
+         * This is automatically called on context creation, and should be called again sparringly, as it has a
+         * non-insignificant performance overhead.
+         * Calling it every N frames for synchronicity should be fine.
+         *
+         * @note
+         * The implementation of this function is platform-specific and may use various APIs or techniques depending on
+         * the underlying hardware and driver support.
+         */
+        virtual void CalibrateCpuGpuClocks() = 0;
+
+        virtual TimestampHandle PutTimestamp(CommandListHandle _commandList) = 0;
+        virtual u64 GetResolvedTimestamp(TimestampHandle _timestamp) const = 0;
+        virtual eastl::span<const u64> GetResolvedTimestamps(u64 _frameId) const = 0;
     };
 }
 

@@ -11,7 +11,12 @@
 
 namespace KryneEngine
 {
-    VkFrameContext::VkFrameContext(VkDevice _device, const VkCommonStructures::QueueIndices &_queueIndices)
+    VkFrameContext::VkFrameContext(
+        AllocatorInstance _allocator,
+        VkDevice _device,
+        const VkCommonStructures::QueueIndices &_queueIndices,
+        u32 _timestampPoolSize)
+        : m_allocator(_allocator)
     {
         const auto CreateCommandPool = [this, _device](
                 const VkCommonStructures::QueueIndices::Pair& _pair,
@@ -58,6 +63,24 @@ namespace KryneEngine
         CreateCommandPool(_queueIndices.m_graphicsQueueIndex, m_graphicsCommandPoolSet);
         CreateCommandPool(_queueIndices.m_computeQueueIndex, m_computeCommandPoolSet);
         CreateCommandPool(_queueIndices.m_transferQueueIndex, m_transferCommandPoolSet);
+
+        if (_timestampPoolSize > 0)
+        {
+            m_timestampPoolSize = _timestampPoolSize;
+
+            const VkQueryPoolCreateInfo timestampQueryPoolCreateInfo {
+                .sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
+                .queryType = VK_QUERY_TYPE_TIMESTAMP,
+                .queryCount = m_timestampPoolSize,
+            };
+            VkAssert(vkCreateQueryPool(
+                _device,
+                &timestampQueryPoolCreateInfo,
+                nullptr,
+                &m_timestampQueryPool));
+
+            m_resolvedTimestamps = m_allocator.Allocate<u64>(m_timestampPoolSize);
+        }
     }
 
     VkFrameContext::~VkFrameContext()
@@ -79,6 +102,13 @@ namespace KryneEngine
     }
 #endif
 
+    u32 VkFrameContext::PutTimestamp(VkCommandBuffer _commandBuffer)
+    {
+        const u32 queryIndex = m_timestampPoolIndex.fetch_add(1, std::memory_order_acquire);
+        vkCmdWriteTimestamp(_commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, m_timestampQueryPool, queryIndex);
+        return queryIndex;
+    }
+
     void VkFrameContext::Destroy(VkDevice _device)
     {
         m_graphicsCommandPoolSet.Destroy(_device);
@@ -97,6 +127,40 @@ namespace KryneEngine
         }
 
         VkAssert(vkWaitForFences(_device, m_fencesArray.size(), m_fencesArray.data(), true, UINT64_MAX));
+    }
+
+    void VkFrameContext::ResolveTimestamps(VkDevice _device, double _timestampPeriod, u64 _timestampSyncOffset)
+    {
+        if (m_timestampQueryPool == VK_NULL_HANDLE)
+            return;
+
+        if (m_lastResolvedFrame != ~0ull && m_lastResolvedFrame == m_frameId)
+            return;
+        m_lastResolvedFrame = m_frameId;
+
+        const u32 count = m_timestampPoolIndex.load(std::memory_order_relaxed);
+
+        if (count > 0)
+        {
+            vkGetQueryPoolResults(
+                _device,
+                m_timestampQueryPool,
+                0,
+                count,
+                sizeof(u64) * count,
+                m_resolvedTimestamps,
+                sizeof(u64),
+                VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+            for (u32 i = 0; i < count; i++)
+            {
+                m_resolvedTimestamps[i] =
+                    static_cast<u64>(static_cast<double>(m_resolvedTimestamps[i]) * _timestampPeriod)
+                    + _timestampSyncOffset;
+            }
+        }
+
+        m_timestampPoolNeedsReset = true;
+        m_timestampPoolIndex.store(0, std::memory_order_release);
     }
 
     VkCommandBuffer VkFrameContext::CommandPoolSet::BeginCommandBuffer(VkDevice _device)

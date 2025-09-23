@@ -12,6 +12,7 @@
 #include "KryneEngine/Core/Graphics/Drawing.hpp"
 #include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"
+#include "KryneEngine/Core/Profiling/TracyGpuProfilerContext.hpp"
 
 namespace KryneEngine
 {
@@ -54,6 +55,32 @@ namespace KryneEngine
                     frameIndex);
             }
 
+            if (m_calibrateCpuGpuClocks)
+            {
+                MTL::Timestamp gpuStart;
+                m_device->sampleTimestamps(nullptr, &gpuStart);
+                u64 cpuStart = tracy::Profiler::GetTime();;
+
+                if (frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.empty())
+                {
+                    KE_ZoneScoped("Begin graphics command buffer for calibration operation");
+                    frameContext.BeginGraphicsCommandList(*m_graphicsQueue);
+                }
+
+                frameContext.m_graphicsAllocationSet.m_usedCommandBuffers.back()->m_commandBuffer->addCompletedHandler(
+                    [cpuStart, gpuStart, this](MTL::CommandBuffer*) {
+                        MTL::Timestamp gpuEnd;
+                        m_device->sampleTimestamps(nullptr, &gpuEnd);
+                        u64 cpuEnd = tracy::Profiler::GetTime();
+
+                        m_timestampConversion.m_gpuFrequency = static_cast<double>(gpuEnd - gpuStart) / static_cast<double>(cpuEnd - cpuStart);
+                        m_timestampConversion.m_gpuReference = gpuEnd;
+                        m_timestampConversion.m_cpuReference = cpuEnd;
+                    });
+
+                m_calibrateCpuGpuClocks = false;
+            }
+
             {
                 KE_ZoneScoped("Commit");
                 frameContext.m_graphicsAllocationSet.Commit(frameContext.m_enhancedCommandBufferErrors);
@@ -68,6 +95,11 @@ namespace KryneEngine
             }
         }
 
+        if (m_profilerContext != nullptr)
+        {
+            m_profilerContext->EndFrame(m_frameId);
+        }
+
         FrameMark;
 
         // Prepare next frame
@@ -77,8 +109,18 @@ namespace KryneEngine
             const u64 nextFrame = m_frameId + 1;
             const u8 newFrameIndex = nextFrame % m_frameContextCount;
 
-            const u64 previousFrameId = eastl::max<u64>(m_frameContextCount, nextFrame) - m_frameContextCount;
-            m_frameContexts[newFrameIndex].WaitForFrame(previousFrameId);
+            if (nextFrame >= m_frameContextCount + kInitialFrameId)
+            {
+                const u64 previousFrameId = nextFrame - m_frameContextCount;
+                m_frameContexts[newFrameIndex].WaitForFrame(previousFrameId);
+
+                m_frameContexts[newFrameIndex].ResolveCounters(m_timestampConversion);
+                m_lastResolvedFrameId = previousFrameId;
+                if (m_profilerContext != nullptr)
+                {
+                    m_profilerContext->ResolveQueries(this, previousFrameId);
+                }
+            }
 
             m_frameContexts[newFrameIndex].PrepareForNextFrame(nextFrame);
 
@@ -88,9 +130,20 @@ namespace KryneEngine
     
     void MetalGraphicsContext::WaitForFrame(u64 _frameId) const
     {
-        for (auto& frameContext: m_frameContexts)
+        const u64 start = _frameId > kInitialFrameId + m_frameContextCount - 1
+            ? _frameId + 1 - m_frameContextCount
+            : kInitialFrameId;
+
+        for (u64 i = start; i <= _frameId; i++)
         {
-            frameContext.WaitForFrame(_frameId);
+            MetalFrameContext& frameContext = m_frameContexts[i % m_frameContextCount];
+            frameContext.WaitForFrame(i);
+            frameContext.ResolveCounters(m_timestampConversion);
+            m_lastResolvedFrameId = i;
+            if (m_profilerContext != nullptr)
+            {
+                m_profilerContext->ResolveQueries(this, i);
+            }
         }
     }
 
@@ -1118,5 +1171,83 @@ namespace KryneEngine
         KE_AUTO_RELEASE_POOL;
         auto* string = NS::String::string(_markerName.data(), NS::UTF8StringEncoding);
         commandList->m_encoder->insertDebugSignpost(string);
+    }
+
+    void MetalGraphicsContext::CalibrateCpuGpuClocks()
+    {
+        m_calibrateCpuGpuClocks = true;
+    }
+
+    TimestampHandle MetalGraphicsContext::PutTimestamp(CommandListHandle _commandList)
+    {
+        MetalFrameContext& frameContext = m_frameContexts[m_frameId % m_frameContextCount];
+
+        if (frameContext.m_sampleBuffer.get() == nullptr)
+        {
+            return { ~0u, ~0u };
+        }
+        auto commandList = reinterpret_cast<CommandList>(_commandList);
+
+        const u32 index = frameContext.AllocateTimestamp();
+        if (KE_VERIFY(commandList->m_encoder != nullptr))
+        {
+            switch (commandList->m_type)
+            {
+            case CommandListData::EncoderType::Render:
+                if (m_supportsDrawBoundarySampling)
+                {
+                    auto* encoder = reinterpret_cast<MTL::RenderCommandEncoder*>(commandList->m_encoder.get());
+                    encoder->sampleCountersInBuffer(frameContext.m_sampleBuffer.get(), index, true);
+                    break;
+                }
+                else
+                    return { ~0u, ~0u };
+            case CommandListData::EncoderType::Compute:
+                if (m_supportsDispatchBoundarySampling)
+                {
+                    auto* encoder = reinterpret_cast<MTL::ComputeCommandEncoder*>(commandList->m_encoder.get());
+                    encoder->sampleCountersInBuffer(frameContext.m_sampleBuffer.get(), index, true);
+                    break;
+                }
+                else
+                    return { ~0u, ~0u };
+            case CommandListData::EncoderType::Blit:
+                if (m_supportsBlitBoundarySampling)
+                {
+                    auto* encoder = reinterpret_cast<MTL::BlitCommandEncoder*>(commandList->m_encoder.get());
+                    encoder->sampleCountersInBuffer(frameContext.m_sampleBuffer.get(), index, true);
+                    break;
+                }
+                else
+                    return { ~0u, ~0u };
+            }
+        }
+
+        return { index, static_cast<u32>(m_frameId) };
+    }
+
+    u64 MetalGraphicsContext::GetResolvedTimestamp(TimestampHandle _timestamp) const
+    {
+        if (m_lastResolvedFrameId == ~0ull)
+            return 0;
+        if (_timestamp.m_frameId > static_cast<u32>(m_lastResolvedFrameId) || _timestamp.m_frameId + m_frameContextCount <= static_cast<u32>(m_lastResolvedFrameId))
+            return 0;
+
+        const MetalFrameContext& frameContext = m_frameContexts[_timestamp.m_frameId % m_frameContextCount];
+
+        if (frameContext.m_resolvedTimestamps.Empty() || frameContext.m_resolvedTimestamps.Size() <= _timestamp.m_index)
+            return 0;
+        return frameContext.m_resolvedTimestamps[_timestamp.m_index];
+    }
+
+    eastl::span<const u64> MetalGraphicsContext::GetResolvedTimestamps(u64 _frameId) const
+    {
+        if (m_lastResolvedFrameId == ~0ull)
+            return {};
+        if (_frameId > m_lastResolvedFrameId || _frameId + m_frameContextCount <= m_lastResolvedFrameId)
+            return {};
+
+        const MetalFrameContext& frameContext = m_frameContexts[_frameId % m_frameContextCount];
+        return { frameContext.m_resolvedTimestamps.Data(), frameContext.m_resolvedTimestamps.Size() };
     }
 }

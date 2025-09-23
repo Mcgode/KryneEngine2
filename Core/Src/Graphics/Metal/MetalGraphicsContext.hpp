@@ -22,6 +22,7 @@
 #include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
 #include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Graphics/Texture.hpp"
+#include "KryneEngine/Core/Threads/SpinLock.hpp"
 
 namespace KryneEngine
 {
@@ -64,6 +65,13 @@ namespace KryneEngine
 
         u8 m_frameContextCount;
         DynamicArray<MetalFrameContext> m_frameContexts;
+
+        bool m_calibrateCpuGpuClocks = false;
+        bool m_supportsDrawBoundarySampling = false;
+        bool m_supportsDispatchBoundarySampling = false;
+        bool m_supportsBlitBoundarySampling = false;
+        TimestampConversion m_timestampConversion;
+        mutable u64 m_lastResolvedFrameId = ~0ull;
 
     protected:
         void InternalEndFrame() override;
@@ -199,6 +207,11 @@ namespace KryneEngine
             CommandListHandle _commandList,
             const eastl::string_view& _markerName,
             const Color& _color) override;
+
+        void CalibrateCpuGpuClocks() override;
+        TimestampHandle PutTimestamp(CommandListHandle _commandList) override;
+        u64 GetResolvedTimestamp(TimestampHandle _timestamp) const override;
+        eastl::span<const u64> GetResolvedTimestamps(u64 _frameId) const override;
 
     private:
         MetalResources m_resources;

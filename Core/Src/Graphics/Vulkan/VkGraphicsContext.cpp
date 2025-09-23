@@ -21,6 +21,7 @@
 #include "KryneEngine/Core/Graphics/Drawing.hpp"
 #include "KryneEngine/Core/Math/Color.hpp"
 #include "KryneEngine/Core/Memory/GenerationalPool.inl"
+#include "KryneEngine/Core/Profiling/TracyGpuProfilerContext.hpp"
 #include "KryneEngine/Core/Window/Window.hpp"
 
 #if !VK_KHR_portability_subset
@@ -169,6 +170,15 @@ namespace KryneEngine
 
         _SelectPhysicalDevice();
 
+        VkPhysicalDeviceProperties physicalDeviceProperties;
+        vkGetPhysicalDeviceProperties(m_physicalDevice, &physicalDeviceProperties);
+
+        if (physicalDeviceProperties.limits.timestampPeriod > 0.f && physicalDeviceProperties.limits.timestampComputeAndGraphics)
+        {
+            m_gpuTimestampPeriod = physicalDeviceProperties.limits.timestampPeriod;
+            m_supportsTimestampQueries = true;
+        }
+
         if (m_appInfo.m_features.m_present)
         {
             m_surface.UpdateCapabilities(m_physicalDevice);
@@ -212,7 +222,13 @@ namespace KryneEngine
             KE_ZoneScoped("Frame contexts init");
 
             m_frameContexts.Resize(m_frameContextCount);
-            m_frameContexts.InitAll(m_device, m_queueIndices);
+            m_frameContexts.InitAll(
+                m_allocator,
+                m_device,
+                m_queueIndices,
+                m_supportsTimestampQueries && m_supportsTimestampCalibration ? m_appInfo.m_features.m_gpuTimestampBufferCapacity : 0);
+
+            m_frameContexts[m_frameId % m_frameContextCount].m_frameId = m_frameId;
 
 #if !defined(KE_FINAL)
             for (auto i = 0u; i < m_frameContextCount; i++)
@@ -221,6 +237,8 @@ namespace KryneEngine
             }
 #endif
         }
+
+        CalibrateCpuGpuClocks();
 
         m_descriptorSetManager.Init(m_frameContextCount, m_frameId % m_frameContextCount);
     }
@@ -264,6 +282,19 @@ namespace KryneEngine
 
         const u8 frameIndex = _frameId % m_frameContextCount;
         m_frameContexts[frameIndex].WaitForFences(m_device, _frameId);
+
+        const u64 start = _frameId > kInitialFrameId + m_frameContextCount - 1
+                              ? _frameId + 1 - m_frameContextCount
+                              : kInitialFrameId;
+        for (u64 i = start; i <= _frameId; i++)
+        {
+            m_frameContexts[i % m_frameContextCount].ResolveTimestamps(m_device, m_gpuTimestampPeriod, m_cpuTimestampOffset);
+            m_lastResolvedFrame = i;
+            if (m_profilerContext != nullptr)
+            {
+                m_profilerContext->ResolveQueries(this, i);
+            }
+        }
     }
 
     bool VkGraphicsContext::HasDedicatedTransferQueue() const
@@ -334,18 +365,33 @@ namespace KryneEngine
             m_swapChain.Present(m_presentQueue, queueSemaphores);
         }
 
+        if (m_profilerContext != nullptr)
+        {
+            m_profilerContext->EndFrame(m_frameId);
+        }
+
         FrameMark;
 
         const u64 nextFrameId = m_frameId + 1;
         const u8 nextFrameContextIndex = nextFrameId % m_frameContextCount;
+        VkFrameContext& nextFrameContext = m_frameContexts[nextFrameContextIndex];
         if (nextFrameId >= m_frameContextCount)
         {
-            auto& nextFrameContext = m_frameContexts[nextFrameContextIndex];
             nextFrameContext.WaitForFences(m_device, nextFrameId - m_frameContextCount);
             nextFrameContext.m_graphicsCommandPoolSet.Reset();
             nextFrameContext.m_computeCommandPoolSet.Reset();
             nextFrameContext.m_transferCommandPoolSet.Reset();
+            if (m_lastResolvedFrame < nextFrameId - m_frameContextCount)
+            {
+                nextFrameContext.ResolveTimestamps(m_device, m_gpuTimestampPeriod, m_cpuTimestampOffset);
+                m_lastResolvedFrame = nextFrameId - m_frameContextCount;
+                if (m_profilerContext != nullptr)
+                {
+                    m_profilerContext->ResolveQueries(this, nextFrameId - m_frameContextCount);
+                }
+            }
         }
+        nextFrameContext.m_frameId = nextFrameId;
 
         m_descriptorSetManager.NextFrame(m_device, m_resources, nextFrameContextIndex);
 
@@ -757,6 +803,19 @@ namespace KryneEngine
                 next = &synchronization2Features;
             }
 
+            if (m_appInfo.m_features.m_gpuTimestamps != GraphicsCommon::SoftEnable::Disabled)
+            {
+                if (find(VK_KHR_CALIBRATED_TIMESTAMPS_EXTENSION_NAME))
+                {
+                    requiredExtensions.push_back(VK_KHR_CALIBRATED_TIMESTAMPS_EXTENSION_NAME);
+                    m_supportsTimestampCalibration = true;
+                }
+                else
+                {
+                    KE_ASSERT(m_appInfo.m_features.m_gpuTimestamps != GraphicsCommon::SoftEnable::ForceEnabled);
+                }
+            }
+
             if (find("VK_KHR_portability_subset"))
             {
                 requiredExtensions.push_back("VK_KHR_portability_subset");
@@ -800,6 +859,31 @@ namespace KryneEngine
                 vkGetDeviceProcAddr(m_device, "vkCmdEndDebugUtilsLabelEXT"));
             m_vkCmdInsertDebugUtilsLabelExt = reinterpret_cast<PFN_vkCmdInsertDebugUtilsLabelEXT>(
                 vkGetDeviceProcAddr(m_device, "vkCmdInsertDebugUtilsLabelEXT"));
+        }
+
+        if (m_supportsTimestampCalibration)
+        {
+            m_vkGetCalibratedTimestampsKHR = reinterpret_cast<PFN_vkGetCalibratedTimestampsKHR>(
+                vkGetDeviceProcAddr(m_device, "vkGetCalibratedTimestampsKHR"));
+            m_supportsTimestampCalibration = m_vkGetCalibratedTimestampsKHR != nullptr;
+
+            auto* getFunc = reinterpret_cast<PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR>(
+                vkGetInstanceProcAddr(m_instance, "vkGetPhysicalDeviceCalibrateableTimeDomainsKHR"));
+
+            u32 size = 0;
+            VkTimeDomainKHR domainArray[4];
+            getFunc(m_physicalDevice, &size, nullptr);
+            KE_ASSERT(size <= eastl::size(domainArray));
+            getFunc(m_physicalDevice, &size, domainArray);
+
+            for (int i = 0; i < size; i++)
+            {
+                if (domainArray[i] != VK_TIME_DOMAIN_DEVICE_EXT)
+                {
+                    m_cpuTimeDomain = domainArray[i];
+                    break;
+                }
+            }
         }
     }
 
@@ -1717,5 +1801,88 @@ namespace KryneEngine
         m_vkCmdInsertDebugUtilsLabelExt(
             reinterpret_cast<CommandList>(_commandList),
             &label);
+    }
+
+    void VkGraphicsContext::CalibrateCpuGpuClocks()
+    {
+        if (!m_supportsTimestampCalibration)
+            return;
+
+        const eastl::array<VkCalibratedTimestampInfoKHR, 2> domains {
+            VkCalibratedTimestampInfoKHR {
+                .sType = VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_KHR,
+                .timeDomain = VK_TIME_DOMAIN_DEVICE_EXT,
+            },
+            VkCalibratedTimestampInfoKHR {
+                .sType = VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_KHR,
+                .timeDomain = m_cpuTimeDomain,
+            },
+        };
+
+        eastl::array<u64, 2> rawTimestamps {};
+        u64 maxDeviation;
+
+        VkAssert(m_vkGetCalibratedTimestampsKHR(
+            m_device,
+            domains.size(),
+            domains.data(),
+            rawTimestamps.data(),
+            &maxDeviation));
+
+        u64 cpuTimestampNs;
+        switch (m_cpuTimeDomain)
+        {
+            case VK_TIME_DOMAIN_QUERY_PERFORMANCE_COUNTER_KHR:
+            {
+#ifdef _WIN32
+                LARGE_INTEGER freq{};
+                QueryPerformanceFrequency(&freq);
+                const double qpcToNs = 1e9 / double(freq.QuadPart);
+                cpuTimestampNs = uint64_t(double(rawTimestamps[1]) * qpcToNs);
+#endif
+                break;
+            }
+            case VK_TIME_DOMAIN_CLOCK_MONOTONIC_KHR:
+            case VK_TIME_DOMAIN_CLOCK_MONOTONIC_RAW_KHR:
+                cpuTimestampNs = rawTimestamps[1]; // CLOCK_MONOTONIC is already in ns
+                break;
+            default:
+                KE_FATAL("Unsupported CPU time domain");
+        }
+
+        const u64 gpuTimestampNs = static_cast<u64>(static_cast<double>(rawTimestamps[0]) * m_gpuTimestampPeriod);
+        m_cpuTimestampOffset = cpuTimestampNs - gpuTimestampNs;
+    }
+
+    TimestampHandle VkGraphicsContext::PutTimestamp(CommandListHandle _commandList)
+    {
+        return {
+
+            .m_index = m_frameContexts[m_frameId % m_frameContextCount].PutTimestamp(
+                reinterpret_cast<VkCommandBuffer>(_commandList)),
+            .m_frameId = static_cast<u32>(m_frameId),
+        };
+    }
+
+    u64 VkGraphicsContext::GetResolvedTimestamp(TimestampHandle _timestamp) const
+    {
+        if (!m_supportsTimestampQueries || !m_supportsTimestampCalibration || m_lastResolvedFrame == ~0ull)
+            return 0;
+
+        if (_timestamp.m_frameId + m_frameContextCount <= u32(m_lastResolvedFrame) || _timestamp.m_frameId > u32(m_lastResolvedFrame))
+            return 0;
+
+        return m_frameContexts[_timestamp.m_frameId % m_frameContextCount].m_resolvedTimestamps[_timestamp.m_index];
+    }
+
+    eastl::span<const u64> VkGraphicsContext::GetResolvedTimestamps(u64 _frameId) const
+    {
+        if (!m_supportsTimestampQueries || !m_supportsTimestampCalibration || m_lastResolvedFrame == ~0ull)
+            return {};
+
+        if (_frameId + m_frameContextCount <= m_lastResolvedFrame || _frameId > m_lastResolvedFrame)
+            return {};
+
+        return { m_frameContexts[_frameId % m_frameContextCount].m_resolvedTimestamps, m_appInfo.m_features.m_gpuTimestampBufferCapacity };
     }
 }

@@ -102,6 +102,9 @@ set(PlatformSrc
 
 set(ProfilingSrc
         Include/KryneEngine/Core/Profiling/TracyHeader.hpp
+        Src/Profiling/TracyGpuProfilerContext.cpp
+        Include/KryneEngine/Core/Profiling/TracyGpuProfilerContext.hpp
+        Include/KryneEngine/Core/Profiling/TracyGpuScope.hpp
 )
 
 set(ThreadsSrc

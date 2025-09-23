@@ -22,7 +22,11 @@ namespace KryneEngine
         friend class VkGraphicsContext;
 
     public:
-        VkFrameContext(VkDevice _device, const VkCommonStructures::QueueIndices& _queueIndices);
+        VkFrameContext(
+            AllocatorInstance _allocator,
+            VkDevice _device,
+            const VkCommonStructures::QueueIndices& _queueIndices,
+            u32 _timestampPoolSize);
 
         virtual ~VkFrameContext();
 
@@ -30,11 +34,21 @@ namespace KryneEngine
         void SetDebugHandler(const eastl::shared_ptr<VkDebugHandler> &_debugHandler, VkDevice _device, u8 _frameIndex);
 #endif
 
+        u32 PutTimestamp(VkCommandBuffer _commandBuffer);
+
         void Destroy(VkDevice _device);
 
         VkCommandBuffer BeginGraphicsCommandBuffer(VkDevice _device)
         {
-            return m_graphicsCommandPoolSet.BeginCommandBuffer(_device);
+            VkCommandBuffer commandBuffer = m_graphicsCommandPoolSet.BeginCommandBuffer(_device);
+
+            if (m_timestampQueryPool != VK_NULL_HANDLE && m_timestampPoolNeedsReset)
+            {
+                vkCmdResetQueryPool(commandBuffer, m_timestampQueryPool, 0, m_timestampPoolSize);
+                m_timestampPoolNeedsReset = false;
+            }
+
+            return commandBuffer;
         }
 
         void EndGraphicsCommandBuffer(VkCommandBuffer _commandList)
@@ -63,6 +77,8 @@ namespace KryneEngine
         }
 
         void WaitForFences(VkDevice _device, u64 _frameId) const;
+
+        void ResolveTimestamps(VkDevice _device, double _timestampPeriod, u64 _timestampSyncOffset);
 
     private:
         struct CommandPoolSet
@@ -99,5 +115,13 @@ namespace KryneEngine
         CommandPoolSet m_transferCommandPoolSet;
         eastl::fixed_vector<VkFence, kMaxQueueCount> m_fencesArray;
         u64 m_frameId = 0;
+
+        AllocatorInstance m_allocator;
+        VkQueryPool m_timestampQueryPool = VK_NULL_HANDLE;
+        std::atomic<u32> m_timestampPoolIndex = 0;
+        u32 m_timestampPoolSize = 0;
+        bool m_timestampPoolNeedsReset = true;
+        u64 m_lastResolvedFrame = ~0ull;
+        u64* m_resolvedTimestamps = nullptr;
     };
 } // KryneEngine

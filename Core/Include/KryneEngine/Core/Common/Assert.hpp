@@ -48,7 +48,7 @@ namespace KryneEngine::Assertion
         if (!(condition)) [[unlikely]] \
         { \
             KryneEngine::Assertion::Error(__builtin_FUNCTION(), __builtin_LINE(), __builtin_FILE(), __VA_ARGS__); \
-            throw std::runtime_error("Error was fatal"); \
+            abort(); \
         } \
     } \
     while(0)

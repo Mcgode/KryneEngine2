@@ -1,8 +1,9 @@
 #include "KryneEngine/Core/Common/Assert.hpp"
 
-#include <EASTL/vector_set.h>
-#include "KryneEngine/Core/Threads/LightweightMutex.hpp"
 #include "KryneEngine/Core/Common/StringHelpers.hpp"
+#include "KryneEngine/Core/Threads/LightweightMutex.hpp"
+#include <EASTL/vector_set.h>
+#include <cstdio>
 
 #if defined(_WIN32)
 #	include <KryneEngine/Core/Platform/Windows.h>
@@ -36,6 +37,8 @@ namespace KryneEngine::Assertion
         default:
             return CallbackResponse::Break;
         }
+#else
+        printf("Assertion failed in %s (at %s:%d):\n\n\t%s\n", _function, _file, _line, _message);
 #endif
         return CallbackResponse::Break;
     }

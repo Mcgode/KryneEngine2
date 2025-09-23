@@ -12,7 +12,9 @@
 namespace KryneEngine
 {
     MetalFrameContext::MetalFrameContext(
+        MTL::Device* _device,
         AllocatorInstance _allocator,
+        u32 _timestampCount,
         bool _graphicsAvailable,
         bool _computeAvailable,
         bool _ioAvailable,
@@ -21,7 +23,38 @@ namespace KryneEngine
         , m_computeAllocationSet(_allocator, _computeAvailable)
         , m_ioAllocationSet(_allocator, _ioAvailable)
         , m_enhancedCommandBufferErrors(_validationLayers)
-    {}
+    {
+        if (_timestampCount > 0)
+        {
+            {
+                KE_AUTO_RELEASE_POOL;
+                MTL::CounterSampleBufferDescriptor* descriptor = MTL::CounterSampleBufferDescriptor::alloc()->init();
+
+                for (auto i = 0; i < _device->counterSets()->count(); i++)
+                {
+                    auto* counterSet = reinterpret_cast<MTL::CounterSet*>(_device->counterSets()->object(i));
+                    if (counterSet->name()->isEqualToString(MTL::CommonCounterSetTimestamp))
+                    {
+                        descriptor->setCounterSet(counterSet);
+                        break;
+                    }
+                }
+                KE_ASSERT_FATAL(descriptor->counterSet() != nullptr);
+
+                descriptor->setStorageMode(MTL::StorageMode::StorageModeShared);
+                descriptor->setSampleCount(_timestampCount);
+#if !defined(KE_FINAL)
+                descriptor->setLabel(NS::String::string("TimestampBuffer", NS::UTF8StringEncoding));
+#endif
+                NS::Error* error = nullptr;
+                m_sampleBuffer = _device->newCounterSampleBuffer(descriptor, &error);
+                KE_ASSERT_FATAL_MSG(m_sampleBuffer != nullptr, error->localizedDescription()->cString(NS::UTF8StringEncoding));
+            }
+
+            m_resolvedTimestamps.SetAllocator(_allocator);
+            m_resolvedTimestamps.Resize(_timestampCount);
+        }
+    }
 
     CommandList MetalFrameContext::BeginGraphicsCommandList(MTL::CommandQueue& _queue)
     {
@@ -59,6 +92,38 @@ namespace KryneEngine
         m_graphicsAllocationSet.Wait();
         m_computeAllocationSet.Wait();
         m_ioAllocationSet.Wait();
+    }
+
+    void MetalFrameContext::ResolveCounters(const TimestampConversion& _conversion)
+    {
+        if (m_sampleBuffer == nullptr)
+            return;
+
+        if (m_lastResolvedFrame == m_frameId)
+            return;
+        m_lastResolvedFrame = m_frameId;
+
+        const u32 sampleCount = m_timestampIndex.load(std::memory_order_acquire);
+        if (sampleCount == 0)
+            return;
+
+        m_timestampIndex.store(0, std::memory_order_release);
+
+        KE_AUTO_RELEASE_POOL;
+        const NS::Data* resolvedNsData = m_sampleBuffer->resolveCounterRange(NS::Range(0, sampleCount));
+        KE_ASSERT(resolvedNsData != nullptr);
+        KE_ASSERT(resolvedNsData->length() == sampleCount * sizeof(MTL::CounterResultTimestamp));
+
+        const auto* resolvedTimestamps = reinterpret_cast<const MTL::CounterResultTimestamp*>(resolvedNsData->mutableBytes());
+        for (u32 i = 0; i < sampleCount; ++i)
+        {
+            m_resolvedTimestamps[i] = _conversion.ConvertGpuTimestamp(resolvedTimestamps[i].timestamp);
+        }
+    }
+
+    u32 MetalFrameContext::AllocateTimestamp()
+    {
+        return m_timestampIndex.fetch_add(1, std::memory_order_acquire);
     }
 
     MetalFrameContext::AllocationSet::AllocationSet(AllocatorInstance _allocator, bool _available)

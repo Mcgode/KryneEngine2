@@ -75,9 +75,16 @@ namespace KryneEngine
 
         bool m_debugUtils = false;
         bool m_debugMarkers = false;
+        bool m_supportsTimestampQueries = false;
+        bool m_supportsTimestampCalibration = false;
+        double m_gpuTimestampPeriod = 0;
+        u64 m_cpuTimestampOffset = 0;
+        VkTimeDomainKHR m_cpuTimeDomain;
+        mutable u64 m_lastResolvedFrame = ~0ull;
         PFN_vkCmdBeginDebugUtilsLabelEXT m_vkCmdBeginDebugUtilsLabelExt = nullptr;
         PFN_vkCmdEndDebugUtilsLabelEXT m_vkCmdEndDebugUtilsLabelExt = nullptr;
         PFN_vkCmdInsertDebugUtilsLabelEXT m_vkCmdInsertDebugUtilsLabelExt = nullptr;
+        PFN_vkGetCalibratedTimestampsKHR m_vkGetCalibratedTimestampsKHR = nullptr;
 
         bool m_synchronization2 = false;
         PFN_vkCmdPipelineBarrier2KHR m_vkCmdPipelineBarrier2KHR = nullptr;
@@ -243,6 +250,11 @@ namespace KryneEngine
         CommandListHandle _commandList,
         const eastl::string_view& _markerName,
         const Color& _color) override;
+
+    void CalibrateCpuGpuClocks() override;
+    TimestampHandle PutTimestamp(CommandListHandle _commandList) override;
+    u64 GetResolvedTimestamp(TimestampHandle _timestamp) const override;
+    eastl::span<const u64> GetResolvedTimestamps(u64 _frameId) const override;
 
 private:
         VkResources m_resources;

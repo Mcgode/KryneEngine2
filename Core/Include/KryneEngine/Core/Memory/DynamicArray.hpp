@@ -213,6 +213,11 @@ namespace KryneEngine
             return m_array;
         }
 
+        [[nodiscard]] const Ptr Data() const
+        {
+            return m_array;
+        }
+
     private:
         Ptr m_array = nullptr;
         size_t m_count = 0;

@@ -8,6 +8,7 @@
 
 #include "KryneEngine/Core/Graphics/EnumHelpers.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/TextureView.hpp"
+#include "KryneEngine/Core/Profiling/TracyGpuProfilerContext.hpp"
 #include "KryneEngine/Core/Window/Window.hpp"
 
 #if defined(KE_GRAPHICS_API_VK)
@@ -36,10 +37,19 @@ namespace KryneEngine
         Window* _window,
         AllocatorInstance _allocator)
     {
-        return _allocator.New<Implementation>(_allocator, _appInfo, _window);
+        auto* context = _allocator.New<Implementation>(_allocator, _appInfo, _window);
+#if defined(TRACY_ENABLE)
+        context->m_profilerContext = context->m_allocator.New<TracyGpuProfilerContext>(
+            _allocator, context->GetFrameContextCount());
+#endif
+        return context;
     }
     void GraphicsContext::Destroy(GraphicsContext* _context)
     {
+        if (_context->m_profilerContext != nullptr)
+        {
+            _context->m_allocator.Delete(_context->m_profilerContext);
+        }
         _context->m_allocator.Delete(reinterpret_cast<Implementation*>(_context));;
     }
 

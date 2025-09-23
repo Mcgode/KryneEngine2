@@ -6,8 +6,10 @@
 
 #pragma once
 
+#include <atomic>
 #include <EASTL/vector.h>
 
+#include "KryneEngine/Core/Memory/DynamicArray.hpp"
 #include "Graphics/Metal/MetalTypes.hpp"
 
 namespace KryneEngine
@@ -18,7 +20,9 @@ namespace KryneEngine
 
     public:
         MetalFrameContext(
+            MTL::Device* _device,
             AllocatorInstance _allocator,
+            u32 _timestampCount,
             bool _graphicsAvailable,
             bool _computeAvailable,
             bool _ioAvailable,
@@ -29,6 +33,10 @@ namespace KryneEngine
         void PrepareForNextFrame(u64 _frameId);
 
         void WaitForFrame(u64 _frameId);
+
+        void ResolveCounters(const TimestampConversion& _conversion);
+
+        u32 AllocateTimestamp();
 
     private:
         struct AllocationSet
@@ -48,5 +56,10 @@ namespace KryneEngine
         AllocationSet m_ioAllocationSet;
         u64 m_frameId;
         bool m_enhancedCommandBufferErrors;
+
+        NsPtr<MTL::CounterSampleBuffer> m_sampleBuffer;
+        DynamicArray<u64> m_resolvedTimestamps;
+        std::atomic<u32> m_timestampIndex;
+        u64 m_lastResolvedFrame = ~0ull;
     };
 } // namespace KryneEngine

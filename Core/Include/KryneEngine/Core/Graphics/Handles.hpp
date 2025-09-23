@@ -23,4 +23,10 @@ namespace KryneEngine
     KE_GENPOOL_DECLARE_HANDLE(PipelineLayoutHandle);
     KE_GENPOOL_DECLARE_HANDLE(GraphicsPipelineHandle);
     KE_GENPOOL_DECLARE_HANDLE(ComputePipelineHandle);
+
+    struct TimestampHandle
+    {
+        u32 m_index;
+        u32 m_frameId;
+    };
 }

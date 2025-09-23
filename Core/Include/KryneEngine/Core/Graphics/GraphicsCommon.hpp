@@ -58,6 +58,8 @@ namespace KryneEngine::GraphicsCommon
         {
             bool m_validationLayers = true;
             SoftEnable m_debugTags = SoftEnable::TryEnable;
+            SoftEnable m_gpuTimestamps = SoftEnable::TryEnable;
+            u32 m_gpuTimestampBufferCapacity = 4'096;
 
             bool m_graphics = true;
             bool m_present = true;

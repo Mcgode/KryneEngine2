@@ -49,4 +49,16 @@ namespace KryneEngine
     };
 
     using CommandList = CommandListData*;
+
+    struct TimestampConversion
+    {
+        double m_gpuFrequency = 0.f;
+        u64 m_gpuReference = 0;
+        u64 m_cpuReference = 0;
+
+        [[nodiscard]] u64 ConvertGpuTimestamp(u64 _gpuTimestamp) const
+        {
+            return m_cpuReference + static_cast<u64>(static_cast<double>(_gpuTimestamp - m_gpuReference) * m_gpuFrequency);
+        }
+    };
 }

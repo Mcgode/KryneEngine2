@@ -5,6 +5,7 @@
  */
 
 #include "Graphics/Metal/MetalGraphicsContext.hpp"
+#include <cstdio>
 
 #include "Graphics/Metal/MetalFrameContext.hpp"
 #include "Graphics/Metal/MetalSwapChain.hpp"
@@ -54,6 +55,23 @@ namespace KryneEngine
             }
         }
 
+        u32 gpuTimestampBufferCapacity = 0;
+        if (_appInfo.m_features.m_gpuTimestamps != GraphicsCommon::SoftEnable::Disabled)
+        {
+            for (auto i = 0; i < m_device->counterSets()->count(); ++i)
+            {
+                auto* counterSet = reinterpret_cast<MTL::CounterSet*>(m_device->counterSets()->object(i));
+                if (counterSet->name()->isEqualToString(MTL::CommonCounterSetTimestamp))
+                {
+                    m_supportsDrawBoundarySampling = m_device->supportsCounterSampling(MTL::CounterSamplingPointAtDrawBoundary);
+                    m_supportsDispatchBoundarySampling = m_device->supportsCounterSampling(MTL::CounterSamplingPointAtDispatchBoundary);
+                    m_supportsBlitBoundarySampling = m_device->supportsCounterSampling(MTL::CounterSamplingPointAtBlitBoundary);
+
+                    gpuTimestampBufferCapacity = m_appInfo.m_features.m_gpuTimestampBufferCapacity;
+                }
+            }
+        }
+
         m_frameContextCount = 2;
         const u8 frameIndex = m_frameId % m_frameContextCount;
 
@@ -68,7 +86,9 @@ namespace KryneEngine
 
         m_frameContexts.Resize(m_frameContextCount);
         m_frameContexts.InitAll(
+            m_device.get(),
             _allocator,
+            gpuTimestampBufferCapacity,
             m_graphicsQueue != nullptr,
             m_computeQueue != nullptr,
             m_ioQueue != nullptr,
