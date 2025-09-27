@@ -381,7 +381,7 @@ namespace KryneEngine
             nextFrameContext.m_graphicsCommandPoolSet.Reset();
             nextFrameContext.m_computeCommandPoolSet.Reset();
             nextFrameContext.m_transferCommandPoolSet.Reset();
-            if (m_lastResolvedFrame < nextFrameId - m_frameContextCount)
+            if (m_lastResolvedFrame == ~0ull || m_lastResolvedFrame < nextFrameId - m_frameContextCount)
             {
                 nextFrameContext.ResolveTimestamps(m_device, m_gpuTimestampPeriod, m_cpuTimestampOffset);
                 m_lastResolvedFrame = nextFrameId - m_frameContextCount;
