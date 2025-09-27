@@ -281,7 +281,7 @@ namespace KryneEngine::Modules::ImGui
 
         ::ImGui::Render();
 
-        if (m_stagingData != nullptr && m_stagingData->m_stagingFrame != _graphicsContext->GetFrameId())
+        if (m_stagingData != nullptr && m_stagingData->m_stagingFrame == _graphicsContext->GetFrameId())
         {
             {
                 BufferMemoryBarrier stagingBufferBarrier {
