@@ -34,63 +34,19 @@ namespace KryneEngine::Modules::RenderGraph
         return *this;
     }
 
-    void Builder::PrintBuildResult()
+    void Builder::BuildDag()
     {
-        std::cout << "Declared passes:" << std::endl;
-        std::string indent = "";
-        size_t index = 0;
+        if (m_isBuilt)
+            return;
+
+        KE_ZoneScopedFunction("Builder::BuildDag");
 
         m_dag.resize(m_declaredPasses.size());
         m_passAlive.resize(m_declaredPasses.size(), false);
 
-        {
-            KE_ZoneScoped("Printing passes");
+        m_isBuilt = true;
 
-            for (const PassDeclaration& pass : m_declaredPasses)
-            {
-                indent.push_back('\t');
-                std::cout << "- [" << index << "] '" << pass.m_name.m_string.c_str() << "' - ";
-                switch (pass.m_type)
-                {
-                case PassType::Render:
-                    std::cout << "RENDER" << std::endl;
-                    break;
-                case PassType::Compute:
-                    std::cout << "COMPUTE" << std::endl;
-                    break;
-                case PassType::Transfer:
-                    std::cout << "TRANSFER" << std::endl;
-                    break;
-                default:
-                    break;
-                }
-                indent.push_back('\t');
-
-                if (pass.m_type == PassType::Render)
-                {
-                    PrintRenderPassAttachments(pass, indent);
-                }
-                PrintDependencies(pass, indent);
-                BuildDag(index, pass);
-
-                indent.pop_back();
-                indent.pop_back();
-
-                index++;
-            }
-        }
-
-        ProcessDagDeferredCulling();
-
-        PrintDag();
-        PrintFlattenedPasses();
-    }
-
-    void Builder::BuildDag(const size_t _index, const PassDeclaration& _passDeclaration)
-    {
-        KE_ZoneScopedFunction("Builder::BuildDag");
-
-        const auto handleResourceRead = [this, _index](SimplePoolHandle _resource)
+        const auto handleResourceRead = [this](SimplePoolHandle _resource, size_t _index)
         {
             const auto versionIt = m_resourceVersions.find(m_registry.GetUnderlyingResource(_resource));
             if (versionIt != m_resourceVersions.end())
@@ -100,7 +56,7 @@ namespace KryneEngine::Modules::RenderGraph
             }
         };
 
-        const auto handleResourceWrite = [this, _index](SimplePoolHandle _resource)
+        const auto handleResourceWrite = [this](SimplePoolHandle _resource, size_t _index)
         {
             m_resourceVersions[_resource].first++;
             m_resourceVersions[_resource].second = _index;
@@ -111,29 +67,36 @@ namespace KryneEngine::Modules::RenderGraph
             }
         };
 
-        for (const Dependency& dependency: _passDeclaration.m_readDependencies)
+        for (auto i = 0; i < m_declaredPasses.size(); i++)
         {
-            handleResourceRead(dependency.m_resource);
-        }
-        for (const Dependency& dependency: _passDeclaration.m_writeDependencies)
-        {
-            handleResourceWrite(m_registry.GetUnderlyingResource(dependency.m_resource));
+            const PassDeclaration& passDeclaration = m_declaredPasses[i];
+
+            for (const Dependency& dependency: passDeclaration.m_readDependencies)
+            {
+                handleResourceRead(dependency.m_resource, i);
+            }
+            for (const Dependency& dependency: passDeclaration.m_writeDependencies)
+            {
+                handleResourceWrite(m_registry.GetUnderlyingResource(dependency.m_resource), i);
+            }
+
+            // Render targets are to be marked as implicit READ/WRITE dependencies
+            if (passDeclaration.m_type == PassType::Render)
+            {
+                for (const auto& colorAttachment: passDeclaration.m_colorAttachments)
+                {
+                    handleResourceRead(colorAttachment.m_rtv, i);
+                    handleResourceWrite(m_registry.GetUnderlyingResource(colorAttachment.m_rtv), i);
+                }
+                if (passDeclaration.m_depthAttachment.has_value())
+                {
+                    handleResourceRead(passDeclaration.m_depthAttachment->m_rtv, i);
+                    handleResourceWrite(m_registry.GetUnderlyingResource(passDeclaration.m_depthAttachment->m_rtv), i);
+                }
+            }
         }
 
-        // Render targets are to be marked as implicit READ/WRITE dependencies
-        if (_passDeclaration.m_type == PassType::Render)
-        {
-            for (const auto& colorAttachment: _passDeclaration.m_colorAttachments)
-            {
-                handleResourceRead(colorAttachment.m_rtv);
-                handleResourceWrite(m_registry.GetUnderlyingResource(colorAttachment.m_rtv));
-            }
-            if (_passDeclaration.m_depthAttachment.has_value())
-            {
-                handleResourceRead(_passDeclaration.m_depthAttachment->m_rtv);
-                handleResourceWrite(m_registry.GetUnderlyingResource(_passDeclaration.m_depthAttachment->m_rtv));
-            }
-        }
+        ProcessDagDeferredCulling();
     }
 
     void Builder::ProcessDagDeferredCulling()

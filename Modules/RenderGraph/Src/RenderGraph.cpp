@@ -36,8 +36,8 @@ namespace KryneEngine::Modules::RenderGraph
     void RenderGraph::SubmitFrame(GraphicsContext& _graphicsContext, FibersManager* _fibersManager)
     {
         {
-            KE_ZoneScoped("Build and cull render DAG");
-            m_builder->PrintBuildResult();
+            KE_ZoneScoped("Build and cull render DAG (if not already done)");
+            m_builder->BuildDag();
         }
 
         {

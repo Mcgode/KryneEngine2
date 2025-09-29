@@ -27,6 +27,7 @@ namespace KryneEngine::Modules::RenderGraph
     {
         friend class RenderGraph;
         friend class ResourceStateTracker;
+        friend class ImGuiDebugWindow;
 
     public:
         explicit Builder(Registry& _registry);
@@ -37,10 +38,9 @@ namespace KryneEngine::Modules::RenderGraph
 
         Builder& DeclareTargetResource(SimplePoolHandle _resource);
 
-        void PrintBuildResult();
+        void BuildDag();
 
     private:
-        void BuildDag(size_t _index, const PassDeclaration& _passDeclaration);
         void ProcessDagDeferredCulling();
 
         void PrintResource(SimplePoolHandle _resource, std::string& _indent);
@@ -51,6 +51,7 @@ namespace KryneEngine::Modules::RenderGraph
 
     private:
         Registry& m_registry;
+        bool m_isBuilt = false;
 
         eastl::vector<PassDeclaration> m_declaredPasses;
         eastl::hash_map<SimplePoolHandle, eastl::pair<u32, size_t>> m_resourceVersions;
