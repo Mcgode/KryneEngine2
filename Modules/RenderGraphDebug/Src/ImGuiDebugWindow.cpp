@@ -202,7 +202,10 @@ namespace KryneEngine::Modules::RenderGraph
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1, 1));
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::BeginChild(
-                "Passes graph", ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
+                "Passes graph",
+                ImVec2(0, 0),
+                true,
+                ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollWithMouse);
             ImGui::PopStyleVar(2);
 
             const ImVec2 offset = ImGui::GetCursorScreenPos() + relativeOffset;
@@ -311,6 +314,11 @@ namespace KryneEngine::Modules::RenderGraph
                 }
             }
             drawList->ChannelsMerge();
+
+            if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive() && ImGui::IsMouseDragging(1, 0.f))
+            {
+                relativeOffset += ImGui::GetIO().MouseDelta;
+            }
 
             ImGui::EndChild();
         }
