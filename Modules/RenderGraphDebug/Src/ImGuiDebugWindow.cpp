@@ -93,200 +93,227 @@ namespace KryneEngine::Modules::RenderGraph
             eastl::vector<Link> m_downwardLinks {};
         };
         eastl::vector<Layer> layers;
-
-        for (u32 i = 0; i < _builder.m_dag.size(); i++)
         {
-            if (cullUnusedPasses && !_builder.m_passAlive[i])
-                continue;
+            KE_ZoneScoped("Generate layers");
 
-            if (_builder.m_dag[i].m_parents.empty())
+            for (u32 i = 0; i < _builder.m_dag.size(); i++)
             {
-                layersIndices[i] = 0;
-            }
-            else
-            {
-                u32 maxParentLayer = 0;
-                for (const u32 parent : _builder.m_dag[i].m_parents)
+                if (cullUnusedPasses && !_builder.m_passAlive[i])
                 {
-                    KE_ASSERT(layersIndices[parent] != invalid);
-
-                    if (layersIndices[parent] > maxParentLayer)
-                    {
-                        maxParentLayer = layersIndices[parent];
-                    }
+                    continue;
                 }
-                layersIndices[i] = maxParentLayer + 1;
+
+                if (_builder.m_dag[i].m_parents.empty())
+                {
+                    layersIndices[i] = 0;
+                }
+                else
+                {
+                    u32 maxParentLayer = 0;
+                    for (const u32 parent : _builder.m_dag[i].m_parents)
+                    {
+                        KE_ASSERT(layersIndices[parent] != invalid);
+
+                        if (layersIndices[parent] > maxParentLayer)
+                        {
+                            maxParentLayer = layersIndices[parent];
+                        }
+                    }
+                    layersIndices[i] = maxParentLayer + 1;
+                }
+
+                if (layersIndices[i] >= layers.size())
+                {
+                    layers.resize(
+                        layersIndices[i] + 1, Layer{.m_nodes{_tempAllocator}, .m_downwardLinks{_tempAllocator}});
+                }
+
+                const u32 layerIndex = layersIndices[i];
+                Layer& layer = layers[layerIndex];
+
+                const float nodeWidth = eastl::max(
+                    ImGui::CalcTextSize(_builder.m_declaredPasses[i].m_name.m_string.c_str()).x + 2 * padding.x,
+                    minNodeWidth);
+                layer.m_nodes.emplace_back(i, nodeWidth);
+                layer.m_totalWidth += nodeWidth;
             }
-
-            if (layersIndices[i] >= layers.size())
-            {
-                layers.resize(
-                    layersIndices[i] + 1,
-                    Layer{ .m_nodes { _tempAllocator }, .m_downwardLinks { _tempAllocator }});
-            }
-
-            const u32 layerIndex = layersIndices[i];
-            Layer& layer = layers[layerIndex];
-
-            const float nodeWidth = eastl::max(
-                ImGui::CalcTextSize(_builder.m_declaredPasses[i].m_name.m_string.c_str()).x + 2 * padding.x,
-                minNodeWidth);
-            layer.m_nodes.emplace_back(i, nodeWidth);
-            layer.m_totalWidth += nodeWidth;
         }
 
         u32 fakeVertexCount = 0;
-        for (u32 i = 0; i < layers.size(); i++)
         {
-            Layer& layer = layers[i];
-            for (const Node& node: layer.m_nodes)
-            {
-                if (node.m_index & fakeVertexFlag)
-                    continue;
+            KE_ZoneScoped("Generate links and fake vertices");
 
-                for (u32 child : _builder.m_dag[node.m_index].m_children)
+            for (u32 i = 0; i < layers.size(); i++)
+            {
+                Layer& layer = layers[i];
+                for (const Node& node : layer.m_nodes)
                 {
-                    const bool selected = selectedPass == _builder.m_declaredPasses[child].m_name.m_hash ||
-                        selectedPass == _builder.m_declaredPasses[node.m_index].m_name.m_hash;;
-                    u32 currentNode = node.m_index;
-                    u32 j = i;
-                    for (; j + 1 < layersIndices[child]; j++)
+                    if (node.m_index & fakeVertexFlag)
                     {
-                        const u32 newNode = (fakeVertexCount++) | fakeVertexFlag;
-                        layers[j].m_downwardLinks.push_back(Link {
-                            .m_parent = currentNode,
-                            .m_child = newNode,
-                            .m_selected = selected,
-                        });
-                        layers[j + 1].m_nodes.emplace_back(newNode, 0.f);
-                        currentNode = newNode;
+                        continue;
                     }
-                    layers[j].m_downwardLinks.emplace_back(currentNode, child, selected);
+
+                    for (u32 child : _builder.m_dag[node.m_index].m_children)
+                    {
+                        const bool selected = selectedPass == _builder.m_declaredPasses[child].m_name.m_hash
+                                              || selectedPass == _builder.m_declaredPasses[node.m_index].m_name.m_hash;
+                        ;
+                        u32 currentNode = node.m_index;
+                        u32 j = i;
+                        for (; j + 1 < layersIndices[child]; j++)
+                        {
+                            const u32 newNode = (fakeVertexCount++) | fakeVertexFlag;
+                            layers[j].m_downwardLinks.push_back(
+                                Link{
+                                    .m_parent = currentNode,
+                                    .m_child = newNode,
+                                    .m_selected = selected,
+                                });
+                            layers[j + 1].m_nodes.emplace_back(newNode, 0.f);
+                            currentNode = newNode;
+                        }
+                        layers[j].m_downwardLinks.emplace_back(currentNode, child, selected);
+                    }
                 }
             }
         }
 
-        // Set final node horizontal position
         eastl::vector<eastl::pair<float, float>> horizontalOffset(_builder.m_dag.size() + fakeVertexCount, _tempAllocator);
-        for (Layer& layer: layers)
         {
-            layer.m_totalWidth += horizontalSpacing * static_cast<float>(layer.m_nodes.size() - 1);
-            float currentOffset = -layer.m_totalWidth / 2.f;
-            for (Node& node: layer.m_nodes)
+            KE_ZoneScoped("Set final node horizontal positioning");
+            for (Layer& layer : layers)
             {
-                const u32 hoIndex = (node.m_index & fakeVertexFlag)
-                    ? (node.m_index & ~fakeVertexFlag) + _builder.m_dag.size()
-                    : node.m_index;
-                horizontalOffset[hoIndex] = { currentOffset, node.m_width };
-                currentOffset += node.m_width + horizontalSpacing;
+                layer.m_totalWidth += horizontalSpacing * static_cast<float>(layer.m_nodes.size() - 1);
+                float currentOffset = -layer.m_totalWidth / 2.f;
+                for (Node& node : layer.m_nodes)
+                {
+                    const u32 hoIndex = (node.m_index & fakeVertexFlag)
+                                            ? (node.m_index & ~fakeVertexFlag) + _builder.m_dag.size()
+                                            : node.m_index;
+                    horizontalOffset[hoIndex] = {currentOffset, node.m_width};
+                    currentOffset += node.m_width + horizontalSpacing;
+                }
             }
         }
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1, 1));
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        ImGui::BeginChild("Passes graph", ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
-        ImGui::PopStyleVar(2);
-
-        const ImVec2 offset = ImGui::GetCursorScreenPos() + relativeOffset;
-        ImDrawList* drawList = ImGui::GetWindowDrawList();
-        drawList->ChannelsSplit(2);
-
-        drawList->ChannelsSetCurrent(0);
-        for (u32 layerIndex = 0; layerIndex < layers.size(); layerIndex++)
         {
-            const Layer& layer = layers[layerIndex];
-            for (const Link& link: layer.m_downwardLinks)
-            {
-                const u32 hoIndex0 = (link.m_parent & fakeVertexFlag)
-                                        ? (link.m_parent & ~fakeVertexFlag) + _builder.m_dag.size()
-                                        : link.m_parent;
-                ImVec2 p0 {
-                    horizontalOffset[hoIndex0].first + horizontalOffset[hoIndex0].second / 2.f,
-                    link.m_parent & fakeVertexFlag
-                        ? float(layerIndex) * (nodeHeight + verticalSpacing)
-                        : float(layerIndex) * (nodeHeight + verticalSpacing) + nodeHeight / 2.f
-                };
-                p0 += offset;
+            KE_ZoneScoped("Draw graph");
 
-                const u32 hoIndex1 = (link.m_child & fakeVertexFlag)
-                                         ? (link.m_child & ~fakeVertexFlag) + _builder.m_dag.size()
-                                         : link.m_child;
-                ImVec2 p1 {
-                    horizontalOffset[hoIndex1].first + horizontalOffset[hoIndex1].second / 2.f,
-                    link.m_child & fakeVertexFlag
-                        ? float(layerIndex + 1) * (nodeHeight + verticalSpacing)
-                        : float(layerIndex + 1) * (nodeHeight + verticalSpacing) - nodeHeight / 2.f
-                };
-                p1 += offset;
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1, 1));
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+            ImGui::BeginChild(
+                "Passes graph", ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
+            ImGui::PopStyleVar(2);
 
-                drawList->AddBezierCubic(
-                    p0,
-                    p0 + ImVec2{ 0, verticalSpacing + (link.m_parent & fakeVertexFlag ? nodeHeight / 2.f : 0.f) },
-                    p1 - ImVec2{ 0, verticalSpacing + (link.m_child & fakeVertexFlag ? nodeHeight / 2.f : 0.f) },
-                    p1,
-                    link.m_selected ? IM_COL32(255, 255, 128, 100) : IM_COL32(255, 255, 255, 40),
-                    link.m_selected ? 4.f : 2.f);
-            }
-        }
-
-        constexpr ImU32 renderPassColor = IM_COL32(60, 10, 10, 200);
-        constexpr ImU32 computePassColor = IM_COL32(10, 10, 60, 200);
-        constexpr ImU32 transferPassColor = IM_COL32(10, 60, 10, 200);
-
-        for (u32 i = 0; i < _builder.m_dag.size(); i++)
-        {
-            if (layersIndices[i] == invalid)
-                continue;
-
-            ImGui::PushID(_builder.m_dag.data() + i);
-
-            drawList->ChannelsSetCurrent(1);
-            const ImVec2 rectMin = offset + ImVec2(
-                                       horizontalOffset[i].first,
-                                       (nodeHeight + verticalSpacing) * static_cast<float>(layersIndices[i]) - nodeHeight / 2.f);
-            ImGui::SetCursorScreenPos(rectMin + padding);
-            ImGui::BeginGroup();
-            ImGui::Text("%s", _builder.m_declaredPasses[i].m_name.m_string.c_str());
-            ImU32 color;
-            switch (_builder.m_declaredPasses[i].m_type)
-            {
-            case PassType::Render:
-                color = renderPassColor;
-                ImGui::Text("Render");
-                break;
-            case PassType::Compute:
-                color = computePassColor;
-                ImGui::Text("Compute");
-                break;
-            case PassType::Transfer:
-                color = transferPassColor;
-                ImGui::Text("Transfer");
-                break;
-            default:
-                KE_FATAL("Unsupported");
-            }
-            ImGui::EndGroup();
-            const ImVec2 rectMax = ImGui::GetItemRectSize() + rectMin + padding + padding;
+            const ImVec2 offset = ImGui::GetCursorScreenPos() + relativeOffset;
+            ImDrawList* drawList = ImGui::GetWindowDrawList();
+            drawList->ChannelsSplit(2);
 
             drawList->ChannelsSetCurrent(0);
-            ImGui::SetCursorScreenPos(rectMin);
-            ImGui::InvisibleButton("##pass", rectMax - rectMin);
-            if (ImGui::IsItemActive())
             {
-                selectedPass = _builder.m_declaredPasses[i].m_name.m_hash;
+                KE_ZoneScoped("Draw links");
+                for (u32 layerIndex = 0; layerIndex < layers.size(); layerIndex++)
+                {
+                    const Layer& layer = layers[layerIndex];
+                    for (const Link& link : layer.m_downwardLinks)
+                    {
+                        const u32 hoIndex0 = (link.m_parent & fakeVertexFlag)
+                                                 ? (link.m_parent & ~fakeVertexFlag) + _builder.m_dag.size()
+                                                 : link.m_parent;
+                        ImVec2 p0{
+                            horizontalOffset[hoIndex0].first + horizontalOffset[hoIndex0].second / 2.f,
+                            link.m_parent & fakeVertexFlag
+                                ? float(layerIndex) * (nodeHeight + verticalSpacing)
+                                : float(layerIndex) * (nodeHeight + verticalSpacing) + nodeHeight / 2.f};
+                        p0 += offset;
+
+                        const u32 hoIndex1 = (link.m_child & fakeVertexFlag)
+                                                 ? (link.m_child & ~fakeVertexFlag) + _builder.m_dag.size()
+                                                 : link.m_child;
+                        ImVec2 p1{
+                            horizontalOffset[hoIndex1].first + horizontalOffset[hoIndex1].second / 2.f,
+                            link.m_child & fakeVertexFlag
+                                ? float(layerIndex + 1) * (nodeHeight + verticalSpacing)
+                                : float(layerIndex + 1) * (nodeHeight + verticalSpacing) - nodeHeight / 2.f};
+                        p1 += offset;
+
+                        drawList->AddBezierCubic(
+                            p0,
+                            p0 + ImVec2{0, verticalSpacing + (link.m_parent & fakeVertexFlag ? nodeHeight / 2.f : 0.f)},
+                            p1 - ImVec2{0, verticalSpacing + (link.m_child & fakeVertexFlag ? nodeHeight / 2.f : 0.f)},
+                            p1,
+                            link.m_selected ? IM_COL32(255, 255, 128, 100) : IM_COL32(255, 255, 255, 40),
+                            link.m_selected ? 4.f : 2.f);
+                    }
+                }
             }
 
-            drawList->AddRectFilled(rectMin, rectMax, color, 4.f);
-            if (selectedPass == _builder.m_declaredPasses[i].m_name.m_hash)
-            {
-                drawList->AddRect(rectMin, rectMax, IM_COL32(255, 255, 255, 255), 4.f);
-            }
+            constexpr ImU32 renderPassColor = IM_COL32(60, 10, 10, 200);
+            constexpr ImU32 computePassColor = IM_COL32(10, 10, 60, 200);
+            constexpr ImU32 transferPassColor = IM_COL32(10, 60, 10, 200);
 
-            ImGui::PopID();
+            {
+                KE_ZoneScoped("Draw nodes");
+                for (u32 i = 0; i < _builder.m_dag.size(); i++)
+                {
+                    if (layersIndices[i] == invalid)
+                    {
+                        continue;
+                    }
+
+                    ImGui::PushID(_builder.m_dag.data() + i);
+
+                    drawList->ChannelsSetCurrent(1);
+                    const ImVec2 rectMin =
+                        offset
+                        + ImVec2(
+                            horizontalOffset[i].first,
+                            (nodeHeight + verticalSpacing) * static_cast<float>(layersIndices[i]) - nodeHeight / 2.f);
+                    ImGui::SetCursorScreenPos(rectMin + padding);
+                    ImGui::BeginGroup();
+                    ImGui::Text("%s", _builder.m_declaredPasses[i].m_name.m_string.c_str());
+                    ImU32 color;
+                    switch (_builder.m_declaredPasses[i].m_type)
+                    {
+                    case PassType::Render:
+                        color = renderPassColor;
+                        ImGui::Text("Render");
+                        break;
+                    case PassType::Compute:
+                        color = computePassColor;
+                        ImGui::Text("Compute");
+                        break;
+                    case PassType::Transfer:
+                        color = transferPassColor;
+                        ImGui::Text("Transfer");
+                        break;
+                    default:
+                        KE_FATAL("Unsupported");
+                    }
+                    ImGui::EndGroup();
+                    const ImVec2 rectMax = ImGui::GetItemRectSize() + rectMin + padding + padding;
+
+                    drawList->ChannelsSetCurrent(0);
+                    ImGui::SetCursorScreenPos(rectMin);
+                    ImGui::InvisibleButton("##pass", rectMax - rectMin);
+                    if (ImGui::IsItemActive())
+                    {
+                        selectedPass = _builder.m_declaredPasses[i].m_name.m_hash;
+                    }
+
+                    drawList->AddRectFilled(rectMin, rectMax, color, 4.f);
+                    if (selectedPass == _builder.m_declaredPasses[i].m_name.m_hash)
+                    {
+                        drawList->AddRect(rectMin, rectMax, IM_COL32(255, 255, 255, 255), 4.f);
+                    }
+
+                    ImGui::PopID();
+                }
+            }
+            drawList->ChannelsMerge();
+
+            ImGui::EndChild();
         }
-        drawList->ChannelsMerge();
-
-        ImGui::EndChild();
     }
 
     void ImGuiDebugWindow::DisplayBuilderResources(
