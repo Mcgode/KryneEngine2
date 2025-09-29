@@ -15,7 +15,7 @@
 #include <KryneEngine/Modules/RenderGraph/Registry.hpp>
 #include <KryneEngine/Modules/RenderGraph/RenderGraph.hpp>
 #include <KryneEngine/Modules/RenderGraph/Resource.hpp>
-#include <iostream>
+#include <KryneEngine/Modules/RenderGraph/ImGuiDebugWindow.hpp>
 
 #include "Rendering/ColorMappingPass.hpp"
 #include "Rendering/DeferredShadingPass.hpp"
@@ -27,44 +27,6 @@
 using namespace KryneEngine;
 using namespace KryneEngine::Modules;
 using namespace KryneEngine::Samples::RenderGraphDemo;
-
-void ExecuteDeferredShadowPass(
-    RenderGraph::RenderGraph& _renderGraph,
-    RenderGraph::PassExecutionData& _passExecutionData)
-{
-    KE_ZoneScopedFunction(__FUNCTION__);
-    std::cout << "Deferred shadow pass" << std::endl;
-}
-
-void ExecuteDeferredGiPass(
-    RenderGraph::RenderGraph& _renderGraph,
-    RenderGraph::PassExecutionData& _passExecutionData)
-{
-    KE_ZoneScopedFunction(__FUNCTION__);
-    std::cout << "Deferred GI pass" << std::endl;
-}
-
-void ExecuteDeferredShadingPass(
-    RenderGraph::RenderGraph& _renderGraph,
-    RenderGraph::PassExecutionData& _passExecutionData)
-{
-    KE_ZoneScopedFunction(__FUNCTION__);
-    std::cout << "Deferred shading pass" << std::endl;
-}
-
-void ExecuteSkyPass(
-    RenderGraph::RenderGraph& _renderGraph,
-    RenderGraph::PassExecutionData& _passExecutionData)
-{
-    std::cout << "Sky pass" << std::endl;
-}
-
-void ExecuteColorMappingPass(
-    RenderGraph::RenderGraph& _renderGraph,
-    RenderGraph::PassExecutionData& _passExecutionData)
-{
-    std::cout << "Color mapping pass" << std::endl;
-}
 
 int main()
 {
@@ -562,6 +524,13 @@ int main()
         {
             KE_ZoneScoped("Process scene");
             sceneManager.Process(graphicsContext);
+        }
+
+        {
+            KE_ZoneScoped("Builder debug");
+
+            builder.BuildDag();
+            RenderGraph::ImGuiDebugWindow::DebugBuilder(builder, renderGraph.GetRegistry(), allocator);
         }
 
         {

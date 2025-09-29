@@ -28,6 +28,8 @@ add_executable(RenderGraphDemo
 
 # Link to cpp libraries
 target_link_libraries(RenderGraphDemo
+        # KryneEngine_Modules_RenderGraph   (bundled with RenderGraphDebug)
+        # KryneEngine_Modules_ImGui         (bundled with RenderGraphDebug)
         KryneEngine_Modules_RenderGraphDebug
 )
 
