@@ -10,6 +10,7 @@
 #include <imgui_internal.h>
 
 #include <EASTL/vector_map.h>
+#include <EASTL/sort.h>
 #include <imgui.h>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 
@@ -19,6 +20,14 @@
 
 namespace KryneEngine::Modules::RenderGraph
 {
+    static constexpr u32 kFakeVertexFlag = 1u << 31;
+    inline u32 GetFlatArrayIndex(u32 _nodeIndex, u32 _passCount)
+    {
+        return _nodeIndex & kFakeVertexFlag
+            ? (_nodeIndex & ~kFakeVertexFlag) + _passCount
+            : _nodeIndex;
+    }
+
     void ImGuiDebugWindow::DebugBuilder(
         const Builder& _builder,
         const Registry& _registry,
@@ -58,10 +67,21 @@ namespace KryneEngine::Modules::RenderGraph
     {
         KE_ZoneScopedFunction("ImGuiDebugWindow::DisplayBuilderPasses");
 
-        static ImVec2 relativeOffset { 300.f, 30.f };
+        static ImVec2 relativeOffset {};
+        if (ImGui::IsWindowAppearing())
+        {
+            relativeOffset = { ImGui::GetWindowSize().x / 2.f, 30.f };
+        }
 
         static bool cullUnusedPasses = false;
         ImGui::Checkbox("Cull unused passes", &cullUnusedPasses);
+
+        static s32 reorderIterations = 23;
+        if (ImGui::TreeNode("Advanced"))
+        {
+            ImGui::SliderInt("Reorder iterations", &reorderIterations, 0, 23);
+            ImGui::TreePop();
+        }
 
         static u64 selectedPass = 0;
 
@@ -71,8 +91,9 @@ namespace KryneEngine::Modules::RenderGraph
         constexpr float minNodeWidth = 50.f;
         constexpr u32 fakeVertexFlag = 1u << 31;
         const ImVec2 padding { 8.f, 8.f };
+        const u32 passCount = _builder.m_declaredPasses.size();
         const float nodeHeight = ImGui::GetTextLineHeight() * 2 + padding.y * 2 + 2.f;
-        DynamicArray<u32> layersIndices(_tempAllocator, _builder.m_dag.size(), invalid);
+        DynamicArray<u32> layersIndices(_tempAllocator, passCount, invalid);
 
         struct Node
         {
@@ -97,7 +118,7 @@ namespace KryneEngine::Modules::RenderGraph
         {
             KE_ZoneScoped("Generate layers");
 
-            for (u32 i = 0; i < _builder.m_dag.size(); i++)
+            for (u32 i = 0; i < passCount; i++)
             {
                 if (cullUnusedPasses && !_builder.m_passAlive[i])
                 {
@@ -179,7 +200,12 @@ namespace KryneEngine::Modules::RenderGraph
             }
         }
 
-        eastl::vector<eastl::pair<float, float>> horizontalOffset(_builder.m_dag.size() + fakeVertexCount, _tempAllocator);
+        struct HorizontalPosition
+        {
+            float m_center;
+            float m_halfWidth;
+        };
+        eastl::vector<HorizontalPosition> horizontalPositions(passCount + fakeVertexCount, _tempAllocator);
         {
             KE_ZoneScoped("Set final node horizontal positioning");
             for (Layer& layer : layers)
@@ -188,12 +214,191 @@ namespace KryneEngine::Modules::RenderGraph
                 float currentOffset = -layer.m_totalWidth / 2.f;
                 for (Node& node : layer.m_nodes)
                 {
-                    const u32 hoIndex = (node.m_index & fakeVertexFlag)
-                                            ? (node.m_index & ~fakeVertexFlag) + _builder.m_dag.size()
-                                            : node.m_index;
-                    horizontalOffset[hoIndex] = {currentOffset, node.m_width};
+                    const u32 hoIndex = GetFlatArrayIndex(node.m_index, passCount);
+                    horizontalPositions[hoIndex] = {
+                        currentOffset + node.m_width * 0.5f,
+                        node.m_width * 0.5f};
                     currentOffset += node.m_width + horizontalSpacing;
                 }
+            }
+        }
+
+        {
+            KE_ZoneScoped("Vertex reordering");
+
+            // Since optimal reordering is a NP-complete problem, we will be using heuristics instead.
+            // The most common heuristic is the median method, used, for instance, by the dot engine in GraphViz.
+            // In short, we run multiple iterations downwards (then upwards) where we reposition the nodes based on
+            // their children (then parents) median position.
+            //
+            // If there is no perfect solution without at least one vertex crossing, there won't be a clean convergence.
+            // The heuristic iteration will oscillate between "good enough" orderings.
+            //
+            // There is a variant using the average, but it apparently provides worse results with slower convergence.
+
+            // Fake vertices have 1 parent and one child, so we can initialize the arrays with 1 to quickly handle them.
+            DynamicArray<u32> parentCounts(_tempAllocator, passCount + fakeVertexCount, 1);
+            DynamicArray<u32> childCounts(_tempAllocator, passCount + fakeVertexCount, 1);
+            for (u32 i = 0; i < passCount; i++)
+            {
+                parentCounts[i] = _builder.m_dag[i].m_parents.size();
+                childCounts[i] = _builder.m_dag[i].m_children.size();
+            }
+
+            // Use flat arrays for smaller memory footprint and cache performance.
+            u32 maxFlatMedianArraySize = 0;
+            u32 maxNodeCount = 0;
+            for (auto& layer : layers)
+            {
+                u32 parentCount = 0;
+                u32 childCount = 0;
+                for (const Node& node : layer.m_nodes)
+                {
+                    parentCount += parentCounts[GetFlatArrayIndex(node.m_index, passCount)];
+                    childCount += childCounts[GetFlatArrayIndex(node.m_index, passCount)];
+                }
+
+                maxFlatMedianArraySize = eastl::max(maxFlatMedianArraySize, eastl::max(parentCount, childCount));
+                maxNodeCount = eastl::max<u32>(maxNodeCount, layer.m_nodes.size());
+            }
+
+            DynamicArray<float> flatMedianArrays(_tempAllocator, maxFlatMedianArraySize);
+            DynamicArray<u32> vertexLayerIndex(_tempAllocator, passCount + fakeVertexCount);
+            eastl::vector<eastl::span<float>> medianArrayPerNode(_tempAllocator);
+            medianArrayPerNode.resize(maxNodeCount);
+
+            for (u32 h = 0; h < reorderIterations; h++)
+            {
+                const auto repositionNodes = [&](Layer& _layer)
+                {
+                    const u32 nodeCount = _layer.m_nodes.size();
+                    for (u32 j = 0; j < nodeCount; j++)
+                    {
+                        const eastl::span<float>& medianSpan = medianArrayPerNode[j];
+
+                        if (medianSpan.empty())
+                            continue;
+
+                        float newPosition;
+                        if (medianSpan.size() & 1)
+                        {
+                            newPosition = medianSpan[medianSpan.size() / 2];
+                        }
+                        else
+                        {
+                            newPosition = (medianSpan[medianSpan.size() / 2 - 1] + medianSpan[medianSpan.size() / 2]) * 0.5f;
+                        }
+                        horizontalPositions[GetFlatArrayIndex(_layer.m_nodes[j].m_index, passCount)].m_center = newPosition;
+                    }
+
+                    if (nodeCount <= 1)
+                    {
+                        return;
+                    }
+
+                    eastl::sort(
+                        _layer.m_nodes.begin(),
+                        _layer.m_nodes.end(),
+                        [&horizontalPositions, passCount](const Node& _a, const Node& _b)
+                        {
+                            return horizontalPositions[GetFlatArrayIndex(_a.m_index, passCount)].m_center
+                                   < horizontalPositions[GetFlatArrayIndex(_b.m_index, passCount)].m_center;
+                        });
+                    u32 leftShiftRBegin;
+                    u32 rightShiftBegin;
+                    float leftShift = 0.f;
+                    float rightShift = 0.f;
+                    if (nodeCount & 1)
+                    {
+                        leftShiftRBegin = nodeCount / 2 - 1;
+                        rightShiftBegin = nodeCount / 2 + 1;
+                        const HorizontalPosition& centerPos = horizontalPositions[GetFlatArrayIndex(
+                            _layer.m_nodes[nodeCount / 2].m_index, passCount)];
+                        leftShift = centerPos.m_center - centerPos.m_halfWidth - horizontalSpacing;
+                        rightShift = centerPos.m_center + centerPos.m_halfWidth + horizontalSpacing;
+                    }
+                    else
+                    {
+                        leftShiftRBegin = nodeCount / 2 - 1;
+                        rightShiftBegin = nodeCount / 2;
+                        const HorizontalPosition& centerPosA = horizontalPositions[GetFlatArrayIndex(
+                            _layer.m_nodes[leftShiftRBegin].m_index, passCount)];
+                        const HorizontalPosition& centerPosB = horizontalPositions[GetFlatArrayIndex(
+                            _layer.m_nodes[rightShiftBegin].m_index, passCount)];
+                        const float center = (centerPosA.m_center + centerPosB.m_center) * 0.5f;
+                        leftShift = center - horizontalSpacing * 0.5f;
+                        rightShift = center + horizontalSpacing * 0.5f;
+                    }
+
+                    for (s32 idx = static_cast<s32>(leftShiftRBegin); idx >= 0; idx--)
+                    {
+                        HorizontalPosition& pos = horizontalPositions[GetFlatArrayIndex(_layer.m_nodes[idx].m_index, passCount)];
+                        pos.m_center = eastl::min(pos.m_center, leftShift - pos.m_halfWidth);
+                        leftShift = pos.m_center - pos.m_halfWidth - horizontalSpacing;
+                    }
+                    for (u32 idx = rightShiftBegin; idx < nodeCount; idx++)
+                    {
+                        HorizontalPosition& pos = horizontalPositions[GetFlatArrayIndex(_layer.m_nodes[idx].m_index, passCount)];
+                        pos.m_center = eastl::max(pos.m_center, rightShift + pos.m_halfWidth);
+                        rightShift = pos.m_center + pos.m_halfWidth + horizontalSpacing;
+                    }
+                };
+
+                // Apply downwards first
+                for (u32 i = 0; i < layers.size() - 1; i++)
+                {
+                    medianArrayPerNode.clear();
+                    u32 totalFlatArraySize = 0;
+                    for (u32 j = 0; j < layers[i+1].m_nodes.size(); j++)
+                    {
+                        const u32 nodeIndex = layers[i+1].m_nodes[j].m_index;
+                        vertexLayerIndex[GetFlatArrayIndex(nodeIndex, passCount)] = j;
+                        const u32 parentCount = parentCounts[GetFlatArrayIndex(nodeIndex, passCount)];;
+                        medianArrayPerNode.emplace_back(flatMedianArrays.Data() + totalFlatArraySize, 0);
+                        totalFlatArraySize += parentCount;
+                    }
+
+                    for (const Link& link: layers[i].m_downwardLinks)
+                    {
+                        eastl::span<float>& medianSpan = medianArrayPerNode[vertexLayerIndex[GetFlatArrayIndex(link.m_child, passCount)]];
+                        *medianSpan.end() = horizontalPositions[GetFlatArrayIndex(link.m_parent, passCount)].m_center;
+                        medianSpan = { medianSpan.begin(), medianSpan.end() + 1 };
+                    }
+
+                    repositionNodes(layers[i + 1]);
+                }
+
+                // Apply upwards next
+                for (u32 i = layers.size() - 1; i > 0; i--)
+                {
+                    medianArrayPerNode.clear();
+                    u32 totalFlatArraySize = 0;
+                    for (u32 j = 0; j < layers[i-1].m_nodes.size(); j++)
+                    {
+                        const u32 nodeIndex = layers[i-1].m_nodes[j].m_index;
+                        vertexLayerIndex[GetFlatArrayIndex(nodeIndex, passCount)] = j;
+                        const u32 parentCount = parentCounts[GetFlatArrayIndex(nodeIndex, passCount)];;
+                        medianArrayPerNode.emplace_back(flatMedianArrays.Data() + totalFlatArraySize, 0);
+                        totalFlatArraySize += parentCount;
+                    }
+
+                    for (const Link& link: layers[i-1].m_downwardLinks)
+                    {
+                        eastl::span<float>& medianSpan = medianArrayPerNode[vertexLayerIndex[GetFlatArrayIndex(link.m_parent, passCount)]];
+                        *medianSpan.end() = horizontalPositions[GetFlatArrayIndex(link.m_child, passCount)].m_center;
+                        medianSpan = { medianSpan.begin(), medianSpan.end() + 1 };
+                    }
+
+                    repositionNodes(layers[i - 1]);
+                }
+            }
+        }
+
+        {
+            const float horizontalOffset = horizontalPositions[GetFlatArrayIndex(layers.front().m_nodes.front().m_index, passCount)].m_center;
+            for (HorizontalPosition& pos: horizontalPositions)
+            {
+                pos.m_center -= horizontalOffset;
             }
         }
 
@@ -221,21 +426,17 @@ namespace KryneEngine::Modules::RenderGraph
                     const Layer& layer = layers[layerIndex];
                     for (const Link& link : layer.m_downwardLinks)
                     {
-                        const u32 hoIndex0 = (link.m_parent & fakeVertexFlag)
-                                                 ? (link.m_parent & ~fakeVertexFlag) + _builder.m_dag.size()
-                                                 : link.m_parent;
+                        const u32 hoIndex0 = GetFlatArrayIndex(link.m_parent, passCount);;
                         ImVec2 p0{
-                            horizontalOffset[hoIndex0].first + horizontalOffset[hoIndex0].second / 2.f,
+                            horizontalPositions[hoIndex0].m_center,
                             link.m_parent & fakeVertexFlag
                                 ? float(layerIndex) * (nodeHeight + verticalSpacing)
                                 : float(layerIndex) * (nodeHeight + verticalSpacing) + nodeHeight / 2.f};
                         p0 += offset;
 
-                        const u32 hoIndex1 = (link.m_child & fakeVertexFlag)
-                                                 ? (link.m_child & ~fakeVertexFlag) + _builder.m_dag.size()
-                                                 : link.m_child;
+                        const u32 hoIndex1 = GetFlatArrayIndex(link.m_child, passCount);;
                         ImVec2 p1{
-                            horizontalOffset[hoIndex1].first + horizontalOffset[hoIndex1].second / 2.f,
+                            horizontalPositions[hoIndex1].m_center,
                             link.m_child & fakeVertexFlag
                                 ? float(layerIndex + 1) * (nodeHeight + verticalSpacing)
                                 : float(layerIndex + 1) * (nodeHeight + verticalSpacing) - nodeHeight / 2.f};
@@ -258,7 +459,7 @@ namespace KryneEngine::Modules::RenderGraph
 
             {
                 KE_ZoneScoped("Draw nodes");
-                for (u32 i = 0; i < _builder.m_dag.size(); i++)
+                for (u32 i = 0; i < passCount; i++)
                 {
                     if (layersIndices[i] == invalid)
                     {
@@ -271,7 +472,7 @@ namespace KryneEngine::Modules::RenderGraph
                     const ImVec2 rectMin =
                         offset
                         + ImVec2(
-                            horizontalOffset[i].first,
+                            horizontalPositions[i].m_center - horizontalPositions[i].m_halfWidth,
                             (nodeHeight + verticalSpacing) * static_cast<float>(layersIndices[i]) - nodeHeight / 2.f);
                     ImGui::SetCursorScreenPos(rectMin + padding);
                     ImGui::BeginGroup();
