@@ -29,6 +29,7 @@ namespace KryneEngine::Modules::RenderGraph
 
         if (!ImGui::Begin("Render Graph Builder", _windowOpen))
         {
+            ImGui::End();
             return;
         }
 
