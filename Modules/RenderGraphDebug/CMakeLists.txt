@@ -1,5 +1,5 @@
 add_library(KryneEngine_Modules_RenderGraphDebug STATIC
-    Include/KryneEngine/Modules/RenderGraphDebug/ImGuiDebugWindow.hpp
+    Include/KryneEngine/Modules/RenderGraph/ImGuiDebugWindow.hpp
     Src/ImGuiDebugWindow.cpp)
 
 target_link_libraries(KryneEngine_Modules_RenderGraphDebug KryneEngine_Modules_RenderGraph KryneEngine_Modules_ImGui)
