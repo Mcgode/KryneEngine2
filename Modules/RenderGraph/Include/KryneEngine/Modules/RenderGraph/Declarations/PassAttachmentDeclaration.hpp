@@ -35,7 +35,11 @@ namespace KryneEngine::Modules::RenderGraph
         RenderPassDesc::Attachment::StoreOperation m_storeOperation = RenderPassDesc::Attachment::StoreOperation::Store;
         TextureLayout m_layoutBefore = TextureLayout::Unknown;
         TextureLayout m_layoutAfter = TextureLayout::ColorAttachment;
+
+        std::byte m_padding[4] = {};
     };
+    static_assert(offsetof(PassAttachmentDeclaration, m_padding) + sizeof(PassAttachmentDeclaration::m_padding) == sizeof(PassAttachmentDeclaration),
+        "We need explicit padding for PassAttachmentDeclaration to make sure the last bytes are properly zero initialized");
 
     struct PassDeclarationBuilder;
 
