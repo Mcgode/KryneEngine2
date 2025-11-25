@@ -1,5 +1,6 @@
 add_subdirectory(ShaderLib)
 add_subdirectory(GraphicsUtils)
+add_subdirectory(Clay)
 add_subdirectory(ImGui)
 add_subdirectory(RenderGraph)
 add_subdirectory(RenderGraphDebug)
