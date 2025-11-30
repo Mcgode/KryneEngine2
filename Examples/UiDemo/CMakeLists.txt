@@ -1,3 +1,3 @@
 add_executable(UiDemo UiDemo.cpp)
 
-target_link_libraries(UiDemo KryneEngine_Modules_Clay)
+target_link_libraries(UiDemo KryneEngine_Modules_GuiLib)

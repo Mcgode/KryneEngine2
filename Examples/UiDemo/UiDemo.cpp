@@ -56,7 +56,7 @@ s32 main(s32 argc, const char** argv)
     KryneEngine::Window mainWindow(appInfo, allocator);
     KryneEngine::GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
-    KryneEngine::Modules::Clay::Context clayContext { allocatorInstance };
+    KryneEngine::Modules::GuiLib::Context clayContext { allocatorInstance };
     clayContext.Initialize(*graphicsContext);
 
     do

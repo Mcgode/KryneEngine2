@@ -11,7 +11,7 @@
 #include <KryneEngine/Core/Graphics/GraphicsContext.hpp>
 #include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
 
-namespace KryneEngine::Modules::Clay
+namespace KryneEngine::Modules::GuiLib
 {
     class Context
     {

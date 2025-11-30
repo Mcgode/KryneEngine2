@@ -8,7 +8,7 @@
 
 #include <clay.h>
 
-namespace KryneEngine::Modules::Clay
+namespace KryneEngine::Modules::GuiLib
 {
     Context::Context(AllocatorInstance _allocator)
         : m_allocator(_allocator)
