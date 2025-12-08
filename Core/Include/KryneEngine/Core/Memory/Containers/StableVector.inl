@@ -48,6 +48,7 @@ namespace KryneEngine
             m_allocator.deallocate(block, BlockSize);
             block = nextBlock;
         }
+        m_size = 0;
     }
 
     template <class T, size_t BlockSize, class Allocator>
