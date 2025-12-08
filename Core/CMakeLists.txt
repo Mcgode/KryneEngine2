@@ -92,6 +92,8 @@ set(MemorySrc
         Src/Memory/Allocators/DefaultHeapHeapAllocationTracker.cpp
         Include/KryneEngine/Core/Memory/UniquePtr.hpp
         Include/KryneEngine/Core/Memory/IndexAllocator.hpp
+        Include/KryneEngine/Core/Memory/Containers/StableVector.hpp
+        Include/KryneEngine/Core/Memory/Containers/StableVector.inl
 )
 
 set(PlatformSrc
