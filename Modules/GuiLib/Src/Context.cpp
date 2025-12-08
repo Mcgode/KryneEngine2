@@ -6,18 +6,21 @@
 
 #include "KryneEngine/Modules/GuiLib/Context.hpp"
 
-#include <clay.h>
+#include "KryneEngine/Core/Memory/Containers/StableVector.inl"
+#include "KryneEngine/Modules/GuiLib/IGuiRenderer.hpp"
 
 namespace KryneEngine::Modules::GuiLib
 {
     Context::Context(AllocatorInstance _allocator)
         : m_allocator(_allocator)
+        , m_registeredRegions(_allocator)
     {}
 
-    void Context::Initialize(GraphicsContext& _graphicsContext)
+    void Context::Initialize(IGuiRenderer* _renderer, const uint2& _viewportSize)
     {
         const u32 arenaCapacity = Clay_MinMemorySize();
         m_arenaMemory = m_allocator.Allocate<char>(arenaCapacity);
+        m_renderer = _renderer;
 
         const Clay_Arena arena {
             .capacity = arenaCapacity,
@@ -25,8 +28,8 @@ namespace KryneEngine::Modules::GuiLib
         };
 
         const Clay_Dimensions dimensions {
-            .width = static_cast<float>(_graphicsContext.GetApplicationInfo().m_displayOptions.m_width),
-            .height = static_cast<float>(_graphicsContext.GetApplicationInfo().m_displayOptions.m_height),
+            .width = static_cast<float>(_viewportSize.x),
+            .height = static_cast<float>(_viewportSize.y),
         };
 
         const Clay_ErrorHandler errorHandler {
@@ -38,16 +41,23 @@ namespace KryneEngine::Modules::GuiLib
         m_clayContext = Clay_GetCurrentContext();
     }
 
-    void Context::Destroy(GraphicsContext& _graphicsContext)
+    void Context::Destroy()
     {
         Clay_SetCurrentContext(nullptr);
         m_clayContext = nullptr;
         m_allocator.deallocate(m_arenaMemory);
     }
 
-    void ErrorHandler(Clay_ErrorData _errorData)
+    void* Context::RegisterTextureRegion(TextureRegion&& _region)
+    {
+        return &m_registeredRegions.PushBack(std::move(_region));
+    }
+
+    void Context::ErrorHandler(Clay_ErrorData _errorData)
     {
         KE_ERROR(_errorData.errorText.chars);
     }
+
+    Context::~Context() = default;
 } // namespace KryneEngine::Modules::Clay
 

@@ -4,14 +4,11 @@
  * @date 24/11/2025.
  */
 
-#include "../../Modules/ShaderReflection/Include/KryneEngine/Modules/ShaderReflection/Blob.hpp"
-#include "KryneEngine/Core/Profiling/TracyHeader.hpp"
-#include "KryneEngine/Modules/GuiLib/Context.hpp"
-
-
 #include <KryneEngine/Core/Graphics/GraphicsContext.hpp>
 #include <KryneEngine/Core/Memory/Allocators/TlsfAllocator.hpp>
+#include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Window/Window.hpp>
+#include <KryneEngine/Modules/GuiLib/Context.hpp>
 
 using KryneEngine::s32;
 
@@ -57,7 +54,12 @@ s32 main(s32 argc, const char** argv)
     KryneEngine::GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
     KryneEngine::Modules::GuiLib::Context clayContext { allocatorInstance };
-    clayContext.Initialize(*graphicsContext);
+    clayContext.Initialize(
+        nullptr,
+        {
+            graphicsContext->GetApplicationInfo().m_displayOptions.m_width,
+            graphicsContext->GetApplicationInfo().m_displayOptions.m_height
+        });
 
     do
     {
@@ -71,7 +73,7 @@ s32 main(s32 argc, const char** argv)
                 .backgroundColor = COLOR_LIGHT
             }) {
                 CLAY({ .id = CLAY_ID("ProfilePictureOuter"), .layout = { .sizing = { .width = CLAY_SIZING_GROW(0) }, .padding = CLAY_PADDING_ALL(16), .childGap = 16, .childAlignment = { .y = CLAY_ALIGN_Y_CENTER } }, .backgroundColor = COLOR_RED }) {
-                    CLAY({ .id = CLAY_ID("ProfilePicture"), .layout = { .sizing = { .width = CLAY_SIZING_FIXED(60), .height = CLAY_SIZING_FIXED(60) }}, .image = { .imageData = &profilePicture } }) {}
+                    CLAY({ .id = CLAY_ID("ProfilePicture"), .layout = { .sizing = { .width = CLAY_SIZING_FIXED(60), .height = CLAY_SIZING_FIXED(60) }}, .image = { .imageData = nullptr } }) {}
                     CLAY_TEXT(CLAY_STRING("Clay - UI Library"), CLAY_TEXT_CONFIG({  .textColor = {255, 255, 255, 255}, .fontSize = 24 }));
                 }
 
@@ -86,7 +88,7 @@ s32 main(s32 argc, const char** argv)
     }
     while (graphicsContext->EndFrame());
 
-    clayContext.Destroy(*graphicsContext);
+    clayContext.Destroy();
     KryneEngine::GraphicsContext::Destroy(graphicsContext);
 
     return 0;
