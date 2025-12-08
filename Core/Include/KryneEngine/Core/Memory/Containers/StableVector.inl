@@ -64,13 +64,13 @@ namespace KryneEngine
 
         if (m_firstBlock == nullptr)
         {
-            m_firstBlock = m_allocator.allocate(BlockSize);
+            m_firstBlock = static_cast<Block*>(m_allocator.allocate(sizeof(Block), alignof(Block)));
             m_firstBlock->m_next = nullptr;
             m_lastBlock = m_firstBlock;
         }
         else if (localIndex == 0)
         {
-            Block* newBlock = m_allocator.allocate(BlockSize);
+            auto* newBlock = static_cast<Block*>(m_allocator.allocate(sizeof(Block), alignof(Block)));
             newBlock->m_next = nullptr;
             m_lastBlock->m_next = newBlock;
             m_lastBlock = newBlock;
@@ -78,6 +78,6 @@ namespace KryneEngine
 
         m_size++;
 
-        return m_lastBlock[localIndex];
+        return m_lastBlock->m_data[localIndex];
     }
 } // namespace KryneEngine
