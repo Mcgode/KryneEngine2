@@ -8,6 +8,7 @@
 
 #include "KryneEngine/Core/Common/Types.hpp"
 #include "KryneEngine/Core/Math/XSimdUtils.hpp"
+#include "KryneEngine/Core/Window/Input/Enums.hpp"
 
 namespace KryneEngine::Math
 {
@@ -88,6 +89,34 @@ namespace KryneEngine::Math
     {
         return ApplyOperation<T, SimdOptimal, DivideOperator>(*this, _other);
     }
+
+    template <typename T, bool SimdOptimal>
+    Vector3Base<T, SimdOptimal> Vector3Base<T, SimdOptimal>::Sqrt() requires std::is_floating_point_v<T>
+    {
+        constexpr bool alignedOps = SimdOptimal;
+        using Operability = SimdOperability<T, Vector3Base>;
+
+        if constexpr (Operability::kSimdOperable)
+        {
+            using OptimalArch = Operability::OptimalArch;
+            Vector3Base result {};
+            for (size_t i = 0; i < Operability::kBatchCount; ++i)
+            {
+                const xsimd::batch vec = XsimdLoad<alignedOps, T, OptimalArch>(GetPtr() + i * Operability::kBatchSize);
+                XsimdStore<alignedOps, T, OptimalArch>(result.GetPtr() + i * Operability::kBatchSize, xsimd::sqrt(vec));
+            }
+            return result;
+        }
+        else
+        {
+            return {
+                std::sqrt(x),
+                std::sqrt(y),
+                std::sqrt(z)
+            };
+        }
+    }
+
 
     template <typename T, bool SimdOptimal>
     void Vector3Base<T, SimdOptimal>::MinComponents(const Vector3Base<T, SimdOptimal>& _other)

@@ -62,6 +62,8 @@ namespace KryneEngine::Math
         Vector3Base operator*(const Vector3Base& _other) const;
         Vector3Base operator/(const Vector3Base& _other) const;
 
+        Vector3Base Sqrt() requires std::is_floating_point_v<T>;
+
         template<class U> requires std::is_constructible_v<T, U>
         Vector3Base operator+(U _scalar) const { return *this + Vector3Base(_scalar); }
 
