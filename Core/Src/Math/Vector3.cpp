@@ -91,7 +91,7 @@ namespace KryneEngine::Math
     }
 
     template <typename T, bool SimdOptimal>
-    Vector3Base<T, SimdOptimal> Vector3Base<T, SimdOptimal>::Sqrt() requires std::is_floating_point_v<T>
+    Vector3Base<T, SimdOptimal> Vector3Base<T, SimdOptimal>::Sqrt() const requires std::is_floating_point_v<T>
     {
         constexpr bool alignedOps = SimdOptimal;
         using Operability = SimdOperability<T, Vector3Base>;
