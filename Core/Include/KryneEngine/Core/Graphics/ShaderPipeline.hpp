@@ -58,10 +58,17 @@ namespace KryneEngine
         u8 m_location = 0;
     };
 
+    enum class VertexInputRate: u8
+    {
+        Vertex,
+        Instance,
+    };
+
     struct VertexBindingDesc
     {
         u16 m_stride = 0;
         u8 m_binding = 0;
+        VertexInputRate m_inputRate = VertexInputRate::Vertex;
     };
 
     struct VertexInputDesc

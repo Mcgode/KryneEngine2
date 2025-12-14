@@ -770,10 +770,21 @@ namespace KryneEngine
         DynamicArray<VkVertexInputBindingDescription> vertexInputBindings(_desc.m_vertexInput.m_bindings.size());
         for (auto i = 0u; i < vertexInputBindings.Size(); i++)
         {
+            VkVertexInputRate inputRate;
+            switch ( _desc.m_vertexInput.m_bindings[i].m_inputRate)
+            {
+            case VertexInputRate::Vertex:
+                inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+                break;
+            case VertexInputRate::Instance:
+                inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+                break;
+            }
+
             vertexInputBindings[i] = {
                 .binding = _desc.m_vertexInput.m_bindings[i].m_binding,
                 .stride = _desc.m_vertexInput.m_bindings[i].m_stride,
-                .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+                .inputRate = inputRate,
             };
         }
 

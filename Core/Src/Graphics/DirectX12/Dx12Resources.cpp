@@ -1160,7 +1160,26 @@ namespace KryneEngine
         }
 
         // Input layout
-        eastl::vector<D3D12_INPUT_ELEMENT_DESC> inputElements;
+        eastl::fixed_vector<D3D12_INPUT_CLASSIFICATION, D3D12_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, false> slotClassifications;
+        if (!_desc.m_vertexInput.m_bindings.empty())
+        {
+            slotClassifications.reserve(_desc.m_vertexInput.m_bindings.size());
+            for (const auto& binding: _desc.m_vertexInput.m_bindings)
+            {
+                if (slotClassifications.size() <= binding.m_binding)
+                    slotClassifications.resize(binding.m_binding + 1, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA);
+                switch (binding.m_inputRate)
+                {
+                case VertexInputRate::Vertex:
+                    slotClassifications[binding.m_binding] = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+                    break;
+                case VertexInputRate::Instance:
+                    slotClassifications[binding.m_binding] = D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;
+                    break;
+                }
+            }
+        }
+        eastl::vector<D3D12_INPUT_ELEMENT_DESC> inputElements(m_buffers.GetAllocator());
         if (!_desc.m_vertexInput.m_elements.empty())
         {
             inputElements.reserve(_desc.m_vertexInput.m_elements.size());
@@ -1172,7 +1191,9 @@ namespace KryneEngine
                     .Format = Dx12Converters::ToDx12Format(vertexInput.m_format),
                     .InputSlot = vertexInput.m_bindingIndex,
                     .AlignedByteOffset = vertexInput.m_offset,
-                    .InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+                    .InputSlotClass = slotClassifications.size() > vertexInput.m_bindingIndex
+                        ? slotClassifications[vertexInput.m_bindingIndex]
+                        : D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
                     .InstanceDataStepRate = 0,
                 });
             }

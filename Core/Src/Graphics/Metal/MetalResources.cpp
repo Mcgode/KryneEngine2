@@ -475,7 +475,15 @@ namespace KryneEngine
             {
                 MTL::VertexBufferLayoutDescriptor* layout = vertexDescriptor->layouts()->object(hot->m_vertexBufferFirstIndex + binding.m_binding);
                 layout->setStride(binding.m_stride);
-                layout->setStepFunction(MTL::VertexStepFunctionPerVertex);
+                switch (binding.m_inputRate)
+                {
+                case VertexInputRate::Vertex:
+                    layout->setStepFunction(MTL::VertexStepFunctionPerVertex);
+                    break;
+                case VertexInputRate::Instance:
+                    layout->setStepFunction(MTL::VertexStepFunctionPerInstance);
+                    break;
+                }
             }
 
             descriptor->setVertexDescriptor(vertexDescriptor.get());
