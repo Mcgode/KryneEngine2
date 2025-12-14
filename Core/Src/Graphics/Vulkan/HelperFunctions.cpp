@@ -448,6 +448,14 @@ namespace KryneEngine::VkHelperFunctions
             return VK_SHADER_STAGE_GEOMETRY_BIT;
         case ShaderStage::Stage::Fragment:
             return VK_SHADER_STAGE_FRAGMENT_BIT;
+        case ShaderStage::Stage::Compute:
+            return VK_SHADER_STAGE_COMPUTE_BIT;
+        case ShaderStage::Stage::Task:
+            return VK_SHADER_STAGE_TASK_BIT_EXT;
+        case ShaderStage::Stage::Mesh:
+            return VK_SHADER_STAGE_MESH_BIT_EXT;
+        default:
+            return static_cast<VkShaderStageFlagBits>(0);
         }
     }
 
