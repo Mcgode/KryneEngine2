@@ -359,7 +359,7 @@ namespace KryneEngine
         commandList->m_encoder->setLabel(string);
 #endif
 
-        commandList->m_userData = m_allocator.Allocate<RenderState>();
+        commandList->m_userData = m_allocator.New<RenderState>(m_allocator);
     }
 
     void MetalGraphicsContext::EndRenderPass(CommandListHandle _commandList)

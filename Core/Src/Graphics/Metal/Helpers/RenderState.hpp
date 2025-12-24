@@ -36,5 +36,7 @@ namespace KryneEngine
         bool m_indexBufferIsU16 = false;
         InputAssemblyDesc::PrimitiveTopology m_topology {};
         eastl::fixed_vector<BufferSpan, 4> m_vertexBuffers;
+
+        explicit RenderState(AllocatorInstance _allocator): m_vertexBuffers { _allocator } {}
     };
 }
