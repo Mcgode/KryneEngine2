@@ -10,17 +10,19 @@ namespace KryneEngine::MetalConverters
 {
     size_t GetPixelByteSize(TextureFormat _format)
     {
-        static_assert(static_cast<u32>(TextureFormat::D32FS8) == 25, "Enum values changed, please update");
+        static_assert(static_cast<u32>(TextureFormat::Count) == 30, "Enum values changed, please update");
 
         switch (_format)
         {
         case TextureFormat::NoFormat:
+        case TextureFormat::Count:
         case TextureFormat::D24:
         case TextureFormat::RGB8_UNorm:
         case TextureFormat::RGB8_sRGB:
         case TextureFormat::RGB8_SNorm:
         case TextureFormat::RGB16_Float:
         case TextureFormat::RGB32_Float:
+        case TextureFormat::RGB32_UInt:
             return 0;
         case TextureFormat::R8_UNorm:
         case TextureFormat::R8_SNorm:
@@ -37,21 +39,24 @@ namespace KryneEngine::MetalConverters
         case TextureFormat::RGBA8_SNorm:
         case TextureFormat::RG16_Float:
         case TextureFormat::R32_Float:
+        case TextureFormat::R32_UInt:
         case TextureFormat::D24S8:
         case TextureFormat::D32F:
             return 4;
         case TextureFormat::RGBA16_Float:
         case TextureFormat::RG32_Float:
+        case TextureFormat::RG32_UInt:
         case TextureFormat::D32FS8:
             return 8;
         case TextureFormat::RGBA32_Float:
+        case TextureFormat::RGBA32_UInt:
             return 16;
         }
     }
 
     MTL::PixelFormat ToPixelFormat(TextureFormat _format)
     {
-        static_assert(static_cast<u32>(TextureFormat::D32FS8) == 25, "Enum values changed, please update");
+        static_assert(static_cast<u32>(TextureFormat::Count) == 30, "Enum values changed, please update");
 
         switch (_format)
         {
@@ -61,6 +66,7 @@ namespace KryneEngine::MetalConverters
         case TextureFormat::RGB8_SNorm:
         case TextureFormat::RGB16_Float:
         case TextureFormat::RGB32_Float:
+        case TextureFormat::RGB32_UInt:
         case TextureFormat::D24:
             KE_ASSERT_FATAL_MSG(_format == TextureFormat::NoFormat, "Unsupported format");
             return MTL::PixelFormatInvalid;
@@ -94,6 +100,12 @@ namespace KryneEngine::MetalConverters
             return MTL::PixelFormatRG32Float;
         case TextureFormat::RGBA32_Float:
             return MTL::PixelFormatRGBA32Float;
+        case TextureFormat::R32_UInt:
+            return MTL::PixelFormatR32Uint;
+        case TextureFormat::RG32_UInt:
+            return MTL::PixelFormatRG32Uint;
+        case TextureFormat::RGBA32_UInt:
+            return MTL::PixelFormatRGBA32Uint;
         case TextureFormat::D16:
             return MTL::PixelFormatDepth16Unorm;
         case TextureFormat::D24S8:
@@ -102,6 +114,9 @@ namespace KryneEngine::MetalConverters
             return MTL::PixelFormatDepth32Float;
         case TextureFormat::D32FS8:
             return MTL::PixelFormatDepth32Float_Stencil8;
+        case TextureFormat::Count:
+            KE_ASSERT_FATAL_MSG(false, "Invalid TextureFormat");
+            return MTL::PixelFormatInvalid;
         }
     }
 
@@ -285,7 +300,7 @@ namespace KryneEngine::MetalConverters
 
     MTL::VertexFormat GetVertexFormat(TextureFormat _format)
     {
-        static_assert(static_cast<u32>(TextureFormat::D32FS8) == 25, "Please update switch table");
+        static_assert(static_cast<u32>(TextureFormat::Count) == 30, "Enum values changed, please update");
         switch (_format)
         {
         case TextureFormat::NoFormat:
@@ -322,6 +337,14 @@ namespace KryneEngine::MetalConverters
             return MTL::VertexFormatFloat3;
         case TextureFormat::RGBA32_Float:
             return MTL::VertexFormatFloat4;
+        case TextureFormat::R32_UInt:
+            return MTL::VertexFormatUInt;
+        case TextureFormat::RG32_UInt:
+            return MTL::VertexFormatUInt2;
+        case TextureFormat::RGB32_UInt:
+            return MTL::VertexFormatUInt3;
+        case TextureFormat::RGBA32_UInt:
+            return MTL::VertexFormatUInt4;
         default:
             KE_ERROR("Unsupported format");
             return MTL::VertexFormatInvalid;

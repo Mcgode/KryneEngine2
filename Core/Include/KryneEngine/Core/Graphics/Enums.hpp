@@ -42,11 +42,18 @@ namespace KryneEngine
         RGB32_Float,
         RGBA32_Float,
 
+        R32_UInt,
+        RG32_UInt,
+        RGB32_UInt,
+        RGBA32_UInt,
+
         D16,
         D24,
         D24S8,
         D32F,
         D32FS8,
+
+        Count,
     };
 
     enum class TextureTypes: u8

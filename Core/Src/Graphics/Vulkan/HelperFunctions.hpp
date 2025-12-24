@@ -87,6 +87,8 @@ namespace KryneEngine::VkHelperFunctions
     {
         VkFormat format;
 
+        static_assert(static_cast<u32>(TextureFormat::Count) == 30, "Enum values changed, please update");
+
         #define MAP(commonFormat, vkFormat) case TextureFormat::commonFormat: format = vkFormat; break
 
         switch (_format)
@@ -117,6 +119,11 @@ namespace KryneEngine::VkHelperFunctions
             MAP(RGB32_Float, VK_FORMAT_R32G32B32_SFLOAT);
             MAP(RGBA32_Float, VK_FORMAT_R32G32B32A32_SFLOAT);
 
+            MAP(R32_UInt, VK_FORMAT_R32_UINT);
+            MAP(RG32_UInt, VK_FORMAT_R32G32_UINT);
+            MAP(RGB32_UInt, VK_FORMAT_R32G32B32_UINT);
+            MAP(RGBA32_UInt, VK_FORMAT_R32G32B32A32_UINT);
+
             MAP(D16, VK_FORMAT_D16_UNORM);
             MAP(D24, VK_FORMAT_X8_D24_UNORM_PACK32);
             MAP(D32F, VK_FORMAT_D32_SFLOAT);
@@ -135,6 +142,8 @@ namespace KryneEngine::VkHelperFunctions
     constexpr inline TextureFormat FromVkFormat(VkFormat _format)
     {
         TextureFormat format;
+
+        static_assert(static_cast<u32>(TextureFormat::Count) == 30, "Enum values changed, please update");
 
         #define MAP(commonFormat, vkFormat) case vkFormat: format = TextureFormat::commonFormat; break
 
@@ -155,6 +164,21 @@ namespace KryneEngine::VkHelperFunctions
             MAP(RG8_SNorm, VK_FORMAT_R8G8_SNORM);
             MAP(RGB8_SNorm, VK_FORMAT_R8G8B8_SNORM);
             MAP(RGBA8_SNorm, VK_FORMAT_R8G8B8A8_SNORM);
+
+            MAP(R16_Float, VK_FORMAT_R16_SFLOAT);
+            MAP(RG16_Float, VK_FORMAT_R16G16_SFLOAT);
+            MAP(RGB16_Float, VK_FORMAT_R16G16B16_SFLOAT);
+            MAP(RGBA16_Float, VK_FORMAT_R16G16B16A16_SFLOAT);
+
+            MAP(R32_Float, VK_FORMAT_R32_SFLOAT);
+            MAP(RG32_Float, VK_FORMAT_R32G32_SFLOAT);
+            MAP(RGB32_Float, VK_FORMAT_R32G32B32_SFLOAT);
+            MAP(RGBA32_Float, VK_FORMAT_R32G32B32A32_SFLOAT);
+
+            MAP(R32_UInt, VK_FORMAT_R32_UINT);
+            MAP(RG32_UInt, VK_FORMAT_R32G32_UINT);
+            MAP(RGB32_UInt, VK_FORMAT_R32G32B32_UINT);
+            MAP(RGBA32_UInt, VK_FORMAT_R32G32B32A32_UINT);
 
             MAP(D16, VK_FORMAT_D16_UNORM);
             MAP(D24, VK_FORMAT_X8_D24_UNORM_PACK32);

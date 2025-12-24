@@ -82,6 +82,8 @@ namespace KryneEngine
         {
             DXGI_FORMAT format;
 
+            static_assert(static_cast<u32>(TextureFormat::Count) == 30, "Enum values changed, please update");
+
 #define MAP(commonFormat, dx12Format) case TextureFormat::commonFormat: format = dx12Format; break
 
             switch (_format)
@@ -112,6 +114,11 @@ namespace KryneEngine
                 MAP(RGB32_Float, DXGI_FORMAT_R32G32B32_FLOAT);
                 MAP(RGBA32_Float, DXGI_FORMAT_R32G32B32A32_FLOAT);
 
+                MAP(R32_UInt, DXGI_FORMAT_R32_UINT);
+                MAP(RG32_UInt, DXGI_FORMAT_R32G32_UINT);
+                MAP(RGB32_UInt, DXGI_FORMAT_R32G32B32_UINT);
+                MAP(RGBA32_UInt, DXGI_FORMAT_R32G32B32A32_UINT);
+
                 MAP(D16, DXGI_FORMAT_D16_UNORM);
                 MAP(D24, DXGI_FORMAT_D24_UNORM_S8_UINT);
                 MAP(D32F, DXGI_FORMAT_D32_FLOAT);
@@ -130,6 +137,8 @@ namespace KryneEngine
         constexpr inline TextureFormat FromDx12Format(DXGI_FORMAT _format)
         {
             TextureFormat format;
+
+            static_assert(static_cast<u32>(TextureFormat::Count) == 30, "Enum values changed, please update");
 
 #define MAP(commonFormat, dx12Format) case dx12Format: format = TextureFormat::commonFormat; break
 
@@ -150,6 +159,21 @@ namespace KryneEngine
                 MAP(RG8_SNorm, DXGI_FORMAT_R8G8_SNORM);
                 // MAP(RGB8_SNorm, DXGI_FORMAT_R8G8B8A8_SNORM);
                 MAP(RGBA8_SNorm, DXGI_FORMAT_R8G8B8A8_SNORM);
+
+                MAP(R16_Float, DXGI_FORMAT_R16_FLOAT);
+                MAP(RG16_Float, DXGI_FORMAT_R16G16_FLOAT);
+                // MAP(RGB16_Float, DXGI_FORMAT_R16G16B16_FLOAT);
+                MAP(RGBA16_Float, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+                MAP(R32_Float, DXGI_FORMAT_R32_FLOAT);
+                MAP(RG32_Float, DXGI_FORMAT_R32G32_FLOAT);
+                MAP(RGB32_Float, DXGI_FORMAT_R32G32B32_FLOAT);
+                MAP(RGBA32_Float, DXGI_FORMAT_R32G32B32A32_FLOAT);
+
+                MAP(R32_UInt, DXGI_FORMAT_R32_UINT);
+                MAP(RG32_UInt, DXGI_FORMAT_R32G32_UINT);
+                MAP(RGB32_UInt, DXGI_FORMAT_R32G32B32_UINT);
+                MAP(RGBA32_UInt, DXGI_FORMAT_R32G32B32A32_UINT);
 
                 MAP(D16, DXGI_FORMAT_D16_UNORM);
                 // MAP(D24, DXGI_FORMAT_D24_UNORM_S8_UINT);
