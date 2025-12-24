@@ -239,8 +239,8 @@ namespace KryneEngine::Modules::GuiLib
             const float2 center = float2(_boundingBox.x, _boundingBox.y) + halfSize;
 
             using Math::Float16;
-            packedRect.x = Float16::ConvertToFloat16(center.x) | static_cast<u32>(Float16::ConvertToFloat16(center.y)) << 16;
-            packedRect.y = Float16::ConvertToFloat16(halfSize.x) | static_cast<u32>(Float16::ConvertToFloat16(halfSize.y)) << 16;
+            packedRect.x = Float16::PackFloat16x2(center.x, center.y);
+            packedRect.y = Float16::PackFloat16x2(halfSize.x, halfSize.y);
 
             return packedRect;
         };
@@ -248,8 +248,8 @@ namespace KryneEngine::Modules::GuiLib
         {
             uint2 packedRadii {};
             using Math::Float16;
-            packedRadii.x = Float16::ConvertToFloat16(_cornerRadius.topLeft) | static_cast<u32>(Float16::ConvertToFloat16(_cornerRadius.topRight)) << 16;
-            packedRadii.y = Float16::ConvertToFloat16(_cornerRadius.bottomLeft) | static_cast<u32>(Float16::ConvertToFloat16(_cornerRadius.bottomRight)) << 16;
+            packedRadii.x = Float16::PackFloat16x2(_cornerRadius.topLeft, _cornerRadius.topRight);
+            packedRadii.y = Float16::PackFloat16x2(_cornerRadius.bottomLeft, _cornerRadius.bottomRight);
             return packedRadii;
         };
 
