@@ -39,6 +39,12 @@ namespace KryneEngine::Modules::GuiLib
 
         Clay_Initialize(arena, dimensions, errorHandler);
         m_clayContext = Clay_GetCurrentContext();
+
+        constexpr auto placeholderMeasureText = [](Clay_StringSlice _slice, Clay_TextElementConfig* _config, void* _userData)
+        {
+            return Clay_Dimensions { .width = 0.f, .height = 0.f };
+        };
+        Clay_SetMeasureTextFunction(placeholderMeasureText, this);
     }
 
     void Context::Destroy()
