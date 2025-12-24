@@ -5,6 +5,7 @@
  */
 
 #include <KryneEngine/Core/Graphics/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/RenderPass.hpp>
 #include <KryneEngine/Core/Memory/Allocators/TlsfAllocator.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Window/Window.hpp>
@@ -53,6 +54,25 @@ s32 main(s32 argc, const char** argv)
     KryneEngine::Window mainWindow(appInfo, allocator);
     KryneEngine::GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
+    KryneEngine::DynamicArray<KryneEngine::RenderPassHandle> renderPassHandles(allocator);
+    renderPassHandles.Resize(graphicsContext->GetFrameContextCount());
+    for (auto i = 0u; i < renderPassHandles.Size(); i++)
+    {
+        renderPassHandles[i] = graphicsContext->CreateRenderPass({
+            .m_colorAttachments = {
+                KryneEngine::RenderPassDesc::Attachment {
+                    .m_loadOperation = KryneEngine::RenderPassDesc::Attachment::LoadOperation::Clear,
+                    .m_storeOperation = KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store,
+                    .m_finalLayout = KryneEngine::TextureLayout::Present,
+                    .m_rtv = graphicsContext->GetPresentRenderTargetView(i),
+                }
+            },
+#if !defined(KE_FINAL)
+            .m_debugName = "Main render pass",
+#endif
+        });
+    }
+
     KryneEngine::Modules::GuiLib::Context clayContext { allocatorInstance };
     clayContext.Initialize(
         nullptr,
@@ -64,6 +84,14 @@ s32 main(s32 argc, const char** argv)
     do
     {
         KE_ZoneScoped("Render loop");
+
+        KryneEngine::CommandListHandle transferCommandList = graphicsContext->BeginGraphicsCommandList();
+        KryneEngine::CommandListHandle renderCommandList = graphicsContext->BeginGraphicsCommandList();
+
+        clayContext.BeginLayout({
+            graphicsContext->GetApplicationInfo().m_displayOptions.m_width,
+            graphicsContext->GetApplicationInfo().m_displayOptions.m_height
+        });
 
         // An example of laying out a UI with a fixed width sidebar and flexible width main content
         CLAY({ .id = CLAY_ID("OuterContainer"), .layout = { .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)}, .padding = CLAY_PADDING_ALL(16), .childGap = 16 }, .backgroundColor = {250,250,255,255} }) {
@@ -85,6 +113,11 @@ s32 main(s32 argc, const char** argv)
                 CLAY({ .id = CLAY_ID("MainContent"), .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) } }, .backgroundColor = COLOR_LIGHT }) {}
             }
         }
+
+        const KryneEngine::RenderPassHandle currentPass = renderPassHandles[graphicsContext->GetCurrentPresentImageIndex()];
+        graphicsContext->BeginRenderPass(renderCommandList, currentPass);
+        clayContext.EndLayout(*graphicsContext, transferCommandList, renderCommandList);
+        graphicsContext->EndRenderPass(renderCommandList);
     }
     while (graphicsContext->EndFrame());
 
