@@ -5,8 +5,13 @@
  */
 
 #pragma once
+#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
+#include "KryneEngine/Core/Math/Matrix.hpp"
 
-#include "TextureRegion.hpp"
+namespace KryneEngine
+{
+    class GraphicsContext;
+}
 
 namespace KryneEngine::Modules::GuiLib
 {
@@ -15,8 +20,11 @@ namespace KryneEngine::Modules::GuiLib
     public:
         virtual ~IGuiRenderer() = default;
 
-        virtual void BeginFrame() = 0;
+        virtual void BeginLayout(const float4x4& _viewportTransform, const uint2& _viewportSize) = 0;
 
-        virtual void RenderFrame() = 0;
+        virtual void EndLayoutAndRender(
+            GraphicsContext& _graphicsContext,
+            CommandListHandle _transferCommandList,
+            CommandListHandle _renderCommandList) = 0;
     };
 } // namespace KryneEngine

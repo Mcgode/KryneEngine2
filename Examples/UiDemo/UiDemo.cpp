@@ -10,6 +10,7 @@
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <KryneEngine/Core/Window/Window.hpp>
 #include <KryneEngine/Modules/GuiLib/Context.hpp>
+#include <KryneEngine/Modules/GuiLib/GuiRenderers/BasicGuiRenderer.hpp>
 
 using KryneEngine::s32;
 
@@ -74,8 +75,13 @@ s32 main(s32 argc, const char** argv)
     }
 
     KryneEngine::Modules::GuiLib::Context clayContext { allocatorInstance };
+    KryneEngine::Modules::GuiLib::BasicGuiRenderer guiRenderer {
+        allocatorInstance,
+        *graphicsContext,
+        renderPassHandles[0]
+    };
     clayContext.Initialize(
-        nullptr,
+        &guiRenderer,
         {
             graphicsContext->GetApplicationInfo().m_displayOptions.m_width,
             graphicsContext->GetApplicationInfo().m_displayOptions.m_height

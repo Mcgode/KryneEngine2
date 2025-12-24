@@ -45,6 +45,8 @@ namespace KryneEngine::Modules::GuiLib
             return Clay_Dimensions { .width = 0.f, .height = 0.f };
         };
         Clay_SetMeasureTextFunction(placeholderMeasureText, this);
+
+        Clay_SetCurrentContext(nullptr);
     }
 
     void Context::Destroy()
@@ -52,6 +54,26 @@ namespace KryneEngine::Modules::GuiLib
         Clay_SetCurrentContext(nullptr);
         m_clayContext = nullptr;
         m_allocator.deallocate(m_arenaMemory);
+    }
+
+    void Context::BeginLayout(const uint2& _viewportSize)
+    {
+        KE_ASSERT_MSG(Clay_GetCurrentContext() == nullptr, "Clay context is already set, either it was not reset properly, or there is a race condition.");
+        Clay_SetCurrentContext(m_clayContext);
+        Clay_SetLayoutDimensions({
+            .width = static_cast<float>(_viewportSize.x),
+            .height = static_cast<float>(_viewportSize.y),
+        });
+        m_renderer->BeginLayout(float4x4(), _viewportSize);
+    }
+
+    void Context::EndLayout(
+        GraphicsContext& _graphicsContext,
+        CommandListHandle _transferCommandList,
+        CommandListHandle _renderCommandList)
+    {
+        m_renderer->EndLayoutAndRender(_graphicsContext, _transferCommandList, _renderCommandList);
+        Clay_SetCurrentContext(nullptr);
     }
 
     void* Context::RegisterTextureRegion(TextureRegion&& _region)

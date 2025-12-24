@@ -6,10 +6,8 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Memory/Containers/StableVector.hpp"
-
-
 #include <KryneEngine/Core/Common/Utils/Macros.hpp>
+#include <KryneEngine/Core/Graphics/GraphicsContext.hpp>
 #include <KryneEngine/Core/Memory/Containers/StableVector.hpp>
 #include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
 #include <clay.h>
@@ -30,6 +28,12 @@ namespace KryneEngine::Modules::GuiLib
         void Initialize(IGuiRenderer* _renderer, const uint2& _viewportSize);
 
         void Destroy();
+
+        void BeginLayout(const uint2& _viewportSize);
+        void EndLayout(
+            GraphicsContext& _graphicsContext,
+            CommandListHandle _transferCommandList,
+            CommandListHandle _renderCommandList);
 
         void* RegisterTextureRegion(TextureRegion&& _region);
 
