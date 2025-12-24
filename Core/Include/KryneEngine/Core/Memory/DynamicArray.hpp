@@ -86,8 +86,9 @@ namespace KryneEngine
             Clear();
             m_allocator = _other.m_allocator;
             Resize(_other.m_count);
-            // No memcpy, to explicitly call copy operators of entries
-            for (size_t i = 0; i < m_count; i++) { m_array[i] = _other.m_array[i]; }
+            // No memcpy() to explicitly call copy constructors of entries
+            // We use copy constructors instead of operators since the array memory is non-zero'ed and uninitialized.
+            for (size_t i = 0; i < m_count; i++) { new (m_array + i) T(_other.m_array[i]); }
             return *this;
         }
 
