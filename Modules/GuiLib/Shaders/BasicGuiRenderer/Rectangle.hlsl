@@ -26,8 +26,8 @@ VsOutput RectangleVs(VsInput _input)
     const float2 rectCenter = unpackHalf2x16ToFloat(_input.packedRect.x);
     const float2 rectHalfSize = unpackHalf2x16ToFloat(_input.packedRect.y);
 
-    output.backgroundColor = _input.packedData.x;
-    output.cornerRadius = unpackHalf2x16ToFloat(_input.packedData.y).x;
+    output.backgroundColor = _input.packedData.z;
+    output.cornerRadius = unpackHalf2x16ToFloat(_input.packedData.x).x;
     output.rectHalfSize = rectHalfSize;
 
     const float2 position = rectHalfSize * vertices[_input.vertexId];
