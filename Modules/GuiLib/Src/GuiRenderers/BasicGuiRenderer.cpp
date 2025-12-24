@@ -119,7 +119,12 @@ namespace KryneEngine::Modules::GuiLib
             },
         };
 
-        constexpr VertexBindingDesc commonVertexBindings[] = { { .m_stride = sizeof(PackedInstanceData) } };
+        constexpr VertexBindingDesc commonVertexBindings[] = {
+            {
+                .m_stride = sizeof(PackedInstanceData),
+                .m_inputRate = VertexInputRate::Instance,
+            }
+        };
 
         const auto readShaderFile = [_allocator](const eastl::string_view _filePath) -> eastl::span<char>
         {
