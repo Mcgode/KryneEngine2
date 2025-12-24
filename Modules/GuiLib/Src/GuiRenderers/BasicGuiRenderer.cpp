@@ -169,6 +169,10 @@ namespace KryneEngine::Modules::GuiLib
                 .m_colorBlending = {
                     .m_attachments = { kDefaultColorAttachmentAlphaBlendDesc }
                 },
+                .m_depthStencil = {
+                    .m_depthTest = false,
+                    .m_depthWrite = false,
+                },
                 .m_renderPass =  _renderPass,
                 .m_pipelineLayout = m_commonPipelineLayout,
             };
