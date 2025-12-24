@@ -131,4 +131,17 @@ namespace KryneEngine::Math
         return *reinterpret_cast<float*>(&result);
 #endif
     }
+
+    u32 Float16::PackFloat16x2(const float a, const float b)
+    {
+#if defined(KE_ARM_NEON)
+        float32x4_t fab { a, b, 0, 0 };
+        float16x4_t hab = vcvt_f16_f32(fab);
+        u16 out[4];
+        vst1_u16(out, vreinterpret_u16_f16(hab));
+        return static_cast<u32>(out[0]) | (static_cast<u32>(out[1]) << 16);
+#else
+        return static_cast<u32>(ConvertToFloat16(a)) | (static_cast<u32>(ConvertToFloat16(b)) << 16);
+#endif
+    }
 }

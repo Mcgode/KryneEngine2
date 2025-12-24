@@ -24,6 +24,8 @@ namespace KryneEngine::Math
         static u16 ConvertToFloat16(float _value);
         static float ConvertFromFloat16(u16 _value);
 
+        static u32 PackFloat16x2(float _a, float _b);
+
         u16 m_data;
     };
 }
