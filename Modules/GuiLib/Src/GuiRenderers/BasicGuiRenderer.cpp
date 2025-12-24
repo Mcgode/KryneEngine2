@@ -261,8 +261,20 @@ namespace KryneEngine::Modules::GuiLib
             .m_buffer = m_instanceDataBuffer.GetBuffer(frameIndex),
         };
         _graphicsContext.SetVertexBuffers(_renderCommandList, { &bufferView, 1 });
+
         const DescriptorSetHandle descriptorSets[] = { m_commonDescriptorSet, m_texturesDescriptorSet };
         _graphicsContext.SetGraphicsDescriptorSets(_renderCommandList, m_commonPipelineLayout, descriptorSets);
+
+        _graphicsContext.SetViewport(_renderCommandList, {
+            .m_width = static_cast<s32>(m_viewportConstants.viewportSize.x),
+            .m_height = static_cast<s32>(m_viewportConstants.viewportSize.y)
+        });
+        _graphicsContext.SetScissorsRect(_renderCommandList, {
+            .m_left = 0,
+            .m_top = 0,
+            .m_right = static_cast<u32>(m_viewportConstants.viewportSize.x),
+            .m_bottom = static_cast<u32>(m_viewportConstants.viewportSize.y)
+        });
 
         for (u32 i = 0; i < renderCommandArray.length; i++)
         {
