@@ -9,6 +9,7 @@
 #include <KryneEngine/Core/Common/Types.hpp>
 #include <KryneEngine/Core/Graphics/Drawing.hpp>
 #include <KryneEngine/Core/Graphics/ShaderPipeline.hpp>
+#include <KryneEngine/Core/Math/Color.hpp>
 #include <KryneEngine/Core/Math/Float16.hpp>
 #include <KryneEngine/Core/Math/Matrix.hpp>
 
@@ -276,6 +277,11 @@ namespace KryneEngine::Modules::GuiLib
                 const uint2 packedRadii = packCornerRadii(renderCommand.renderData.rectangle.cornerRadius);
                 packedInstanceData->m_packedData.x = packedRadii.x;
                 packedInstanceData->m_packedData.y = packedRadii.y;
+                packedInstanceData->m_packedData.z = Color(
+                    renderCommand.renderData.rectangle.backgroundColor.r / 255.f,
+                    renderCommand.renderData.rectangle.backgroundColor.g / 255.f,
+                    renderCommand.renderData.rectangle.backgroundColor.b / 255.f,
+                    renderCommand.renderData.rectangle.backgroundColor.a / 255.f).ToSrgb().ToRgba8();
                 offset += sizeof(PackedInstanceData);
 
                 if (previous != CLAY_RENDER_COMMAND_TYPE_RECTANGLE)
