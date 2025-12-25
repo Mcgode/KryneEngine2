@@ -25,8 +25,17 @@ namespace KryneEngine::Modules::GraphicsUtils
         void PrepareBuffers(
             GraphicsContext* _graphicsContext,
             CommandListHandle _commandLine,
-            KryneEngine::BarrierAccessFlags _accessFlags,
+            BarrierAccessFlags _accessFlags,
             u8 _frameIndex);
+
+        /**
+         * @brief Informs you whether your destination buffer is GPU memory-only (and thus requires explicit transfer)
+         * or CPU-mappable and GPU visible (aka ReBar,...)
+         *
+         * @returns `true` if the final buffer is directly CPU mappable, `false` if there are intermediate buffers for
+         * data transfer.
+         */
+        [[nodiscard]] bool IsDirectMapping() const { return m_gpuBuffer == GenPool::kInvalidHandle; }
 
         [[nodiscard]] u64 GetSize(u8 _frameIndex) const
         {
