@@ -11,6 +11,7 @@
 #include <GLFW/glfw3native.h>
 
 #include <QuartzCore/CAMetalLayer.h>
+#include <EASTL/fixed_string.h>
 
 #include "Graphics/Metal/MetalResources.hpp"
 #include "KryneEngine/Core/Graphics/ResourceViews/RenderTargetView.hpp"
@@ -67,14 +68,13 @@ namespace KryneEngine
         };
 
         {
-            KE_AUTO_RELEASE_POOL;
-            m_drawable = m_metalLayer->nextDrawable()->retain();
-            KE_ASSERT_FATAL(m_drawable != nullptr);
+            m_drawable = nullptr;
             for (size_t i = 0; i < metalLayer.maximumDrawableCount; i++)
             {
-                m_textures[i] = _resources.RegisterTexture(m_drawable->texture()->retain());
-                m_rtvs[i] = _resources.RegisterRtv(rtvDesc, m_drawable->texture()->retain());
+                m_textures[i] = _resources.RegisterSystemTexture();
+                m_rtvs[i] = _resources.RegisterSystemRtv(rtvDesc);
             }
+            UpdateNextDrawable(_initialFrameIndex, _resources);
         }
 
         m_index = _initialFrameIndex;
@@ -90,9 +90,14 @@ namespace KryneEngine
         KE_AUTO_RELEASE_POOL;
         CA::MetalDrawable* drawable = m_metalLayer->nextDrawable()->retain();
         m_drawable.reset(drawable);
+#if !defined(KE_FINAL)
+        eastl::fixed_string<char, 64, false> label;
+        label.sprintf("Drawable texture %u", _frameIndex);
+        m_drawable->texture()->setLabel(NS::String::string(label.c_str(), NS::UTF8StringEncoding));
+#endif
         KE_ASSERT_FATAL(m_drawable != nullptr);
-        _resources.UpdateSystemTexture(m_textures[_frameIndex], drawable->texture()->retain());
-        _resources.UpdateSystemTexture(m_rtvs[_frameIndex], drawable->texture()->retain());
+        _resources.UpdateSystemTexture(m_textures[_frameIndex], drawable->texture());
+        _resources.UpdateSystemTexture(m_rtvs[_frameIndex], drawable->texture());
 
         m_index = (_frameIndex + 1) % m_textures.Size();
     }

@@ -97,10 +97,10 @@ namespace KryneEngine
         return { handle };
     }
 
-    TextureHandle MetalResources::RegisterTexture(MTL::Texture* _texture)
+    TextureHandle MetalResources::RegisterSystemTexture()
     {
         const GenPool::Handle handle = m_textures.Allocate();
-        m_textures.Get(handle)->m_texture = _texture->retain();
+        m_textures.Get(handle)->m_texture = nullptr;
         m_textures.Get(handle)->m_isSystemTexture = true;
         return { handle };
     }
@@ -235,7 +235,7 @@ namespace KryneEngine
     RenderTargetViewHandle MetalResources::RegisterRtv(const RenderTargetViewDesc& _desc)
     {
         MTL::Texture* texture = m_textures.Get(_desc.m_texture.m_handle)->m_texture.get();
-        return RegisterRtv(_desc, texture);
+        return InternalRegisterRtv(_desc, texture);
     }
 
     bool MetalResources::UnregisterRtv(RenderTargetViewHandle _handle)
@@ -247,7 +247,22 @@ namespace KryneEngine
         return freed;
     }
 
-    RenderTargetViewHandle MetalResources::RegisterRtv(
+    RenderTargetViewHandle MetalResources::RegisterSystemRtv(
+        const RenderTargetViewDesc& _desc)
+    {
+        return InternalRegisterRtv(_desc, nullptr);
+    }
+
+    void MetalResources::UpdateSystemTexture(RenderTargetViewHandle _handle, MTL::Texture* _newTexture)
+    {
+        RtvHotData* rtvHotData = m_renderTargetViews.Get(_handle.m_handle);
+        if (rtvHotData != nullptr)
+        {
+            rtvHotData->m_texture.reset(_newTexture->retain());
+        }
+    }
+
+    RenderTargetViewHandle MetalResources::InternalRegisterRtv(
         const RenderTargetViewDesc& _desc,
         MTL::Texture* _texture)
     {
@@ -256,7 +271,7 @@ namespace KryneEngine
         const GenPool::Handle handle = m_renderTargetViews.Allocate();
 
         auto [rtvHot, rtvCold] = m_renderTargetViews.GetAll(handle);
-        rtvHot->m_texture = _texture->retain();
+        rtvHot->m_texture = _texture;
         rtvHot->m_isSystemTexture = _desc.m_texture == GenPool::kInvalidHandle;
         *rtvCold = RtvColdData {
             .m_pixelFormat = _desc.m_format,
@@ -267,15 +282,6 @@ namespace KryneEngine
         };
 
         return { handle };
-    }
-
-    void MetalResources::UpdateSystemTexture(RenderTargetViewHandle _handle, MTL::Texture* _newTexture)
-    {
-        RtvHotData* rtvHotData = m_renderTargetViews.Get(_handle.m_handle);
-        if (rtvHotData != nullptr)
-        {
-            rtvHotData->m_texture.reset(_newTexture->retain());
-        }
     }
 
     RenderPassHandle MetalResources::CreateRenderPassDescriptor(const RenderPassDesc& _desc)
@@ -296,7 +302,7 @@ namespace KryneEngine
 
             auto [rtvHotData, rtvColdData] = m_renderTargetViews.GetAll(attachmentDesc.m_rtv.m_handle);
             MTL::Texture* texture = rtvHotData->m_texture.get();
-            KE_ASSERT_FATAL(texture != nullptr);
+            KE_ASSERT_FATAL(texture != nullptr || rtvHotData->m_isSystemTexture);
             if (rtvHotData->m_isSystemTexture)
             {
                 hotData->m_systemRtvs.push_back({ attachmentDesc.m_rtv, static_cast<u8>(i) });

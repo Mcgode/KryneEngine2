@@ -87,12 +87,6 @@ namespace KryneEngine
                 frameContext.m_computeAllocationSet.Commit(frameContext.m_enhancedCommandBufferErrors);
                 frameContext.m_ioAllocationSet.Commit(frameContext.m_enhancedCommandBufferErrors);
             }
-
-            if (m_appInfo.m_features.m_present)
-            {
-                KE_ZoneScoped("Retrieve next drawable");
-                m_swapChain.UpdateNextDrawable(frameIndex, m_resources);
-            }
         }
 
         if (m_profilerContext != nullptr)
@@ -108,6 +102,12 @@ namespace KryneEngine
 
             const u64 nextFrame = m_frameId + 1;
             const u8 newFrameIndex = nextFrame % m_frameContextCount;
+
+            if (m_appInfo.m_features.m_present)
+            {
+                KE_ZoneScoped("Retrieve next drawable");
+                m_swapChain.UpdateNextDrawable(newFrameIndex, m_resources);
+            }
 
             if (nextFrame >= m_frameContextCount + kInitialFrameId)
             {
@@ -295,7 +295,7 @@ namespace KryneEngine
     u32 MetalGraphicsContext::GetCurrentPresentImageIndex() const
     {
         VERIFY_OR_RETURN(m_appInfo.m_features.m_present, 0);
-        return m_swapChain.m_index;
+        return GetCurrentFrameContextIndex();
     }
 
     RenderPassHandle MetalGraphicsContext::CreateRenderPass(const RenderPassDesc& _desc)

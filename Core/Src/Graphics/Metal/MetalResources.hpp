@@ -58,7 +58,7 @@ namespace KryneEngine
 
     public:
         TextureHandle CreateTexture(MTL::Device& _device, const TextureCreateDesc& _desc);
-        TextureHandle RegisterTexture(MTL::Texture* _texture);
+        TextureHandle RegisterSystemTexture();
         bool UnregisterTexture(TextureHandle _handle);
         void UpdateSystemTexture(TextureHandle _handle, MTL::Texture* _texture);
 
@@ -112,7 +112,7 @@ namespace KryneEngine
         RenderTargetViewHandle RegisterRtv(const RenderTargetViewDesc& _desc);
         bool UnregisterRtv(RenderTargetViewHandle _handle);
 
-        RenderTargetViewHandle RegisterRtv(const RenderTargetViewDesc& _desc, MTL::Texture* _texture);
+        RenderTargetViewHandle RegisterSystemRtv(const RenderTargetViewDesc& _desc);
         void UpdateSystemTexture(RenderTargetViewHandle _handle, MTL::Texture* _newTexture);
 
     private:
@@ -132,6 +132,8 @@ namespace KryneEngine
         };
 
         GenerationalPool<RtvHotData, RtvColdData> m_renderTargetViews;
+
+        RenderTargetViewHandle InternalRegisterRtv(const RenderTargetViewDesc& _desc, MTL::Texture* _texture);
 
     public:
         RenderPassHandle CreateRenderPassDescriptor(const RenderPassDesc& _desc);
