@@ -197,6 +197,7 @@ namespace KryneEngine
     void VkDescriptorSetManager::UpdateDescriptorSet(
         DescriptorSetHandle _descriptorSet,
         const eastl::span<const DescriptorSetWriteInfo>& _writes,
+        bool _singleFrame,
         VkDevice _device,
         const VkResources& _resources,
         u8 _frameIndex)
@@ -216,7 +217,10 @@ namespace KryneEngine
             writeOp.m_descriptorData.reserve(write.m_descriptorData.size());
             writeOp.m_descriptorData.insert(writeOp.m_descriptorData.end(), write.m_descriptorData.begin(), write.m_descriptorData.end());;
 
-            m_multiFrameTracker.TrackForOtherFrames(writeOp);
+            if (!_singleFrame)
+            {
+                m_multiFrameTracker.TrackForOtherFrames(writeOp);
+            }
         }
 
         _ProcessUpdates(m_tmpWriteOps, _device, _resources, _frameIndex);

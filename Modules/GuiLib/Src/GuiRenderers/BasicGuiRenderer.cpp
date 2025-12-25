@@ -225,7 +225,7 @@ namespace KryneEngine::Modules::GuiLib
                     .m_descriptorData = { &descriptorData, 1 },
                 }
             };
-            _graphicsContext.UpdateDescriptorSet(m_commonDescriptorSet, writes);
+            _graphicsContext.UpdateDescriptorSet(m_commonDescriptorSet, writes, true);
         }
 
         const size_t sizeEstimation = sizeof(PackedInstanceData) * renderCommandArray.length;
@@ -330,6 +330,7 @@ namespace KryneEngine::Modules::GuiLib
                 break;
             case CLAY_RENDER_COMMAND_TYPE_NONE:
                 previous = CLAY_RENDER_COMMAND_TYPE_NONE;
+                break;
             case CLAY_RENDER_COMMAND_TYPE_CUSTOM:
                 previous = CLAY_RENDER_COMMAND_TYPE_CUSTOM;
                 break;

@@ -1070,11 +1070,14 @@ namespace KryneEngine
 
     void Dx12GraphicsContext::UpdateDescriptorSet(
         DescriptorSetHandle _descriptorSet,
-        const eastl::span<const DescriptorSetWriteInfo>& _writes)
+        const eastl::span<const DescriptorSetWriteInfo>& _writes,
+        bool _singleFrame)
     {
         m_descriptorSetManager.UpdateDescriptorSet(
             _descriptorSet,
-            m_resources, _writes,
+            m_resources,
+            _writes,
+            _singleFrame,
             m_device.Get(),
             m_frameId % m_frameContextCount);
     }

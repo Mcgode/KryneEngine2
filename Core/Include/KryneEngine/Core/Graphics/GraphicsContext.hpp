@@ -182,7 +182,8 @@ namespace KryneEngine
 
         virtual void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,
-            const eastl::span<const DescriptorSetWriteInfo>& _writes) = 0;
+            const eastl::span<const DescriptorSetWriteInfo>& _writes,
+            bool _singleFrame) = 0;
 
         virtual void SetViewport(CommandListHandle _commandList, const Viewport& _viewport) = 0;
         virtual void SetScissorsRect(CommandListHandle _commandList, const Rect& _rect) = 0;

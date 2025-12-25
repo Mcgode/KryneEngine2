@@ -209,6 +209,7 @@ namespace KryneEngine
     void MetalArgumentBufferManager::UpdateArgumentBuffer(
         MetalResources& _resources,
         const eastl::span<const DescriptorSetWriteInfo>& _writes,
+        bool _singleFrame,
         DescriptorSetHandle _descriptorSet,
         u8 _frameIndex)
     {
@@ -228,7 +229,10 @@ namespace KryneEngine
                 info.m_argumentBuffer = _descriptorSet;
                 info.m_object = data.m_handle;
 
-                m_multiFrameTracker.TrackForOtherFrames(info);
+                if (!_singleFrame)
+                {
+                    m_multiFrameTracker.TrackForOtherFrames(info);
+                }
 
                 packedIndex.m_index++;
             }

@@ -126,7 +126,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
                     .m_descriptorData = gBufferAmbientDescriptorData
                 },
             };
-            _graphicsContext->UpdateDescriptorSet(m_textureDescriptors, { writeInfo });
+            _graphicsContext->UpdateDescriptorSet(m_textureDescriptors, {writeInfo}, false);
         }
 
         // Create PSO layout

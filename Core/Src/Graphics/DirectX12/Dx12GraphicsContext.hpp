@@ -155,7 +155,8 @@ namespace KryneEngine
 
         void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,
-            const eastl::span<const DescriptorSetWriteInfo>& _writes) override;
+            const eastl::span<const DescriptorSetWriteInfo>& _writes,
+            bool _singleFrame) override;
 
         void SetViewport(CommandListHandle  _commandList, const Viewport& _viewport) override;
         void SetScissorsRect(CommandListHandle  _commandList, const Rect& _rect) override;

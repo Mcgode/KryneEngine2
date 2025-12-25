@@ -249,9 +249,7 @@ namespace KryneEngine::Modules::ImGui
                         .m_descriptorData = fontSamplerData,
                     }
                 };
-                graphicsContext->UpdateDescriptorSet(
-                    m_fontDescriptorSet,
-                    writeInfo);
+                graphicsContext->UpdateDescriptorSet(m_fontDescriptorSet, writeInfo, false);
             }
 
             io.Fonts->SetTexID(reinterpret_cast<void*>(static_cast<u32>(m_fontTextureViewHandle.m_handle)));

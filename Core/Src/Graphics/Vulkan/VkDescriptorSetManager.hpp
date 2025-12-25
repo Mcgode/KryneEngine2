@@ -40,6 +40,7 @@ namespace KryneEngine
         void UpdateDescriptorSet(
             DescriptorSetHandle _descriptorSet,
             const eastl::span<const DescriptorSetWriteInfo>& _writes,
+            bool _singleFrame,
             VkDevice _device,
             const VkResources& _resources,
             u8 _frameIndex);

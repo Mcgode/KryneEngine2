@@ -127,7 +127,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
                 .m_index = m_sceneDescriptorSetIndices[0],
                 .m_descriptorData = data,
             };
-            graphicsContext->UpdateDescriptorSet(set,{ &writeInfo, 1 });
+            graphicsContext->UpdateDescriptorSet(set, {&writeInfo, 1}, false);
         }
 
         m_cbRenderGraphHandles.Resize(graphicsContext->GetFrameContextCount());

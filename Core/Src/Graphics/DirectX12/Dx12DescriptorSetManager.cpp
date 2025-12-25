@@ -197,6 +197,7 @@ namespace KryneEngine
         DescriptorSetHandle _descriptorSet,
         const Dx12Resources& _resources,
         const eastl::span<const DescriptorSetWriteInfo>& _writes,
+        bool _singleFrame,
         ID3D12Device* _device,
         u8 _frameIndex)
     {
@@ -216,7 +217,10 @@ namespace KryneEngine
                     }.m_packed,
                 };
                 _ProcessUpdate(_device, _resources, data, _frameIndex);
-                m_multiFrameUpdateTracker.TrackForOtherFrames(data);
+                if (!_singleFrame)
+                {
+                    m_multiFrameUpdateTracker.TrackForOtherFrames(data);
+                }
             }
         }
     }

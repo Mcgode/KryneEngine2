@@ -769,12 +769,12 @@ namespace KryneEngine
     }
 
     void MetalGraphicsContext::UpdateDescriptorSet(
-        DescriptorSetHandle _descriptorSet,
-        const eastl::span<const DescriptorSetWriteInfo>& _writes)
+        DescriptorSetHandle _descriptorSet, const eastl::span<const DescriptorSetWriteInfo>& _writes, bool _singleFrame)
     {
         m_argumentBufferManager.UpdateArgumentBuffer(
             m_resources,
             _writes,
+            _singleFrame,
             _descriptorSet,
             m_frameId % m_frameContextCount);
     }

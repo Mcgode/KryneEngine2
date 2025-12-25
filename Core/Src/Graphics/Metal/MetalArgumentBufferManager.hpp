@@ -103,6 +103,7 @@ namespace KryneEngine
         void UpdateArgumentBuffer(
             MetalResources& _resources,
             const eastl::span<const DescriptorSetWriteInfo>& _writes,
+            bool _singleFrame,
             DescriptorSetHandle _descriptorSet,
             u8 _frameIndex);
 

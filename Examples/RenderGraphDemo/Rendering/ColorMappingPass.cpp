@@ -63,7 +63,7 @@ namespace KryneEngine::Samples::RenderGraphDemo
                 },
             };
 
-            _graphicsContext->UpdateDescriptorSet(m_inputColorDescriptorSet, writeInfo);
+            _graphicsContext->UpdateDescriptorSet(m_inputColorDescriptorSet, writeInfo, false);
         }
 
         // Create PSO layout

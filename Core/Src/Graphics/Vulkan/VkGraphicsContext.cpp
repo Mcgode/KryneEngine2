@@ -1505,12 +1505,12 @@ namespace KryneEngine
     }
 
     void VkGraphicsContext::UpdateDescriptorSet(
-        DescriptorSetHandle _descriptorSet,
-        const eastl::span<const DescriptorSetWriteInfo>& _writes)
+        DescriptorSetHandle _descriptorSet, const eastl::span<const DescriptorSetWriteInfo>& _writes, bool _singleFrame)
     {
         return m_descriptorSetManager.UpdateDescriptorSet(
             _descriptorSet,
             _writes,
+            _singleFrame,
             m_device,
             m_resources,
             m_frameId % m_frameContextCount);
