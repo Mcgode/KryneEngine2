@@ -105,7 +105,12 @@ s32 main(s32 argc, const char** argv)
                 .id = CLAY_ID("SideBar"),
                 .layout = { .sizing = { .width = CLAY_SIZING_FIXED(300), .height = CLAY_SIZING_GROW(0) }, .padding = CLAY_PADDING_ALL(16), .childGap = 16, .layoutDirection = CLAY_TOP_TO_BOTTOM },
                 .backgroundColor = COLOR_LIGHT,
-                .cornerRadius = { 10, 20, 40, 80 }
+                .cornerRadius = {
+                    .topLeft = 10,
+                    .topRight = 20,
+                    .bottomLeft = 40,
+                    .bottomRight = 80
+                }
             }) {
                 CLAY({ .id = CLAY_ID("ProfilePictureOuter"), .layout = { .sizing = { .width = CLAY_SIZING_GROW(0) }, .padding = CLAY_PADDING_ALL(16), .childGap = 16, .childAlignment = { .y = CLAY_ALIGN_Y_CENTER } }, .backgroundColor = COLOR_RED }) {
                     CLAY({ .id = CLAY_ID("ProfilePicture"), .layout = { .sizing = { .width = CLAY_SIZING_FIXED(60), .height = CLAY_SIZING_FIXED(60) }}, .image = { .imageData = nullptr } }) {}
