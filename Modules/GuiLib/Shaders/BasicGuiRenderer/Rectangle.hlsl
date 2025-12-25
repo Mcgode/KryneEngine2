@@ -45,8 +45,8 @@ VsOutput RectangleVs(VsInput _input)
 // Rounded box SDF calculations based on https://www.shadertoy.com/view/4cG3R1
 float SDRoundedBox(const float2 _position, const float2 _halfSize, float4 _cornerRadii)
 {
-    _cornerRadii.xy = _position.y > 0.f ? _cornerRadii.xy : _cornerRadii.zw;
-    const float cornerRadius = _position.x > 0.f ? _cornerRadii.x : _cornerRadii.y;
+    _cornerRadii.xy = _position.y < 0.f ? _cornerRadii.xy : _cornerRadii.zw;
+    const float cornerRadius = _position.x < 0.f ? _cornerRadii.x : _cornerRadii.y;
     const float2 q = abs(_position) - _halfSize + cornerRadius;
 
     if (min(q.x, q.y) < 0.f)
