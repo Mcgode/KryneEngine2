@@ -33,7 +33,10 @@ namespace KryneEngine::Modules::GuiLib
         RenderPassHandle _renderPass)
         : m_instanceDataBuffer(_allocator)
         , m_commonConstantBuffer(_allocator)
+        , m_commonConstantBufferViews(_allocator)
     {
+        const u8 frameContextCount = _graphicsContext.GetFrameContextCount();
+
         {
             m_instanceDataBuffer.Init(
                &_graphicsContext,
@@ -44,7 +47,7 @@ namespace KryneEngine::Modules::GuiLib
                    },
                    .m_usage = MemoryUsage::StageEveryFrame_UsageType | MemoryUsage::VertexBuffer
                },
-               _graphicsContext.GetFrameContextCount());
+               frameContextCount);
         }
 
         {
@@ -57,7 +60,23 @@ namespace KryneEngine::Modules::GuiLib
                     },
                     .m_usage = MemoryUsage::StageEveryFrame_UsageType | MemoryUsage::ConstantBuffer
                 },
-                _graphicsContext.GetFrameContextCount());
+                frameContextCount);
+
+            m_commonConstantBufferViews.Resize(frameContextCount);
+            for (auto i = 0u; i < frameContextCount; ++i)
+            {
+                m_commonConstantBufferViews[i] = _graphicsContext.CreateBufferView(
+                    BufferViewDesc {
+                        .m_buffer = m_commonConstantBuffer.GetBuffer(i),
+                        .m_size = sizeof(ViewportConstants),
+                        .m_offset = 0,
+                        .m_stride = sizeof(ViewportConstants),
+                        .m_accessType = BufferViewAccessType::Constant,
+#if !defined(KE_FINAL)
+                        .m_debugName = "BasicGuiRenderer common constant buffer view",
+#endif
+                    });
+            }
         }
 
         DescriptorSetLayoutHandle commonDescriptorSetLayout;
@@ -218,7 +237,7 @@ namespace KryneEngine::Modules::GuiLib
             m_commonConstantBuffer.Unmap(&_graphicsContext);
             m_commonConstantBuffer.PrepareBuffers(&_graphicsContext, _transferCommandList, BarrierAccessFlags::ConstantBuffer, frameIndex);
 
-            const DescriptorSetWriteInfo::DescriptorData descriptorData { .m_handle = m_commonConstantBuffer.GetBuffer(frameIndex).m_handle };
+            const DescriptorSetWriteInfo::DescriptorData descriptorData { .m_handle = m_commonConstantBufferViews[frameIndex].m_handle };
             const DescriptorSetWriteInfo writes[] = {
                 {
                     .m_index = m_commonDescriptorSetIndices[0],
@@ -226,6 +245,7 @@ namespace KryneEngine::Modules::GuiLib
                 }
             };
             _graphicsContext.UpdateDescriptorSet(m_commonDescriptorSet, writes, true);
+            _graphicsContext.DeclarePassBufferViewUsage(_renderCommandList, { &m_commonConstantBufferViews[frameIndex], 1 }, BufferViewAccessType::Read);
         }
 
         const size_t sizeEstimation = sizeof(PackedInstanceData) * renderCommandArray.length;

@@ -36,6 +36,7 @@ namespace KryneEngine::Modules::GuiLib
 
         GraphicsUtils::DynamicBuffer m_instanceDataBuffer;
         GraphicsUtils::DynamicBuffer m_commonConstantBuffer;
+        DynamicArray<BufferViewHandle> m_commonConstantBufferViews;
 
         struct alignas(sizeof(float4)) ViewportConstants
         {
