@@ -32,9 +32,13 @@ VsOutput RectangleVs(VsInput _input)
     output.rectHalfSize = rectHalfSize;
 
     const float2 baseVertexPos = vertices[_input.vertexId];
-    output.pixelPosition = baseVertexPos * rectHalfSize;
-    const float2 ndcPosition = UvToNdc((output.pixelPosition + rectCenter) / viewportConstants.viewportSize);
+    const float2 relativePixelPosition = baseVertexPos * rectHalfSize;
+    const float2 absolutePixelPosition = rectCenter + relativePixelPosition;
+    const float2 ndcPosition = UvToNdc(absolutePixelPosition / viewportConstants.viewportSize);
+
+    output.pixelPosition = relativePixelPosition;
     output.position = mul(float4(ndcPosition, 0.f, 1.f), viewportConstants.ndcProjectionMatrix);
+
     return output;
 }
 
