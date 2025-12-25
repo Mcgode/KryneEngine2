@@ -109,7 +109,7 @@ s32 main(s32 argc, const char** argv)
                     .topLeft = 10,
                     .topRight = 20,
                     .bottomLeft = 40,
-                    .bottomRight = 80
+                    .bottomRight = 0
                 }
             }) {
                 CLAY({ .id = CLAY_ID("ProfilePictureOuter"), .layout = { .sizing = { .width = CLAY_SIZING_GROW(0) }, .padding = CLAY_PADDING_ALL(16), .childGap = 16, .childAlignment = { .y = CLAY_ALIGN_Y_CENTER } }, .backgroundColor = COLOR_RED }) {
