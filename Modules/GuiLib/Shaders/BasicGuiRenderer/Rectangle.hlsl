@@ -6,6 +6,7 @@
 
 #include "Common.hlsl"
 #include "Math/ColorConversion.hlsl"
+#include "Math/CoordinateTransforms.hlsl"
 
 struct VsOutput
 {
@@ -30,9 +31,10 @@ VsOutput RectangleVs(VsInput _input)
     output.cornerRadius = unpackHalf2x16ToFloat(_input.packedData.x).x;
     output.rectHalfSize = rectHalfSize;
 
-    const float2 position = rectHalfSize * vertices[_input.vertexId];
-    output.pixelPosition = position * viewportConstants.viewportSize;
-    output.position = mul(float4(position + rectCenter, 0.f, 1.f), viewportConstants.ndcProjectionMatrix);
+    const float2 baseVertexPos = vertices[_input.vertexId];
+    output.pixelPosition = baseVertexPos * rectHalfSize + rectCenter;
+    const float2 ndcPosition = UvToNdc(output.pixelPosition / viewportConstants.viewportSize);
+    output.position = mul(float4(ndcPosition, 0.f, 1.f), viewportConstants.ndcProjectionMatrix);
     return output;
 }
 
