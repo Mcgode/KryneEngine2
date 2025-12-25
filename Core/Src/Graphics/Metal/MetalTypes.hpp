@@ -18,22 +18,18 @@ namespace KryneEngine
         {
             Render,
             Blit,
-            Compute
+            Compute,
+            None
         };
 
         MTL::CommandBuffer* m_commandBuffer { nullptr };
         NsPtr<MTL::CommandEncoder> m_encoder { nullptr };
-        EncoderType m_type = EncoderType::Render;
+        EncoderType m_type = EncoderType::None;
         void* m_userData = nullptr;
 
         void ResetEncoder()
         {
-            if (m_encoder != nullptr)
-            {
-                KE_ASSERT(m_userData == nullptr);
-                m_encoder->endEncoding();
-                m_encoder.reset();
-            }
+            ResetEncoder(EncoderType::None);
         }
 
         void ResetEncoder(EncoderType _type)

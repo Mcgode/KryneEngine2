@@ -1222,6 +1222,8 @@ namespace KryneEngine
                 }
                 else
                     return { ~0u, ~0u };
+            case CommandListData::EncoderType::None:
+                break;
             }
         }
 
