@@ -21,6 +21,7 @@ namespace KryneEngine
     struct PackedInstanceData
     {
         uint2 m_packedRect;
+        uint m_packedColor;
         uint4 m_packedData;
     };
 }
@@ -124,8 +125,17 @@ namespace KryneEngine::Modules::GuiLib
                 .m_semanticIndex = 0,
                 .m_bindingIndex = 0,
                 .m_format = TextureFormat::RG32_UInt,
-                .m_offset = 0,
+                .m_offset = offsetof(PackedInstanceData, m_packedRect),
                 .m_location = 0,
+            },
+            // Packed color
+            {
+                .m_semanticName = VertexLayoutElement::SemanticName::Color,
+                .m_semanticIndex = 0,
+                .m_bindingIndex = 0,
+                .m_format = TextureFormat::R32_UInt,
+                .m_offset = offsetof(PackedInstanceData, m_packedColor),
+                .m_location = 1,
             },
             // Packed data
             {
@@ -133,8 +143,8 @@ namespace KryneEngine::Modules::GuiLib
                 .m_semanticIndex = 0,
                 .m_bindingIndex = 0,
                 .m_format = TextureFormat::RGBA32_UInt,
-                .m_offset = sizeof(uint2),
-                .m_location = 1,
+                .m_offset = offsetof(PackedInstanceData, m_packedData),
+                .m_location = 2,
             },
         };
 
@@ -311,14 +321,14 @@ namespace KryneEngine::Modules::GuiLib
             {
                 auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);
                 packedInstanceData->m_packedRect = packRect(renderCommand.boundingBox);
-                const uint2 packedRadii = packCornerRadii(renderCommand.renderData.rectangle.cornerRadius);
-                packedInstanceData->m_packedData.x = packedRadii.x;
-                packedInstanceData->m_packedData.y = packedRadii.y;
-                packedInstanceData->m_packedData.z = Color(
+                packedInstanceData->m_packedColor = Color(
                     renderCommand.renderData.rectangle.backgroundColor.r / 255.f,
                     renderCommand.renderData.rectangle.backgroundColor.g / 255.f,
                     renderCommand.renderData.rectangle.backgroundColor.b / 255.f,
                     renderCommand.renderData.rectangle.backgroundColor.a / 255.f).ToSrgb().ToRgba8();
+                const uint2 packedRadii = packCornerRadii(renderCommand.renderData.rectangle.cornerRadius);
+                packedInstanceData->m_packedData.x = packedRadii.x;
+                packedInstanceData->m_packedData.y = packedRadii.y;
 
                 if (previous != CLAY_RENDER_COMMAND_TYPE_RECTANGLE)
                 {

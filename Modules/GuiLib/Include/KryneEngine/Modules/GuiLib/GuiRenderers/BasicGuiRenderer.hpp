@@ -48,7 +48,9 @@ namespace KryneEngine::Modules::GuiLib
         DescriptorSetHandle m_texturesDescriptorSet;
 
         PipelineLayoutHandle m_commonPipelineLayout;
+
         GraphicsPipelineHandle m_rectanglePipeline;
+        GraphicsPipelineHandle m_borderPipeline;
 
         eastl::array<u32, 1> m_commonDescriptorSetIndices {};
         eastl::array<u32, 2> m_texturesDescriptorSetIndices {};

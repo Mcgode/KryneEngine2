@@ -28,6 +28,7 @@ static const float2 vertices[6] = {
 struct VsInput
 {
     vkLocation(0) uint2 packedRect: POSITION;
-    vkLocation(1) uint4 packedData: TEXCOORD;
+    vkLocation(1) uint packedColor: COLOR;
+    vkLocation(2) uint4 packedData: TEXCOORD;
     uint vertexId : SV_VertexID;
 };
