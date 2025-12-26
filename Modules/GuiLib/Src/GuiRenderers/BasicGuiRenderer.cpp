@@ -351,12 +351,15 @@ namespace KryneEngine::Modules::GuiLib
             .m_width = static_cast<s32>(m_viewportConstants.viewportSize.x),
             .m_height = static_cast<s32>(m_viewportConstants.viewportSize.y)
         });
-        _graphicsContext.SetScissorsRect(_renderCommandList, {
+
+        eastl::fixed_vector<Rect, 16, false> scissors;
+        scissors.push_back({
             .m_left = 0,
             .m_top = 0,
             .m_right = static_cast<u32>(m_viewportConstants.viewportSize.x),
             .m_bottom = static_cast<u32>(m_viewportConstants.viewportSize.y)
         });
+        _graphicsContext.SetScissorsRect(_renderCommandList, scissors.back());
 
         for (u32 i = 0; i < renderCommandArray.length; i++)
         {
@@ -427,9 +430,24 @@ namespace KryneEngine::Modules::GuiLib
                 previous = CLAY_RENDER_COMMAND_TYPE_IMAGE;
                 break;
             case CLAY_RENDER_COMMAND_TYPE_SCISSOR_START:
+                if (KE_VERIFY(scissors.size() < scissors.capacity())) [[likely]]
+                {
+                    scissors.push_back({
+                        .m_left = static_cast<u32>(renderCommand.boundingBox.x),
+                        .m_top = static_cast<u32>(renderCommand.boundingBox.y),
+                        .m_right = static_cast<u32>(renderCommand.boundingBox.x + renderCommand.boundingBox.width),
+                        .m_bottom = static_cast<u32>(renderCommand.boundingBox.y + renderCommand.boundingBox.height),
+                    });
+                    _graphicsContext.SetScissorsRect(_renderCommandList, scissors.back());
+                }
                 previous = CLAY_RENDER_COMMAND_TYPE_SCISSOR_START;
                 break;
             case CLAY_RENDER_COMMAND_TYPE_SCISSOR_END:
+                if (KE_VERIFY(scissors.size() > 1)) [[likely]]
+                {
+                    scissors.pop_back();
+                    _graphicsContext.SetScissorsRect(_renderCommandList, scissors.back());
+                }
                 previous = CLAY_RENDER_COMMAND_TYPE_SCISSOR_END;
                 break;
             case CLAY_RENDER_COMMAND_TYPE_NONE:
@@ -440,6 +458,8 @@ namespace KryneEngine::Modules::GuiLib
                 break;
             }
         }
+
+        KE_ASSERT(scissors.size() == 1);
 
         m_instanceDataBuffer.Unmap(&_graphicsContext);
         m_instanceDataBuffer.PrepareBuffers(&_graphicsContext, _transferCommandList, BarrierAccessFlags::VertexBuffer, frameIndex);
