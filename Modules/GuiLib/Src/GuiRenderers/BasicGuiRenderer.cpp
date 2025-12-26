@@ -319,7 +319,6 @@ namespace KryneEngine::Modules::GuiLib
                     renderCommand.renderData.rectangle.backgroundColor.g / 255.f,
                     renderCommand.renderData.rectangle.backgroundColor.b / 255.f,
                     renderCommand.renderData.rectangle.backgroundColor.a / 255.f).ToSrgb().ToRgba8();
-                offset += sizeof(PackedInstanceData);
 
                 if (previous != CLAY_RENDER_COMMAND_TYPE_RECTANGLE)
                 {
@@ -329,6 +328,7 @@ namespace KryneEngine::Modules::GuiLib
                     .m_vertexCount = 6,
                     .m_instanceOffset = static_cast<u32>(offset / sizeof(PackedInstanceData)),
                 });
+                offset += sizeof(PackedInstanceData);
 
                 previous = CLAY_RENDER_COMMAND_TYPE_RECTANGLE;
                 break;
