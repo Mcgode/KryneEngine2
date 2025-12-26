@@ -219,6 +219,53 @@ namespace KryneEngine::Modules::GuiLib
             _allocator.deallocate(vertexShaderSource.data(), vertexShaderSource.size());
         }
 
+        // Border PSO
+        {
+            const eastl::span<char> vertexShaderSource = readShaderFile(
+                eastl::string("Shaders/BasicGuiRenderer/Border_BorderVs.", _allocator) + GraphicsContext::GetShaderFileExtension());
+            const eastl::span<char> fragmentShaderSource = readShaderFile(
+                eastl::string("Shaders/BasicGuiRenderer/Border_BorderFs.", _allocator) + GraphicsContext::GetShaderFileExtension());
+
+            const ShaderModuleHandle vertexShaderModule = _graphicsContext.RegisterShaderModule(vertexShaderSource.data(), vertexShaderSource.size());
+            const ShaderModuleHandle fragmentShaderModule = _graphicsContext.RegisterShaderModule(fragmentShaderSource.data(), fragmentShaderSource.size());
+
+            const ShaderStage stages[] = {
+                {
+                    .m_shaderModule = vertexShaderModule,
+                    .m_stage = ShaderStage::Stage::Vertex,
+                    .m_entryPoint = "BorderVs",
+                },
+                {
+                    .m_shaderModule = fragmentShaderModule,
+                    .m_stage = ShaderStage::Stage::Fragment,
+                    .m_entryPoint = "BorderFs",
+                },
+            };
+
+            const GraphicsPipelineDesc pipelineDesc {
+                .m_stages = stages,
+                .m_vertexInput = {
+                    .m_elements = commonVertexElements,
+                    .m_bindings = commonVertexBindings
+                },
+                .m_colorBlending = {
+                    .m_attachments = { kDefaultColorAttachmentAlphaBlendDesc }
+                },
+                .m_depthStencil = {
+                    .m_depthTest = false,
+                    .m_depthWrite = false,
+                },
+                .m_renderPass =  _renderPass,
+                .m_pipelineLayout = m_commonPipelineLayout,
+            };
+            m_borderPipeline = _graphicsContext.CreateGraphicsPipeline(pipelineDesc);
+
+            _graphicsContext.FreeShaderModule(fragmentShaderModule);
+            _graphicsContext.FreeShaderModule(vertexShaderModule);
+            _allocator.deallocate(fragmentShaderSource.data(), fragmentShaderSource.size());
+            _allocator.deallocate(vertexShaderSource.data(), vertexShaderSource.size());
+        }
+
         _graphicsContext.DestroyDescriptorSetLayout(texturesDescriptorSetLayout);
         _graphicsContext.DestroyDescriptorSetLayout(commonDescriptorSetLayout);
     }
@@ -344,8 +391,35 @@ namespace KryneEngine::Modules::GuiLib
                 break;
             }
             case CLAY_RENDER_COMMAND_TYPE_BORDER:
+            {
+                auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);
+                packedInstanceData->m_packedRect = packRect(renderCommand.boundingBox);
+                packedInstanceData->m_packedColor = Color(
+                    renderCommand.renderData.border.color.r / 255.f,
+                    renderCommand.renderData.border.color.g / 255.f,
+                    renderCommand.renderData.border.color.b / 255.f,
+                    renderCommand.renderData.border.color.a / 255.f).ToSrgb().ToRgba8();
+                const uint2 packedRadii = packCornerRadii(renderCommand.renderData.border.cornerRadius);
+                packedInstanceData->m_packedData.x = packedRadii.x;
+                packedInstanceData->m_packedData.y = packedRadii.y;
+                packedInstanceData->m_packedData.z = Math::Float16::PackFloat16x2(
+                    renderCommand.renderData.border.width.top, renderCommand.renderData.border.width.bottom);
+                packedInstanceData->m_packedData.w = Math::Float16::PackFloat16x2(
+                    renderCommand.renderData.border.width.left, renderCommand.renderData.border.width.right);
+
+                if (previous != CLAY_RENDER_COMMAND_TYPE_BORDER)
+                {
+                    _graphicsContext.SetGraphicsPipeline(_renderCommandList, m_borderPipeline);
+                }
+                _graphicsContext.DrawInstanced(_renderCommandList, DrawInstancedDesc {
+                    .m_vertexCount = 6,
+                    .m_instanceOffset = static_cast<u32>(offset / sizeof(PackedInstanceData)),
+                });
+                offset += sizeof(PackedInstanceData);
+
                 previous = CLAY_RENDER_COMMAND_TYPE_BORDER;
                 break;
+            }
             case CLAY_RENDER_COMMAND_TYPE_TEXT:
                 previous = CLAY_RENDER_COMMAND_TYPE_TEXT;
                 break;
