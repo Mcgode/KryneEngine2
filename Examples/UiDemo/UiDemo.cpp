@@ -100,7 +100,7 @@ s32 main(s32 argc, const char** argv)
         });
 
         // An example of laying out a UI with a fixed width sidebar and flexible width main content
-        CLAY({ .id = CLAY_ID("OuterContainer"), .layout = { .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)}, .padding = CLAY_PADDING_ALL(16), .childGap = 16 }, .backgroundColor = {250,250,255,255}, .cornerRadius = { 10, 20, 40, 80 } }) {
+        CLAY({ .id = CLAY_ID("OuterContainer"), .layout = { .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)}, .padding = CLAY_PADDING_ALL(16), .childGap = 16 }, .backgroundColor = {250,250,255,255}, .cornerRadius = { 10, 20, 40, 0 } }) {
             CLAY({
                 .id = CLAY_ID("SideBar"),
                 .layout = { .sizing = { .width = CLAY_SIZING_FIXED(300), .height = CLAY_SIZING_GROW(0) }, .padding = CLAY_PADDING_ALL(16), .childGap = 16, .layoutDirection = CLAY_TOP_TO_BOTTOM },
@@ -121,8 +121,30 @@ s32 main(s32 argc, const char** argv)
                 for (int i = 0; i < 5; i++) {
                     SidebarItemComponent();
                 }
+            }
 
-                CLAY({ .id = CLAY_ID("MainContent"), .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) } }, .backgroundColor = COLOR_LIGHT }) {}
+            CLAY({
+                .id = CLAY_ID("MainContent"),
+                .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) } },
+                .backgroundColor = COLOR_LIGHT,
+                .cornerRadius = {
+                    .topLeft = 10,
+                    .topRight = 20,
+                    .bottomLeft = 40,
+                    .bottomRight = 0
+                },
+                .border = {
+                    .color = Clay_Color { 10, 0, 0, 255 },
+                    .width = {
+                        .left = 1,
+                        .right = 1,
+                        .top = 1,
+                        .bottom = 10,
+                    }
+                },
+            })
+            {
+                SidebarItemComponent();
             }
         }
 
