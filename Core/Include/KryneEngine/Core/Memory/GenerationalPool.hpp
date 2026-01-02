@@ -56,6 +56,7 @@ namespace KryneEngine
                                                                                                 \
         HandleName& operator=(GenPool::Handle _other) { m_handle = _other; return *this; }      \
         bool operator==(GenPool::Handle _other) const { return m_handle == _other; }            \
+        bool operator==(HandleName _other) const { return m_handle == _other.m_handle; }        \
     }
 
     template <class HotDataStruct, class ColdDataStruct = void, class Allocator = AllocatorInstance>
