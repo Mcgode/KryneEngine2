@@ -143,6 +143,26 @@ namespace KryneEngine::BitUtils
         return static_cast<UnderlyingType>(_source & _flags) == static_cast<UnderlyingType>(_flags);
     }
 
+    template<class T> requires std::is_integral_v<T>
+    constexpr T BitfieldInsert(T _target, T _value, u8 _size, u8 _offset = 0)
+    {
+        return _target | (_value << _offset);
+    }
+
+    template<class T> requires std::is_integral_v<T>
+    constexpr T BitfieldInsertSafe(T _target, T _value, u8 _size, u8 _offset = 0)
+    {
+        const T bitMask = BitMask<T>(_size) << _offset;
+        return (_target & ~bitMask) | ((_value << _offset) & bitMask);
+    }
+
+    template<class T> requires std::is_integral_v<T>
+    constexpr T BitfieldExtract(T _value, u8 _size, u8 _offset = 0)
+    {
+        return (_value >> _offset) & BitMask<T>(_size);
+    }
+
+
     u8 GetMostSignificantBit(u64 _value);
     u8 GetLeastSignificantBit(u64 _value);
 }
