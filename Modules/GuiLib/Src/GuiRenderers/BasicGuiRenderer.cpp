@@ -13,8 +13,13 @@
 #include <KryneEngine/Core/Math/Float16.hpp>
 #include <KryneEngine/Core/Math/Matrix.hpp>
 
+#include <EASTL/hash_map.h>
+#include <EASTL/vector_set.h>
+#include <cmath>
 #include <clay.h>
 #include <fstream>
+
+#include "KryneEngine/Modules/GuiLib/TextureRegion.hpp"
 
 namespace KryneEngine
 {
@@ -24,6 +29,122 @@ namespace KryneEngine
         uint m_packedColor;
         uint4 m_packedData;
     };
+
+    struct SlotData
+    {
+        u16 m_index;
+        u16 m_descriptorSetIndex;
+    };
+
+    using TextureDataMap = eastl::hash_map<u32, SlotData>;
+    using SamplerArray = eastl::fixed_vector<SamplerHandle, Modules::GuiLib::BasicGuiRenderer::kMaxSamplerSlots, false>;
+    using SamplerDataMap = eastl::vector<SamplerArray>;
+
+    static eastl::pair<TextureDataMap, SamplerDataMap> HandleTextureSets(
+        const AllocatorInstance _allocator,
+        GraphicsContext& _graphicsContext,
+        const Clay_RenderCommandArray& _renderCommandArray,
+        eastl::vector<DescriptorSetHandle>& _texturesDescriptorSets,
+        DescriptorSetLayoutHandle _texturesDescriptorSetLayout,
+        SamplerHandle _defaultSampler,
+        const u32* _descriptorSetIndices)
+    {
+        TextureDataMap textureData(_allocator);
+        SamplerDataMap samplerData(_allocator);
+
+        eastl::vector<eastl::array<DescriptorSetWriteInfo::DescriptorData, Modules::GuiLib::BasicGuiRenderer::kMaxTextureSlots>> textureSetWrites(_allocator);
+        eastl::vector<eastl::array<DescriptorSetWriteInfo::DescriptorData, Modules::GuiLib::BasicGuiRenderer::kMaxSamplerSlots>> samplerSetWrites(_allocator);
+
+        u16 descriptorSetIndex = 0;
+
+        for (u32 i = 0; i < _renderCommandArray.length; i++)
+        {
+            const Clay_RenderCommand& renderCommand = _renderCommandArray.internalArray[i];
+
+            if (renderCommand.commandType != CLAY_RENDER_COMMAND_TYPE_IMAGE) continue;
+
+            const auto* textureRegion = static_cast<const Modules::GuiLib::TextureRegion*>(renderCommand.renderData.image.imageData);
+
+            if (!KE_VERIFY_MSG(textureRegion->m_textureType == TextureTypes::Single2D, "Unsupported texture type")) continue;
+
+            const SamplerHandle sampler = textureRegion->m_customSampler != GenPool::kInvalidHandle
+                ? textureRegion->m_customSampler
+                : _defaultSampler;
+
+            const TextureViewHandle textureView = textureRegion->m_textureView;
+            const auto it = textureData.find(static_cast<u32>(textureView.m_handle));
+
+            // Texture is already in a set, add sampler to it if not already done
+            if (it != textureData.end())
+            {
+                SamplerArray& array = samplerData[it->second.m_descriptorSetIndex];
+                if (eastl::find(array.begin(), array.end(), sampler) == array.end() && KE_VERIFY(array.size() < array.max_size()))
+                {
+                    KE_ASSERT(samplerSetWrites.size() > it->second.m_descriptorSetIndex);
+                    samplerSetWrites[it->second.m_descriptorSetIndex][array.size()] = {
+                        .m_handle = sampler.m_handle,
+                    };
+                    array.push_back(sampler);
+                }
+                continue;
+            }
+
+            // Push texture to set
+
+            if (descriptorSetIndex >= Modules::GuiLib::BasicGuiRenderer::kMaxTextureSlots)
+            {
+                samplerData.push_back();
+                textureSetWrites.push_back();
+                samplerSetWrites.push_back();
+
+                if (_texturesDescriptorSets.size() <= samplerData.size())
+                {
+                    _texturesDescriptorSets.push_back(_graphicsContext.CreateDescriptorSet(_texturesDescriptorSetLayout));
+                }
+
+                descriptorSetIndex %= Modules::GuiLib::BasicGuiRenderer::kMaxTextureSlots;
+            }
+
+            textureData.emplace(static_cast<u32>(textureView.m_handle), SlotData {
+                .m_index = descriptorSetIndex,
+                .m_descriptorSetIndex = static_cast<u16>(samplerData.size() - 1u),
+            });
+            textureSetWrites.back()[descriptorSetIndex] = {
+                .m_textureLayout = TextureLayout::ShaderResource,
+                .m_handle = textureView.m_handle,
+            };
+
+            SamplerArray& samplerArray = samplerData.back();
+            const auto samplerIt = eastl::find(samplerArray.begin(), samplerArray.end(), sampler);
+            if (samplerIt == samplerArray.end() && KE_VERIFY(samplerArray.size() < samplerArray.max_size()))
+            {
+                samplerSetWrites.back()[samplerArray.size()] = {
+                    .m_handle = sampler.m_handle,
+                };
+                samplerArray.push_back(sampler);
+            }
+
+            descriptorSetIndex++;
+        }
+
+        for (auto i = 0u; i < textureSetWrites.size(); i++)
+        {
+            const size_t spanSize = i + 1 == textureSetWrites.size() ? descriptorSetIndex : Modules::GuiLib::BasicGuiRenderer::kMaxTextureSlots;
+            const DescriptorSetWriteInfo info[] = {
+                {
+                    .m_index = _descriptorSetIndices[0],
+                    .m_descriptorData = { textureSetWrites[i].begin(), spanSize },
+                },
+                {
+                    .m_index = _descriptorSetIndices[1],
+                    .m_descriptorData = { samplerSetWrites[i].begin(), samplerData[i].size() },
+                }
+            };
+            _graphicsContext.UpdateDescriptorSet(_texturesDescriptorSets[i], info, true);
+        }
+
+        return { eastl::move(textureData), eastl::move(samplerData) };
+    }
 }
 
 namespace KryneEngine::Modules::GuiLib
@@ -31,10 +152,13 @@ namespace KryneEngine::Modules::GuiLib
     BasicGuiRenderer::BasicGuiRenderer(
         AllocatorInstance _allocator,
         GraphicsContext& _graphicsContext,
-        RenderPassHandle _renderPass)
+        RenderPassHandle _renderPass,
+        SamplerHandle _defaultSampler)
         : m_instanceDataBuffer(_allocator)
         , m_commonConstantBuffer(_allocator)
         , m_commonConstantBufferViews(_allocator)
+        , m_texturesDescriptorSets(_allocator)
+        , m_defaultSampler(_defaultSampler)
     {
         const u8 frameContextCount = _graphicsContext.GetFrameContextCount();
 
@@ -80,8 +204,12 @@ namespace KryneEngine::Modules::GuiLib
             }
         }
 
+        if (m_defaultSampler == GenPool::kInvalidHandle)
+        {
+            m_defaultSampler = _graphicsContext.CreateSampler({});
+        }
+
         DescriptorSetLayoutHandle commonDescriptorSetLayout;
-        DescriptorSetLayoutHandle texturesDescriptorSetLayout;
         {
             constexpr DescriptorBindingDesc descriptorSet0Bindings[] = {
                 {
@@ -105,17 +233,17 @@ namespace KryneEngine::Modules::GuiLib
                     .m_count = kMaxSamplerSlots,
                 }
             };
-            texturesDescriptorSetLayout = _graphicsContext.CreateDescriptorSetLayout(
+            m_texturesDescriptorSetLayout = _graphicsContext.CreateDescriptorSetLayout(
                 { .m_bindings = descriptorSet1Bindings },
                 m_texturesDescriptorSetIndices.data());
 
-            const DescriptorSetLayoutHandle descriptorSetLayouts[] = { commonDescriptorSetLayout, texturesDescriptorSetLayout };
+            const DescriptorSetLayoutHandle descriptorSetLayouts[] = { commonDescriptorSetLayout, m_texturesDescriptorSetLayout };
             m_commonPipelineLayout = _graphicsContext.CreatePipelineLayout({
                 .m_descriptorSets = descriptorSetLayouts,
             });
 
             m_commonDescriptorSet = _graphicsContext.CreateDescriptorSet(commonDescriptorSetLayout);
-            m_texturesDescriptorSet = _graphicsContext.CreateDescriptorSet(texturesDescriptorSetLayout);
+            m_texturesDescriptorSets.push_back(_graphicsContext.CreateDescriptorSet(m_texturesDescriptorSetLayout));
         }
 
         constexpr VertexLayoutElement commonVertexElements[] = {
@@ -266,7 +394,6 @@ namespace KryneEngine::Modules::GuiLib
             _allocator.deallocate(vertexShaderSource.data(), vertexShaderSource.size());
         }
 
-        _graphicsContext.DestroyDescriptorSetLayout(texturesDescriptorSetLayout);
         _graphicsContext.DestroyDescriptorSetLayout(commonDescriptorSetLayout);
     }
 
@@ -305,6 +432,27 @@ namespace KryneEngine::Modules::GuiLib
             _graphicsContext.DeclarePassBufferViewUsage(_renderCommandList, { &m_commonConstantBufferViews[frameIndex], 1 }, BufferViewAccessType::Read);
         }
 
+        TextureDataMap textureDataMap;
+        SamplerDataMap samplerDataMap;
+        {
+            const auto pair = HandleTextureSets(
+                m_texturesDescriptorSets.get_allocator(),
+                _graphicsContext,
+                renderCommandArray,
+                m_texturesDescriptorSets,
+                m_texturesDescriptorSetLayout,
+                m_defaultSampler,
+                m_texturesDescriptorSetIndices.data());
+            textureDataMap = eastl::move(pair.first);
+            samplerDataMap = eastl::move(pair.second);
+
+            for (const auto [textureViewRawHandle, _]: textureDataMap)
+            {
+                TextureViewHandle handle { GenPool::Handle(textureViewRawHandle) };
+                _graphicsContext.DeclarePassTextureViewUsage(_renderCommandList, { &handle, 1 }, TextureViewAccessType::Read);
+            }
+        }
+
         const size_t sizeEstimation = sizeof(PackedInstanceData) * renderCommandArray.length;
         const u64 sizeRequirement = Alignment::NextPowerOfTwo(sizeEstimation);
         if (m_instanceDataBuffer.GetSize(frameIndex) < sizeRequirement)
@@ -314,18 +462,6 @@ namespace KryneEngine::Modules::GuiLib
         auto* buffer = static_cast<std::byte*>(m_instanceDataBuffer.Map(&_graphicsContext, frameIndex));
         size_t offset = 0;
 
-        constexpr auto packRect = [](const Clay_BoundingBox& _boundingBox)
-        {
-            uint2 packedRect {};
-            const float2 halfSize = float2(0.5f * _boundingBox.width, 0.5f * _boundingBox.height);
-            const float2 center = float2(_boundingBox.x, _boundingBox.y) + halfSize;
-
-            using Math::Float16;
-            packedRect.x = Float16::PackFloat16x2(center.x, center.y);
-            packedRect.y = Float16::PackFloat16x2(halfSize.x, halfSize.y);
-
-            return packedRect;
-        };
         constexpr auto packCornerRadii = [](const Clay_CornerRadius& _cornerRadius)
         {
             uint2 packedRadii {};
@@ -344,7 +480,8 @@ namespace KryneEngine::Modules::GuiLib
         };
         _graphicsContext.SetVertexBuffers(_renderCommandList, { &bufferView, 1 });
 
-        const DescriptorSetHandle descriptorSets[] = { m_commonDescriptorSet, m_texturesDescriptorSet };
+        size_t texturesDescriptorSetIndex = 0;
+        const DescriptorSetHandle descriptorSets[] = { m_commonDescriptorSet, m_texturesDescriptorSets[0] };
         _graphicsContext.SetGraphicsDescriptorSets(_renderCommandList, m_commonPipelineLayout, descriptorSets);
 
         _graphicsContext.SetViewport(_renderCommandList, {
@@ -365,12 +502,19 @@ namespace KryneEngine::Modules::GuiLib
         {
             const Clay_RenderCommand& renderCommand = renderCommandArray.internalArray[i];
 
+            const float2 halfSize { 0.5f * renderCommand.boundingBox.width, 0.5f * renderCommand.boundingBox.height };
+            const float2 center = float2(renderCommand.boundingBox.x, renderCommand.boundingBox.y) + halfSize;
+            const uint2 packedRect = {
+                Math::Float16::PackFloat16x2(center.x, center.y),
+                Math::Float16::PackFloat16x2(halfSize.x, halfSize.y),
+            };
+
             switch (renderCommand.commandType)
             {
             case CLAY_RENDER_COMMAND_TYPE_RECTANGLE:
             {
                 auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);
-                packedInstanceData->m_packedRect = packRect(renderCommand.boundingBox);
+                packedInstanceData->m_packedRect = packedRect;
                 packedInstanceData->m_packedColor = Color(
                     renderCommand.renderData.rectangle.backgroundColor.r / 255.f,
                     renderCommand.renderData.rectangle.backgroundColor.g / 255.f,
@@ -396,7 +540,7 @@ namespace KryneEngine::Modules::GuiLib
             case CLAY_RENDER_COMMAND_TYPE_BORDER:
             {
                 auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);
-                packedInstanceData->m_packedRect = packRect(renderCommand.boundingBox);
+                packedInstanceData->m_packedRect = packedRect;
                 packedInstanceData->m_packedColor = Color(
                     renderCommand.renderData.border.color.r / 255.f,
                     renderCommand.renderData.border.color.g / 255.f,
@@ -427,8 +571,82 @@ namespace KryneEngine::Modules::GuiLib
                 previous = CLAY_RENDER_COMMAND_TYPE_TEXT;
                 break;
             case CLAY_RENDER_COMMAND_TYPE_IMAGE:
+            {
+                auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);
+                const auto* textureRegion = static_cast<const TextureRegion*>(renderCommand.renderData.image.imageData);
+
+                packedInstanceData->m_packedRect = packedRect;
+                packedInstanceData->m_packedColor = Color(
+                    renderCommand.renderData.rectangle.backgroundColor.r / 255.f,
+                    renderCommand.renderData.rectangle.backgroundColor.g / 255.f,
+                    renderCommand.renderData.rectangle.backgroundColor.b / 255.f,
+                    renderCommand.renderData.rectangle.backgroundColor.a / 255.f).ToSrgb().ToRgba8();
+
+                // Pack texture and sampler indices
+                {
+                    const auto it = textureDataMap.find(static_cast<u32>(textureRegion->m_textureView.m_handle));
+                    if (!KE_VERIFY(it != textureDataMap.end())) break;
+                    if (texturesDescriptorSetIndex != it->second.m_descriptorSetIndex)
+                    {
+                        texturesDescriptorSetIndex = it->second.m_descriptorSetIndex;
+                        _graphicsContext.SetGraphicsDescriptorSetsWithOffset(
+                            _renderCommandList,
+                            m_commonPipelineLayout,
+                            { m_texturesDescriptorSets.begin() + texturesDescriptorSetIndex, 1 },
+                            1);
+                    }
+
+                    const SamplerArray& array = samplerDataMap[it->second.m_descriptorSetIndex];
+                    const SamplerHandle samplerHandle = textureRegion->m_customSampler != GenPool::kInvalidHandle ? textureRegion->m_customSampler : m_defaultSampler;
+                    const auto samplerIt = eastl::find(array.begin(), array.end(), samplerHandle);
+                    if (!KE_VERIFY(samplerIt != array.end())) break;
+                    packedInstanceData->m_packedData.x = BitUtils::BitfieldInsert<u32>(
+                        it->second.m_index,
+                        eastl::distance(array.begin(), samplerIt),
+                        3,
+                        5);
+                }
+
+                // Pack border radii
+                {
+                    float4 borderRadii = *reinterpret_cast<const float4*>(&renderCommand.renderData.border);
+                    for (auto j = 0u; j < 4; j++)
+                    {
+                        KE_ASSERT(borderRadii[j] >= 0.f);
+                        KE_ASSERT_MSG(borderRadii[j] <= 4095, "Max supported border radius size is 4095");
+                    }
+                    borderRadii.MinComponents(float4(eastl::min(halfSize.x, halfSize.y)));
+                    packedInstanceData->m_packedData.x = BitUtils::BitfieldInsert<u32>(
+                        packedInstanceData->m_packedData.x,
+                        static_cast<u16>(std::roundf(borderRadii.x)),
+                        12,
+                        8);
+                    packedInstanceData->m_packedData.x = BitUtils::BitfieldInsert<u32>(
+                        packedInstanceData->m_packedData.x,
+                        static_cast<u16>(std::roundf(borderRadii.y)),
+                        12,
+                        20);
+                    packedInstanceData->m_packedData.y = BitUtils::BitfieldInsert<u32>(
+                        static_cast<u16>(std::roundf(borderRadii.z)),
+                        static_cast<u16>(std::roundf(borderRadii.w)),
+                        12,
+                        12);
+                }
+
+                // Pack region rect
+                {
+                    const float2 regionHalfSize = textureRegion->m_size * float2(0.5f);
+                    const float2 regionCenter = textureRegion->m_offset + regionHalfSize;
+
+                    packedInstanceData->m_packedData.z = Math::Float16::PackFloat16x2(regionCenter.x, regionCenter.y);
+                    packedInstanceData->m_packedData.w = Math::Float16::PackFloat16x2(regionHalfSize.x, regionHalfSize.y);
+                }
+
+                offset += sizeof(PackedInstanceData);
+
                 previous = CLAY_RENDER_COMMAND_TYPE_IMAGE;
                 break;
+            }
             case CLAY_RENDER_COMMAND_TYPE_SCISSOR_START:
                 if (KE_VERIFY(scissors.size() < scissors.capacity())) [[likely]]
                 {

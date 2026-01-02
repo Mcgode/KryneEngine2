@@ -22,7 +22,8 @@ namespace KryneEngine::Modules::GuiLib
         BasicGuiRenderer(
             AllocatorInstance _allocator,
             GraphicsContext& _graphicsContext,
-            RenderPassHandle _renderPass);
+            RenderPassHandle _renderPass,
+            SamplerHandle _defaultSampler = { GenPool::kInvalidHandle });
 
         void BeginLayout(const float4x4& _viewportTransform, const uint2& _viewportSize) override;
         void EndLayoutAndRender(
@@ -30,9 +31,10 @@ namespace KryneEngine::Modules::GuiLib
             CommandListHandle _transferCommandList,
             CommandListHandle _renderCommandList) override;
 
-    private:
         static constexpr u32 kMaxTextureSlots = 32;
         static constexpr u32 kMaxSamplerSlots = 8;
+
+    private:
 
         GraphicsUtils::DynamicBuffer m_instanceDataBuffer;
         GraphicsUtils::DynamicBuffer m_commonConstantBuffer;
@@ -45,15 +47,20 @@ namespace KryneEngine::Modules::GuiLib
         } m_viewportConstants;
 
         DescriptorSetHandle m_commonDescriptorSet;
-        DescriptorSetHandle m_texturesDescriptorSet;
+        DescriptorSetLayoutHandle m_texturesDescriptorSetLayout;
 
         PipelineLayoutHandle m_commonPipelineLayout;
 
         GraphicsPipelineHandle m_rectanglePipeline;
         GraphicsPipelineHandle m_borderPipeline;
+        GraphicsPipelineHandle m_imagePipeline;
+
+        SamplerHandle m_defaultSampler;
 
         eastl::array<u32, 1> m_commonDescriptorSetIndices {};
         eastl::array<u32, 2> m_texturesDescriptorSetIndices {};
+
+        eastl::vector<DescriptorSetHandle> m_texturesDescriptorSets;
     };
 
 } // namespace KryneEngine
