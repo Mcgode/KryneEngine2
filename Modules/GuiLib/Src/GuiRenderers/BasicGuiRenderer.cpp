@@ -91,13 +91,13 @@ namespace KryneEngine
 
             // Push texture to set
 
-            if (descriptorSetIndex >= Modules::GuiLib::BasicGuiRenderer::kMaxTextureSlots)
+            if (descriptorSetIndex >= Modules::GuiLib::BasicGuiRenderer::kMaxTextureSlots || samplerData.empty())
             {
                 samplerData.push_back();
                 textureSetWrites.push_back();
                 samplerSetWrites.push_back();
 
-                if (_texturesDescriptorSets.size() <= samplerData.size())
+                if (_texturesDescriptorSets.size() < samplerData.size())
                 {
                     _texturesDescriptorSets.push_back(_graphicsContext.CreateDescriptorSet(_texturesDescriptorSetLayout));
                 }
