@@ -4,6 +4,9 @@
  * @date 24/11/2025.
  */
 
+#include "TextureGenerator.hpp"
+
+
 #include <KryneEngine/Core/Graphics/GraphicsContext.hpp>
 #include <KryneEngine/Core/Graphics/RenderPass.hpp>
 #include <KryneEngine/Core/Memory/Allocators/TlsfAllocator.hpp>
@@ -55,6 +58,12 @@ s32 main(s32 argc, const char** argv)
     KryneEngine::Window mainWindow(appInfo, allocator);
     KryneEngine::GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
+    TextureGenerator textureGenerator { allocatorInstance, 17 };
+    KryneEngine::SamplerHandle sampler = graphicsContext->CreateSampler({
+        .m_minFilter = SamplerDesc::Filter::Point,
+        .m_magFilter = SamplerDesc::Filter::Point,
+    });
+
     KryneEngine::DynamicArray<KryneEngine::RenderPassHandle> renderPassHandles(allocator);
     renderPassHandles.Resize(graphicsContext->GetFrameContextCount());
     for (auto i = 0u; i < renderPassHandles.Size(); i++)
@@ -78,7 +87,8 @@ s32 main(s32 argc, const char** argv)
     KryneEngine::Modules::GuiLib::BasicGuiRenderer guiRenderer {
         allocatorInstance,
         *graphicsContext,
-        renderPassHandles[0]
+        renderPassHandles[0],
+        sampler
     };
     clayContext.Initialize(
         &guiRenderer,
@@ -93,6 +103,11 @@ s32 main(s32 argc, const char** argv)
 
         KryneEngine::CommandListHandle transferCommandList = graphicsContext->BeginGraphicsCommandList();
         KryneEngine::CommandListHandle renderCommandList = graphicsContext->BeginGraphicsCommandList();
+
+        {
+            KE_ZoneScoped("Texture upload");
+            textureGenerator.HandleUpload(*graphicsContext, transferCommandList);
+        }
 
         clayContext.BeginLayout({
             graphicsContext->GetApplicationInfo().m_displayOptions.m_width,
@@ -113,7 +128,14 @@ s32 main(s32 argc, const char** argv)
                 }
             }) {
                 CLAY({ .id = CLAY_ID("ProfilePictureOuter"), .layout = { .sizing = { .width = CLAY_SIZING_GROW(0) }, .padding = CLAY_PADDING_ALL(16), .childGap = 16, .childAlignment = { .y = CLAY_ALIGN_Y_CENTER } }, .backgroundColor = COLOR_RED }) {
-                    CLAY({ .id = CLAY_ID("ProfilePicture"), .layout = { .sizing = { .width = CLAY_SIZING_FIXED(60), .height = CLAY_SIZING_FIXED(60) }}, .image = { .imageData = nullptr } }) {}
+                    CLAY({
+                        .id = CLAY_ID("ProfilePicture"),
+                        .layout = { .sizing = { .width = CLAY_SIZING_FIXED(64), .height = CLAY_SIZING_FIXED(64) }},
+                        .image = { .imageData = clayContext.RegisterTextureRegion({
+                            .m_textureView = textureGenerator.GetTextureView(0),
+                        })}
+                    })
+                    {}
                     CLAY_TEXT(CLAY_STRING("Clay - UI Library"), CLAY_TEXT_CONFIG({  .textColor = {255, 255, 255, 255}, .fontSize = 24 }));
                 }
 
@@ -152,6 +174,9 @@ s32 main(s32 argc, const char** argv)
         graphicsContext->BeginRenderPass(renderCommandList, currentPass);
         clayContext.EndLayout(*graphicsContext, transferCommandList, renderCommandList);
         graphicsContext->EndRenderPass(renderCommandList);
+
+        graphicsContext->EndGraphicsCommandList(transferCommandList);
+        graphicsContext->EndGraphicsCommandList(renderCommandList);
     }
     while (graphicsContext->EndFrame());
 

@@ -1,4 +1,6 @@
-add_executable(UiDemo UiDemo.cpp)
+add_executable(UiDemo UiDemo.cpp
+        TextureGenerator.cpp
+        TextureGenerator.hpp)
 
 target_link_libraries(UiDemo KryneEngine_Modules_GuiLib)
 
