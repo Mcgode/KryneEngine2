@@ -394,6 +394,53 @@ namespace KryneEngine::Modules::GuiLib
             _allocator.deallocate(vertexShaderSource.data(), vertexShaderSource.size());
         }
 
+        // Image PSO
+        {
+            const eastl::span<char> vertexShaderSource = readShaderFile(
+                eastl::string("Shaders/BasicGuiRenderer/Image_ImageVs.", _allocator) + GraphicsContext::GetShaderFileExtension());
+            const eastl::span<char> fragmentShaderSource = readShaderFile(
+                eastl::string("Shaders/BasicGuiRenderer/Image_ImageFs.", _allocator) + GraphicsContext::GetShaderFileExtension());
+
+            const ShaderModuleHandle vertexShaderModule = _graphicsContext.RegisterShaderModule(vertexShaderSource.data(), vertexShaderSource.size());
+            const ShaderModuleHandle fragmentShaderModule = _graphicsContext.RegisterShaderModule(fragmentShaderSource.data(), fragmentShaderSource.size());
+
+            const ShaderStage stages[] = {
+                {
+                    .m_shaderModule = vertexShaderModule,
+                    .m_stage = ShaderStage::Stage::Vertex,
+                    .m_entryPoint = "ImageVs",
+                },
+                {
+                    .m_shaderModule = fragmentShaderModule,
+                    .m_stage = ShaderStage::Stage::Fragment,
+                    .m_entryPoint = "ImageFs",
+                },
+            };
+
+            const GraphicsPipelineDesc pipelineDesc {
+                .m_stages = stages,
+                .m_vertexInput = {
+                    .m_elements = commonVertexElements,
+                    .m_bindings = commonVertexBindings
+                },
+                .m_colorBlending = {
+                    .m_attachments = { kDefaultColorAttachmentAlphaBlendDesc }
+                },
+                .m_depthStencil = {
+                    .m_depthTest = false,
+                    .m_depthWrite = false,
+                },
+                .m_renderPass =  _renderPass,
+                .m_pipelineLayout = m_commonPipelineLayout,
+            };
+            m_borderPipeline = _graphicsContext.CreateGraphicsPipeline(pipelineDesc);
+
+            _graphicsContext.FreeShaderModule(fragmentShaderModule);
+            _graphicsContext.FreeShaderModule(vertexShaderModule);
+            _allocator.deallocate(fragmentShaderSource.data(), fragmentShaderSource.size());
+            _allocator.deallocate(vertexShaderSource.data(), vertexShaderSource.size());
+        }
+
         _graphicsContext.DestroyDescriptorSetLayout(commonDescriptorSetLayout);
     }
 
@@ -642,6 +689,13 @@ namespace KryneEngine::Modules::GuiLib
                     packedInstanceData->m_packedData.w = Math::Float16::PackFloat16x2(regionHalfSize.x, regionHalfSize.y);
                 }
 
+                if (previous != CLAY_RENDER_COMMAND_TYPE_IMAGE)
+                    _graphicsContext.SetGraphicsPipeline(_renderCommandList, m_imagePipeline);
+
+                _graphicsContext.DrawInstanced(_renderCommandList, DrawInstancedDesc {
+                    .m_vertexCount = 6,
+                    .m_instanceOffset = static_cast<u32>(offset / sizeof(PackedInstanceData)),
+                });
                 offset += sizeof(PackedInstanceData);
 
                 previous = CLAY_RENDER_COMMAND_TYPE_IMAGE;
