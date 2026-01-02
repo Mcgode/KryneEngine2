@@ -54,8 +54,6 @@ namespace KryneEngine::Math
         Vector4Base operator-(const Vector4Base& _other) const;
         Vector4Base operator*(const Vector4Base& _other) const;
         Vector4Base operator/(const Vector4Base& _other) const;
-        T& operator[](size_t _index);
-        const T& operator[](size_t _index) const;
 
         template<class U> requires std::is_constructible_v<T, U>
         inline Vector4Base operator+(U _scalar) const { return *this + Vector4Base(_scalar); }
@@ -68,6 +66,12 @@ namespace KryneEngine::Math
 
         template<class U> requires std::is_constructible_v<T, U>
         inline Vector4Base operator/(U _scalar) const { return *this / Vector4Base(_scalar); }
+
+        void MinComponents(const Vector4Base& _other);
+        void MaxComponents(const Vector4Base& _other);
+
+        T& operator[](size_t _index);
+        const T& operator[](size_t _index) const;
 
         T* GetPtr();
         const T* GetPtr() const;
