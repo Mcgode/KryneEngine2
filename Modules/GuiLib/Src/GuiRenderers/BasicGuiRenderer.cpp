@@ -433,7 +433,7 @@ namespace KryneEngine::Modules::GuiLib
                 .m_renderPass =  _renderPass,
                 .m_pipelineLayout = m_commonPipelineLayout,
             };
-            m_borderPipeline = _graphicsContext.CreateGraphicsPipeline(pipelineDesc);
+            m_imagePipeline = _graphicsContext.CreateGraphicsPipeline(pipelineDesc);
 
             _graphicsContext.FreeShaderModule(fragmentShaderModule);
             _graphicsContext.FreeShaderModule(vertexShaderModule);
