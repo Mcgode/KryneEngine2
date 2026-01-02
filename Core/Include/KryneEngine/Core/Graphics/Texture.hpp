@@ -46,7 +46,7 @@ namespace KryneEngine
     struct TextureCreateDesc
     {
         TextureDesc m_desc;
-        eastl::vector<TextureMemoryFootprint> m_footprintPerSubResource {};
+        eastl::span<const TextureMemoryFootprint> m_footprintPerSubResource {};
         MemoryUsage m_memoryUsage = MemoryUsage::Invalid;
     };
 
