@@ -623,11 +623,18 @@ namespace KryneEngine::Modules::GuiLib
                 const auto* textureRegion = static_cast<const TextureRegion*>(renderCommand.renderData.image.imageData);
 
                 packedInstanceData->m_packedRect = packedRect;
-                packedInstanceData->m_packedColor = Color(
+
+                Color tintColor {
                     renderCommand.renderData.rectangle.backgroundColor.r / 255.f,
                     renderCommand.renderData.rectangle.backgroundColor.g / 255.f,
                     renderCommand.renderData.rectangle.backgroundColor.b / 255.f,
-                    renderCommand.renderData.rectangle.backgroundColor.a / 255.f).ToSrgb().ToRgba8();
+                    renderCommand.renderData.rectangle.backgroundColor.a / 255.f,
+                };
+                if (tintColor.m_value == float4(0))
+                {
+                    tintColor = Color(float4(1));
+                }
+                packedInstanceData->m_packedColor = tintColor.ToSrgb().ToRgba8();
 
                 // Pack texture and sampler indices
                 {
