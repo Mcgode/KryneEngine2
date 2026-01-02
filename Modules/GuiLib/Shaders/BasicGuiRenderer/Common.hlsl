@@ -16,6 +16,9 @@ struct ViewportConstants
 
 vkBinding(0, 0) ConstantBuffer<ViewportConstants> viewportConstants: register(b0, space0);
 
+vkBinding(1, 0) Texture2D textures[32]: register(t0, space1);
+vkBinding(1, 1) SamplerState samplers[8]: register(s0, space1);
+
 static const float2 vertices[6] = {
     { -1.0f, -1.0f },
     { -1.0f,  1.0f },
