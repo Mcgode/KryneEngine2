@@ -14,6 +14,7 @@
 #include <KryneEngine/Core/Window/Window.hpp>
 #include <KryneEngine/Modules/GuiLib/Context.hpp>
 #include <KryneEngine/Modules/GuiLib/GuiRenderers/BasicGuiRenderer.hpp>
+#include <KryneEngine/Modules/TextRendering/FontManager.hpp>
 
 using KryneEngine::s32;
 
@@ -82,6 +83,9 @@ s32 main(s32 argc, const char** argv)
 #endif
         });
     }
+
+    KryneEngine::Modules::TextRendering::FontManager fontManager(allocatorInstance);
+    KryneEngine::Modules::TextRendering::Font* font = fontManager.LoadFont("Resources/Modules/TextRendering/NotoSerif-Regular.ttf");
 
     KryneEngine::Modules::GuiLib::Context clayContext { allocatorInstance };
     KryneEngine::Modules::GuiLib::BasicGuiRenderer guiRenderer {
