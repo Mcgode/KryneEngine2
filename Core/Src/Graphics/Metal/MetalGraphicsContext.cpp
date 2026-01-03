@@ -11,6 +11,7 @@
 #include "Graphics/Metal/MetalSwapChain.hpp"
 #include "KryneEngine/Core/Graphics/Drawing.hpp"
 #include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
+#include "KryneEngine/Core/Memory/GenerationalPool.inl"
 #include "KryneEngine/Core/Profiling/TracyHeader.hpp"
 #include "KryneEngine/Core/Profiling/TracyGpuProfilerContext.hpp"
 
