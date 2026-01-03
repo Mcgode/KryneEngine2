@@ -20,6 +20,7 @@ namespace KryneEngine
 
         {
             KE_ZoneScoped("GLFW init");
+            glfwInitHint(GLFW_COCOA_CHDIR_RESOURCES, GLFW_FALSE);
             glfwInit();
         }
 
