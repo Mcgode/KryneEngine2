@@ -69,7 +69,12 @@ float4 ImageFs(FsInput _input): SV_TARGET0
     const float d = SDRoundedBox(
         _input.pixelPosition,
         _input.rectHalfSize,
-        float4(unpackHalf2x16ToFloat(_input.cornerRadii.x), unpackHalf2x16ToFloat(_input.cornerRadii.y)));
+        float4(
+            _input.cornerRadii.x & 0x0fff,
+            _input.cornerRadii.x >> 12,
+            _input.cornerRadii.y & 0x0fff,
+            _input.cornerRadii.y >> 12
+        ));
 
     const float2 dPixelPos = ddx(_input.pixelPosition);
     const float scale = length(dPixelPos) * 0.5;
