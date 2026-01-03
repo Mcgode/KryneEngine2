@@ -72,180 +72,184 @@ namespace KryneEngine::Modules::TextRendering
             return nullptr;
         }
 
-        {
-            const FT_Error error = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
-            if (!KE_VERIFY_MSG(error == FT_Err_Ok, FT_Error_String(error))) [[unlikely]]
-            {
-                KE_VERIFY(FT_Done_Face(face) == FT_Err_Ok);
-                return nullptr;
-            }
-        }
-
         auto* newFont = new (m_allocator.Allocate<Font>()) Font(m_allocator);
 
         eastl::vector<uint2> points { m_allocator };
         eastl::vector<Font::OutlineTag> tags { m_allocator };
 
-        // Parse all glyphs
-        u32 glyphIndex, unicodeCodepoint = FT_Get_First_Char(face, &glyphIndex);
-        while (glyphIndex != 0)
+        for (u32 charmapIndex = 0; charmapIndex < face->num_charmaps; ++charmapIndex)
         {
-            const FT_Error error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_NO_BITMAP);
-            if (!KE_VERIFY_MSG(error == FT_Err_Ok, FT_Error_String(error))) [[unlikely]]
+            const FT_CharMap charmap = face->charmaps[charmapIndex];
+            if (charmap->encoding != FT_ENCODING_UNICODE)
             {
-                m_allocator.Delete(newFont);
-                KE_VERIFY(FT_Done_Face(face) == FT_Err_Ok);
-                return nullptr;
+                continue;
             }
 
-            // Can sort at the end
-            auto& pair = newFont->m_glyphs.emplace_back_unsorted(unicodeCodepoint, Font::GlyphEntry {});
-
-            const FT_GlyphSlot glyph = face->glyph;
-            const FT_Outline outline = glyph->outline;
-
-            pair.second.m_outlineFirstTag = tags.size();
-            pair.second.m_outlineStartPoint = points.size();
-
-            // Based on `FT_Outline_Decompose()` implementation
-            for (u32 i = 0; i < outline.n_contours; i++)
             {
-                u32 start = i > 0 ? outline.contours[i - 1] + 1 : 0;
-                u32 last = outline.contours[i];
-
-                u8 tag = FT_CURVE_TAG(outline.tags[start]);
-
-                uint2_simd vStart { outline.points[start].x, outline.points[start].y };
-                uint2_simd vLast { outline.points[last].x, outline.points[last].y };
-                uint2_simd vControl = vStart;
-
-                FT_Vector* pPoints = outline.points + start;
-                u8* pTags = outline.tags + start;
-                FT_Vector* end = outline.points + last;
-
-                KE_ASSERT(tag != FT_CURVE_TAG_CUBIC);
-
-                if (tag == FT_CURVE_TAG_CONIC)
+                const FT_Error error = FT_Set_Charmap(face, charmap);
+                if (!KE_VERIFY_MSG(error == FT_Err_Ok, FT_Error_String(error))) [[unlikely]]
                 {
-                    if (FT_CURVE_TAG(outline.tags[last]) == FT_CURVE_TAG_ON)
-                    {
-                        vStart = vLast;
-                        end--;
-                    }
-                    else
-                    {
-                        vStart = (vStart + vLast) / uint2_simd(2);
-                    }
-                    pPoints--;
-                    pTags--;
+                    KE_VERIFY(FT_Done_Face(face) == FT_Err_Ok);
+                    return nullptr;
+                }
+            }
+
+            // Parse all glyphs
+            u32 glyphIndex;
+            u32 unicodeCodepoint = FT_Get_First_Char(face, &glyphIndex);
+            while (glyphIndex != 0)
+            {
+                const FT_Error error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_NO_BITMAP);
+                if (!KE_VERIFY_MSG(error == FT_Err_Ok, FT_Error_String(error))) [[unlikely]]
+                {
+                    m_allocator.Delete(newFont);
+                    KE_VERIFY(FT_Done_Face(face) == FT_Err_Ok);
+                    return nullptr;
                 }
 
-                // First point of the contour
-                {
-                    tags.push_back(Font::OutlineTag::NewContour);
-                    points.emplace_back(vStart);
-                }
+                auto* pair = newFont->m_glyphs.emplace(unicodeCodepoint, Font::GlyphEntry {}).first;
+                KE_ASSERT(pair != nullptr);
 
-                while (pPoints < end)
-                {
-                    pPoints++;
-                    pTags++;
+                const FT_GlyphSlot glyph = face->glyph;
+                const FT_Outline outline = glyph->outline;
 
-                    tag = FT_CURVE_TAG(*pTags);
-                    switch (tag)
+                pair->second.m_outlineFirstTag = tags.size();
+                pair->second.m_outlineStartPoint = points.size();
+
+                // Based on `FT_Outline_Decompose()` implementation
+                for (u32 i = 0; i < outline.n_contours; i++)
+                {
+                    u32 start = i > 0 ? outline.contours[i - 1] + 1 : 0;
+                    u32 last = outline.contours[i];
+
+                    u8 tag = FT_CURVE_TAG(outline.tags[start]);
+
+                    uint2_simd vStart { outline.points[start].x, outline.points[start].y };
+                    uint2_simd vLast { outline.points[last].x, outline.points[last].y };
+                    uint2_simd vControl = vStart;
+
+                    FT_Vector* pPoints = outline.points + start;
+                    u8* pTags = outline.tags + start;
+                    FT_Vector* end = outline.points + last;
+
+                    KE_ASSERT(tag != FT_CURVE_TAG_CUBIC);
+
+                    if (tag == FT_CURVE_TAG_CONIC)
                     {
-                    case FT_CURVE_TAG_ON:
-                        tags.push_back(Font::OutlineTag::Line);
-                        points.emplace_back(pPoints->x, pPoints->y);
-
-                        // Close contour
-                        if (pPoints == end)
+                        if (FT_CURVE_TAG(outline.tags[last]) == FT_CURVE_TAG_ON)
                         {
-                            tags.push_back(Font::OutlineTag::Line);
-                            points.emplace_back(vStart);
+                            vStart = vLast;
+                            end--;
                         }
-                        break;
-                    case FT_CURVE_TAG_CONIC:
-                    {
-                        tags.push_back(Font::OutlineTag::Conic);
-
-                        vControl = { pPoints->x, pPoints->y };
-                        points.emplace_back(vControl);
-
-                        if (pPoints < end)
+                        else
                         {
-                            tag = FT_CURVE_TAG(pTags[1]);
-                            uint2_simd vec { pPoints[1].x, pPoints[1].y };
+                            vStart = (vStart + vLast) / uint2_simd(2);
+                        }
+                        pPoints--;
+                        pTags--;
+                    }
 
-                            if (tag == FT_CURVE_TAG_ON)
-                            {
-                                points.emplace_back(vec);
+                    // First point of the contour
+                    {
+                        tags.push_back(Font::OutlineTag::NewContour);
+                        points.emplace_back(vStart);
+                    }
 
-                                // We consumed a point, advance.
-                                pPoints++;
-                                pTags++;
-                            }
-                            // We are chaining conic arcs, so we take the median point of the two consecutive control points
-                            else if (tag == FT_CURVE_TAG_CONIC)
+                    while (pPoints < end)
+                    {
+                        pPoints++;
+                        pTags++;
+
+                        tag = FT_CURVE_TAG(*pTags);
+                        switch (tag)
+                        {
+                        case FT_CURVE_TAG_ON:
+                            tags.push_back(Font::OutlineTag::Line);
+                            points.emplace_back(pPoints->x, pPoints->y);
+
+                            // Close contour
+                            if (pPoints == end)
                             {
-                                points.emplace_back((vControl + vec) / uint2_simd(2));
-                                // The control point hasn't been consumed yet (we created a median point instead),
-                                // so we don't need to advance
+                                tags.push_back(Font::OutlineTag::Line);
+                                points.emplace_back(vStart);
                             }
+                            break;
+                        case FT_CURVE_TAG_CONIC:
+                        {
+                            tags.push_back(Font::OutlineTag::Conic);
+
+                            vControl = { pPoints->x, pPoints->y };
+                            points.emplace_back(vControl);
+
+                            if (pPoints < end)
+                            {
+                                tag = FT_CURVE_TAG(pTags[1]);
+                                uint2_simd vec { pPoints[1].x, pPoints[1].y };
+
+                                if (tag == FT_CURVE_TAG_ON)
+                                {
+                                    points.emplace_back(vec);
+
+                                    // We consumed a point, advance.
+                                    pPoints++;
+                                    pTags++;
+                                }
+                                // We are chaining conic arcs, so we take the median point of the two consecutive control points
+                                else if (tag == FT_CURVE_TAG_CONIC)
+                                {
+                                    points.emplace_back((vControl + vec) / uint2_simd(2));
+                                    // The control point hasn't been consumed yet (we created a median point instead),
+                                    // so we don't need to advance
+                                }
+                                else
+                                {
+                                    KE_ERROR("Invalid tag");
+                                }
+                            }
+                            // If there is no more point available, it means we have closed the contour loop, and the last
+                            // point is the start point
                             else
                             {
-                                KE_ERROR("Invalid tag");
+                                points.emplace_back(vStart);
                             }
+
+                            break;
                         }
-                        // If there is no more point available, it means we have closed the contour loop, and the last
-                        // point is the start point
-                        else
+                        default: // case FT_CURVE_TAG_CUBIC:
                         {
-                            points.emplace_back(vStart);
+                            KE_ASSERT_FATAL(pPoints + 1 <= end && FT_CURVE_TAG(pTags[1]) == FT_CURVE_TAG_CUBIC);
+
+                            tags.push_back(Font::OutlineTag::Cubic);
+
+                            uint2_simd v1 = { pPoints->x, pPoints->y };
+                            pPoints++;
+                            uint2_simd v2 = { pPoints->x, pPoints->y };
+                            pPoints++;
+
+                            points.emplace_back(v1);
+                            points.emplace_back(v2);
+
+                            if (pPoints <= end)
+                            {
+                                points.emplace_back(pPoints->x, pPoints->y);
+                            }
+                            // Close contour
+                            else
+                            {
+                                points.emplace_back(vStart);
+                            }
+
+                            break;
                         }
-
-                        break;
-                    }
-                    default: // case FT_CURVE_TAG_CUBIC:
-                    {
-                        KE_ASSERT_FATAL(pPoints + 1 <= end && FT_CURVE_TAG(pTags[1]) == FT_CURVE_TAG_CUBIC);
-
-                        tags.push_back(Font::OutlineTag::Cubic);
-
-                        uint2_simd v1 = { pPoints->x, pPoints->y };
-                        pPoints++;
-                        uint2_simd v2 = { pPoints->x, pPoints->y };
-                        pPoints++;
-
-                        points.emplace_back(v1);
-                        points.emplace_back(v2);
-
-                        if (pPoints <= end)
-                        {
-                            points.emplace_back(pPoints->x, pPoints->y);
                         }
-                        // Close contour
-                        else
-                        {
-                            points.emplace_back(vStart);
-                        }
-
-                        break;
-                    }
                     }
                 }
+
+                pair->second.m_outlineTagCount = tags.size() - pair->second.m_outlineFirstTag;
+
+                unicodeCodepoint = FT_Get_Next_Char(face, unicodeCodepoint, &glyphIndex);
             }
-
-            pair.second.m_outlineTagCount = tags.size() - pair.second.m_outlineFirstTag;
-
-            unicodeCodepoint = FT_Get_Next_Char(face, unicodeCodepoint, &glyphIndex);
         }
-
-        // Sort vector map
-        eastl::sort(
-            newFont->m_glyphs.begin(),
-            newFont->m_glyphs.end(),
-            [](const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; });
 
         newFont->m_points.Resize(points.size());
         newFont->m_tags.Resize(tags.size());
