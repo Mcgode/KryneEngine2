@@ -174,7 +174,9 @@ namespace KryneEngine::Modules::GuiLib
                BufferCreateDesc {
                    .m_desc = {
                        .m_size = 256,
-                       .m_debugName = "BasicGuiRenderer instance data buffer"
+#if !defined(KE_FINAL)
+                       .m_debugName = "BasicGuiRenderer instance data buffer",
+#endif
                    },
                    .m_usage = MemoryUsage::StageEveryFrame_UsageType | MemoryUsage::VertexBuffer
                },
@@ -187,7 +189,9 @@ namespace KryneEngine::Modules::GuiLib
                 BufferCreateDesc {
                     .m_desc = {
                         .m_size = sizeof(ViewportConstants),
-                        .m_debugName = "BasicGuiRenderer common constant buffer"
+#if !defined(KE_FINAL)
+                        .m_debugName = "BasicGuiRenderer common constant buffer",
+#endif
                     },
                     .m_usage = MemoryUsage::StageEveryFrame_UsageType | MemoryUsage::ConstantBuffer
                 },
