@@ -57,11 +57,13 @@ namespace KryneEngine
 
         cold->m_shaderVisibility = ShaderVisibility::None;
 
+        u32 flattenedSize = 0;
+
         for (size_t i = 0; i < hot->m_argDescriptors.Size(); i++)
         {
             NsPtr<MTL::ArgumentDescriptor>& desc = hot->m_argDescriptors[i];
             const DescriptorBindingDesc& binding = _desc.m_bindings[i];
-            const u32 bindingIndex = binding.m_bindingIndex == DescriptorBindingDesc::kImplicitBindingIndex ? i : binding.m_bindingIndex;
+            const u32 bindingIndex = binding.m_bindingIndex == DescriptorBindingDesc::kImplicitBindingIndex ? flattenedSize : binding.m_bindingIndex;
 
             desc = MTL::ArgumentDescriptor::alloc()->init();
             desc->setDataType(MetalConverters::GetDataType(binding.m_type));
@@ -73,6 +75,7 @@ namespace KryneEngine
                 .m_type = static_cast<u32>(binding.m_type),
                 .m_index = static_cast<u32>(bindingIndex),
             }.m_packedIndex;
+            flattenedSize = bindingIndex + binding.m_count;
 
             cold->m_shaderVisibility |= binding.m_visibility;
         }
