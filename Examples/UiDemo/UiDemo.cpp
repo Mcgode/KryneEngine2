@@ -184,16 +184,16 @@ s32 main(s32 argc, const char** argv)
                             if (i == 0)
                             {
                                 if (j == 0)
-                                    cornerRadius.topLeft = 5;
+                                    cornerRadius.topLeft = 10;
                                 else if (j == 7)
-                                    cornerRadius.topRight = 5;
+                                    cornerRadius.topRight = 10;
                             }
                             else if (i == 3)
                             {
                                 if (j == 0)
-                                    cornerRadius.bottomLeft = 5;
+                                    cornerRadius.bottomLeft = 10;
                                 else if (j == 7)
-                                    cornerRadius.bottomRight = 5;
+                                    cornerRadius.bottomRight = 10;
                             }
 
                             CLAY({
