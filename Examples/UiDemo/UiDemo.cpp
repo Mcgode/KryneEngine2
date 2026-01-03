@@ -181,6 +181,21 @@ s32 main(s32 argc, const char** argv)
                         {
                             Clay_CornerRadius cornerRadius = {};
 
+                            if (i == 0)
+                            {
+                                if (j == 0)
+                                    cornerRadius.topLeft = 5;
+                                else if (j == 7)
+                                    cornerRadius.topRight = 5;
+                            }
+                            else if (i == 3)
+                            {
+                                if (j == 0)
+                                    cornerRadius.bottomLeft = 5;
+                                else if (j == 7)
+                                    cornerRadius.bottomRight = 5;
+                            }
+
                             CLAY({
                                 .layout = { .sizing = { .width = CLAY_SIZING_FIXED(64), .height = CLAY_SIZING_FIXED(64) } },
                                 .backgroundColor = Clay_Color( 180, 180, 180, 255 ),
