@@ -58,7 +58,7 @@ s32 main(s32 argc, const char** argv)
     KryneEngine::Window mainWindow(appInfo, allocator);
     KryneEngine::GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
-    TextureGenerator textureGenerator { allocatorInstance, 17 };
+    TextureGenerator textureGenerator { allocatorInstance, 33 };
     KryneEngine::SamplerHandle sampler = graphicsContext->CreateSampler({
         .m_minFilter = SamplerDesc::Filter::Point,
         .m_magFilter = SamplerDesc::Filter::Point,
@@ -132,7 +132,7 @@ s32 main(s32 argc, const char** argv)
                         .id = CLAY_ID("ProfilePicture"),
                         .layout = { .sizing = { .width = CLAY_SIZING_FIXED(64), .height = CLAY_SIZING_FIXED(64) }},
                         .image = { .imageData = clayContext.RegisterTextureRegion({
-                            .m_textureView = textureGenerator.GetTextureView(0),
+                            .m_textureView = textureGenerator.GetTextureView(32),
                         })}
                     })
                     {}
@@ -147,7 +147,12 @@ s32 main(s32 argc, const char** argv)
 
             CLAY({
                 .id = CLAY_ID("MainContent"),
-                .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) } },
+                .layout = {
+                    .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) },
+                    .padding = { 16, 16, 16, 16 },
+                    .childGap = 16,
+                    .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                },
                 .backgroundColor = COLOR_LIGHT,
                 .cornerRadius = {
                     .topLeft = 10,
@@ -166,7 +171,31 @@ s32 main(s32 argc, const char** argv)
                 },
             })
             {
-                SidebarItemComponent();
+                CLAY({ .layout = { .sizing = { .height = CLAY_SIZING_GROW() } } }) {}
+                for (auto i = 0; i < 4; i++)
+                {
+                    CLAY({ .layout = { .sizing = { .width = CLAY_SIZING_GROW() }, .childGap = 16, .layoutDirection = CLAY_LEFT_TO_RIGHT } })
+                    {
+                        CLAY({ .layout = { .sizing = { .width = CLAY_SIZING_GROW() } } }) {}
+                        for (auto j = 0; j < 8; j++)
+                        {
+                            Clay_CornerRadius cornerRadius = {};
+
+                            CLAY({
+                                .layout = { .sizing = { .width = CLAY_SIZING_FIXED(64), .height = CLAY_SIZING_FIXED(64) } },
+                                .backgroundColor = Clay_Color( 180, 180, 180, 255 ),
+                                .cornerRadius = cornerRadius,
+                                .image = {
+                                    .imageData = clayContext.RegisterTextureRegion({
+                                        .m_textureView = textureGenerator.GetTextureView(i * 8 + j),
+                                    }),
+                                },
+                            }) {}
+                        }
+                        CLAY({ .layout = { .sizing = { .width = CLAY_SIZING_GROW() } } }) {}
+                    }
+                }
+                CLAY({ .layout = { .sizing = { .height = CLAY_SIZING_GROW() } } }) {}
             }
         }
 
