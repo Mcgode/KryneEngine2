@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 include(./CMake/BuildSystem.cmake)
 include(./CMake/ShaderCompilation.cmake)
+include(./CMake/ResourceUtils.cmake)
 
 if (WIN32)
     add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
