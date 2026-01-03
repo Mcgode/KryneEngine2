@@ -10,6 +10,8 @@
 #include <fstream>
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include "KryneEngine/Core/Profiling/TracyHeader.hpp"
+
 #include <KryneEngine/Core/Common/Assert.hpp>
 
 #include "KryneEngine/Modules/TextRendering/Font.hpp"
@@ -41,6 +43,8 @@ namespace KryneEngine::Modules::TextRendering
 
     Font* FontManager::LoadFont(eastl::string_view _path)
     {
+        KE_ZoneScopedF("Loading font '%s'", _path.data());
+
         FT_Face face;
         {
             std::ifstream file(_path.data(), std::ios::binary);
