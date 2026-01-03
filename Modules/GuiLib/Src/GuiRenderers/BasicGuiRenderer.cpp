@@ -661,28 +661,28 @@ namespace KryneEngine::Modules::GuiLib
                         5);
                 }
 
-                // Pack border radii
+                // Pack corner radii
                 {
-                    float4 borderRadii = *reinterpret_cast<const float4*>(&renderCommand.renderData.border);
+                    float4 cornerRadii = *reinterpret_cast<const float4*>(&renderCommand.renderData.image.cornerRadius);
                     for (auto j = 0u; j < 4; j++)
                     {
-                        KE_ASSERT(borderRadii[j] >= 0.f);
-                        KE_ASSERT_MSG(borderRadii[j] <= 4095, "Max supported border radius size is 4095");
+                        KE_ASSERT(cornerRadii[j] >= 0.f);
+                        KE_ASSERT_MSG(cornerRadii[j] <= 4095, "Max supported border radius size is 4095");
                     }
-                    borderRadii.MinComponents(float4(eastl::min(halfSize.x, halfSize.y)));
+                    cornerRadii.MinComponents(float4(eastl::min(halfSize.x, halfSize.y)));
                     packedInstanceData->m_packedData.x = BitUtils::BitfieldInsert<u32>(
                         packedInstanceData->m_packedData.x,
-                        static_cast<u16>(std::roundf(borderRadii.x)),
+                        static_cast<u16>(std::roundf(cornerRadii.x)),
                         12,
                         8);
                     packedInstanceData->m_packedData.x = BitUtils::BitfieldInsert<u32>(
                         packedInstanceData->m_packedData.x,
-                        static_cast<u16>(std::roundf(borderRadii.y)),
+                        static_cast<u16>(std::roundf(cornerRadii.y)),
                         12,
                         20);
                     packedInstanceData->m_packedData.y = BitUtils::BitfieldInsert<u32>(
-                        static_cast<u16>(std::roundf(borderRadii.z)),
-                        static_cast<u16>(std::roundf(borderRadii.w)),
+                        static_cast<u16>(std::roundf(cornerRadii.z)),
+                        static_cast<u16>(std::roundf(cornerRadii.w)),
                         12,
                         12);
                 }
