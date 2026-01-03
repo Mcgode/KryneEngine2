@@ -15,5 +15,5 @@ find_package(Freetype REQUIRED)
 target_include_directories(KryneEngine_Modules_TextRendering PUBLIC Include)
 target_include_directories(KryneEngine_Modules_TextRendering PRIVATE Extern/msdfgen_1.13)
 
-target_link_libraries(KryneEngine_Modules_TextRendering PRIVATE Freetype::Freetype)
+target_link_libraries(KryneEngine_Modules_TextRendering PRIVATE Freetype::Freetype msdfgen-core)
 target_link_libraries(KryneEngine_Modules_TextRendering PUBLIC KryneEngine_Core)
