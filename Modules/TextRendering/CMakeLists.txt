@@ -12,6 +12,8 @@ add_library(KryneEngine_Modules_TextRendering STATIC
 
 find_package(Freetype REQUIRED)
 
+target_add_raw_resources_dir(KryneEngine_Modules_TextRendering BundledResources Modules/TextRendering)
+
 target_include_directories(KryneEngine_Modules_TextRendering PUBLIC Include)
 target_include_directories(KryneEngine_Modules_TextRendering PRIVATE Extern/msdfgen_1.13)
 
