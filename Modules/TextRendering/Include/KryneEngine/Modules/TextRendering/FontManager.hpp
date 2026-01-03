@@ -6,11 +6,28 @@
 
 #pragma once
 
-namespace KryneEngine
+#include <EASTL/string_view.h>
+#include <EASTL/vector.h>
+#include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
+
+struct FT_LibraryRec_;
+
+namespace KryneEngine::Modules::TextRendering
 {
+    class Font;
 
     class FontManager
     {
-    };
+    public:
+        explicit FontManager(AllocatorInstance _allocator);
 
-} // namespace KryneEngine
+        ~FontManager();
+
+        Font* LoadFont(eastl::string_view _path);
+
+    private:
+        AllocatorInstance m_allocator;
+        eastl::vector<Font*> m_fonts;
+        FT_LibraryRec_* m_ftLibrary {};
+    };
+}
