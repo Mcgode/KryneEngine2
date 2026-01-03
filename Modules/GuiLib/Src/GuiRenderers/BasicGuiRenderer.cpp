@@ -6,6 +6,8 @@
 
 #include "KryneEngine/Modules/GuiLib/GuiRenderers/BasicGuiRenderer.hpp"
 
+#include "KryneEngine/Core/Profiling/TracyHeader.hpp"
+
 #include <KryneEngine/Core/Common/Types.hpp>
 #include <KryneEngine/Core/Graphics/Drawing.hpp>
 #include <KryneEngine/Core/Graphics/ShaderPipeline.hpp>
@@ -49,6 +51,8 @@ namespace KryneEngine
         SamplerHandle _defaultSampler,
         const u32* _descriptorSetIndices)
     {
+        KE_ZoneScopedFunction("Handle texture sets");
+
         TextureDataMap textureData(_allocator);
         SamplerDataMap samplerData(_allocator);
 
@@ -160,6 +164,8 @@ namespace KryneEngine::Modules::GuiLib
         , m_texturesDescriptorSets(_allocator)
         , m_defaultSampler(_defaultSampler)
     {
+        KE_ZoneScoped("BasicGuiRenderer initialization");
+
         const u8 frameContextCount = _graphicsContext.GetFrameContextCount();
 
         {
@@ -457,6 +463,8 @@ namespace KryneEngine::Modules::GuiLib
         CommandListHandle _transferCommandList,
         CommandListHandle _renderCommandList)
     {
+        KE_ZoneScopedFunction("BasicGuiRenderer::EndLayoutAndRender");
+
         const Clay_RenderCommandArray renderCommandArray = Clay_EndLayout();
 
         const u8 frameIndex = _graphicsContext.GetCurrentFrameContextIndex();
@@ -545,203 +553,209 @@ namespace KryneEngine::Modules::GuiLib
         });
         _graphicsContext.SetScissorsRect(_renderCommandList, scissors.back());
 
-        for (u32 i = 0; i < renderCommandArray.length; i++)
         {
-            const Clay_RenderCommand& renderCommand = renderCommandArray.internalArray[i];
-
-            const float2 halfSize { 0.5f * renderCommand.boundingBox.width, 0.5f * renderCommand.boundingBox.height };
-            const float2 center = float2(renderCommand.boundingBox.x, renderCommand.boundingBox.y) + halfSize;
-            const uint2 packedRect = {
-                Math::Float16::PackFloat16x2(center.x, center.y),
-                Math::Float16::PackFloat16x2(halfSize.x, halfSize.y),
-            };
-
-            switch (renderCommand.commandType)
+            KE_ZoneScoped("Fill instance data and dispatch render commands");
+            for (u32 i = 0; i < renderCommandArray.length; i++)
             {
-            case CLAY_RENDER_COMMAND_TYPE_RECTANGLE:
-            {
-                auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);
-                packedInstanceData->m_packedRect = packedRect;
-                packedInstanceData->m_packedColor = Color(
-                    renderCommand.renderData.rectangle.backgroundColor.r / 255.f,
-                    renderCommand.renderData.rectangle.backgroundColor.g / 255.f,
-                    renderCommand.renderData.rectangle.backgroundColor.b / 255.f,
-                    renderCommand.renderData.rectangle.backgroundColor.a / 255.f).ToSrgb().ToRgba8();
-                const uint2 packedRadii = packCornerRadii(renderCommand.renderData.rectangle.cornerRadius);
-                packedInstanceData->m_packedData.x = packedRadii.x;
-                packedInstanceData->m_packedData.y = packedRadii.y;
+                const Clay_RenderCommand& renderCommand = renderCommandArray.internalArray[i];
 
-                if (previous != CLAY_RENDER_COMMAND_TYPE_RECTANGLE)
-                {
-                    _graphicsContext.SetGraphicsPipeline(_renderCommandList, m_rectanglePipeline);
-                }
-                _graphicsContext.DrawInstanced(_renderCommandList, DrawInstancedDesc {
-                    .m_vertexCount = 6,
-                    .m_instanceOffset = static_cast<u32>(offset / sizeof(PackedInstanceData)),
-                });
-                offset += sizeof(PackedInstanceData);
-
-                previous = CLAY_RENDER_COMMAND_TYPE_RECTANGLE;
-                break;
-            }
-            case CLAY_RENDER_COMMAND_TYPE_BORDER:
-            {
-                auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);
-                packedInstanceData->m_packedRect = packedRect;
-                packedInstanceData->m_packedColor = Color(
-                    renderCommand.renderData.border.color.r / 255.f,
-                    renderCommand.renderData.border.color.g / 255.f,
-                    renderCommand.renderData.border.color.b / 255.f,
-                    renderCommand.renderData.border.color.a / 255.f).ToSrgb().ToRgba8();
-                const uint2 packedRadii = packCornerRadii(renderCommand.renderData.border.cornerRadius);
-                packedInstanceData->m_packedData.x = packedRadii.x;
-                packedInstanceData->m_packedData.y = packedRadii.y;
-                packedInstanceData->m_packedData.z = Math::Float16::PackFloat16x2(
-                    renderCommand.renderData.border.width.top, renderCommand.renderData.border.width.bottom);
-                packedInstanceData->m_packedData.w = Math::Float16::PackFloat16x2(
-                    renderCommand.renderData.border.width.left, renderCommand.renderData.border.width.right);
-
-                if (previous != CLAY_RENDER_COMMAND_TYPE_BORDER)
-                {
-                    _graphicsContext.SetGraphicsPipeline(_renderCommandList, m_borderPipeline);
-                }
-                _graphicsContext.DrawInstanced(_renderCommandList, DrawInstancedDesc {
-                    .m_vertexCount = 6,
-                    .m_instanceOffset = static_cast<u32>(offset / sizeof(PackedInstanceData)),
-                });
-                offset += sizeof(PackedInstanceData);
-
-                previous = CLAY_RENDER_COMMAND_TYPE_BORDER;
-                break;
-            }
-            case CLAY_RENDER_COMMAND_TYPE_TEXT:
-                previous = CLAY_RENDER_COMMAND_TYPE_TEXT;
-                break;
-            case CLAY_RENDER_COMMAND_TYPE_IMAGE:
-            {
-                auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);
-                const auto* textureRegion = static_cast<const TextureRegion*>(renderCommand.renderData.image.imageData);
-
-                packedInstanceData->m_packedRect = packedRect;
-
-                Color tintColor {
-                    renderCommand.renderData.rectangle.backgroundColor.r / 255.f,
-                    renderCommand.renderData.rectangle.backgroundColor.g / 255.f,
-                    renderCommand.renderData.rectangle.backgroundColor.b / 255.f,
-                    renderCommand.renderData.rectangle.backgroundColor.a / 255.f,
+                const float2 halfSize { 0.5f * renderCommand.boundingBox.width, 0.5f * renderCommand.boundingBox.height };
+                const float2 center = float2(renderCommand.boundingBox.x, renderCommand.boundingBox.y) + halfSize;
+                const uint2 packedRect = {
+                    Math::Float16::PackFloat16x2(center.x, center.y),
+                    Math::Float16::PackFloat16x2(halfSize.x, halfSize.y),
                 };
-                if (tintColor.m_value == float4(0))
-                {
-                    tintColor = Color(float4(1));
-                }
-                packedInstanceData->m_packedColor = tintColor.ToSrgb().ToRgba8();
 
-                // Pack texture and sampler indices
+                switch (renderCommand.commandType)
                 {
-                    const auto it = textureDataMap.find(static_cast<u32>(textureRegion->m_textureView.m_handle));
-                    if (!KE_VERIFY(it != textureDataMap.end())) break;
-                    if (texturesDescriptorSetIndex != it->second.m_descriptorSetIndex)
+                case CLAY_RENDER_COMMAND_TYPE_RECTANGLE:
+                {
+                    auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);
+                    packedInstanceData->m_packedRect = packedRect;
+                    packedInstanceData->m_packedColor = Color(
+                        renderCommand.renderData.rectangle.backgroundColor.r / 255.f,
+                        renderCommand.renderData.rectangle.backgroundColor.g / 255.f,
+                        renderCommand.renderData.rectangle.backgroundColor.b / 255.f,
+                        renderCommand.renderData.rectangle.backgroundColor.a / 255.f).ToSrgb().ToRgba8();
+                    const uint2 packedRadii = packCornerRadii(renderCommand.renderData.rectangle.cornerRadius);
+                    packedInstanceData->m_packedData.x = packedRadii.x;
+                    packedInstanceData->m_packedData.y = packedRadii.y;
+
+                    if (previous != CLAY_RENDER_COMMAND_TYPE_RECTANGLE)
                     {
-                        texturesDescriptorSetIndex = it->second.m_descriptorSetIndex;
-                        _graphicsContext.SetGraphicsDescriptorSetsWithOffset(
-                            _renderCommandList,
-                            m_commonPipelineLayout,
-                            { m_texturesDescriptorSets.begin() + texturesDescriptorSetIndex, 1 },
-                            1);
+                        _graphicsContext.SetGraphicsPipeline(_renderCommandList, m_rectanglePipeline);
                     }
-
-                    const SamplerArray& array = samplerDataMap[it->second.m_descriptorSetIndex];
-                    const SamplerHandle samplerHandle = textureRegion->m_customSampler != GenPool::kInvalidHandle ? textureRegion->m_customSampler : m_defaultSampler;
-                    const auto samplerIt = eastl::find(array.begin(), array.end(), samplerHandle);
-                    if (!KE_VERIFY(samplerIt != array.end())) break;
-                    packedInstanceData->m_packedData.x = BitUtils::BitfieldInsert<u32>(
-                        it->second.m_index,
-                        eastl::distance(array.begin(), samplerIt),
-                        3,
-                        5);
-                }
-
-                // Pack corner radii
-                {
-                    float4 cornerRadii = *reinterpret_cast<const float4*>(&renderCommand.renderData.image.cornerRadius);
-                    for (auto j = 0u; j < 4; j++)
-                    {
-                        KE_ASSERT(cornerRadii[j] >= 0.f);
-                        KE_ASSERT_MSG(cornerRadii[j] <= 4095, "Max supported border radius size is 4095");
-                    }
-                    cornerRadii.MinComponents(float4(eastl::min(halfSize.x, halfSize.y)));
-                    packedInstanceData->m_packedData.x = BitUtils::BitfieldInsert<u32>(
-                        packedInstanceData->m_packedData.x,
-                        static_cast<u16>(std::roundf(cornerRadii.x)),
-                        12,
-                        8);
-                    packedInstanceData->m_packedData.x = BitUtils::BitfieldInsert<u32>(
-                        packedInstanceData->m_packedData.x,
-                        static_cast<u16>(std::roundf(cornerRadii.y)),
-                        12,
-                        20);
-                    packedInstanceData->m_packedData.y = BitUtils::BitfieldInsert<u32>(
-                        static_cast<u16>(std::roundf(cornerRadii.z)),
-                        static_cast<u16>(std::roundf(cornerRadii.w)),
-                        12,
-                        12);
-                }
-
-                // Pack region rect
-                {
-                    const float2 regionHalfSize = textureRegion->m_size * float2(0.5f);
-                    const float2 regionCenter = textureRegion->m_offset + regionHalfSize;
-
-                    packedInstanceData->m_packedData.z = Math::Float16::PackFloat16x2(regionCenter.x, regionCenter.y);
-                    packedInstanceData->m_packedData.w = Math::Float16::PackFloat16x2(regionHalfSize.x, regionHalfSize.y);
-                }
-
-                if (previous != CLAY_RENDER_COMMAND_TYPE_IMAGE)
-                    _graphicsContext.SetGraphicsPipeline(_renderCommandList, m_imagePipeline);
-
-                _graphicsContext.DrawInstanced(_renderCommandList, DrawInstancedDesc {
-                    .m_vertexCount = 6,
-                    .m_instanceOffset = static_cast<u32>(offset / sizeof(PackedInstanceData)),
-                });
-                offset += sizeof(PackedInstanceData);
-
-                previous = CLAY_RENDER_COMMAND_TYPE_IMAGE;
-                break;
-            }
-            case CLAY_RENDER_COMMAND_TYPE_SCISSOR_START:
-                if (KE_VERIFY(scissors.size() < scissors.capacity())) [[likely]]
-                {
-                    scissors.push_back({
-                        .m_left = static_cast<u32>(renderCommand.boundingBox.x),
-                        .m_top = static_cast<u32>(renderCommand.boundingBox.y),
-                        .m_right = static_cast<u32>(renderCommand.boundingBox.x + renderCommand.boundingBox.width),
-                        .m_bottom = static_cast<u32>(renderCommand.boundingBox.y + renderCommand.boundingBox.height),
+                    _graphicsContext.DrawInstanced(_renderCommandList, DrawInstancedDesc {
+                        .m_vertexCount = 6,
+                        .m_instanceOffset = static_cast<u32>(offset / sizeof(PackedInstanceData)),
                     });
-                    _graphicsContext.SetScissorsRect(_renderCommandList, scissors.back());
+                    offset += sizeof(PackedInstanceData);
+
+                    previous = CLAY_RENDER_COMMAND_TYPE_RECTANGLE;
+                    break;
                 }
-                previous = CLAY_RENDER_COMMAND_TYPE_SCISSOR_START;
-                break;
-            case CLAY_RENDER_COMMAND_TYPE_SCISSOR_END:
-                if (KE_VERIFY(scissors.size() > 1)) [[likely]]
+                case CLAY_RENDER_COMMAND_TYPE_BORDER:
                 {
-                    scissors.pop_back();
-                    _graphicsContext.SetScissorsRect(_renderCommandList, scissors.back());
+                    auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);
+                    packedInstanceData->m_packedRect = packedRect;
+                    packedInstanceData->m_packedColor = Color(
+                        renderCommand.renderData.border.color.r / 255.f,
+                        renderCommand.renderData.border.color.g / 255.f,
+                        renderCommand.renderData.border.color.b / 255.f,
+                        renderCommand.renderData.border.color.a / 255.f).ToSrgb().ToRgba8();
+                    const uint2 packedRadii = packCornerRadii(renderCommand.renderData.border.cornerRadius);
+                    packedInstanceData->m_packedData.x = packedRadii.x;
+                    packedInstanceData->m_packedData.y = packedRadii.y;
+                    packedInstanceData->m_packedData.z = Math::Float16::PackFloat16x2(
+                        renderCommand.renderData.border.width.top, renderCommand.renderData.border.width.bottom);
+                    packedInstanceData->m_packedData.w = Math::Float16::PackFloat16x2(
+                        renderCommand.renderData.border.width.left, renderCommand.renderData.border.width.right);
+
+                    if (previous != CLAY_RENDER_COMMAND_TYPE_BORDER)
+                    {
+                        _graphicsContext.SetGraphicsPipeline(_renderCommandList, m_borderPipeline);
+                    }
+                    _graphicsContext.DrawInstanced(_renderCommandList, DrawInstancedDesc {
+                        .m_vertexCount = 6,
+                        .m_instanceOffset = static_cast<u32>(offset / sizeof(PackedInstanceData)),
+                    });
+                    offset += sizeof(PackedInstanceData);
+
+                    previous = CLAY_RENDER_COMMAND_TYPE_BORDER;
+                    break;
                 }
-                previous = CLAY_RENDER_COMMAND_TYPE_SCISSOR_END;
-                break;
-            case CLAY_RENDER_COMMAND_TYPE_NONE:
-                previous = CLAY_RENDER_COMMAND_TYPE_NONE;
-                break;
-            case CLAY_RENDER_COMMAND_TYPE_CUSTOM:
-                previous = CLAY_RENDER_COMMAND_TYPE_CUSTOM;
-                break;
+                case CLAY_RENDER_COMMAND_TYPE_TEXT:
+                    previous = CLAY_RENDER_COMMAND_TYPE_TEXT;
+                    break;
+                case CLAY_RENDER_COMMAND_TYPE_IMAGE:
+                {
+                    auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);
+                    const auto* textureRegion = static_cast<const TextureRegion*>(renderCommand.renderData.image.imageData);
+
+                    packedInstanceData->m_packedRect = packedRect;
+
+                    Color tintColor {
+                        renderCommand.renderData.rectangle.backgroundColor.r / 255.f,
+                        renderCommand.renderData.rectangle.backgroundColor.g / 255.f,
+                        renderCommand.renderData.rectangle.backgroundColor.b / 255.f,
+                        renderCommand.renderData.rectangle.backgroundColor.a / 255.f,
+                    };
+                    if (tintColor.m_value == float4(0))
+                    {
+                        tintColor = Color(float4(1));
+                    }
+                    packedInstanceData->m_packedColor = tintColor.ToSrgb().ToRgba8();
+
+                    // Pack texture and sampler indices
+                    {
+                        const auto it = textureDataMap.find(static_cast<u32>(textureRegion->m_textureView.m_handle));
+                        if (!KE_VERIFY(it != textureDataMap.end())) break;
+                        if (texturesDescriptorSetIndex != it->second.m_descriptorSetIndex)
+                        {
+                            texturesDescriptorSetIndex = it->second.m_descriptorSetIndex;
+                            _graphicsContext.SetGraphicsDescriptorSetsWithOffset(
+                                _renderCommandList,
+                                m_commonPipelineLayout,
+                                { m_texturesDescriptorSets.begin() + texturesDescriptorSetIndex, 1 },
+                                1);
+                        }
+
+                        const SamplerArray& array = samplerDataMap[it->second.m_descriptorSetIndex];
+                        const SamplerHandle samplerHandle = textureRegion->m_customSampler != GenPool::kInvalidHandle ? textureRegion->m_customSampler : m_defaultSampler;
+                        const auto samplerIt = eastl::find(array.begin(), array.end(), samplerHandle);
+                        if (!KE_VERIFY(samplerIt != array.end())) break;
+                        packedInstanceData->m_packedData.x = BitUtils::BitfieldInsert<u32>(
+                            it->second.m_index,
+                            eastl::distance(array.begin(), samplerIt),
+                            3,
+                            5);
+                    }
+
+                    // Pack corner radii
+                    {
+                        float4 cornerRadii = *reinterpret_cast<const float4*>(&renderCommand.renderData.image.cornerRadius);
+                        for (auto j = 0u; j < 4; j++)
+                        {
+                            KE_ASSERT(cornerRadii[j] >= 0.f);
+                            KE_ASSERT_MSG(cornerRadii[j] <= 4095, "Max supported border radius size is 4095");
+                        }
+                        cornerRadii.MinComponents(float4(eastl::min(halfSize.x, halfSize.y)));
+                        packedInstanceData->m_packedData.x = BitUtils::BitfieldInsert<u32>(
+                            packedInstanceData->m_packedData.x,
+                            static_cast<u16>(std::roundf(cornerRadii.x)),
+                            12,
+                            8);
+                        packedInstanceData->m_packedData.x = BitUtils::BitfieldInsert<u32>(
+                            packedInstanceData->m_packedData.x,
+                            static_cast<u16>(std::roundf(cornerRadii.y)),
+                            12,
+                            20);
+                        packedInstanceData->m_packedData.y = BitUtils::BitfieldInsert<u32>(
+                            static_cast<u16>(std::roundf(cornerRadii.z)),
+                            static_cast<u16>(std::roundf(cornerRadii.w)),
+                            12,
+                            12);
+                    }
+
+                    // Pack region rect
+                    {
+                        const float2 regionHalfSize = textureRegion->m_size * float2(0.5f);
+                        const float2 regionCenter = textureRegion->m_offset + regionHalfSize;
+
+                        packedInstanceData->m_packedData.z = Math::Float16::PackFloat16x2(regionCenter.x, regionCenter.y);
+                        packedInstanceData->m_packedData.w = Math::Float16::PackFloat16x2(regionHalfSize.x, regionHalfSize.y);
+                    }
+
+                    if (previous != CLAY_RENDER_COMMAND_TYPE_IMAGE)
+                        _graphicsContext.SetGraphicsPipeline(_renderCommandList, m_imagePipeline);
+
+                    _graphicsContext.DrawInstanced(_renderCommandList, DrawInstancedDesc {
+                        .m_vertexCount = 6,
+                        .m_instanceOffset = static_cast<u32>(offset / sizeof(PackedInstanceData)),
+                    });
+                    offset += sizeof(PackedInstanceData);
+
+                    previous = CLAY_RENDER_COMMAND_TYPE_IMAGE;
+                    break;
+                }
+                case CLAY_RENDER_COMMAND_TYPE_SCISSOR_START:
+                    if (KE_VERIFY(scissors.size() < scissors.capacity())) [[likely]]
+                    {
+                        scissors.push_back({
+                            .m_left = static_cast<u32>(renderCommand.boundingBox.x),
+                            .m_top = static_cast<u32>(renderCommand.boundingBox.y),
+                            .m_right = static_cast<u32>(renderCommand.boundingBox.x + renderCommand.boundingBox.width),
+                            .m_bottom = static_cast<u32>(renderCommand.boundingBox.y + renderCommand.boundingBox.height),
+                        });
+                        _graphicsContext.SetScissorsRect(_renderCommandList, scissors.back());
+                    }
+                    previous = CLAY_RENDER_COMMAND_TYPE_SCISSOR_START;
+                    break;
+                case CLAY_RENDER_COMMAND_TYPE_SCISSOR_END:
+                    if (KE_VERIFY(scissors.size() > 1)) [[likely]]
+                    {
+                        scissors.pop_back();
+                        _graphicsContext.SetScissorsRect(_renderCommandList, scissors.back());
+                    }
+                    previous = CLAY_RENDER_COMMAND_TYPE_SCISSOR_END;
+                    break;
+                case CLAY_RENDER_COMMAND_TYPE_NONE:
+                    previous = CLAY_RENDER_COMMAND_TYPE_NONE;
+                    break;
+                case CLAY_RENDER_COMMAND_TYPE_CUSTOM:
+                    previous = CLAY_RENDER_COMMAND_TYPE_CUSTOM;
+                    break;
+                }
             }
         }
 
         KE_ASSERT(scissors.size() == 1);
 
-        m_instanceDataBuffer.Unmap(&_graphicsContext);
-        m_instanceDataBuffer.PrepareBuffers(&_graphicsContext, _transferCommandList, BarrierAccessFlags::VertexBuffer, frameIndex);
+        {
+            KE_ZoneScoped("Upload instance data");
+            m_instanceDataBuffer.Unmap(&_graphicsContext);
+            m_instanceDataBuffer.PrepareBuffers(&_graphicsContext, _transferCommandList, BarrierAccessFlags::VertexBuffer, frameIndex);
+        }
     }
 
 } // namespace KryneEngine
