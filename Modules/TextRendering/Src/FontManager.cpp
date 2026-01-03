@@ -46,6 +46,7 @@ namespace KryneEngine::Modules::TextRendering
         KE_ZoneScopedF("Loading font '%s'", _path.data());
 
         FT_Face face;
+        char* buffer;
         {
             std::ifstream file(_path.data(), std::ios::binary);
             VERIFY_OR_RETURN(file, {});
@@ -54,14 +55,12 @@ namespace KryneEngine::Modules::TextRendering
             const std::streamsize size = file.tellg();
             file.seekg(0, std::ios::beg);
 
-            auto* buffer = m_allocator.Allocate<char>(size);
+            buffer = m_allocator.Allocate<char>(size);
             KE_VERIFY(file.read(buffer, size));
 
             file.close();
 
             const FT_Error error = FT_New_Memory_Face(m_ftLibrary, reinterpret_cast<FT_Byte*>(buffer), size, 0, &face);
-
-            m_allocator.deallocate(buffer);
 
             if (!KE_VERIFY_MSG(error == FT_Err_Ok, "Failed to load font '%s': %s", _path.data(), FT_Error_String(error))) [[unlikely]]
                 return nullptr;
@@ -252,6 +251,12 @@ namespace KryneEngine::Modules::TextRendering
         newFont->m_tags.Resize(tags.size());
         memcpy(newFont->m_points.Data(), points.data(), points.size() * sizeof(uint2));
         memcpy(newFont->m_tags.Data(), tags.data(), tags.size() * sizeof(u8));
+
+        {
+            const FT_Error error = FT_Done_Face(face);
+            KE_VERIFY_MSG(error == FT_Err_Ok, FT_Error_String(error));
+        }
+        m_allocator.deallocate(buffer);
 
         m_fonts.push_back(newFont);
         return newFont;
