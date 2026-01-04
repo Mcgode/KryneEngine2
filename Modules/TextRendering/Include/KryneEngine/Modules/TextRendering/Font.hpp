@@ -6,10 +6,17 @@
 
 #pragma once
 
+#include "KryneEngine/Core/Common/Utils/Macros.hpp"
+
+
 #include <EASTL/vector_map.h>
 #include <KryneEngine/Core/Math/Vector.hpp>
 #include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
-#include <KryneEngine/Core/Memory/DynamicArray.hpp>
+#include <KryneEngine/Core/Memory/UniquePtr.hpp>
+#include <KryneEngine/Core/Threads/SpinLock.hpp>
+#include <atomic>
+
+struct FT_FaceRec_;
 
 namespace KryneEngine::Modules::TextRendering
 {
@@ -18,7 +25,7 @@ namespace KryneEngine::Modules::TextRendering
         friend class FontManager;
 
     public:
-        ~Font() = default;
+        ~Font();
 
     private:
         explicit Font(AllocatorInstance _allocator);
@@ -33,13 +40,25 @@ namespace KryneEngine::Modules::TextRendering
 
         struct GlyphEntry
         {
+            u32 m_glyphIndex;
+            // Should be accessed as atomic ref in concurrent contexts. We don't store it as a std::atomic to allow for
+            // vector map sorting
+            bool m_loaded = false;
+
             u32 m_outlineStartPoint;
             u32 m_outlineFirstTag;
             u32 m_outlineTagCount;
         };
 
-        DynamicArray<uint2> m_points;
-        DynamicArray<OutlineTag> m_tags;
+        FT_FaceRec_* m_face = nullptr;
+        std::byte* m_fileBuffer = nullptr;
+        AllocatorInstance m_fileBufferAllocator {};
+        eastl::vector<uint2> m_points;
+        eastl::vector<OutlineTag> m_tags;
         eastl::vector_map<u32, GlyphEntry> m_glyphs;
+        SpinLock m_loadLock {};
+
+        void LoadGlyph(size_t _vectorMapIndex);
+        void LoadGlyphSafe(size_t _vectorMapIndex);
     };
 }
