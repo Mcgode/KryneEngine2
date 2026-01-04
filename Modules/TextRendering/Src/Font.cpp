@@ -45,7 +45,7 @@ namespace KryneEngine::Modules::TextRendering
             if (std::atomic_ref(entry.m_loaded).load(std::memory_order_relaxed) == false) [[unlikely]]
                 LoadGlyphSafe(eastl::distance(m_glyphs.begin(), it));
 
-            return _fontSize * static_cast<float>(entry.m_baseAdvanceX) / static_cast<float>(m_face->units_per_EM));
+            return _fontSize * static_cast<float>(entry.m_baseAdvanceX) / static_cast<float>(m_face->units_per_EM);
         }
         return 0;
     }
