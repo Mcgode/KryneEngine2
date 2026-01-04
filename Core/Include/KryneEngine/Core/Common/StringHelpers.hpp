@@ -51,6 +51,22 @@ namespace KryneEngine
         }
     };
 
+    struct Utf8Iterator
+    {
+        explicit Utf8Iterator(eastl::string_view _string);
+
+        Utf8Iterator& operator++();
+        bool operator==(const char* iterator) const;
+        u32 operator*();
+
+    private:
+        void ReadUtf8Char();
+
+        u32 m_currentChar = 0;
+        u32 m_byteCount = 0;
+        const char* m_currentPtr = nullptr;
+    };
+
     namespace StringHelpers
     {
         template <class Container, bool Reserve = true>

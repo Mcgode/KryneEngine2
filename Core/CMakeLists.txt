@@ -14,6 +14,7 @@ set(CommonSrc
         Include/KryneEngine/Core/Common/Misc/EastlConfig.hpp
         Include/KryneEngine/Core/Common/Misc/Unroll.hpp
         Include/KryneEngine/Core/Common/Utils/Macros.hpp
+        Src/Common/StringHelpers.cpp
 )
 
 set(FilesSrc
