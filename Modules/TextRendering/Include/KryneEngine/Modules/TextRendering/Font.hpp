@@ -6,15 +6,11 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Common/Utils/Macros.hpp"
-
-
+#include <EASTL/span.h>
 #include <EASTL/vector_map.h>
 #include <KryneEngine/Core/Math/Vector.hpp>
 #include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
-#include <KryneEngine/Core/Memory/UniquePtr.hpp>
 #include <KryneEngine/Core/Threads/SpinLock.hpp>
-#include <atomic>
 
 struct FT_FaceRec_;
 
