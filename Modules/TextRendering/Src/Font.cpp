@@ -39,6 +39,8 @@ namespace KryneEngine::Modules::TextRendering
         const FT_GlyphSlot glyph = m_face->glyph;
         const FT_Outline outline = glyph->outline;
 
+        m_outlinesLock.Lock();
+
         glyphEntry.m_outlineFirstTag = m_tags.size();
         glyphEntry.m_outlineStartPoint = m_points.size();
 
@@ -172,6 +174,8 @@ namespace KryneEngine::Modules::TextRendering
         }
 
         glyphEntry.m_outlineTagCount = m_tags.size() - glyphEntry.m_outlineFirstTag;
+
+        m_outlinesLock.Unlock();
     }
 
     void Font::LoadGlyphSafe(size_t _vectorMapIndex)

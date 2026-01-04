@@ -57,6 +57,7 @@ namespace KryneEngine::Modules::TextRendering
         eastl::vector<OutlineTag> m_tags;
         eastl::vector_map<u32, GlyphEntry> m_glyphs;
         SpinLock m_loadLock {};
+        SpinLock m_outlinesLock {};
 
         void LoadGlyph(size_t _vectorMapIndex);
         void LoadGlyphSafe(size_t _vectorMapIndex);
