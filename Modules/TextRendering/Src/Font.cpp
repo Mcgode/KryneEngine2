@@ -17,7 +17,22 @@ namespace KryneEngine::Modules::TextRendering
         m_fileBufferAllocator.deallocate(m_fileBuffer);
     }
 
-    Font::HorizontalAdvance Font::GetHorizontalAdvance(u32 _unicodeCodepoint, float _fontSize) const
+    float Font::GetAscender(float _fontSize) const
+    {
+        return _fontSize * static_cast<float>(m_face->ascender) / static_cast<float>(m_face->units_per_EM);
+    }
+
+    float Font::GetDescender(float _fontSize) const
+    {
+        return _fontSize * static_cast<float>(m_face->descender) / static_cast<float>(m_face->units_per_EM);
+    }
+
+    float Font::GetLineHeight(float _fontSize) const
+    {
+        return _fontSize * static_cast<float>(m_face->height) / static_cast<float>(m_face->units_per_EM);
+    }
+
+    float Font::GetHorizontalAdvance(const u32 _unicodeCodepoint, const float _fontSize) const
     {
         const auto em = static_cast<float>(m_face->units_per_EM);
 
@@ -27,13 +42,9 @@ namespace KryneEngine::Modules::TextRendering
             if (it == m_glyphs.end())
                 it = m_glyphs.begin();
             const GlyphEntry& entry = it->second;
-            return HorizontalAdvance {
-                _fontSize * static_cast<float>(entry.m_baseAdvanceX) / static_cast<float>(em),
-                _fontSize * static_cast<float>(entry.m_baseBearingY) / static_cast<float>(em),
-                _fontSize * static_cast<float>(entry.m_baseHeight) / static_cast<float>(em),
-            };
+            return _fontSize * static_cast<float>(entry.m_baseAdvanceX) / static_cast<float>(em);
         }
-        return { 0, 0, 0 };
+        return 0;
     }
 
     Font::Font(AllocatorInstance _allocator)

@@ -27,14 +27,11 @@ namespace KryneEngine::Modules::TextRendering
     public:
         ~Font();
 
-        struct HorizontalAdvance
-        {
-            float m_advanceX;
-            float m_bearingY;
-            float m_height;
-        };
+        float GetAscender(float _fontSize) const;
+        float GetDescender(float _fontSize) const;
+        float GetLineHeight(float _fontSize) const;
 
-        HorizontalAdvance GetHorizontalAdvance(u32 _unicodeCodepoint, float _fontSize) const;
+        float GetHorizontalAdvance(u32 _unicodeCodepoint, float _fontSize) const;
 
     private:
         explicit Font(AllocatorInstance _allocator);
