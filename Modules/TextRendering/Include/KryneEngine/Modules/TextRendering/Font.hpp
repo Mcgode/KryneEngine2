@@ -31,7 +31,7 @@ namespace KryneEngine::Modules::TextRendering
         float GetDescender(float _fontSize) const;
         float GetLineHeight(float _fontSize) const;
 
-        float GetHorizontalAdvance(u32 _unicodeCodepoint, float _fontSize) const;
+        float GetHorizontalAdvance(u32 _unicodeCodepoint, float _fontSize);
 
     private:
         explicit Font(AllocatorInstance _allocator);

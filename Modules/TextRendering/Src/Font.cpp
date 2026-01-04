@@ -32,17 +32,20 @@ namespace KryneEngine::Modules::TextRendering
         return _fontSize * static_cast<float>(m_face->height) / static_cast<float>(m_face->units_per_EM);
     }
 
-    float Font::GetHorizontalAdvance(const u32 _unicodeCodepoint, const float _fontSize) const
+    float Font::GetHorizontalAdvance(const u32 _unicodeCodepoint, const float _fontSize)
     {
-        const auto em = static_cast<float>(m_face->units_per_EM);
-
         auto it = m_glyphs.find(_unicodeCodepoint);
         if (it != m_glyphs.end() || m_glyphs.begin()->first == 0)
         {
             if (it == m_glyphs.end())
                 it = m_glyphs.begin();
-            const GlyphEntry& entry = it->second;
-            return _fontSize * static_cast<float>(entry.m_baseAdvanceX) / static_cast<float>(em);
+            GlyphEntry& entry = it->second;
+
+            // Atomic relaxed load to check if loaded. If not, cache it.
+            if (std::atomic_ref(entry.m_loaded).load(std::memory_order_relaxed) == false) [[unlikely]]
+                LoadGlyphSafe(eastl::distance(m_glyphs.begin(), it));
+
+            return _fontSize * static_cast<float>(entry.m_baseAdvanceX) / static_cast<float>(m_face->units_per_EM));
         }
         return 0;
     }
