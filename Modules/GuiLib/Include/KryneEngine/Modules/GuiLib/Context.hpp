@@ -49,6 +49,8 @@ namespace KryneEngine::Modules::GuiLib
         StableVector<TextureRegion> m_registeredRegions;
 
         static void ErrorHandler(Clay_ErrorData _errorData);
+
+        static Clay_Dimensions MeasureText(Clay_StringSlice _slice, Clay_TextElementConfig* _config, void* _userData);
     };
 } // namespace KryneEngine::Modules::Clay
 

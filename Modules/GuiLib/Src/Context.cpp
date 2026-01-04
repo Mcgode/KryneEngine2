@@ -6,8 +6,11 @@
 
 #include "KryneEngine/Modules/GuiLib/Context.hpp"
 
-#include "KryneEngine/Core/Memory/Containers/StableVector.inl"
+#include "KryneEngine/Core/Common/StringHelpers.hpp"
+
 #include "KryneEngine/Modules/GuiLib/IGuiRenderer.hpp"
+#include <KryneEngine/Core/Memory/Containers/StableVector.inl>
+#include <KryneEngine/Modules/TextRendering/Font.hpp>
 
 namespace KryneEngine::Modules::GuiLib
 {
@@ -40,11 +43,7 @@ namespace KryneEngine::Modules::GuiLib
         Clay_Initialize(arena, dimensions, errorHandler);
         m_clayContext = Clay_GetCurrentContext();
 
-        constexpr auto placeholderMeasureText = [](Clay_StringSlice _slice, Clay_TextElementConfig* _config, void* _userData)
-        {
-            return Clay_Dimensions { .width = 0.f, .height = 0.f };
-        };
-        Clay_SetMeasureTextFunction(placeholderMeasureText, this);
+        Clay_SetMeasureTextFunction(MeasureText, this);
 
         Clay_SetCurrentContext(nullptr);
     }
@@ -84,6 +83,49 @@ namespace KryneEngine::Modules::GuiLib
     void Context::ErrorHandler(Clay_ErrorData _errorData)
     {
         KE_ERROR(_errorData.errorText.chars);
+    }
+
+    Clay_Dimensions Context::MeasureText(Clay_StringSlice _slice, Clay_TextElementConfig* _config, void* _userData)
+    {
+        if (_config->userData == nullptr)
+            return Clay_Dimensions { .width = 0.f, .height = 0.f };
+
+        auto* font = static_cast<TextRendering::Font*>(_config->userData);
+
+        Clay_Dimensions dimensions {};
+        float currentLineWidth = 0.f;
+
+        const float ascender = font->GetAscender(_config->fontSize);
+        const float descender = font->GetDescender(_config->fontSize);
+        const float baseLineHeight = font->GetLineHeight(_config->fontSize);
+
+        const eastl::string_view string { _slice.chars, static_cast<size_t>(_slice.length) };
+        for (auto it = Utf8Iterator(string); it != string.end(); ++it)
+        {
+            const u32 unicodeCodepoint = *it;
+
+            switch (unicodeCodepoint)
+            {
+                case '\n':
+                    dimensions.height += baseLineHeight + static_cast<float>(_config->lineHeight);
+                case '\r':
+                    if (currentLineWidth > dimensions.width)
+                        dimensions.width = currentLineWidth;
+                    currentLineWidth = 0.f;
+                    break;
+                default:
+                    if (currentLineWidth > 0.f)
+                        currentLineWidth += static_cast<float>(_config->letterSpacing);
+                    currentLineWidth += font->GetHorizontalAdvance(unicodeCodepoint, _config->fontSize);
+                    break;
+            }
+        }
+        // Don't add vertical spacing for the last line
+        dimensions.height += ascender + abs(descender);
+        if (currentLineWidth > dimensions.width)
+            dimensions.width = currentLineWidth;
+
+        return dimensions;
     }
 
     Context::~Context() = default;
