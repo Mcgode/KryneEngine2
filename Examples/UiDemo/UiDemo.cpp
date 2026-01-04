@@ -176,6 +176,13 @@ s32 main(s32 argc, const char** argv)
             })
             {
                 CLAY({ .layout = { .sizing = { .height = CLAY_SIZING_GROW() } } }) {}
+                CLAY_TEXT(CLAY_STRING("Mangé, à, è"), CLAY_TEXT_CONFIG({
+                    .userData = font,
+                    .textColor = { 255, 80, 80, 255 },
+                    .fontSize = 16,
+                    .letterSpacing = 2,
+                }));
+
                 for (auto i = 0; i < 4; i++)
                 {
                     CLAY({ .layout = { .sizing = { .width = CLAY_SIZING_GROW() }, .childGap = 16, .layoutDirection = CLAY_LEFT_TO_RIGHT } })
