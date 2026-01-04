@@ -17,6 +17,25 @@ namespace KryneEngine::Modules::TextRendering
         m_fileBufferAllocator.deallocate(m_fileBuffer);
     }
 
+    Font::HorizontalAdvance Font::GetHorizontalAdvance(u32 _unicodeCodepoint, float _fontSize) const
+    {
+        const auto em = static_cast<float>(m_face->units_per_EM);
+
+        auto it = m_glyphs.find(_unicodeCodepoint);
+        if (it != m_glyphs.end() || m_glyphs.begin()->first == 0)
+        {
+            if (it == m_glyphs.end())
+                it = m_glyphs.begin();
+            const GlyphEntry& entry = it->second;
+            return HorizontalAdvance {
+                _fontSize * static_cast<float>(entry.m_baseAdvanceX) / static_cast<float>(em),
+                _fontSize * static_cast<float>(entry.m_baseBearingY) / static_cast<float>(em),
+                _fontSize * static_cast<float>(entry.m_baseHeight) / static_cast<float>(em),
+            };
+        }
+        return { 0, 0, 0 };
+    }
+
     Font::Font(AllocatorInstance _allocator)
         : m_points(_allocator)
         , m_tags(_allocator)
@@ -38,6 +57,10 @@ namespace KryneEngine::Modules::TextRendering
 
         const FT_GlyphSlot glyph = m_face->glyph;
         const FT_Outline outline = glyph->outline;
+
+        glyphEntry.m_baseAdvanceX = glyph->metrics.horiAdvance;
+        glyphEntry.m_baseBearingY = glyph->metrics.horiBearingY;
+        glyphEntry.m_baseHeight = glyph->metrics.height;
 
         m_outlinesLock.Lock();
 

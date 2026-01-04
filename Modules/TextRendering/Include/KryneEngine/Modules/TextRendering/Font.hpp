@@ -27,6 +27,15 @@ namespace KryneEngine::Modules::TextRendering
     public:
         ~Font();
 
+        struct HorizontalAdvance
+        {
+            float m_advanceX;
+            float m_bearingY;
+            float m_height;
+        };
+
+        HorizontalAdvance GetHorizontalAdvance(u32 _unicodeCodepoint, float _fontSize) const;
+
     private:
         explicit Font(AllocatorInstance _allocator);
 
@@ -44,6 +53,10 @@ namespace KryneEngine::Modules::TextRendering
             // Should be accessed as atomic ref in concurrent contexts. We don't store it as a std::atomic to allow for
             // vector map sorting
             bool m_loaded = false;
+
+            u32 m_baseAdvanceX;
+            u32 m_baseBearingY;
+            u32 m_baseHeight;
 
             u32 m_outlineStartPoint;
             u32 m_outlineFirstTag;
