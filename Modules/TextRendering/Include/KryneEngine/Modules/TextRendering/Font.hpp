@@ -52,6 +52,10 @@ namespace KryneEngine::Modules::TextRendering
             bool m_loaded = false;
 
             u32 m_baseAdvanceX;
+
+            u32 m_baseBearingX;
+            u32 m_baseWidth;
+
             u32 m_baseBearingY;
             u32 m_baseHeight;
 

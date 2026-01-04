@@ -73,6 +73,10 @@ namespace KryneEngine::Modules::TextRendering
         const FT_Outline outline = glyph->outline;
 
         glyphEntry.m_baseAdvanceX = glyph->metrics.horiAdvance;
+
+        glyphEntry.m_baseBearingX = glyph->metrics.horiBearingX;
+        glyphEntry.m_baseWidth = glyph->metrics.width;
+
         glyphEntry.m_baseBearingY = glyph->metrics.horiBearingY;
         glyphEntry.m_baseHeight = glyph->metrics.height;
 
