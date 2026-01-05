@@ -60,7 +60,7 @@ namespace KryneEngine::BitUtils
     template<class T>
     inline constexpr T BitMask(u8 _size)
     {
-        return ((1 << _size) - 1);
+        return ((1ull << T(_size)) - 1);
     }
 
     template<class T>
