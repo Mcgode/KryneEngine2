@@ -229,9 +229,9 @@ namespace KryneEngine::Modules::TextRendering
                 for (u32 x = 0; x < dims; ++x)
                 {
                     const Color pixelColor {
-                        eastl::clamp(request.m_buffer[y * dims + 3 * x + 0], 0.f, 1.f),
-                        eastl::clamp(request.m_buffer[y * dims + 3 * x + 1], 0.f, 1.f),
-                        eastl::clamp(request.m_buffer[y * dims + 3 * x + 2], 0.f, 1.f),
+                        eastl::clamp(request.m_buffer[y * dims * 3 + 3 * x + 0], 0.f, 1.f),
+                        eastl::clamp(request.m_buffer[y * dims * 3 + 3 * x + 1], 0.f, 1.f),
+                        eastl::clamp(request.m_buffer[y * dims * 3 + 3 * x + 2], 0.f, 1.f),
                         1.f,
                     };
                     *pixels = pixelColor.ToRgba8();
