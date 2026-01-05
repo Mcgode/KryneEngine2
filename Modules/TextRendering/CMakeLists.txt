@@ -1,14 +1,18 @@
 
-set(MSDFGEN_CORE_ONLY ON)
-set(MSDFGEN_BUILD_STANDALONE OFF)
+set(MSDFGEN_CORE_ONLY OFF)
+set(MSDFGEN_DISABLE_SVG ON)
+set(MSDFGEN_BUILD_STANDALONE ON)
 set(MSDFGEN_USE_VCPKG OFF)
+set(MSDFGEN_USE_SKIA OFF)
 add_subdirectory(Extern/msdfgen_1.13)
 
 add_library(KryneEngine_Modules_TextRendering STATIC
         Src/Font.cpp
         Include/KryneEngine/Modules/TextRendering/Font.hpp
         Src/FontManager.cpp
-        Include/KryneEngine/Modules/TextRendering/FontManager.hpp)
+        Include/KryneEngine/Modules/TextRendering/FontManager.hpp
+        Src/MsdfAtlasManager.cpp
+        Include/KryneEngine/Modules/TextRendering/MsdfAtlasManager.hpp)
 
 find_package(Freetype REQUIRED)
 
