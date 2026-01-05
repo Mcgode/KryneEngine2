@@ -402,8 +402,9 @@ namespace KryneEngine
                 .m_offset = footprint.Offset,
                 .m_width = footprint.Footprint.Width,
                 .m_height = footprint.Footprint.Height,
-                .m_lineByteAlignedSize = footprint.Footprint.RowPitch,
                 .m_depth = static_cast<u16>(footprint.Footprint.Depth),
+                .m_rowPitchAlignment = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT,
+                .m_lineByteAlignedSize = footprint.Footprint.RowPitch,
                 .m_format = Dx12Converters::FromDx12Format(footprint.Footprint.Format),
             });
         }

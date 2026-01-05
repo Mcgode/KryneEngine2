@@ -206,6 +206,8 @@ namespace KryneEngine
         const size_t pixelByteSize = MetalConverters::GetPixelByteSize(_desc.m_format);
         size_t currentOffset = 0;
 
+        const size_t rowAlignment = m_device->minimumLinearTextureAlignmentForPixelFormat(MetalConverters::ToPixelFormat(_desc.m_format));
+
         for (u16 arraySlice = 0; arraySlice < _desc.m_arraySize; arraySlice++)
         {
             for (u8 mip = 0; mip < _desc.m_mipCount; mip++)
@@ -220,8 +222,9 @@ namespace KryneEngine
                     .m_format = _desc.m_format,
                 };
 
-                const size_t rowByteSize = footprint.m_width * pixelByteSize;
+                const size_t rowByteSize = Alignment::AlignUp(footprint.m_width * pixelByteSize, rowAlignment);
                 footprint.m_lineByteAlignedSize = rowByteSize;
+                footprint.m_rowPitchAlignment = rowAlignment;
 
                 currentOffset += rowByteSize * footprint.m_height * footprint.m_depth;
             }

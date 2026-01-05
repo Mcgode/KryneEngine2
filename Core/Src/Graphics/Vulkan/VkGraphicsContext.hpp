@@ -73,6 +73,8 @@ namespace KryneEngine
         VkQueue m_computeQueue;
         VkQueue m_presentQueue;
 
+        u32 m_optimalRowPitchAlignment;
+
         bool m_debugUtils = false;
         bool m_debugMarkers = false;
         bool m_supportsTimestampQueries = false;

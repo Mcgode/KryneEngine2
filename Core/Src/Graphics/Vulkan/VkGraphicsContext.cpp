@@ -173,6 +173,8 @@ namespace KryneEngine
         VkPhysicalDeviceProperties physicalDeviceProperties;
         vkGetPhysicalDeviceProperties(m_physicalDevice, &physicalDeviceProperties);
 
+        m_optimalRowPitchAlignment = physicalDeviceProperties.limits.optimalBufferCopyRowPitchAlignment;
+
         if (physicalDeviceProperties.limits.timestampPeriod > 0.f && physicalDeviceProperties.limits.timestampComputeAndGraphics)
         {
             m_gpuTimestampPeriod = physicalDeviceProperties.limits.timestampPeriod;
@@ -960,6 +962,8 @@ namespace KryneEngine
 
         eastl::vector<TextureMemoryFootprint> footprints(m_allocator);
 
+        const u32 alignment = m_optimalRowPitchAlignment == 0 ? 1 : m_optimalRowPitchAlignment;
+
         u64 cumulatedOffset = 0;
         for (u32 sliceIndex = 0; sliceIndex < _desc.m_arraySize; sliceIndex++)
         {
@@ -973,7 +977,8 @@ namespace KryneEngine
                     .m_format = _desc.m_format,
                 };
                 const u32 sizePerBlock = VkHelperFunctions::GetByteSizePerBlock(VkHelperFunctions::ToVkFormat(_desc.m_format));
-                footprint.m_lineByteAlignedSize = sizePerBlock * footprint.m_width;
+                footprint.m_lineByteAlignedSize = Alignment::AlignUp(sizePerBlock * footprint.m_width, alignment);
+                footprint.m_rowPitchAlignment = alignment;
 
                 footprints.push_back(footprint);
 
@@ -1143,8 +1148,9 @@ namespace KryneEngine
 
         const VkBufferImageCopy region {
             .bufferOffset = _footprint.m_offset,
-            .bufferRowLength = 0,   // Set both entries to 0 to mark data as tightly packed.
-            .bufferImageHeight = 0, //
+            // Only mark as tightly packed if the pixel element size is greater or equal to optimal alignment.
+            .bufferRowLength = GetByteSizePerBlock(ToVkFormat(_footprint.m_format)) < _footprint.m_rowPitchAlignment ? _footprint.m_lineByteAlignedSize : 0,
+            .bufferImageHeight = 0, // Set entry to 0 to mark data as tightly packed.
             .imageSubresource = {
                 .aspectMask = VkHelperFunctions::RetrieveAspectMask(_subResourceIndex.m_planeSlice),
                 .mipLevel = _subResourceIndex.m_mipIndex,

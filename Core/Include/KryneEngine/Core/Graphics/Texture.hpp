@@ -38,8 +38,10 @@ namespace KryneEngine
         u32 m_width;
         u32 m_height;
 
-        u32 m_lineByteAlignedSize;
         u16 m_depth;
+        u16 m_rowPitchAlignment;
+        u32 m_lineByteAlignedSize;
+
         TextureFormat m_format;
     };
 
