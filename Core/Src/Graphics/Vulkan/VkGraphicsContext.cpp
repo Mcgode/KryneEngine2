@@ -1170,6 +1170,43 @@ namespace KryneEngine
             &region);
     }
 
+    void VkGraphicsContext::SetTextureRegionData(
+        CommandListHandle _commandList,
+        BufferSpan _srcBuffer,
+        TextureHandle _dstTexture,
+        const TextureMemoryFootprint& _footprint,
+        const SubResourceIndexing& _subresourceIndex,
+        const uint3& _regionOffset,
+        const uint3& _regionSize)
+    {
+        VkBuffer* srcBuffer = m_resources.m_buffers.Get(_srcBuffer.m_buffer.m_handle);
+        VkImage* dstTexture = m_resources.m_textures.Get(_dstTexture.m_handle);
+
+        KE_ASSERT(srcBuffer != nullptr && dstTexture != nullptr);
+
+        VkBufferImageCopy region {
+            .bufferOffset = _srcBuffer.m_offset,
+            // Only mark as tightly packed if the pixel element size is greater or equal to optimal alignment.
+            .bufferRowLength = GetByteSizePerBlock(ToVkFormat(_footprint.m_format)) < _footprint.m_rowPitchAlignment ? _footprint.m_lineByteAlignedSize : 0,
+            .bufferImageHeight = 0, // Set entry to 0 to mark data as tightly packed.
+            .imageSubresource = {
+                .aspectMask = RetrieveAspectMask(_subresourceIndex.m_planeSlice),
+                .mipLevel = _subresourceIndex.m_mipIndex,
+                .baseArrayLayer = _subresourceIndex.m_arraySlice,
+                .layerCount = 1,
+            },
+            .imageOffset = { static_cast<s32>(_regionOffset.x), static_cast<s32>(_regionOffset.y), static_cast<s32>(_regionOffset.z) },
+            .imageExtent = { _regionSize.x, _regionSize.y, _regionSize.z },
+        };
+        vkCmdCopyBufferToImage(
+            static_cast<CommandList>(_commandList),
+            *srcBuffer,
+            *dstTexture,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &region);
+    }
+
     void VkGraphicsContext::MapBuffer(BufferMapping& _mapping)
     {
         KE_ZoneScopedFunction("VkGraphicsContext::MapBuffer");

@@ -766,6 +766,52 @@ namespace KryneEngine
         commandList->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
     }
 
+    void Dx12GraphicsContext::SetTextureRegionData(
+        CommandListHandle _commandList,
+        BufferSpan _srcBuffer,
+        TextureHandle _dstTexture,
+        const TextureMemoryFootprint& _footprint,
+        const SubResourceIndexing& _subresourceIndex,
+        const uint3& _regionOffset,
+        const uint3& _regionSize)
+    {
+        auto commandList = static_cast<CommandList>(_commandList);
+
+        ID3D12Resource** srcBuffer = m_resources.m_buffers.Get(_srcBuffer.m_buffer.m_handle);
+        ID3D12Resource** dstTexture = m_resources.m_textures.Get(_dstTexture.m_handle);
+
+        const D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint {
+            .Offset = _footprint.m_offset,
+            .Footprint = {
+                .Format = Dx12Converters::ToDx12Format(_footprint.m_format),
+                .Width = _footprint.m_width,
+                .Height = _footprint.m_height,
+                .Depth = _footprint.m_depth,
+                .RowPitch = _footprint.m_lineByteAlignedSize,
+            },
+        };
+        const CD3DX12_TEXTURE_COPY_LOCATION src(*srcBuffer, footprint);
+
+        const u32 subResourceIndex = D3D12CalcSubresource(
+            _subresourceIndex.m_mipIndex,
+            _subresourceIndex.m_arraySlice,
+            Dx12Converters::RetrievePlaneSlice(_subresourceIndex.m_planes, _subresourceIndex.m_planeSlice),
+            _subresourceIndex.m_mipCount,
+            _subresourceIndex.m_arraySize);
+        const CD3DX12_TEXTURE_COPY_LOCATION dst(*dstTexture, subResourceIndex);
+
+        const D3D12_BOX box {
+            static_cast<u32>(_srcBuffer.m_offset), 0, 0,
+            static_cast<u32>(_srcBuffer.m_offset + _srcBuffer.m_size), 1, 1 };
+        commandList->CopyTextureRegion(
+            &dst,
+            _regionOffset.x,
+            _regionOffset.y,
+            _regionOffset.z,
+            &src,
+            &box);
+    }
+
     void Dx12GraphicsContext::MapBuffer(BufferMapping& _mapping)
     {
         KE_ZoneScopedFunction("Dx12GraphicsContext::MapBuffer");

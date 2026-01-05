@@ -122,6 +122,14 @@ namespace KryneEngine
             const TextureMemoryFootprint& _footprint,
             const SubResourceIndexing& _subResourceIndex,
             const void* _data) override;
+        void SetTextureRegionData(
+            CommandListHandle _commandList,
+            BufferSpan _srcBuffer,
+            TextureHandle _dstTexture,
+            const TextureMemoryFootprint& _footprint,
+            const SubResourceIndexing& _subresourceIndex,
+            const uint3& _regionOffset,
+            const uint3& _regionSize) override;
 
         void MapBuffer(BufferMapping& _mapping) override;
         void UnmapBuffer(BufferMapping& _mapping) override;
