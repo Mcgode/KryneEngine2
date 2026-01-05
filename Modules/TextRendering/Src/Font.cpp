@@ -8,6 +8,8 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include <KryneEngine/Core/Profiling/TracyHeader.hpp>
+#include <msdfgen.h>
 
 namespace KryneEngine::Modules::TextRendering
 {
@@ -48,6 +50,114 @@ namespace KryneEngine::Modules::TextRendering
             return _fontSize * static_cast<float>(entry.m_baseAdvanceX) / static_cast<float>(m_face->units_per_EM);
         }
         return 0;
+    }
+
+    bool Font::GenerateMsdf(
+        const u32 _unicodeCodepoint,
+        const u16 _glyphSize,
+        const u16 _pxRange,
+        const eastl::span<float> _output)
+    {
+        KE_ASSERT(_output.size() >= _glyphSize * _glyphSize * 3);
+
+        KE_ZoneScopedF("Generate MSDF for U+%x", _unicodeCodepoint);
+
+        const auto it = m_glyphs.find(_unicodeCodepoint);
+        if (it == m_glyphs.end())
+            return false;
+
+        GlyphEntry& entry = it->second;
+        if (std::atomic_ref(entry.m_loaded).load(std::memory_order_relaxed) == false) [[unlikely]]
+            LoadGlyphSafe(eastl::distance(m_glyphs.begin(), it));
+
+        msdfgen::Vector2 scale = 1;
+        msdfgen::Vector2 translate = 0;
+        {
+            const auto glyphWidth = static_cast<double>(entry.m_baseWidth);
+            const auto glyphXMin = static_cast<double>(entry.m_baseBearingX);
+            const auto glyphHeight = static_cast<double>(entry.m_baseHeight);
+            const auto glyphYMin = static_cast<double>(entry.m_baseBearingY) - glyphHeight;
+
+            const auto dims = static_cast<double>(_glyphSize - _pxRange);
+
+            if (glyphHeight > glyphWidth)
+            {
+                translate.set(0.5 * (glyphHeight - glyphWidth) - glyphXMin, -glyphYMin);
+                scale = dims / glyphHeight;
+            }
+            else
+            {
+                translate.set(-glyphXMin, 0.5 * (glyphWidth - glyphHeight) - glyphYMin);
+                scale = dims / glyphWidth;
+            }
+            translate += (_pxRange * 0.5) / scale;
+        }
+
+        msdfgen::Shape shape;
+        {
+            KE_ZoneScoped("Retrieve shape");
+
+            const auto lock = m_outlinesLock.AutoLock();
+
+            const int2* pPoints = m_points.data() + entry.m_outlineStartPoint;
+            const OutlineTag* pTags = m_tags.data() + entry.m_outlineFirstTag;
+            const OutlineTag* pTagsEnd = pTags + entry.m_outlineTagCount;
+
+            msdfgen::Vector2 currentPoint;
+
+            for (; pTags < pTagsEnd; pTags++)
+            {
+                switch (*pTags)
+                {
+                case OutlineTag::NewContour:
+                    shape.addContour();
+                    currentPoint.set(pPoints->x, pPoints->y);
+                    pPoints++;
+                    break;
+                case OutlineTag::Line:
+                {
+                    const msdfgen::Vector2 nextPoint(pPoints->x, pPoints->y);
+                    shape.contours.back().addEdge(msdfgen::EdgeHolder(currentPoint, nextPoint));
+                    currentPoint = nextPoint;
+                    pPoints++;
+                    break;
+                }
+                case OutlineTag::Conic:
+                {
+                    const msdfgen::Vector2 controlPoint(pPoints[0].x, pPoints[0].y);
+                    const msdfgen::Vector2 nextPoint(pPoints[1].x, pPoints[1].y);
+                    shape.contours.back().addEdge(msdfgen::EdgeHolder(currentPoint, controlPoint, nextPoint));
+                    currentPoint = nextPoint;
+                    pPoints += 2;
+                    break;
+                }
+                case OutlineTag::Cubic:
+                {
+                    const msdfgen::Vector2 controlPoint0(pPoints[0].x, pPoints[0].y);
+                    const msdfgen::Vector2 controlPoint1(pPoints[1].x, pPoints[1].y);
+                    const msdfgen::Vector2 nextPoint(pPoints[2].x, pPoints[2].y);
+                    shape.contours.back().addEdge(msdfgen::EdgeHolder(currentPoint, controlPoint0, controlPoint1, nextPoint));
+                    currentPoint = nextPoint;
+                    pPoints += 3;
+                    break;
+                }
+                }
+            }
+        }
+
+        msdfgen::edgeColoringSimple(shape, 3);
+
+        const msdfgen::SDFTransformation transformation {
+            msdfgen::Projection(scale, translate),
+            msdfgen::Range(_pxRange / scale.x)
+        };
+        const msdfgen::BitmapSection<float, 3> bitmapSection { _output.data(), _glyphSize, _glyphSize };
+        msdfgen::generateMSDF(
+            bitmapSection,
+            shape,
+            transformation);
+
+        return true;
     }
 
     Font::Font(AllocatorInstance _allocator)
@@ -190,9 +300,9 @@ namespace KryneEngine::Modules::TextRendering
 
                     m_tags.push_back(OutlineTag::Cubic);
 
-                    uint2_simd v1 = { pPoints->x, pPoints->y };
+                    int2_simd v1 = { pPoints->x, pPoints->y };
                     pPoints++;
-                    uint2_simd v2 = { pPoints->x, pPoints->y };
+                    int2_simd v2 = { pPoints->x, pPoints->y };
                     pPoints++;
 
                     m_points.emplace_back(v1);

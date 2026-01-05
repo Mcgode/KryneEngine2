@@ -29,6 +29,8 @@ namespace KryneEngine::Modules::TextRendering
 
         float GetHorizontalAdvance(u32 _unicodeCodepoint, float _fontSize);
 
+        bool GenerateMsdf(u32 _unicodeCodepoint, u16 _glyphSize, u16 _pxRange, eastl::span<float> _output);
+
     private:
         explicit Font(AllocatorInstance _allocator);
 
@@ -63,7 +65,7 @@ namespace KryneEngine::Modules::TextRendering
         FT_FaceRec_* m_face = nullptr;
         std::byte* m_fileBuffer = nullptr;
         AllocatorInstance m_fileBufferAllocator {};
-        eastl::vector<uint2> m_points;
+        eastl::vector<int2> m_points;
         eastl::vector<OutlineTag> m_tags;
         eastl::vector_map<u32, GlyphEntry> m_glyphs;
         SpinLock m_loadLock {};
