@@ -71,6 +71,8 @@ namespace KryneEngine
             , m_planes(_desc.m_planes)
             , m_planeSlice(_planeSlice)
         {}
+
+        SubResourceIndexing(): SubResourceIndexing({}, 0) {}
     };
 
     struct SamplerDesc
