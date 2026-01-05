@@ -4,6 +4,8 @@
  * @date 24/11/2025.
  */
 
+#include "KryneEngine/Modules/TextRendering/Font.hpp"
+#include "KryneEngine/Modules/TextRendering/MsdfAtlasManager.hpp"
 #include "TextureGenerator.hpp"
 
 
@@ -84,8 +86,14 @@ s32 main(s32 argc, const char** argv)
         });
     }
 
+    KryneEngine::Modules::TextRendering::MsdfAtlasManager msdfAtlasManager(allocatorInstance, *graphicsContext, 1024, 32);
     KryneEngine::Modules::TextRendering::FontManager fontManager(allocatorInstance);
     KryneEngine::Modules::TextRendering::Font* font = fontManager.LoadFont("Resources/Modules/TextRendering/NotoSerif-Regular.ttf");
+
+    for (u32 i = 65; i < 120; i++)
+    {
+        msdfAtlasManager.GetGlyphRegion(font, i, (i % 20 == 0) ? 1 : 0);
+    }
 
     KryneEngine::Modules::GuiLib::Context clayContext { allocatorInstance };
     KryneEngine::Modules::GuiLib::BasicGuiRenderer guiRenderer {
@@ -229,6 +237,8 @@ s32 main(s32 argc, const char** argv)
         graphicsContext->BeginRenderPass(renderCommandList, currentPass);
         clayContext.EndLayout(*graphicsContext, transferCommandList, renderCommandList);
         graphicsContext->EndRenderPass(renderCommandList);
+
+        msdfAtlasManager.FlushLoads(*graphicsContext, transferCommandList);
 
         graphicsContext->EndGraphicsCommandList(transferCommandList);
         graphicsContext->EndGraphicsCommandList(renderCommandList);
