@@ -58,6 +58,11 @@ namespace KryneEngine::Modules::TextRendering
             slotFootprint = _graphicsContext.FetchTextureSubResourcesMemoryFootprints(desc).front();
             currentSize <<= 1;
         }
+
+        m_atlasView = _graphicsContext.CreateTextureView({
+            .m_texture = m_atlasTexture,
+            .m_format = TextureFormat::RGBA8_UNorm,
+        });
     }
 
     MsdfAtlasManager::~MsdfAtlasManager()

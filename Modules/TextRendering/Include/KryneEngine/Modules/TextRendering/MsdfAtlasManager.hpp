@@ -45,6 +45,8 @@ namespace KryneEngine::Modules::TextRendering
 
         void FlushLoads(GraphicsContext& _graphicsContext, CommandListHandle _transfer);
 
+        TextureViewHandle GetAtlasView() const { return m_atlasView; }
+
     private:
         struct StagingBuffer
         {
@@ -98,6 +100,7 @@ namespace KryneEngine::Modules::TextRendering
         SpinLock m_lock {};
         eastl::vector_map<GlyphKey, GlyphSlot> m_glyphSlotMap;
         moodycamel::ConcurrentQueue<GlyphLoadRequest> m_loadQueue;
+        TextureViewHandle m_atlasView {};
 
         uint2 FindFreeSlot(u8 _slotSize) const;
     };
