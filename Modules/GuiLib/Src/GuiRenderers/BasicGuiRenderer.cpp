@@ -484,7 +484,25 @@ namespace KryneEngine::Modules::GuiLib
             }
         }
 
-        const size_t sizeEstimation = sizeof(PackedInstanceData) * renderCommandArray.length;
+        size_t sizeEstimation = 0;
+        for (u32 i = 0; i < renderCommandArray.length; i++)
+        {
+            const Clay_RenderCommand& renderCommand = renderCommandArray.internalArray[i];
+
+            switch (renderCommand.commandType)
+            {
+                case CLAY_RENDER_COMMAND_TYPE_RECTANGLE:
+                case CLAY_RENDER_COMMAND_TYPE_BORDER:
+                case CLAY_RENDER_COMMAND_TYPE_IMAGE:
+                    sizeEstimation += sizeof(PackedInstanceData);
+                    break;
+                case CLAY_RENDER_COMMAND_TYPE_TEXT:
+                    sizeEstimation += sizeof(PackedInstanceData) * renderCommand.renderData.text.stringContents.length;
+                    break;
+                default:
+                    break;
+            }
+        }
         const u64 sizeRequirement = Alignment::NextPowerOfTwo(sizeEstimation);
         if (m_instanceDataBuffer.GetSize(frameIndex) < sizeRequirement)
         {
