@@ -27,7 +27,7 @@ namespace KryneEngine::Modules::TextRendering
         ~FontManager();
 
         Font* LoadFont(eastl::string_view _path);
-        Font* GetFont(u16 _fontId);
+        Font* GetFont(u16 _fontId) const;
 
     private:
         AllocatorInstance m_allocator;

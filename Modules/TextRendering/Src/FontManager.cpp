@@ -157,7 +157,7 @@ namespace KryneEngine::Modules::TextRendering
         return newFont;
     }
 
-    Font* FontManager::GetFont(const u16 _fontId)
+    Font* FontManager::GetFont(const u16 _fontId) const
     {
         return m_fonts[_fontId];
     }
