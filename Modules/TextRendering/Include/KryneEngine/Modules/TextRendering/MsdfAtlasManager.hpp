@@ -45,6 +45,8 @@ namespace KryneEngine::Modules::TextRendering
 
         void FlushLoads(GraphicsContext& _graphicsContext, CommandListHandle _transfer);
 
+        FontManager* GetFontManager() const { return m_fontManager; }
+
         TextureViewHandle GetAtlasView() const { return m_atlasView; }
 
     private:
