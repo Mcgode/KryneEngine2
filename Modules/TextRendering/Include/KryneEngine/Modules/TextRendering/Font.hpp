@@ -23,11 +23,21 @@ namespace KryneEngine::Modules::TextRendering
     public:
         ~Font();
 
+        struct GlyphLayoutMetrics
+        {
+            float m_advanceX;
+            float m_bearingX;
+            float m_width;
+            float m_bearingY;
+            float m_height;
+        };
+
         float GetAscender(float _fontSize) const;
         float GetDescender(float _fontSize) const;
         float GetLineHeight(float _fontSize) const;
 
         float GetHorizontalAdvance(u32 _unicodeCodepoint, float _fontSize);
+        GlyphLayoutMetrics GetGlyphLayoutMetrics(u32 _unicodeCodepoint, float _fontSize);
 
         bool GenerateMsdf(u32 _unicodeCodepoint, u16 _glyphSize, u16 _pxRange, eastl::span<float> _output);
 

@@ -52,6 +52,31 @@ namespace KryneEngine::Modules::TextRendering
         return 0;
     }
 
+    Font::GlyphLayoutMetrics Font::GetGlyphLayoutMetrics(u32 _unicodeCodepoint, float _fontSize)
+    {
+        auto it = m_glyphs.find(_unicodeCodepoint);
+        if (it != m_glyphs.end() || m_glyphs.begin()->first == 0)
+        {
+            if (it == m_glyphs.end())
+                it = m_glyphs.begin();
+            GlyphEntry& entry = it->second;
+
+            // Atomic relaxed load to check if loaded. If not, cache it.
+            if (std::atomic_ref(entry.m_loaded).load(std::memory_order_relaxed) == false) [[unlikely]]
+                LoadGlyphSafe(eastl::distance(m_glyphs.begin(), it));
+
+            const float emScale = 1.f / static_cast<float>(m_face->units_per_EM);
+            return {
+                _fontSize * emScale * static_cast<float>(entry.m_baseAdvanceX),
+                _fontSize * emScale * static_cast<float>(entry.m_baseBearingX),
+                _fontSize * emScale * static_cast<float>(entry.m_baseWidth),
+                _fontSize * emScale * static_cast<float>(entry.m_baseBearingY),
+                _fontSize * emScale * static_cast<float>(entry.m_baseHeight)
+            };
+        }
+        return { 0, 0, 0, 0, 0 };
+    }
+
     bool Font::GenerateMsdf(
         const u32 _unicodeCodepoint,
         const u16 _glyphSize,
