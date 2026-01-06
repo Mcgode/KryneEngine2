@@ -151,7 +151,7 @@ namespace KryneEngine::Modules::TextRendering
             msdfgen::Projection(scale, translate),
             msdfgen::Range(_pxRange / scale.x)
         };
-        const msdfgen::BitmapSection<float, 3> bitmapSection { _output.data(), _glyphSize, _glyphSize };
+        const msdfgen::BitmapSection<float, 3> bitmapSection { _output.data(), _glyphSize, _glyphSize, msdfgen::Y_DOWNWARD };
         msdfgen::generateMSDF(
             bitmapSection,
             shape,
