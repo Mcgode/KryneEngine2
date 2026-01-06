@@ -310,6 +310,22 @@ namespace KryneEngine::Modules::GuiLib
             return { buffer, static_cast<size_t>(size) };
         };
 
+        GraphicsPipelineDesc pipelineDesc {
+            .m_vertexInput = {
+                .m_elements = commonVertexElements,
+                .m_bindings = commonVertexBindings
+            },
+            .m_colorBlending = {
+                .m_attachments = { kDefaultColorAttachmentAlphaBlendDesc }
+            },
+            .m_depthStencil = {
+                .m_depthTest = false,
+                .m_depthWrite = false,
+            },
+            .m_renderPass =  _renderPass,
+            .m_pipelineLayout = m_commonPipelineLayout,
+        };
+
         // Rectangle PSO
         {
             const eastl::span<char> vertexShaderSource = readShaderFile(
@@ -333,22 +349,7 @@ namespace KryneEngine::Modules::GuiLib
                 },
             };
 
-            const GraphicsPipelineDesc pipelineDesc {
-                .m_stages = stages,
-                .m_vertexInput = {
-                    .m_elements = commonVertexElements,
-                    .m_bindings = commonVertexBindings
-                },
-                .m_colorBlending = {
-                    .m_attachments = { kDefaultColorAttachmentAlphaBlendDesc }
-                },
-                .m_depthStencil = {
-                    .m_depthTest = false,
-                    .m_depthWrite = false,
-                },
-                .m_renderPass =  _renderPass,
-                .m_pipelineLayout = m_commonPipelineLayout,
-            };
+            pipelineDesc.m_stages = stages;
             m_rectanglePipeline = _graphicsContext.CreateGraphicsPipeline(pipelineDesc);
 
             _graphicsContext.FreeShaderModule(fragmentShaderModule);
@@ -380,22 +381,7 @@ namespace KryneEngine::Modules::GuiLib
                 },
             };
 
-            const GraphicsPipelineDesc pipelineDesc {
-                .m_stages = stages,
-                .m_vertexInput = {
-                    .m_elements = commonVertexElements,
-                    .m_bindings = commonVertexBindings
-                },
-                .m_colorBlending = {
-                    .m_attachments = { kDefaultColorAttachmentAlphaBlendDesc }
-                },
-                .m_depthStencil = {
-                    .m_depthTest = false,
-                    .m_depthWrite = false,
-                },
-                .m_renderPass =  _renderPass,
-                .m_pipelineLayout = m_commonPipelineLayout,
-            };
+            pipelineDesc.m_stages = stages;
             m_borderPipeline = _graphicsContext.CreateGraphicsPipeline(pipelineDesc);
 
             _graphicsContext.FreeShaderModule(fragmentShaderModule);
@@ -427,22 +413,7 @@ namespace KryneEngine::Modules::GuiLib
                 },
             };
 
-            const GraphicsPipelineDesc pipelineDesc {
-                .m_stages = stages,
-                .m_vertexInput = {
-                    .m_elements = commonVertexElements,
-                    .m_bindings = commonVertexBindings
-                },
-                .m_colorBlending = {
-                    .m_attachments = { kDefaultColorAttachmentAlphaBlendDesc }
-                },
-                .m_depthStencil = {
-                    .m_depthTest = false,
-                    .m_depthWrite = false,
-                },
-                .m_renderPass =  _renderPass,
-                .m_pipelineLayout = m_commonPipelineLayout,
-            };
+            pipelineDesc.m_stages = stages;
             m_imagePipeline = _graphicsContext.CreateGraphicsPipeline(pipelineDesc);
 
             _graphicsContext.FreeShaderModule(fragmentShaderModule);
