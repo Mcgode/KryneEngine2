@@ -145,7 +145,7 @@ namespace KryneEngine::Modules::TextRendering
             }
         }
 
-        msdfgen::edgeColoringSimple(shape, 3);
+        msdfgen::edgeColoringByDistance(shape, 3);
 
         const msdfgen::SDFTransformation transformation {
             msdfgen::Projection(scale, translate),
