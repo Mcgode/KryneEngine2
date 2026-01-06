@@ -148,7 +148,7 @@ s32 main(s32 argc, const char** argv)
                         })}
                     })
                     {}
-                    CLAY_TEXT(CLAY_STRING("Clay - UI Library"), CLAY_TEXT_CONFIG({  .userData = font, .textColor = {255, 255, 255, 255}, .fontSize = 24 }));
+                    CLAY_TEXT(CLAY_STRING("Clay - UI Library"), CLAY_TEXT_CONFIG({  .textColor = {255, 255, 255, 255}, .fontId = font->GeId(), .fontSize = 24 }));
                 }
 
                 // Standard C code like loops etc work inside components
@@ -185,8 +185,8 @@ s32 main(s32 argc, const char** argv)
             {
                 CLAY({ .layout = { .sizing = { .height = CLAY_SIZING_GROW() } } }) {}
                 CLAY_TEXT(CLAY_STRING("Mangé, à, è"), CLAY_TEXT_CONFIG({
-                    .userData = font,
                     .textColor = { 255, 80, 80, 255 },
+                    .fontId = font->GeId(),
                     .fontSize = 16,
                     .letterSpacing = 2,
                 }));
