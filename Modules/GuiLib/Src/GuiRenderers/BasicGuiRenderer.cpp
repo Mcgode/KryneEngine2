@@ -23,6 +23,8 @@
 #include <fstream>
 
 #include "KryneEngine/Modules/GuiLib/TextureRegion.hpp"
+#include "KryneEngine/Modules/TextRendering/Font.hpp"
+#include "KryneEngine/Modules/TextRendering/FontManager.hpp"
 
 namespace KryneEngine
 {
@@ -219,6 +221,8 @@ namespace KryneEngine::Modules::GuiLib
         {
             m_defaultSampler = _graphicsContext.CreateSampler({});
         }
+
+        m_textSampler = _graphicsContext.CreateSampler({});
 
         DescriptorSetLayoutHandle commonDescriptorSetLayout;
         {
@@ -423,6 +427,38 @@ namespace KryneEngine::Modules::GuiLib
             _allocator.deallocate(vertexShaderSource.data(), vertexShaderSource.size());
         }
 
+        // Text PSO
+        {
+            const eastl::span<char> vertexShaderSource = readShaderFile(
+                eastl::string("Shaders/BasicGuiRenderer/Text_TextVs.", _allocator) + GraphicsContext::GetShaderFileExtension());
+            const eastl::span<char> fragmentShaderSource = readShaderFile(
+                eastl::string("Shaders/BasicGuiRenderer/Text_TextFs.", _allocator) + GraphicsContext::GetShaderFileExtension());
+
+            const ShaderModuleHandle vertexShaderModule = _graphicsContext.RegisterShaderModule(vertexShaderSource.data(), vertexShaderSource.size());
+            const ShaderModuleHandle fragmentShaderModule = _graphicsContext.RegisterShaderModule(fragmentShaderSource.data(), fragmentShaderSource.size());
+
+            const ShaderStage stages[] = {
+                {
+                    .m_shaderModule = vertexShaderModule,
+                    .m_stage = ShaderStage::Stage::Vertex,
+                    .m_entryPoint = "TextVs",
+                },
+                {
+                    .m_shaderModule = fragmentShaderModule,
+                    .m_stage = ShaderStage::Stage::Fragment,
+                    .m_entryPoint = "TextFs",
+                },
+            };
+
+            pipelineDesc.m_stages = stages;
+            m_textPipeline = _graphicsContext.CreateGraphicsPipeline(pipelineDesc);
+
+            _graphicsContext.FreeShaderModule(fragmentShaderModule);
+            _graphicsContext.FreeShaderModule(vertexShaderModule);
+            _allocator.deallocate(fragmentShaderSource.data(), fragmentShaderSource.size());
+            _allocator.deallocate(vertexShaderSource.data(), vertexShaderSource.size());
+        }
+
         _graphicsContext.DestroyDescriptorSetLayout(commonDescriptorSetLayout);
     }
 
@@ -463,6 +499,26 @@ namespace KryneEngine::Modules::GuiLib
             _graphicsContext.DeclarePassBufferViewUsage(_renderCommandList, { &m_commonConstantBufferViews[frameIndex], 1 }, BufferViewAccessType::Read);
         }
 
+        if (m_textDescriptorSet == GenPool::kInvalidHandle && m_atlasManager != nullptr)
+        {
+            m_textDescriptorSet = _graphicsContext.CreateDescriptorSet(m_texturesDescriptorSetLayout);
+
+            const DescriptorSetWriteInfo::DescriptorData atlasViewData = { .m_handle = m_atlasManager->GetAtlasView().m_handle };
+            const DescriptorSetWriteInfo::DescriptorData textSamplerData = { .m_handle = m_textSampler.m_handle };
+
+            const DescriptorSetWriteInfo writes[] = {
+                {
+                    .m_index = m_texturesDescriptorSetIndices[0],
+                    .m_descriptorData = { &atlasViewData, 1 },
+                },
+                {
+                    .m_index = m_texturesDescriptorSetIndices[1],
+                    .m_descriptorData = { &textSamplerData, 1 },
+                }
+            };
+            _graphicsContext.UpdateDescriptorSet(m_textDescriptorSet, writes, false);
+        }
+
         TextureDataMap textureDataMap;
         SamplerDataMap samplerDataMap;
         {
@@ -482,6 +538,12 @@ namespace KryneEngine::Modules::GuiLib
                 TextureViewHandle handle { GenPool::Handle(textureViewRawHandle) };
                 _graphicsContext.DeclarePassTextureViewUsage(_renderCommandList, { &handle, 1 }, TextureViewAccessType::Read);
             }
+        }
+
+        if (m_atlasManager != nullptr)
+        {
+            TextureViewHandle atlasView = m_atlasManager->GetAtlasView();
+            _graphicsContext.DeclarePassTextureViewUsage(_renderCommandList, { &atlasView, 1 }, TextureViewAccessType::Read);
         }
 
         size_t sizeEstimation = 0;
@@ -619,8 +681,123 @@ namespace KryneEngine::Modules::GuiLib
                     break;
                 }
                 case CLAY_RENDER_COMMAND_TYPE_TEXT:
-                    previous = CLAY_RENDER_COMMAND_TYPE_TEXT;
+                {
+                    if (m_atlasManager == nullptr)
+                        break;
+
+                    const eastl::string_view stringContents {
+                        renderCommand.renderData.text.stringContents.chars,
+                        static_cast<size_t>(renderCommand.renderData.text.stringContents.length)
+                    };
+
+                    TextRendering::Font* font = m_atlasManager->GetFontManager()->GetFont(renderCommand.renderData.text.fontId);
+                    const float fontSize = renderCommand.renderData.text.fontSize;
+
+                    float2_simd writePoint {
+                        renderCommand.boundingBox.x,
+                        renderCommand.boundingBox.y + font->GetAscender(fontSize)
+                    };
+                    for (Utf8Iterator utf8Iterator { stringContents }; utf8Iterator != stringContents.end(); ++utf8Iterator)
+                    {
+                        const TextRendering::MsdfAtlasManager::GlyphRegion glyphRegion =
+                            m_atlasManager->GetGlyphRegion(font, *utf8Iterator);
+                        KE_ASSERT(glyphRegion.m_size != 0xffff);
+
+                        const TextRendering::Font::GlyphLayoutMetrics glyphLayoutMetrics = font->GetGlyphLayoutMetrics(*utf8Iterator, fontSize);
+                        float2_simd glyphHalfSize = {
+                            glyphLayoutMetrics.m_width * 0.5f,
+                            glyphLayoutMetrics.m_height * 0.5f
+                        };
+                        const float2_simd glyphCenter = writePoint + glyphHalfSize + float2_simd(glyphLayoutMetrics.m_bearingX, -glyphLayoutMetrics.m_bearingY);
+
+                        const bool wider = glyphLayoutMetrics.m_width > glyphLayoutMetrics.m_height;
+                        const auto msdfPixelSize = static_cast<float>(glyphRegion.m_size - glyphRegion.m_pxRange);
+                        uint4 msdfRect;
+                        if (wider)
+                        {
+                            const float scale = glyphLayoutMetrics.m_width / msdfPixelSize;
+                            const float heightPixels = std::ceil(glyphLayoutMetrics.m_height / scale);
+                            glyphHalfSize = {
+                                scale * msdfPixelSize * 0.5f,
+                                (heightPixels + static_cast<float>(glyphRegion.m_pxRange)) * scale * 0.5f
+                            };
+                            const u32 heightLeftover = glyphRegion.m_size - static_cast<u32>(heightPixels);
+                            msdfRect = {
+                                glyphRegion.m_x,
+                                glyphRegion.m_y + heightLeftover / 2,
+                                glyphRegion.m_x + glyphRegion.m_size,
+                                glyphRegion.m_y + glyphRegion.m_size - heightLeftover / 2
+                            };
+                        }
+                        else
+                        {
+                            const float scale = glyphLayoutMetrics.m_height / msdfPixelSize;
+                            const float widthPixels = std::ceil(glyphLayoutMetrics.m_width / scale);
+                            glyphHalfSize = {
+                                (widthPixels + static_cast<float>(glyphRegion.m_pxRange)) * scale * 0.5f,
+                                scale * msdfPixelSize * 0.5f,
+                            };
+                            const u32 widthLeftover = glyphRegion.m_size - static_cast<u32>(widthPixels);
+                            msdfRect = {
+                                glyphRegion.m_x + widthLeftover / 2,
+                                glyphRegion.m_y,
+                                glyphRegion.m_x + glyphRegion.m_size - widthLeftover / 2,
+                                glyphRegion.m_y + glyphRegion.m_size
+                            };
+                        }
+
+                        const uint2 glyphPackedRect = {
+                            Math::Float16::PackFloat16x2(glyphCenter.x, glyphCenter.y),
+                            Math::Float16::PackFloat16x2(glyphHalfSize.x, glyphHalfSize.y),
+                        };
+
+                        auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);
+
+                        packedInstanceData->m_packedRect = glyphPackedRect;
+
+                        Color tintColor {
+                            renderCommand.renderData.text.textColor.r / 255.f,
+                            renderCommand.renderData.text.textColor.g / 255.f,
+                            renderCommand.renderData.text.textColor.b / 255.f,
+                            renderCommand.renderData.text.textColor.a / 255.f,
+                        };
+                        if (tintColor.m_value == float4(0))
+                        {
+                            tintColor = Color(float4(1));
+                        }
+                        packedInstanceData->m_packedColor = tintColor.ToSrgb().ToRgba8();
+
+                        packedInstanceData->m_packedData.x = msdfRect.x | (msdfRect.y << 16);
+                        packedInstanceData->m_packedData.y = msdfRect.z | (msdfRect.w << 16);
+                        packedInstanceData->m_packedData.z = glyphRegion.m_pxRange;
+
+                        if (previous != CLAY_RENDER_COMMAND_TYPE_TEXT)
+                        {
+                            _graphicsContext.SetGraphicsPipeline(_renderCommandList, m_textPipeline);
+                            previous = CLAY_RENDER_COMMAND_TYPE_TEXT;
+                        }
+
+                        // We use the textures descriptor sets size as the index for the text descriptor set
+                        if (texturesDescriptorSetIndex != m_texturesDescriptorSets.size())
+                        {
+                            _graphicsContext.SetGraphicsDescriptorSetsWithOffset(
+                                _renderCommandList,
+                                m_commonPipelineLayout,
+                                { &m_textDescriptorSet, 1 },
+                                1);
+                            texturesDescriptorSetIndex = m_texturesDescriptorSets.size();
+                        }
+
+                        _graphicsContext.DrawInstanced(_renderCommandList, DrawInstancedDesc {
+                            .m_vertexCount = 6,
+                            .m_instanceOffset = static_cast<u32>(offset / sizeof(PackedInstanceData)),
+                        });
+                        offset += sizeof(PackedInstanceData);
+
+                        writePoint.x += font->GetHorizontalAdvance(*utf8Iterator, fontSize);
+                    }
                     break;
+                }
                 case CLAY_RENDER_COMMAND_TYPE_IMAGE:
                 {
                     auto* packedInstanceData = reinterpret_cast<PackedInstanceData*>(buffer + offset);

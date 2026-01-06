@@ -17,7 +17,6 @@ namespace KryneEngine::Modules::TextRendering
 
 namespace KryneEngine::Modules::GuiLib
 {
-
     /**
      * @brief A basic renderer for the GUI that does 1 draw call per UI element
      */
@@ -62,13 +61,16 @@ namespace KryneEngine::Modules::GuiLib
         GraphicsPipelineHandle m_rectanglePipeline;
         GraphicsPipelineHandle m_borderPipeline;
         GraphicsPipelineHandle m_imagePipeline;
+        GraphicsPipelineHandle m_textPipeline;
 
         SamplerHandle m_defaultSampler;
+        SamplerHandle m_textSampler;
 
         eastl::array<u32, 1> m_commonDescriptorSetIndices {};
         eastl::array<u32, 2> m_texturesDescriptorSetIndices {};
 
         eastl::vector<DescriptorSetHandle> m_texturesDescriptorSets;
+        DescriptorSetHandle m_textDescriptorSet;
     };
 
 } // namespace KryneEngine
