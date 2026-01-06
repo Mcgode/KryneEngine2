@@ -14,6 +14,11 @@
 
 #include "KryneEngine/Modules/GuiLib/TextureRegion.hpp"
 
+namespace KryneEngine::Modules::TextRendering
+{
+    class FontManager;
+}
+
 namespace KryneEngine::Modules::GuiLib
 {
     class IGuiRenderer;
@@ -21,7 +26,7 @@ namespace KryneEngine::Modules::GuiLib
     class Context
     {
     public:
-        explicit Context(AllocatorInstance _allocator);
+        Context(AllocatorInstance _allocator, TextRendering::FontManager* _fontManager);
 
         KE_DEFINE_COPY_MOVE_SEMANTICS(Context, delete, delete);
 
@@ -41,6 +46,7 @@ namespace KryneEngine::Modules::GuiLib
 
     private:
         AllocatorInstance m_allocator;
+        TextRendering::FontManager* m_fontManager;
         char* m_arenaMemory = nullptr;
         Clay_Context* m_clayContext = nullptr;
         IGuiRenderer* m_renderer = nullptr;

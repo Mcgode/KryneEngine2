@@ -6,16 +6,18 @@
 
 #include "KryneEngine/Modules/GuiLib/Context.hpp"
 
-#include "KryneEngine/Core/Common/StringHelpers.hpp"
-
 #include "KryneEngine/Modules/GuiLib/IGuiRenderer.hpp"
+
+#include <KryneEngine/Core/Common/StringHelpers.hpp>
 #include <KryneEngine/Core/Memory/Containers/StableVector.inl>
 #include <KryneEngine/Modules/TextRendering/Font.hpp>
+#include <KryneEngine/Modules/TextRendering/FontManager.hpp>
 
 namespace KryneEngine::Modules::GuiLib
 {
-    Context::Context(AllocatorInstance _allocator)
+    Context::Context(const AllocatorInstance _allocator, TextRendering::FontManager* _fontManager)
         : m_allocator(_allocator)
+        , m_fontManager(_fontManager)
         , m_registeredRegions(_allocator)
     {}
 
@@ -90,7 +92,9 @@ namespace KryneEngine::Modules::GuiLib
         if (_config->userData == nullptr)
             return Clay_Dimensions { .width = 0.f, .height = 0.f };
 
-        auto* font = static_cast<TextRendering::Font*>(_config->userData);
+        const TextRendering::FontManager* fontManager = static_cast<Context*>(_userData)->m_fontManager;
+
+        TextRendering::Font* font = fontManager->GetFont(_config->fontId);
 
         Clay_Dimensions dimensions {};
         float currentLineWidth = 0.f;
