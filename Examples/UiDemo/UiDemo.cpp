@@ -86,8 +86,8 @@ s32 main(s32 argc, const char** argv)
         });
     }
 
-    KryneEngine::Modules::TextRendering::MsdfAtlasManager msdfAtlasManager(allocatorInstance, *graphicsContext, 1024, 32);
     KryneEngine::Modules::TextRendering::FontManager fontManager(allocatorInstance);
+    KryneEngine::Modules::TextRendering::MsdfAtlasManager msdfAtlasManager(allocatorInstance, *graphicsContext, &fontManager, 1024, 32);
     KryneEngine::Modules::TextRendering::Font* font = fontManager.LoadFont("Resources/Modules/TextRendering/NotoSerif-Regular.ttf");
 
     for (u32 i = 65; i < 120; i++)
@@ -95,7 +95,7 @@ s32 main(s32 argc, const char** argv)
         msdfAtlasManager.GetGlyphRegion(font, i, (i % 20 == 0) ? 1 : 0);
     }
 
-    KryneEngine::Modules::GuiLib::Context clayContext { allocatorInstance };
+    KryneEngine::Modules::GuiLib::Context clayContext { allocatorInstance, &fontManager };
     KryneEngine::Modules::GuiLib::BasicGuiRenderer guiRenderer {
         allocatorInstance,
         *graphicsContext,
