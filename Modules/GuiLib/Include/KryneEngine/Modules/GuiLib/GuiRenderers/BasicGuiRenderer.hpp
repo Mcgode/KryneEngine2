@@ -6,9 +6,14 @@
 
 #pragma once
 
-#include "../../../../../../GraphicsUtils/Include/KryneEngine/Modules/GraphicsUtils/DynamicBuffer.hpp"
+#include <KryneEngine/Modules/GraphicsUtils/DynamicBuffer.hpp>
 #include "KryneEngine/Core/Math/Matrix.hpp"
 #include "KryneEngine/Modules/GuiLib/IGuiRenderer.hpp"
+
+namespace KryneEngine::Modules::TextRendering
+{
+    class MsdfAtlasManager;
+}
 
 namespace KryneEngine::Modules::GuiLib
 {
@@ -25,6 +30,8 @@ namespace KryneEngine::Modules::GuiLib
             RenderPassHandle _renderPass,
             SamplerHandle _defaultSampler = { GenPool::kInvalidHandle });
 
+        void SetAtlasManager(TextRendering::MsdfAtlasManager* _atlasManager) { m_atlasManager = _atlasManager; }
+
         void BeginLayout(const float4x4& _viewportTransform, const uint2& _viewportSize) override;
         void EndLayoutAndRender(
             GraphicsContext& _graphicsContext,
@@ -35,6 +42,7 @@ namespace KryneEngine::Modules::GuiLib
         static constexpr u32 kMaxSamplerSlots = 8;
 
     private:
+        TextRendering::MsdfAtlasManager* m_atlasManager = nullptr;
 
         GraphicsUtils::DynamicBuffer m_instanceDataBuffer;
         GraphicsUtils::DynamicBuffer m_commonConstantBuffer;

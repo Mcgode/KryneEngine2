@@ -6,19 +6,20 @@
 
 #include "KryneEngine/Modules/GuiLib/GuiRenderers/BasicGuiRenderer.hpp"
 
-#include "KryneEngine/Core/Profiling/TracyHeader.hpp"
-
+#include <KryneEngine/Core/Common/StringHelpers.hpp>
 #include <KryneEngine/Core/Common/Types.hpp>
 #include <KryneEngine/Core/Graphics/Drawing.hpp>
 #include <KryneEngine/Core/Graphics/ShaderPipeline.hpp>
 #include <KryneEngine/Core/Math/Color.hpp>
 #include <KryneEngine/Core/Math/Float16.hpp>
 #include <KryneEngine/Core/Math/Matrix.hpp>
+#include <KryneEngine/Core/Profiling/TracyHeader.hpp>
+#include <KryneEngine/Modules/TextRendering/MsdfAtlasManager.hpp>
 
 #include <EASTL/hash_map.h>
 #include <EASTL/vector_set.h>
-#include <cmath>
 #include <clay.h>
+#include <cmath>
 #include <fstream>
 
 #include "KryneEngine/Modules/GuiLib/TextureRegion.hpp"
