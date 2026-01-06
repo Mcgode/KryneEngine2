@@ -10,5 +10,7 @@ float2 unpackHalf2x16ToFloat(in uint _packedHalf2)
 
 float4 unpackUnorm4x8ToFloat(uint _packedUnorm)
 {
-    return float4(unpack_u8u32(_packedUnorm)) / 255.0f;
+    const uint4 shifts = { 0, 8, 16, 24 };
+    const uint4 rgba = (_packedUnorm >> shifts) & 0xff;
+    return float4(rgba) / 255.0f;
 }
