@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include "KryneEngine/Core/Common/Types.hpp"
+
+
 #include <EASTL/string_view.h>
 #include <EASTL/vector.h>
 #include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
@@ -24,6 +27,7 @@ namespace KryneEngine::Modules::TextRendering
         ~FontManager();
 
         Font* LoadFont(eastl::string_view _path);
+        Font* GetFont(u16 _fontId);
 
     private:
         AllocatorInstance m_allocator;

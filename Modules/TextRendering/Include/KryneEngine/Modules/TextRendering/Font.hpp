@@ -31,6 +31,8 @@ namespace KryneEngine::Modules::TextRendering
 
         bool GenerateMsdf(u32 _unicodeCodepoint, u16 _glyphSize, u16 _pxRange, eastl::span<float> _output);
 
+        [[nodiscard]] u16 GeId() const { return m_fontId; }
+
     private:
         explicit Font(AllocatorInstance _allocator);
 
@@ -62,6 +64,7 @@ namespace KryneEngine::Modules::TextRendering
             u32 m_outlineTagCount;
         };
 
+        u16 m_fontId = 0;
         FT_FaceRec_* m_face = nullptr;
         std::byte* m_fileBuffer = nullptr;
         AllocatorInstance m_fileBufferAllocator {};

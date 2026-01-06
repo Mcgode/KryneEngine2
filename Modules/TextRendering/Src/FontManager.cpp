@@ -152,7 +152,13 @@ namespace KryneEngine::Modules::TextRendering
             newFont->m_glyphs.end(),
             [](const auto& a, const auto& b) { return a.first < b.first; });
 
+        newFont->m_fontId = m_fonts.size();
         m_fonts.push_back(newFont);
         return newFont;
+    }
+
+    Font* FontManager::GetFont(const u16 _fontId)
+    {
+        return m_fonts[_fontId];
     }
 } // namespace KryneEngine::Modules::TextRendering
