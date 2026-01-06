@@ -8,8 +8,6 @@
 
 #include "EASTL/vector_map.h"
 
-
-#include <EASTL/hash_map.h>
 #include <KryneEngine/Core/Graphics/GraphicsContext.hpp>
 #include <KryneEngine/Core/Graphics/Handles.hpp>
 #include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
@@ -20,6 +18,7 @@
 namespace KryneEngine::Modules::TextRendering
 {
     class Font;
+    class FontManager;
 
     class MsdfAtlasManager
     {
@@ -27,6 +26,7 @@ namespace KryneEngine::Modules::TextRendering
         MsdfAtlasManager(
             AllocatorInstance _allocator,
             GraphicsContext& _graphicsContext,
+            FontManager* _fontManager,
             u32 _atlasSize,
             u32 _glyphBaseSize);
 
@@ -40,7 +40,8 @@ namespace KryneEngine::Modules::TextRendering
             u16 m_pxRange = 0;
         };
 
-        GlyphRegion GetGlyphRegion(Font* _font, u32 _unicodeCodepoint, u8 _sizeLShift = 1);
+        GlyphRegion GetGlyphRegion(Font* _font, u32 _unicodeCodepoint, u8 _sizeLShift = 0);
+        GlyphRegion GetGlyphRegion(u16 _fontId, u32 _unicodeCodepoint, u8 _sizeLShift = 0);
 
         void FlushLoads(GraphicsContext& _graphicsContext, CommandListHandle _transfer);
 
@@ -85,6 +86,7 @@ namespace KryneEngine::Modules::TextRendering
         };
 
         AllocatorInstance m_allocator;
+        FontManager* m_fontManager;
         DynamicArray<StagingBuffer> m_stagingBuffers;
         TextureHandle m_atlasTexture {};
         SubResourceIndexing m_atlasTextureSubresourceIndex {};

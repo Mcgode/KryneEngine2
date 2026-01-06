@@ -12,15 +12,18 @@
 #include <KryneEngine/Core/Math/Hashing.hpp>
 
 #include "KryneEngine/Modules/TextRendering/Font.hpp"
+#include "KryneEngine/Modules/TextRendering/FontManager.hpp"
 
 namespace KryneEngine::Modules::TextRendering
 {
     MsdfAtlasManager::MsdfAtlasManager(
         AllocatorInstance _allocator,
         GraphicsContext& _graphicsContext,
+        FontManager* _fontManager,
         u32 _atlasSize,
         u32 _glyphBaseSize)
             : m_allocator(_allocator)
+            , m_fontManager(_fontManager)
             , m_stagingBuffers(_allocator, _graphicsContext.GetFrameContextCount(), {})
             , m_atlasSize(_atlasSize)
             , m_glyphBaseSize(_glyphBaseSize)
@@ -104,6 +107,11 @@ namespace KryneEngine::Modules::TextRendering
             .m_size = static_cast<u16>(m_glyphBaseSize << slot.m_sizeLShift),
             .m_pxRange = static_cast<u16>(4u << slot.m_sizeLShift),
         };
+    }
+
+    MsdfAtlasManager::GlyphRegion MsdfAtlasManager::GetGlyphRegion(u16 _fontId, u32 _unicodeCodepoint, u8 _sizeLShift)
+    {
+        return GetGlyphRegion(m_fontManager->GetFont(_fontId), _unicodeCodepoint, _sizeLShift);
     }
 
     void MsdfAtlasManager::FlushLoads(GraphicsContext& _graphicsContext, CommandListHandle _transfer)
