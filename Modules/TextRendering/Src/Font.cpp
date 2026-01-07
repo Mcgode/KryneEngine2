@@ -177,10 +177,15 @@ namespace KryneEngine::Modules::TextRendering
             msdfgen::Range(_pxRange / scale.x)
         };
         const msdfgen::BitmapSection<float, 3> bitmapSection { _output.data(), _glyphSize, _glyphSize, msdfgen::Y_DOWNWARD };
+        msdfgen::MSDFGeneratorConfig generatorConfig {
+            true,
+            msdfgen::ErrorCorrectionConfig { msdfgen::ErrorCorrectionConfig::EDGE_PRIORITY }
+        };
         msdfgen::generateMSDF(
             bitmapSection,
             shape,
-            transformation);
+            transformation,
+            generatorConfig);
 
         return true;
     }
