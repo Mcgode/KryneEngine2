@@ -704,11 +704,12 @@ namespace KryneEngine::Modules::GuiLib
                         KE_ASSERT(glyphRegion.m_size != 0xffff);
 
                         const TextRendering::Font::GlyphLayoutMetrics glyphLayoutMetrics = font->GetGlyphLayoutMetrics(*utf8Iterator, fontSize);
-                        float2_simd glyphHalfSize = {
+                        const float2_simd baseGlyphHalfSize = {
                             glyphLayoutMetrics.m_width * 0.5f,
                             glyphLayoutMetrics.m_height * 0.5f
                         };
-                        const float2_simd glyphCenter = writePoint + glyphHalfSize + float2_simd(glyphLayoutMetrics.m_bearingX, -glyphLayoutMetrics.m_bearingY);
+                        float2_simd glyphHalfSize = baseGlyphHalfSize;
+                        float2_simd glyphCenter = writePoint + glyphHalfSize + float2_simd(glyphLayoutMetrics.m_bearingX, -glyphLayoutMetrics.m_bearingY);
 
                         const bool wider = glyphLayoutMetrics.m_width > glyphLayoutMetrics.m_height;
                         const auto msdfPixelSize = static_cast<float>(glyphRegion.m_size - glyphRegion.m_pxRange);
@@ -718,10 +719,10 @@ namespace KryneEngine::Modules::GuiLib
                             const float scale = glyphLayoutMetrics.m_width / msdfPixelSize;
                             const float heightPixels = std::ceil(glyphLayoutMetrics.m_height / scale);
                             glyphHalfSize = {
-                                scale * msdfPixelSize * 0.5f,
+                                scale * static_cast<float>(glyphRegion.m_size) * 0.5f,
                                 (heightPixels + static_cast<float>(glyphRegion.m_pxRange)) * scale * 0.5f
                             };
-                            const u32 heightLeftover = glyphRegion.m_size - static_cast<u32>(heightPixels);
+                            const u32 heightLeftover = glyphRegion.m_size - static_cast<u32>(heightPixels) - glyphRegion.m_pxRange;
                             msdfRect = {
                                 glyphRegion.m_x,
                                 glyphRegion.m_y + heightLeftover / 2,
@@ -732,12 +733,12 @@ namespace KryneEngine::Modules::GuiLib
                         else
                         {
                             const float scale = glyphLayoutMetrics.m_height / msdfPixelSize;
-                            const float widthPixels = std::ceil(glyphLayoutMetrics.m_width / scale);
+                            const float widthPixels = std::ceil(glyphLayoutMetrics.m_width * 2.f / scale) / 2;
                             glyphHalfSize = {
                                 (widthPixels + static_cast<float>(glyphRegion.m_pxRange)) * scale * 0.5f,
-                                scale * msdfPixelSize * 0.5f,
+                                scale * static_cast<float>(glyphRegion.m_size) * 0.5f,
                             };
-                            const u32 widthLeftover = glyphRegion.m_size - static_cast<u32>(widthPixels);
+                            const u32 widthLeftover = glyphRegion.m_size - static_cast<u32>(widthPixels) - glyphRegion.m_pxRange;
                             msdfRect = {
                                 glyphRegion.m_x + widthLeftover / 2,
                                 glyphRegion.m_y,
@@ -745,6 +746,7 @@ namespace KryneEngine::Modules::GuiLib
                                 glyphRegion.m_y + glyphRegion.m_size
                             };
                         }
+                        glyphCenter = glyphCenter - (glyphHalfSize - baseGlyphHalfSize);
 
                         const uint2 glyphPackedRect = {
                             Math::Float16::PackFloat16x2(glyphCenter.x, glyphCenter.y),
