@@ -235,9 +235,9 @@ namespace KryneEngine::Modules::TextRendering
 
             u8 tag = FT_CURVE_TAG(outline.tags[start]);
 
-            uint2_simd vStart { outline.points[start].x, outline.points[start].y };
-            uint2_simd vLast { outline.points[last].x, outline.points[last].y };
-            uint2_simd vControl = vStart;
+            int2_simd vStart { outline.points[start].x, outline.points[start].y };
+            int2_simd vLast { outline.points[last].x, outline.points[last].y };
+            int2_simd vControl = vStart;
 
             FT_Vector* pPoints = outline.points + start;
             u8* pTags = outline.tags + start;
@@ -254,7 +254,7 @@ namespace KryneEngine::Modules::TextRendering
                 }
                 else
                 {
-                    vStart = (vStart + vLast) / uint2_simd(2);
+                    vStart = (vStart + vLast) / int2_simd(2);
                 }
                 pPoints--;
                 pTags--;
@@ -295,7 +295,7 @@ namespace KryneEngine::Modules::TextRendering
                     if (pPoints < end)
                     {
                         tag = FT_CURVE_TAG(pTags[1]);
-                        uint2_simd vec { pPoints[1].x, pPoints[1].y };
+                        int2_simd vec { pPoints[1].x, pPoints[1].y };
 
                         if (tag == FT_CURVE_TAG_ON)
                         {
@@ -308,7 +308,7 @@ namespace KryneEngine::Modules::TextRendering
                         // We are chaining conic arcs, so we take the median point of the two consecutive control points
                         else if (tag == FT_CURVE_TAG_CONIC)
                         {
-                            m_points.emplace_back((vControl + vec) / uint2_simd(2));
+                            m_points.emplace_back((vControl + vec) / int2_simd(2));
                             // The control point hasn't been consumed yet (we created a median point instead),
                             // so we don't need to advance
                         }
