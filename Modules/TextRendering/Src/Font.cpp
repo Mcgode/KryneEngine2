@@ -354,6 +354,12 @@ namespace KryneEngine::Modules::TextRendering
                 }
                 }
             }
+
+            if (vStart != vLast)
+            {
+                m_tags.push_back(OutlineTag::Line);
+                m_points.emplace_back(vStart);
+            }
         }
 
         glyphEntry.m_outlineTagCount = m_tags.size() - glyphEntry.m_outlineFirstTag;
