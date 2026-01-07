@@ -69,5 +69,5 @@ float4 TextFs(FsInput _input): SV_TARGET0
 
     const float4 tintColor = SrgbToLinear(unpackUnorm4x8ToFloat(_input.backgroundColor));
 
-    return lerp(float4(tintColor.rgb, 0.f), tintColor, saturate(d));
+    return lerp(float4(tintColor.rgb, 0.f), tintColor, saturate(d + 0.5));
 }
