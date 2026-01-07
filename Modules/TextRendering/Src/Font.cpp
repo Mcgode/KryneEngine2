@@ -170,6 +170,8 @@ namespace KryneEngine::Modules::TextRendering
             }
         }
 
+        KE_ASSERT(shape.validate());
+
         msdfgen::edgeColoringByDistance(shape, 3);
 
         const msdfgen::SDFTransformation transformation {
