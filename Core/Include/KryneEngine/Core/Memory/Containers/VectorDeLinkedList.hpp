@@ -93,7 +93,7 @@ namespace KryneEngine
             return m_vector[_index].m_previous;
         }
 
-        void SetNext(u32 _index, u32 _nextIndex) const
+        void SetNext(u32 _index, u32 _nextIndex)
         {
             m_vector[_index].m_next = _nextIndex;
             m_vector[_nextIndex].m_previous = _index;
