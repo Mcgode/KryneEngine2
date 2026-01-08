@@ -246,7 +246,7 @@ namespace KryneEngine::Modules::GraphicsUtils
 
             if (_allocateShelfIfNeeded && shelf->m_next == VectorDeLinkedList<ShelfEntry>::kListLimitId)
             {
-                const u32 newShelf = TryAllocateShelf(_width);
+                const u32 newShelf = TryAllocateShelf(shelf->m_size);
                 if (newShelf == VectorDeLinkedList<ShelfEntry>::kListLimitId)
                     continue;
 
