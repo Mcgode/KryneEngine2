@@ -372,6 +372,67 @@ namespace KryneEngine::Modules::GraphicsUtils::Tests
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 
+    TEST(AtlasShelfAllocatorTests, AllocateShelfOverflow)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+        AllocatorInstance cpuAllocator;
+        AtlasShelfAllocator atlasShelfAllocator(cpuAllocator, commonConfig);
+        AtlasShelfAllocatorExplorator explorer(&atlasShelfAllocator);
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        const uint2 size { 32, 128 };
+        const u32 rowCount = explorer.GetShelfWidth() / size.x;
+        eastl::vector<u32> allocations;
+
+        for (u32 i = 0; i < 2 * rowCount; i++)
+        {
+            allocations.push_back(atlasShelfAllocator.Allocate(size));
+        }
+
+        for (u32 i = 0; i < allocations.size(); i++)
+        {
+            const auto& slotEntry = explorer.GetSlot(allocations[i]);
+            EXPECT_EQ(slotEntry.m_shelf, i / rowCount);
+            EXPECT_EQ(slotEntry.m_start, (i * size.x) % explorer.GetShelfWidth());
+            EXPECT_EQ(slotEntry.m_width, size.x);
+        }
+
+        for (u32 i = 0; i < 2; i++)
+        {
+            const auto& shelfEntry = explorer.GetShelf(i);
+            EXPECT_EQ(shelfEntry.m_start, i * size.y);
+            EXPECT_EQ(shelfEntry.m_size, size.y);
+            EXPECT_EQ(shelfEntry.m_firstFree, ~0u);
+            EXPECT_EQ(shelfEntry.m_next, i == 0 ? 1 : ~0u);
+            EXPECT_EQ(shelfEntry.m_previous, i == 0 ? ~0u : 0);
+        }
+
+        const auto freeShelves = explorer.GetFreeShelves();
+        EXPECT_EQ(freeShelves.size(), 2); // 2 shelves, 1 per column
+
+        u32 offset = size.y * 2;
+        EXPECT_EQ(freeShelves[0].m_start, offset);
+        EXPECT_EQ(freeShelves[0].m_size, commonConfig.m_atlasSize.y - size.y * 2);
+        offset += commonConfig.m_atlasSize.y - size.y * 2;
+        EXPECT_EQ(freeShelves[1].m_start, offset);
+        EXPECT_EQ(freeShelves[1].m_size, commonConfig.m_atlasSize.y);
+
+        explorer.DumpGraph("AtlasShelfAllocator_AllocateShelfOverflow.svg");
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        EXPECT_TRUE(catcher.GetCaughtMessages().empty());
+    }
+
     TEST(AtlasShelfAllocatorTests, ComplexAllocate)
     {
         // -----------------------------------------------------------------------
