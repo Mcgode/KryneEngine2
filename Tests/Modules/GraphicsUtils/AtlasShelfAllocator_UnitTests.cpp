@@ -24,7 +24,7 @@ namespace KryneEngine::Modules::GraphicsUtils
         [[nodiscard]] u32 GetShelfColumnCount() const { return m_allocator->m_shelfColumns; }
         [[nodiscard]] eastl::span<AtlasShelfAllocator::FreeShelfEntry> GetFreeShelves() const { return m_allocator->m_freeShelves; }
 
-        void DumpGraph(eastl::string_view _filename, eastl::string_view _title)
+        void DumpGraph(eastl::string_view _filename, eastl::string_view _title = {}) const
         {
             Tests::SvgDump dumpFile(_filename, _title, m_allocator->m_atlasSize);
 
