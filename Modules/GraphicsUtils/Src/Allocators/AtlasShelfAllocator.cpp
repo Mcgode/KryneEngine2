@@ -76,7 +76,7 @@ namespace KryneEngine::Modules::GraphicsUtils
             }
 
             // Cannot allocate a new shelf, pack it in a bigger shelf if possible
-            for (; it != m_shelfCategories.begin(); ++it)
+            for (; it != m_shelfCategories.end(); ++it)
             {
                 const u32 slot = FindSlot(slotWidth, it->second, false);
                 if (slot != kInvalidSlot)
