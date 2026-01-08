@@ -184,7 +184,8 @@ namespace KryneEngine::Modules::GraphicsUtils
         bool mergedBack = false;
 
         // Merge with the next entry if possible
-        if (it->m_start == _freedShelf.m_start + _freedShelf.m_size && it->m_start % m_shelfWidth == _freedShelf.m_start % m_shelfWidth)
+        const bool sameColumnBack = it->m_start / m_shelfWidth == _freedShelf.m_start / m_shelfWidth;
+        if (it->m_start == _freedShelf.m_start + _freedShelf.m_size && sameColumnBack)
         {
             it->m_size += _freedShelf.m_size;
             it->m_start -= _freedShelf.m_size;
@@ -196,7 +197,8 @@ namespace KryneEngine::Modules::GraphicsUtils
         {
             FreeShelfEntry *pIt = it - 1;
             // Merge with the previous entry if possible
-            if (pIt->m_start + pIt->m_size == _freedShelf.m_start && pIt->m_start % m_shelfWidth == _freedShelf.m_start % m_shelfWidth)
+            const bool sameColumnFront = pIt->m_start / m_shelfWidth == _freedShelf.m_start / m_shelfWidth;
+            if (pIt->m_start + pIt->m_size == _freedShelf.m_start && sameColumnFront)
             {
                 // If already merged with next, we're filling a gap.
                 if (mergedBack)
