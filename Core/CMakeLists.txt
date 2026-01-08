@@ -95,6 +95,7 @@ set(MemorySrc
         Include/KryneEngine/Core/Memory/IndexAllocator.hpp
         Include/KryneEngine/Core/Memory/Containers/StableVector.hpp
         Include/KryneEngine/Core/Memory/Containers/StableVector.inl
+        Include/KryneEngine/Core/Memory/Containers/VectorLinkedList.hpp
 )
 
 set(PlatformSrc
