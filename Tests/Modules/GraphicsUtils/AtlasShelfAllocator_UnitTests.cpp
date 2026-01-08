@@ -5,6 +5,7 @@
  */
 
 #include <EASTL/span.h>
+#include <EASTL/vector_set.h>
 #include <gtest/gtest.h>
 #include <KryneEngine/Core/Math/Color.hpp>
 #include <KryneEngine/Modules/GraphicsUtils/Allocators/AtlasShelfAllocator.hpp>
@@ -27,6 +28,9 @@ namespace KryneEngine::Modules::GraphicsUtils
         {
             Tests::SvgDump dumpFile(_filename, _title, m_allocator->m_atlasSize);
 
+            constexpr Color kFreeFillColor = Color(0.5f, 0.5f, 0.5f, 1.f);
+            constexpr Color kFreeStrokeColor = Color(0.8f, 0.8f, 0.8f, 1.f);
+
             for (const auto& freeShelf: m_allocator->m_freeShelves)
             {
                 dumpFile.AddRect(
@@ -35,8 +39,8 @@ namespace KryneEngine::Modules::GraphicsUtils
                     GetShelfWidth(),
                     freeShelf.m_size,
                     1.f,
-                    Color(0.5f, 0.5f, 0.5f, 1.f),
-                    Color(0.8f, 0.8f, 0.8f, 1.f));
+                    kFreeFillColor,
+                    kFreeStrokeColor);
             }
 
             for (const auto [category, firstShelfIndex]: m_allocator->m_shelfCategories)
@@ -47,15 +51,96 @@ namespace KryneEngine::Modules::GraphicsUtils
                     shelfIndex != ~0u;
                     shelfIndex = shelfEntry->m_next, shelfEntry = &m_allocator->m_shelves[shelfIndex])
                 {
-                    dumpFile.AddRect(
+                    float4 shelfRect {
                         shelfEntry->m_start / m_allocator->m_atlasSize.y * GetShelfWidth(),
                         shelfEntry->m_start % m_allocator->m_atlasSize.y,
                         GetShelfWidth(),
                         shelfEntry->m_size,
+                    };
+                    dumpFile.AddRect(
+                        shelfRect.x,
+                        shelfRect.y,
+                        shelfRect.z,
+                        shelfRect.w,
                         1.f,
                         Color(0),
                         Color(0.8f, 0.3f, 0.3f, 1.f));
+
+                    shelfRect.z += shelfRect.x;
+                    shelfRect.w += shelfRect.y;
+
+                    u32 freeSlotIndex = shelfEntry->m_firstFree;
+                    for (AtlasShelfAllocator::FreeSlotEntry* freeSlotEntry = &m_allocator->m_freeSlots[freeSlotIndex];
+                        freeSlotIndex != ~0u;
+                        freeSlotIndex = freeSlotEntry->m_next, freeSlotEntry = &m_allocator->m_freeSlots[freeSlotIndex])
+                    {
+                        float4 slotRect {
+                            freeSlotEntry->m_start + shelfRect.x,
+                            shelfRect.y + 1,
+                            freeSlotEntry->m_start + freeSlotEntry->m_width + shelfRect.x,
+                            shelfRect.y + shelfRect.w - 1,
+                        };
+                        slotRect.x = eastl::max(slotRect.x, shelfRect.x + 1);
+                        slotRect.z = eastl::min(slotRect.z, shelfRect.z - 1);
+
+                        slotRect.z -= slotRect.x;
+                        slotRect.w -= slotRect.y;
+
+                        dumpFile.AddRect(
+                            slotRect.x,
+                            slotRect.y,
+                            slotRect.z,
+                            slotRect.w,
+                            1.f,
+                            kFreeFillColor,
+                            kFreeStrokeColor);
+                    }
                 }
+            }
+
+            eastl::vector_set<u32> unusedSlotIndices;
+            for (u32 slotIndex = m_allocator->m_nextSlotIndex; slotIndex != ~0u; slotIndex = m_allocator->m_slots[slotIndex].m_shelf)
+            {
+                unusedSlotIndices.insert(slotIndex);
+            }
+
+            for (u32 slotIndex = 0; slotIndex < m_allocator->m_slots.size(); slotIndex++)
+            {
+                if (unusedSlotIndices.find(slotIndex) != unusedSlotIndices.end())
+                    continue;
+
+                const AtlasShelfAllocator::SlotEntry& slot = m_allocator->m_slots[slotIndex];
+                const AtlasShelfAllocator::ShelfEntry& shelf = m_allocator->m_shelves[slot.m_shelf];
+
+                float4 shelfRect {
+                    shelf.m_start / m_allocator->m_atlasSize.y * GetShelfWidth(),
+                    shelf.m_start % m_allocator->m_atlasSize.y,
+                    GetShelfWidth(),
+                    shelf.m_size,
+                };
+                shelfRect.z += shelfRect.x;
+                shelfRect.w += shelfRect.y;
+
+                float4 slotRect {
+                    slot.m_start + shelfRect.x,
+                    shelfRect.y + 1,
+                    slot.m_start + slot.m_width + shelfRect.x,
+                    shelfRect.y + shelfRect.w - 1,
+                };
+                slotRect.x = eastl::max(slotRect.x, shelfRect.x + 1);
+                slotRect.z = eastl::min(slotRect.z, shelfRect.z - 1);
+
+                slotRect.z -= slotRect.x;
+                slotRect.w -= slotRect.y;
+
+                dumpFile.AddRect(
+                    slotRect.x,
+                    slotRect.y,
+                    slotRect.z,
+                    slotRect.w,
+                    1.f,
+                    Color(0.4f, 0.4f, 1.f, 1.f),
+                    Color(0.2f, 0.2f, 0.5f, 1.f));
             }
         }
 
