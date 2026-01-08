@@ -163,6 +163,18 @@ namespace KryneEngine::Modules::GraphicsUtils
             if (m_freeSlots[shelf.m_firstFree].m_width >= m_shelfWidth)
             {
                 FreeShelf({ .m_start = shelf.m_start, .m_size = shelf.m_size });
+                const u32 next = shelf.m_next;
+                m_shelves.FreeNode(slot.m_shelf);
+
+                auto it = m_shelfCategories.find(shelf.m_size);
+                VERIFY_OR_RETURN_VOID(it != m_shelfCategories.end());
+                if (it->second == slot.m_shelf)
+                {
+                    if (next == VectorDeLinkedList<ShelfEntry>::kListLimitId)
+                        m_shelfCategories.erase(it);
+                    else
+                        it->second = next;
+                }
             }
         }
     }
