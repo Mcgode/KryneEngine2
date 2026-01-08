@@ -356,10 +356,10 @@ namespace KryneEngine::Modules::GraphicsUtils::Tests
         const auto freeShelves = explorer.GetFreeShelves();
         EXPECT_EQ(freeShelves.size(), 2); // 2 shelves, 1 per column
 
-        u32 offset = size.y * count;
+        u32 offset = size.y;
         EXPECT_EQ(freeShelves[0].m_start, offset);
-        EXPECT_EQ(freeShelves[0].m_size, commonConfig.m_atlasSize.y - size.y * count);
-        offset += commonConfig.m_atlasSize.y - size.y * count;
+        EXPECT_EQ(freeShelves[0].m_size, commonConfig.m_atlasSize.y - size.y);
+        offset += commonConfig.m_atlasSize.y - size.y;
         EXPECT_EQ(freeShelves[1].m_start, offset);
         EXPECT_EQ(freeShelves[1].m_size, commonConfig.m_atlasSize.y);
 
