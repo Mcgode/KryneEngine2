@@ -238,8 +238,14 @@ namespace KryneEngine::Modules::GraphicsUtils
                     m_slots[slot] = { .m_shelf = shelfIndex, .m_start = freeSlot->m_start, .m_width = _width };
                     freeSlot->m_start += _width;
                     freeSlot->m_width -= _width;
+
                     if (freeSlot->m_width == 0)
+                    {
+                        const u32 next = freeSlot->m_next;
                         m_freeSlots.FreeNode(freeSlotIndex);
+                        if (freeSlotIndex == shelf->m_firstFree)
+                            shelf->m_firstFree = next;
+                    }
                     return slot;
                 }
             }
