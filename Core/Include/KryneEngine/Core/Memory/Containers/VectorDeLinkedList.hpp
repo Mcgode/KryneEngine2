@@ -104,6 +104,8 @@ namespace KryneEngine
             Node& node = m_vector[_index];
             if (node.m_previous != kListLimitId)
                 m_vector[node.m_previous].m_next = node.m_next;
+            if (node.m_next != kListLimitId)
+                m_vector[node.m_next].m_previous = node.m_previous;
             node.m_previous = kListLimitId;
             node.m_next = m_firstFree;
             m_firstFree = _index;
