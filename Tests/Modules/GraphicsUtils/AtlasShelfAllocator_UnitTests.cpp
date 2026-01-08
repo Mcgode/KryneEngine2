@@ -223,7 +223,7 @@ namespace KryneEngine::Modules::GraphicsUtils::Tests
         EXPECT_EQ(explorer.GetShelfColumnCount(), 8);
 
         const auto freeShelves = explorer.GetFreeShelves();
-        EXPECT_EQ(freeShelves.size(), 8); // 2 shelves, 1 per column
+        EXPECT_EQ(freeShelves.size(), 8); // 8 shelves, 1 per column
 
         u32 offset = 0;
         for (auto i = 0; i < 8; i++)
