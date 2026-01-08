@@ -149,6 +149,7 @@ namespace KryneEngine::Modules::GraphicsUtils
             if (!frontMerge && !backMerge)
             {
                 const u32 newFreeSlotIndex = m_freeSlots.AllocateNode();
+                freeSlot = &m_freeSlots[freeSlotIndex]; // Pointer may have been invalidated, reload it to be safe
                 m_freeSlots[newFreeSlotIndex].m_start = slot.m_start;
                 m_freeSlots[newFreeSlotIndex].m_width = slot.m_width;
                 m_freeSlots[newFreeSlotIndex].m_next = freeSlotIndex;
