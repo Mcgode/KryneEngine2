@@ -49,8 +49,8 @@ namespace KryneEngine::Modules::GraphicsUtils
         slotHeight = eastl::max(slotHeight, m_minHeight);
 
         const u32 fl = BitUtils::GetMostSignificantBit(slotHeight);
-        const u32 category = (slotHeight >> (fl - m_slWidth));
-        const u32 allocatedHeight = category << (fl - m_slWidth);
+        const u32 category = slotHeight & (BitUtils::BitMask<u32>(m_slWidth + 1) << (fl - m_slWidth));
+        const u32 allocatedHeight = category;
 
         auto it = m_shelfCategories.lower_bound(category);
         if (it != m_shelfCategories.end())
