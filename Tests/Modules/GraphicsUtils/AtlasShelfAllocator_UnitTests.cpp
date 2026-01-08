@@ -82,7 +82,7 @@ namespace KryneEngine::Modules::GraphicsUtils
                             freeSlotEntry->m_start + shelfRect.x,
                             shelfRect.y + 1,
                             freeSlotEntry->m_start + freeSlotEntry->m_width + shelfRect.x,
-                            shelfRect.y + shelfRect.w - 1,
+                            shelfRect.w - 1,
                         };
                         slotRect.x = eastl::max(slotRect.x, shelfRect.x + 1);
                         slotRect.z = eastl::min(slotRect.z, shelfRect.z - 1);
@@ -129,7 +129,7 @@ namespace KryneEngine::Modules::GraphicsUtils
                     slot.m_start + shelfRect.x,
                     shelfRect.y + 1,
                     slot.m_start + slot.m_width + shelfRect.x,
-                    shelfRect.y + shelfRect.w - 1,
+                    shelfRect.w - 1,
                 };
                 slotRect.x = eastl::max(slotRect.x, shelfRect.x + 1);
                 slotRect.z = eastl::min(slotRect.z, shelfRect.z - 1);
