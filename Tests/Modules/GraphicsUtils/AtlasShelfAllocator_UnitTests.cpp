@@ -32,8 +32,8 @@ namespace KryneEngine::Modules::GraphicsUtils
         {
             Tests::SvgDump dumpFile(_filename, _title, m_allocator->m_atlasSize);
 
-            constexpr Color kFreeFillColor = Color(0.5f, 0.5f, 0.5f, 1.f);
-            constexpr Color kFreeStrokeColor = Color(0.8f, 0.8f, 0.8f, 1.f);
+            constexpr auto kFreeFillColor = Color(0.3f, 0.3f, 0.3f, 1.f);
+            constexpr auto kFreeStrokeColor = Color(0.15f, 0.15f, 0.15f, 1.f);
 
             for (const auto& freeShelf: m_allocator->m_freeShelves)
             {
