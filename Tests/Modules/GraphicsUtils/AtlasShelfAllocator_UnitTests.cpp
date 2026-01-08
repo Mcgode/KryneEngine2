@@ -242,6 +242,43 @@ namespace KryneEngine::Modules::GraphicsUtils::Tests
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 
+    TEST(AtlasShelfAllocatorTests, SingleAllocate)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+        AllocatorInstance cpuAllocator;
+        AtlasShelfAllocator atlasShelfAllocator(cpuAllocator, commonConfig);
+        AtlasShelfAllocatorExplorator explorer(&atlasShelfAllocator);
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        const uint2 size { 32, 128 };
+        const u32 allocationSlot = atlasShelfAllocator.Allocate(size);
+
+        const auto freeShelves = explorer.GetFreeShelves();
+        EXPECT_EQ(freeShelves.size(), 2); // 2 shelves, 1 per column
+
+        u32 offset = size.y;
+        EXPECT_EQ(freeShelves[0].m_start, offset);
+        EXPECT_EQ(freeShelves[0].m_size, commonConfig.m_atlasSize.y - size.y);
+        offset += commonConfig.m_atlasSize.y - size.y;
+        EXPECT_EQ(freeShelves[1].m_start, offset);
+        EXPECT_EQ(freeShelves[1].m_size, commonConfig.m_atlasSize.y);
+
+        explorer.DumpGraph("AtlasShelfAllocator_SingleAllocate.svg", "AtlasShelfAllocator Single Allocate");
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        EXPECT_TRUE(catcher.GetCaughtMessages().empty());
+    }
+
     TEST(AtlasShelfAllocatorTests, ComplexAllocate)
     {
         // -----------------------------------------------------------------------
