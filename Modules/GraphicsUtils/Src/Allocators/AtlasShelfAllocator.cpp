@@ -253,7 +253,7 @@ namespace KryneEngine::Modules::GraphicsUtils
                 m_shelves.SetNext(shelfIndex, newShelf);
                 const u32 slot = AllocateSlot();
                 m_slots[slot] = {
-                    .m_shelf = shelfIndex,
+                    .m_shelf = newShelf,
                     .m_start = 0,
                     .m_width = _width,
                 };
