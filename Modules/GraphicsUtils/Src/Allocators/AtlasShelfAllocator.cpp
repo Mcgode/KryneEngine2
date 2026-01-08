@@ -52,7 +52,7 @@ namespace KryneEngine::Modules::GraphicsUtils
         const u32 category = (slotHeight >> (fl - m_slWidth));
         const u32 allocatedHeight = category << (fl - m_slWidth);
 
-        auto it = m_shelfCategories.upper_bound(category);
+        auto it = m_shelfCategories.lower_bound(category);
         if (it != m_shelfCategories.end())
         {
             if (it->first == category)
@@ -91,7 +91,7 @@ namespace KryneEngine::Modules::GraphicsUtils
             const u32 shelfIndex = TryAllocateShelf(allocatedHeight);
             if (shelfIndex != invalidIndex)
             {
-                m_shelfCategories.insert(it, { category, shelfIndex });
+                m_shelfCategories.emplace_back_unsorted(category, shelfIndex);
                 const u32 slot = FindSlot(slotWidth, shelfIndex, false);
                 KE_ASSERT_MSG(slot != invalidIndex, "Shelf is new, why the hell can't you find a free spot ?");
                 return slot;
