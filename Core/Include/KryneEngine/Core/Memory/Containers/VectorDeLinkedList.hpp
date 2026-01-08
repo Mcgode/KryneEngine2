@@ -83,12 +83,12 @@ namespace KryneEngine
             return operator[](AllocateNode());
         }
 
-        u32 GetNext(u32 _index) const
+        [[nodiscard]] u32 GetNext(u32 _index) const
         {
             return m_vector[_index].m_next;
         }
 
-        u32 GetPrevious(u32 _index) const
+        [[nodiscard]] u32 GetPrevious(u32 _index) const
         {
             return m_vector[_index].m_previous;
         }
