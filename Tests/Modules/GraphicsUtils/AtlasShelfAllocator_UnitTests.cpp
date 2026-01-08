@@ -433,6 +433,50 @@ namespace KryneEngine::Modules::GraphicsUtils::Tests
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 
+    TEST(AtlasShelfAllocatorTests, SingleDeallocate)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+        AllocatorInstance cpuAllocator;
+        AtlasShelfAllocator atlasShelfAllocator(cpuAllocator, commonConfig);
+        AtlasShelfAllocatorExplorator explorer(&atlasShelfAllocator);
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        const uint2 size { 32, 128 };
+        const u32 allocationSlot = atlasShelfAllocator.Allocate(size);
+
+        EXPECT_EQ(allocationSlot, 0);
+
+        atlasShelfAllocator.Free(allocationSlot);
+
+        const auto& slotEntry = explorer.GetSlot(allocationSlot);
+        EXPECT_EQ(slotEntry.m_shelf, ~0u);
+
+        const auto freeShelves = explorer.GetFreeShelves();
+        EXPECT_EQ(freeShelves.size(), 2); // 2 shelves, 1 per column
+
+        u32 offset = 0;
+        EXPECT_EQ(freeShelves[0].m_start, offset);
+        EXPECT_EQ(freeShelves[0].m_size, commonConfig.m_atlasSize.y);
+        offset += commonConfig.m_atlasSize.y;
+        EXPECT_EQ(freeShelves[1].m_start, offset);
+        EXPECT_EQ(freeShelves[1].m_size, commonConfig.m_atlasSize.y);
+
+        explorer.DumpGraph("AtlasShelfAllocator_SingleDeallocate.svg");
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        EXPECT_TRUE(catcher.GetCaughtMessages().empty());
+    }
+
     TEST(AtlasShelfAllocatorTests, ComplexAllocate)
     {
         // -----------------------------------------------------------------------
