@@ -28,6 +28,14 @@ namespace KryneEngine::Modules::GraphicsUtils
         [[nodiscard]] AtlasShelfAllocator::ShelfEntry& GetShelf(const u32 _shelfIndex) const { return m_allocator->m_shelves[_shelfIndex]; }
         [[nodiscard]] AtlasShelfAllocator::FreeSlotEntry& GetFreeSlot(const u32 _slotIndex) const { return m_allocator->m_freeSlots[_slotIndex]; }
 
+        [[nodiscard]] u32 GetFirstShelf(u32 _category) const
+        {
+            const auto it = m_allocator->m_shelfCategories.find(_category);
+            return it == m_allocator->m_shelfCategories.end()
+                ? VectorDeLinkedList<AtlasShelfAllocator::ShelfEntry>::kListLimitId
+                : it->second;
+        }
+
         void DumpGraph(eastl::string_view _filename, eastl::string_view _title = {}) const
         {
             Tests::SvgDump dumpFile(_filename, _title, m_allocator->m_atlasSize);
@@ -467,6 +475,8 @@ namespace KryneEngine::Modules::GraphicsUtils::Tests
         offset += commonConfig.m_atlasSize.y;
         EXPECT_EQ(freeShelves[1].m_start, offset);
         EXPECT_EQ(freeShelves[1].m_size, commonConfig.m_atlasSize.y);
+
+        EXPECT_EQ(explorer.GetFirstShelf(size.y), ~0u);
 
         explorer.DumpGraph("AtlasShelfAllocator_SingleDeallocate.svg");
 
