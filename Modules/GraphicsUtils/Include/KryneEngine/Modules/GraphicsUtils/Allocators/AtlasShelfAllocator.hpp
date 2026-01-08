@@ -16,6 +16,8 @@ namespace KryneEngine::Modules::GraphicsUtils
 {
     class AtlasShelfAllocator
     {
+        friend class AtlasShelfAllocatorExplorator; // For unit tests
+
     public:
         struct Configuration
         {
