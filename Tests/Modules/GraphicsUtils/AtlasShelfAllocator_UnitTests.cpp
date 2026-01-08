@@ -264,6 +264,26 @@ namespace KryneEngine::Modules::GraphicsUtils::Tests
         const uint2 size { 32, 128 };
         const u32 allocationSlot = atlasShelfAllocator.Allocate(size);
 
+        EXPECT_EQ(allocationSlot, 0);
+
+        const auto& slotEntry = explorer.GetSlot(allocationSlot);
+        EXPECT_EQ(slotEntry.m_shelf, 0);
+        EXPECT_EQ(slotEntry.m_start, 0);
+        EXPECT_EQ(slotEntry.m_width, size.x);
+
+        const auto& shelfEntry = explorer.GetShelf(slotEntry.m_shelf);
+        EXPECT_EQ(shelfEntry.m_start, 0);
+        EXPECT_EQ(shelfEntry.m_size, size.y);
+        EXPECT_EQ(shelfEntry.m_firstFree, 0);
+        EXPECT_EQ(shelfEntry.m_next, ~0u);
+        EXPECT_EQ(shelfEntry.m_previous, ~0u);
+
+        const auto& freeSlotEntry = explorer.GetFreeSlot(shelfEntry.m_firstFree);
+        EXPECT_EQ(freeSlotEntry.m_start, size.x);
+        EXPECT_EQ(freeSlotEntry.m_width, explorer.GetShelfWidth() - size.x);
+        EXPECT_EQ(freeSlotEntry.m_next, ~0u);
+        EXPECT_EQ(freeSlotEntry.m_previous, ~0u);
+
         const auto freeShelves = explorer.GetFreeShelves();
         EXPECT_EQ(freeShelves.size(), 2); // 2 shelves, 1 per column
 
