@@ -303,6 +303,75 @@ namespace KryneEngine::Modules::GraphicsUtils::Tests
         EXPECT_TRUE(catcher.GetCaughtMessages().empty());
     }
 
+    TEST(AtlasShelfAllocatorTests, MultiAllocateSameDims)
+    {
+        // -----------------------------------------------------------------------
+        // Setup
+        // -----------------------------------------------------------------------
+
+        ScopedAssertCatcher catcher;
+        AllocatorInstance cpuAllocator;
+        AtlasShelfAllocator atlasShelfAllocator(cpuAllocator, commonConfig);
+        AtlasShelfAllocatorExplorator explorer(&atlasShelfAllocator);
+
+        // -----------------------------------------------------------------------
+        // Execute
+        // -----------------------------------------------------------------------
+
+        const uint2 size { 32, 128 };
+        constexpr u32 count = 4;
+        const u32 allocationSlots[count] = {
+            atlasShelfAllocator.Allocate(size),
+            atlasShelfAllocator.Allocate(size),
+            atlasShelfAllocator.Allocate(size),
+            atlasShelfAllocator.Allocate(size),
+        };
+
+        EXPECT_EQ(allocationSlots[0], 0);
+        EXPECT_EQ(allocationSlots[1], 1);
+        EXPECT_EQ(allocationSlots[2], 2);
+        EXPECT_EQ(allocationSlots[3], 3);
+
+        for (u32 i = 0; i < count; i++)
+        {
+            const auto& slotEntry = explorer.GetSlot(allocationSlots[i]);
+            EXPECT_EQ(slotEntry.m_shelf, 0);
+            EXPECT_EQ(slotEntry.m_start, i * size.x);
+            EXPECT_EQ(slotEntry.m_width, size.x);
+        }
+
+        const auto& shelfEntry = explorer.GetShelf(0);
+        EXPECT_EQ(shelfEntry.m_start, 0);
+        EXPECT_EQ(shelfEntry.m_size, size.y);
+        EXPECT_EQ(shelfEntry.m_firstFree, 0);
+        EXPECT_EQ(shelfEntry.m_next, ~0u);
+        EXPECT_EQ(shelfEntry.m_previous, ~0u);
+
+        const auto& freeSlotEntry = explorer.GetFreeSlot(shelfEntry.m_firstFree);
+        EXPECT_EQ(freeSlotEntry.m_start, size.x * count);
+        EXPECT_EQ(freeSlotEntry.m_width, explorer.GetShelfWidth() - size.x * count);
+        EXPECT_EQ(freeSlotEntry.m_next, ~0u);
+        EXPECT_EQ(freeSlotEntry.m_previous, ~0u);
+
+        const auto freeShelves = explorer.GetFreeShelves();
+        EXPECT_EQ(freeShelves.size(), 2); // 2 shelves, 1 per column
+
+        u32 offset = size.y * count;
+        EXPECT_EQ(freeShelves[0].m_start, offset);
+        EXPECT_EQ(freeShelves[0].m_size, commonConfig.m_atlasSize.y - size.y * count);
+        offset += commonConfig.m_atlasSize.y - size.y * count;
+        EXPECT_EQ(freeShelves[1].m_start, offset);
+        EXPECT_EQ(freeShelves[1].m_size, commonConfig.m_atlasSize.y);
+
+        explorer.DumpGraph("AtlasShelfAllocator_MultiAllocateSameDims.svg");
+
+        // -----------------------------------------------------------------------
+        // Teardown
+        // -----------------------------------------------------------------------
+
+        EXPECT_TRUE(catcher.GetCaughtMessages().empty());
+    }
+
     TEST(AtlasShelfAllocatorTests, ComplexAllocate)
     {
         // -----------------------------------------------------------------------
