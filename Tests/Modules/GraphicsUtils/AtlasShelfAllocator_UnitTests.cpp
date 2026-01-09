@@ -6,9 +6,10 @@
 
 #include <EASTL/span.h>
 #include <EASTL/vector_set.h>
-#include <gtest/gtest.h>
 #include <KryneEngine/Core/Math/Color.hpp>
+#include <KryneEngine/Core/Math/Hashing.hpp>
 #include <KryneEngine/Modules/GraphicsUtils/Allocators/AtlasShelfAllocator.hpp>
+#include <gtest/gtest.h>
 
 #include "Utils/AssertUtils.hpp"
 #include "Utils/SvgDump.hpp"
@@ -793,6 +794,37 @@ namespace KryneEngine::Modules::GraphicsUtils::Tests
             const u32 width = (12 + 3 * i) % 60 + 4;
 
             allocations.push_back(atlasShelfAllocator.Allocate({ width, height }));
+        }
+
+        for (auto it = allocations.begin(); it != allocations.end();)
+        {
+            const u32 slotIndex = *it;
+            if (slotIndex == ~0u)
+            {
+                it = allocations.erase_unsorted(it);
+            }
+            else if (Hashing::Hash64(slotIndex) & 1)
+            {
+                atlasShelfAllocator.Free(slotIndex);
+                it = allocations.erase_unsorted(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        for (u32 i = 0; i < 128; i++)
+        {
+            const u32 height = (12 + 2 * i) % 128;
+            const u32 width = (12 + 3 * i) % 60 + 4;
+
+            allocations.push_back(atlasShelfAllocator.Allocate({ width, height }));
+            constexpr Color colors[2] = {
+                Color(0.3f, 0.7f, 1.f, 1.f),
+                Color(0.1f, 0.4f, 0.5f, 1.f)
+            };
+            explorer.m_customColors[allocations.back()] = { colors[0], colors[1] };
         }
 
         explorer.DumpGraph("AtlasShelfAllocator_ComplexAllocate.svg", "AtlasShelfAllocator Complex Allocate");
