@@ -761,7 +761,7 @@ namespace KryneEngine::Modules::GraphicsUtils::Tests
         for (auto size : sizes)
             EXPECT_EQ(explorer.GetFirstShelf(size.y), ~0u);
 
-        explorer.DumpGraph("AtlasShelfAllocator_DeallocateMultipleShelves.svg");
+        explorer.DumpGraph("AtlasShelfAllocator_InnerShelfDeallocate.svg");
 
         // -----------------------------------------------------------------------
         // Teardown
