@@ -110,72 +110,87 @@ namespace KryneEngine::Modules::GraphicsUtils
         m_nextSlotIndex = _slot;
 
         ShelfEntry& shelf = m_shelves[slot.m_shelf];
+
+        if (shelf.m_firstFree == VectorDeLinkedList<FreeSlotEntry>::kListLimitId)
+        {
+            const u32 freeNodeIndex = m_freeSlots.AllocateNode();
+            m_freeSlots[freeNodeIndex].m_start = slot.m_start;
+            m_freeSlots[freeNodeIndex].m_width = slot.m_width;
+            shelf.m_firstFree = freeNodeIndex;
+            return;
+        }
+
+        u32 previousFreeSlotIndex = ~0u;
         u32 freeSlotIndex = shelf.m_firstFree;
         for (
             FreeSlotEntry* freeSlot = &m_freeSlots[freeSlotIndex];
             freeSlotIndex != VectorDeLinkedList<FreeSlotEntry>::kListLimitId;
-            freeSlotIndex = freeSlot->m_next, freeSlot = &m_freeSlots[freeSlotIndex])
+            previousFreeSlotIndex = freeSlotIndex, freeSlotIndex = freeSlot->m_next, freeSlot = &m_freeSlots[freeSlotIndex])
         {
-            if (freeSlot->m_start < slot.m_start)
-                continue;
+            if (freeSlot->m_start > slot.m_start)
+                break;
+        }
 
-            bool backMerge = false;
-            if (slot.m_start + slot.m_width == freeSlot->m_start)
+        bool backMerge = false;
+        if (freeSlotIndex != VectorDeLinkedList<FreeSlotEntry>::kListLimitId)
+        {
+            FreeSlotEntry& freeSlot = m_freeSlots[freeSlotIndex];
+            if (slot.m_start + slot.m_width == freeSlot.m_start)
             {
-                freeSlot->m_start = slot.m_start;
-                freeSlot->m_width += slot.m_width;
+                freeSlot.m_start = slot.m_start;
+                freeSlot.m_width += slot.m_width;
                 backMerge = true;
             }
+        }
 
-            bool frontMerge = false;
-            if (freeSlot->m_previous != VectorDeLinkedList<FreeSlotEntry>::kListLimitId)
+        bool frontMerge = false;
+        if (previousFreeSlotIndex != VectorDeLinkedList<FreeSlotEntry>::kListLimitId)
+        {
+            FreeSlotEntry& previousFreeSlot = m_freeSlots[previousFreeSlotIndex];
+            if (previousFreeSlot.m_start + previousFreeSlot.m_width == slot.m_start)
             {
-                FreeSlotEntry& previousFreeSlot = m_freeSlots[freeSlot->m_previous];
-                if (previousFreeSlot.m_start + previousFreeSlot.m_width == slot.m_start)
+                if (backMerge)
                 {
-                    if (backMerge)
-                    {
-                        previousFreeSlot.m_width += freeSlot->m_width;
-                        m_freeSlots.FreeNode(freeSlotIndex);
-                    }
-                    else
-                    {
-                        previousFreeSlot.m_width += slot.m_width;
-                    }
-                    frontMerge = true;
+                    previousFreeSlot.m_width += m_freeSlots[freeSlotIndex].m_width;
+                    m_freeSlots.FreeNode(freeSlotIndex);
                 }
-            }
-
-            if (!frontMerge && !backMerge)
-            {
-                const u32 newFreeSlotIndex = m_freeSlots.AllocateNode();
-                freeSlot = &m_freeSlots[freeSlotIndex]; // Pointer may have been invalidated, reload it to be safe
-                m_freeSlots[newFreeSlotIndex].m_start = slot.m_start;
-                m_freeSlots[newFreeSlotIndex].m_width = slot.m_width;
-                m_freeSlots[newFreeSlotIndex].m_next = freeSlotIndex;
-                m_freeSlots[newFreeSlotIndex].m_previous = freeSlot->m_previous;
-                if (freeSlot->m_previous == VectorDeLinkedList<FreeSlotEntry>::kListLimitId)
-                    shelf.m_firstFree = newFreeSlotIndex;
                 else
-                    m_freeSlots[freeSlot->m_previous].m_next = newFreeSlotIndex;
-                freeSlot->m_previous = newFreeSlotIndex;
-            }
-
-            if (m_freeSlots[shelf.m_firstFree].m_width >= m_shelfWidth)
-            {
-                FreeShelf({ .m_start = shelf.m_start, .m_size = shelf.m_size });
-                const u32 next = shelf.m_next;
-                m_shelves.FreeNode(slot.m_shelf);
-
-                auto it = m_shelfCategories.find(shelf.m_size);
-                VERIFY_OR_RETURN_VOID(it != m_shelfCategories.end());
-                if (it->second == slot.m_shelf)
                 {
-                    if (next == VectorDeLinkedList<ShelfEntry>::kListLimitId)
-                        m_shelfCategories.erase(it);
-                    else
-                        it->second = next;
+                    previousFreeSlot.m_width += slot.m_width;
                 }
+                frontMerge = true;
+            }
+        }
+
+        if (!frontMerge && !backMerge)
+        {
+            const u32 newFreeSlotIndex = m_freeSlots.AllocateNode();
+            m_freeSlots[newFreeSlotIndex].m_start = slot.m_start;
+            m_freeSlots[newFreeSlotIndex].m_width = slot.m_width;
+            m_freeSlots[newFreeSlotIndex].m_next = freeSlotIndex;
+            m_freeSlots[newFreeSlotIndex].m_previous = previousFreeSlotIndex;
+            if (previousFreeSlotIndex == VectorDeLinkedList<FreeSlotEntry>::kListLimitId)
+                shelf.m_firstFree = newFreeSlotIndex;
+            else
+                m_freeSlots[previousFreeSlotIndex].m_next = newFreeSlotIndex;
+            if (freeSlotIndex != VectorDeLinkedList<FreeSlotEntry>::kListLimitId)
+                m_freeSlots[freeSlotIndex].m_previous = newFreeSlotIndex;
+        }
+
+        if (m_freeSlots[shelf.m_firstFree].m_width >= m_shelfWidth)
+        {
+            FreeShelf({ .m_start = shelf.m_start, .m_size = shelf.m_size });
+            const u32 next = shelf.m_next;
+            m_shelves.FreeNode(slot.m_shelf);
+
+            auto it = m_shelfCategories.find(shelf.m_size);
+            VERIFY_OR_RETURN_VOID(it != m_shelfCategories.end());
+            if (it->second == slot.m_shelf)
+            {
+                if (next == VectorDeLinkedList<ShelfEntry>::kListLimitId)
+                    m_shelfCategories.erase(it);
+                else
+                    it->second = next;
             }
         }
     }
