@@ -145,18 +145,34 @@ namespace KryneEngine::Modules::GraphicsUtils
                 slotRect.z -= slotRect.x;
                 slotRect.w -= slotRect.y;
 
-                dumpFile.AddRect(
-                    slotRect.x,
-                    slotRect.y,
-                    slotRect.z,
-                    slotRect.w,
-                    1.f,
-                    Color(0.4f, 0.4f, 1.f, 1.f),
-                    Color(0.2f, 0.2f, 0.5f, 1.f));
+                const auto it = m_customColors.find(slotIndex);
+                if (it != m_customColors.end())
+                {
+                    dumpFile.AddRect(
+                        slotRect.x,
+                        slotRect.y,
+                        slotRect.z,
+                        slotRect.w,
+                        1.f,
+                        it->second.first,
+                        it->second.second);
+                }
+                else
+                {
+                    dumpFile.AddRect(
+                        slotRect.x,
+                        slotRect.y,
+                        slotRect.z,
+                        slotRect.w,
+                        1.f,
+                        Color(0.4f, 0.4f, 1.f, 1.f),
+                        Color(0.2f, 0.2f, 0.5f, 1.f));
+                }
             }
         }
 
         AtlasShelfAllocator* m_allocator;
+        eastl::vector_map<u32, eastl::pair<Color, Color>> m_customColors;
     };
 }
 
