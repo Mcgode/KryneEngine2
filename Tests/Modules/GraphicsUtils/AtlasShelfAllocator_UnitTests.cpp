@@ -737,10 +737,10 @@ namespace KryneEngine::Modules::GraphicsUtils::Tests
 
         shelf = explorer.GetShelf(shelfIndex);
         EXPECT_NE(shelf.m_firstFree, ~0u);
-        EXPECT_NE(shelf.m_firstFree, freeSlotIndex);
+        EXPECT_EQ(shelf.m_firstFree, freeSlotIndex); // All free blocks are merged into free block 1
         freeSlotIndex = shelf.m_firstFree;
         {
-            EXPECT_EQ(freeSlotIndex, 0);
+            EXPECT_EQ(freeSlotIndex, 1);
             const auto freeSlot = explorer.GetFreeSlot(freeSlotIndex);
             EXPECT_EQ(freeSlot.m_start, 0);
             EXPECT_EQ(freeSlot.m_width, explorer.GetShelfWidth());
