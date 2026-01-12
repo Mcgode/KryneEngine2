@@ -195,6 +195,21 @@ namespace KryneEngine::Modules::GraphicsUtils
         }
     }
 
+    Rect AtlasShelfAllocator::GetSlotRect(u32 _slot) const
+    {
+        const SlotEntry slot = m_slots[_slot];
+        const ShelfEntry& shelf = m_shelves[slot.m_shelf];
+
+        const u32 shelfX = (shelf.m_start / m_atlasSize.y) * m_shelfWidth,
+                  shelfY = (shelf.m_start % m_atlasSize.y);
+
+        return Rect(
+            slot.m_start + shelfX,
+            shelfY,
+            slot.m_start + slot.m_width + shelfX,
+            shelfY + shelf.m_size);
+    }
+
     void AtlasShelfAllocator::FreeShelf(const FreeShelfEntry _freedShelf)
     {
         FreeShelfEntry* it = eastl::upper_bound(

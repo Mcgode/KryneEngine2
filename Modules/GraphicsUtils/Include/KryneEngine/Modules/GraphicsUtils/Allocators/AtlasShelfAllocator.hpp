@@ -32,6 +32,8 @@ namespace KryneEngine::Modules::GraphicsUtils
         u32 Allocate(uint2 _slotSize);
         void Free(u32 _slot);
 
+        [[nodiscard]] Rect GetSlotRect(u32 _slot) const;
+
     private:
         struct FreeShelfEntry
         {
