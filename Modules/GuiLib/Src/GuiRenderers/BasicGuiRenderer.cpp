@@ -699,54 +699,31 @@ namespace KryneEngine::Modules::GuiLib
                     };
                     for (Utf8Iterator utf8Iterator { stringContents }; utf8Iterator != stringContents.end(); ++utf8Iterator)
                     {
-                        const TextRendering::MsdfAtlasManager::GlyphRegion glyphRegion =
-                            m_atlasManager->GetGlyphRegion(font, *utf8Iterator);
-                        KE_ASSERT(glyphRegion.m_size != 0xffff);
-
                         const TextRendering::Font::GlyphLayoutMetrics glyphLayoutMetrics = font->GetGlyphLayoutMetrics(*utf8Iterator, fontSize);
-                        const float2_simd baseGlyphHalfSize = {
-                            glyphLayoutMetrics.m_width * 0.5f,
-                            glyphLayoutMetrics.m_height * 0.5f
-                        };
-                        float2_simd glyphHalfSize = baseGlyphHalfSize;
-                        float2_simd glyphCenter = writePoint + glyphHalfSize + float2_simd(glyphLayoutMetrics.m_bearingX, -glyphLayoutMetrics.m_bearingY);
 
-                        const bool wider = glyphLayoutMetrics.m_width > glyphLayoutMetrics.m_height;
-                        const auto msdfPixelSize = static_cast<float>(glyphRegion.m_size - glyphRegion.m_pxRange);
-                        uint4 msdfRect;
-                        if (wider)
+                        constexpr float msdfFontSize = 32;
+                        const TextRendering::MsdfAtlasManager::GlyphRegion glyphRegion =
+                            m_atlasManager->GetGlyphRegion(font, *utf8Iterator, msdfFontSize);
+
+                        // If the glyph has no visuals (special chars like space or tab), simply advance write point and
+                        // don't render anything.
+                        if (!glyphRegion.IsValid())
                         {
-                            const float scale = glyphLayoutMetrics.m_width / msdfPixelSize;
-                            const float heightPixels = std::ceil(glyphLayoutMetrics.m_height / scale);
-                            glyphHalfSize = {
-                                scale * static_cast<float>(glyphRegion.m_size) * 0.5f,
-                                (heightPixels + static_cast<float>(glyphRegion.m_pxRange)) * scale * 0.5f
-                            };
-                            const u32 heightLeftover = glyphRegion.m_size - static_cast<u32>(heightPixels) - glyphRegion.m_pxRange;
-                            msdfRect = {
-                                glyphRegion.m_x,
-                                glyphRegion.m_y + heightLeftover / 2,
-                                glyphRegion.m_x + glyphRegion.m_size,
-                                glyphRegion.m_y + glyphRegion.m_size - heightLeftover / 2
-                            };
+                            writePoint.x += glyphLayoutMetrics.m_advanceX;
+                            continue;
                         }
-                        else
-                        {
-                            const float scale = glyphLayoutMetrics.m_height / msdfPixelSize;
-                            const float widthPixels = std::ceil(glyphLayoutMetrics.m_width * 2.f / scale) / 2;
-                            glyphHalfSize = {
-                                (widthPixels + static_cast<float>(glyphRegion.m_pxRange)) * scale * 0.5f,
-                                scale * static_cast<float>(glyphRegion.m_size) * 0.5f,
-                            };
-                            const u32 widthLeftover = glyphRegion.m_size - static_cast<u32>(widthPixels) - glyphRegion.m_pxRange;
-                            msdfRect = {
-                                glyphRegion.m_x + widthLeftover / 2,
-                                glyphRegion.m_y,
-                                glyphRegion.m_x + glyphRegion.m_size - widthLeftover / 2,
-                                glyphRegion.m_y + glyphRegion.m_size
-                            };
-                        }
-                        glyphCenter = glyphCenter - (glyphHalfSize - baseGlyphHalfSize);
+
+                        const float scale = fontSize / msdfFontSize;
+
+                        const float2_simd glyphHalfSize {
+                            static_cast<float>(glyphRegion.m_width) * 0.5f * scale,
+                            static_cast<float>(glyphRegion.m_height) * 0.5f * scale,
+                        };
+                        const float2_simd glyphOffset {
+                            -static_cast<float>(glyphRegion.m_pxRange) * 0.5f * scale,
+                            -static_cast<float>(glyphRegion.m_baseline) * scale,
+                        };
+                        const float2_simd glyphCenter = writePoint + glyphOffset + glyphHalfSize;
 
                         const uint2 glyphPackedRect = {
                             Math::Float16::PackFloat16x2(glyphCenter.x, glyphCenter.y),
@@ -769,8 +746,8 @@ namespace KryneEngine::Modules::GuiLib
                         }
                         packedInstanceData->m_packedColor = tintColor.ToSrgb().ToRgba8();
 
-                        packedInstanceData->m_packedData.x = msdfRect.x | (msdfRect.y << 16);
-                        packedInstanceData->m_packedData.y = msdfRect.z | (msdfRect.w << 16);
+                        packedInstanceData->m_packedData.x = BitUtils::BitfieldInsert<u32>(glyphRegion.m_x, glyphRegion.m_y, 16, 16);
+                        packedInstanceData->m_packedData.y = BitUtils::BitfieldInsert<u32>(glyphRegion.m_width + glyphRegion.m_x, glyphRegion.m_height + glyphRegion.m_y, 16, 16);
                         packedInstanceData->m_packedData.z = glyphRegion.m_pxRange;
 
                         if (previous != CLAY_RENDER_COMMAND_TYPE_TEXT)
@@ -796,7 +773,7 @@ namespace KryneEngine::Modules::GuiLib
                         });
                         offset += sizeof(PackedInstanceData);
 
-                        writePoint.x += font->GetHorizontalAdvance(*utf8Iterator, fontSize);
+                        writePoint.x += glyphLayoutMetrics.m_advanceX;
                     }
                     break;
                 }
