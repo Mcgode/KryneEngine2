@@ -144,7 +144,7 @@ s32 main(s32 argc, const char** argv)
                         })}
                     })
                     {}
-                    CLAY_TEXT(CLAY_STRING("Clay - UI Library"), CLAY_TEXT_CONFIG({  .textColor = {255, 255, 255, 255}, .fontId = font->GeId(), .fontSize = 24 }));
+                    CLAY_TEXT(CLAY_STRING("Clay - UI Library"), CLAY_TEXT_CONFIG({  .textColor = {255, 255, 255, 255}, .fontId = font->GeId(), .fontSize = 20 }));
                 }
 
                 // Standard C code like loops etc work inside components
