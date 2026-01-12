@@ -6,6 +6,7 @@
 
 #include "KryneEngine/Modules/TextRendering/MsdfAtlasManager.hpp"
 
+#include <cmath>
 #include <KryneEngine/Core/Graphics/Buffer.hpp>
 #include <KryneEngine/Core/Graphics/MemoryBarriers.hpp>
 #include <KryneEngine/Core/Math/Color.hpp>
@@ -24,11 +25,9 @@ namespace KryneEngine::Modules::TextRendering
         u32 _glyphBaseSize)
             : m_allocator(_allocator)
             , m_fontManager(_fontManager)
+            , m_atlasAllocator(_allocator, {.m_atlasSize = {_atlasSize, _atlasSize}})
             , m_stagingBuffers(_allocator, _graphicsContext.GetFrameContextCount(), {})
             , m_atlasSize(_atlasSize)
-            , m_glyphBaseSize(_glyphBaseSize)
-            , m_slotFootprints(_allocator, Alignment::NextPowerOfTwo(_atlasSize / _glyphBaseSize))
-            , m_slotsBitMap(_allocator, _atlasSize / _glyphBaseSize, 0)
             , m_glyphSlotMap(_allocator)
     {
         const TextureDesc atlasTextureDesc {
@@ -48,17 +47,6 @@ namespace KryneEngine::Modules::TextRendering
 
         m_atlasTextureSubresourceIndex = SubResourceIndexing(atlasTextureDesc, 0);
 
-        u32 currentSize = m_glyphBaseSize;
-        for (auto& slotFootprint : m_slotFootprints)
-        {
-            const TextureDesc desc {
-                .m_dimensions = { currentSize, currentSize, 1 },
-                .m_format = atlasTextureDesc.m_format,
-            };
-            slotFootprint = _graphicsContext.FetchTextureSubResourcesMemoryFootprints(desc).front();
-            currentSize <<= 1;
-        }
-
         m_atlasView = _graphicsContext.CreateTextureView({
             .m_texture = m_atlasTexture,
             .m_format = TextureFormat::RGBA8_UNorm,
@@ -68,55 +56,74 @@ namespace KryneEngine::Modules::TextRendering
     MsdfAtlasManager::~MsdfAtlasManager()
     {}
 
-    MsdfAtlasManager::GlyphRegion MsdfAtlasManager::GetGlyphRegion(Font* _font, u32 _unicodeCodepoint, u8 _sizeLShift)
+    MsdfAtlasManager::GlyphRegion MsdfAtlasManager::GetGlyphRegion(
+        Font* _font,
+        const u32 _unicodeCodepoint,
+        const u32 _fontSize)
     {
-        const u32 slotsPerRow = m_atlasSize / m_glyphBaseSize;
-
-        GlyphSlot slot {};
+        const u16 pxRange = GetPxRange(_fontSize);
         {
             const auto lock = m_lock.AutoLock();
             const auto it = m_glyphSlotMap.find({ _font, _unicodeCodepoint });
-
             if (it != m_glyphSlotMap.end())
             {
-                KE_ASSERT(it->second.m_sizeLShift == _sizeLShift);
+                KE_ASSERT(it->second.m_fontSize == 0 || it->second.m_fontSize == _fontSize);
                 return {
-                    .m_x = static_cast<u16>(m_glyphBaseSize * (it->second.m_index % slotsPerRow)),
-                    .m_y = static_cast<u16>(m_glyphBaseSize * (it->second.m_index / slotsPerRow)),
-                    .m_size = static_cast<u16>(m_glyphBaseSize << it->second.m_sizeLShift),
-                    .m_pxRange = static_cast<u16>(4u << it->second.m_sizeLShift),
+                    .m_x = it->second.m_offsetX,
+                    .m_y = it->second.m_offsetY,
+                    .m_width = it->second.m_width,
+                    .m_height = it->second.m_height,
+                    .m_baseline = it->second.m_baseline,
+                    .m_pxRange = it->second.m_fontSize == 0 ? static_cast<u16>(0u) : pxRange,
                 };
             }
-
-            const u32 glyphSize = 1 << _sizeLShift;
-            const uint2 spot = FindFreeSlot(glyphSize);
-
-            if (spot.x == ~0u)
-                return {};
-
-            const u64 bitmask = BitUtils::BitMask<u64>(glyphSize);
-            for (u32 y = 0; y < glyphSize; ++y)
-            {
-                m_slotsBitMap[spot.y + y] |= bitmask << spot.x;
-            }
-
-            slot.m_index = slotsPerRow * spot.y + spot.x;
-            slot.m_sizeLShift = _sizeLShift;
-            m_glyphSlotMap.emplace(GlyphKey { _font, _unicodeCodepoint }, slot);
         }
 
-        m_loadQueue.enqueue({ { _font, _unicodeCodepoint }, nullptr });
-        return {
-            .m_x = static_cast<u16>(m_glyphBaseSize * (slot.m_index % slotsPerRow)),
-            .m_y = static_cast<u16>(m_glyphBaseSize * (slot.m_index / slotsPerRow)),
-            .m_size = static_cast<u16>(m_glyphBaseSize << slot.m_sizeLShift),
-            .m_pxRange = static_cast<u16>(4u << slot.m_sizeLShift),
-        };
-    }
+        const Font::GlyphLayoutMetrics glyphMetrics = _font->GetGlyphLayoutMetrics(_unicodeCodepoint, static_cast<float>(_fontSize));
+        KE_ASSERT(glyphMetrics.m_advanceX != 0.f);
 
-    MsdfAtlasManager::GlyphRegion MsdfAtlasManager::GetGlyphRegion(u16 _fontId, u32 _unicodeCodepoint, u8 _sizeLShift)
-    {
-        return GetGlyphRegion(m_fontManager->GetFont(_fontId), _unicodeCodepoint, _sizeLShift);
+        // Special characters that have no outline are not rendered
+        if (glyphMetrics.m_height == 0 || glyphMetrics.m_width == 0)
+        {
+            // Save invalid glyph slot for future fetches
+            const auto lock = m_lock.AutoLock();
+            m_glyphSlotMap.emplace(GlyphKey { _font, _unicodeCodepoint }, GlyphSlot {});
+            return {};
+        }
+
+        float* buffer = _font->GenerateMsdf(_unicodeCodepoint, static_cast<float>(_fontSize), pxRange, m_allocator);
+
+        Rect slotRect {};
+        GlyphSlot glyphSlot {};
+        {
+            // At least 2 px of padding
+            constexpr u16 padding = 2;
+
+            const auto lock = m_lock.AutoLock();
+
+            const uint2 glyphSize {
+                static_cast<u32>(std::ceil(glyphMetrics.m_width)) + pxRange + padding,
+                static_cast<u32>(std::ceil(glyphMetrics.m_bearingY) + std::ceil(glyphMetrics.m_height - glyphMetrics.m_bearingY)) + pxRange + padding,
+            };
+
+            const u32 slot = m_atlasAllocator.Allocate(glyphSize);
+            slotRect = m_atlasAllocator.GetSlotRect(slot);
+            glyphSlot = {
+                .m_offsetX = static_cast<u16>(slotRect.m_left + padding / 2),
+                .m_offsetY = static_cast<u16>(slotRect.m_top + padding / 2),
+                .m_width = static_cast<u16>(glyphSize.x - padding),
+                .m_height = static_cast<u16>(glyphSize.y - padding),
+                .m_baseline = static_cast<u16>(std::ceil(glyphMetrics.m_bearingY) + static_cast<float>(pxRange) * 0.5f),
+                .m_fontSize = static_cast<u16>(_fontSize),
+                .m_allocatorSlot = slot,
+            };
+
+            m_glyphSlotMap.emplace(GlyphKey { _font, _unicodeCodepoint }, glyphSlot);
+        }
+
+        m_loadQueue.enqueue({ glyphSlot, slotRect, buffer });
+
+        return {};
     }
 
     void MsdfAtlasManager::FlushLoads(GraphicsContext& _graphicsContext, CommandListHandle _transfer)
@@ -160,15 +167,20 @@ namespace KryneEngine::Modules::TextRendering
         }
         while (flushCount > 0);
 
+        eastl::vector<TextureMemoryFootprint> slotFootprints { m_allocator };
         u64 cumulatedSize = 0;
+        for (const auto& request : requests)
         {
-            const auto lock = m_lock.AutoLock();
-            for (const auto& request : requests)
-            {
-                const u32 lShift = m_glyphSlotMap[request.m_key].m_sizeLShift;
-                const TextureMemoryFootprint& footprint = m_slotFootprints[lShift];
-                cumulatedSize += footprint.m_lineByteAlignedSize * footprint.m_height;
-            }
+            TextureMemoryFootprint& footprint = slotFootprints.emplace_back();
+            footprint = _graphicsContext.FetchTextureSubResourcesMemoryFootprints({
+                .m_dimensions = {
+                    request.m_dstRegion.m_right - request.m_dstRegion.m_left,
+                    request.m_dstRegion.m_bottom - request.m_dstRegion.m_top,
+                    1
+                },
+                .m_format = m_atlasFootprint.m_format,
+            }).front();
+            cumulatedSize += footprint.m_lineByteAlignedSize * footprint.m_height;
         }
 
         StagingBuffer& stagingBuffer = m_stagingBuffers[_graphicsContext.GetCurrentFrameContextIndex()];
@@ -208,48 +220,52 @@ namespace KryneEngine::Modules::TextRendering
         BufferMapping mapping { stagingBuffer.m_buffer, cumulatedSize };
         _graphicsContext.MapBuffer(mapping);
         size_t progress = 0;
-        const u32 slotsPerRow = m_atlasSize / m_glyphBaseSize;
-        for (auto& request : requests)
+        for (u32 i = 0; i < requests.size(); ++i)
         {
-            GlyphSlot slot {};
-            {
-                const auto lock = m_lock.AutoLock();
-                const auto it = m_glyphSlotMap.find(request.m_key);
-                KE_ASSERT(it != m_glyphSlotMap.end());
-                slot = it->second;
-            }
+            const GlyphLoadRequest& request = requests[i];
+            const GlyphSlot& slot = request.m_slot;
 
-            const TextureMemoryFootprint& footprint = m_slotFootprints[slot.m_sizeLShift];
+            const TextureMemoryFootprint& footprint = slotFootprints[i];
             const u64 size = footprint.m_lineByteAlignedSize * footprint.m_height;
-            const u32 dims = m_glyphBaseSize << slot.m_sizeLShift;
 
-            if (request.m_buffer == nullptr)
-            {
-                request.m_buffer = m_allocator.Allocate<float>(dims * dims * 3);
-                request.m_key.m_font->GenerateMsdf(
-                    request.m_key.m_unicodeCodepoint,
-                    dims,
-                    4 << slot.m_sizeLShift,
-                    { request.m_buffer, sizeof(float) * dims * dims * 3 });
-            }
+            KE_ASSERT(request.m_buffer != nullptr);
 
             u32 localProgress = progress;
-            for (u32 y = 0; y < dims; ++y)
+            for (u32 y = request.m_dstRegion.m_top; y < request.m_dstRegion.m_bottom; ++y)
             {
+                s32 ry = static_cast<s32>(y) - static_cast<s32>(slot.m_offsetY);
+
                 auto* pixels = reinterpret_cast<u32*>(mapping.m_ptr + localProgress);
                 auto* pixelsEnd = reinterpret_cast<u32*>(mapping.m_ptr + localProgress + footprint.m_lineByteAlignedSize);
 
-                for (u32 x = 0; x < dims; ++x)
+                if (ry < 0 || ry >= slot.m_height)
                 {
-                    const Color pixelColor {
-                        eastl::clamp(request.m_buffer[y * dims * 3 + 3 * x + 0], 0.f, 1.f),
-                        eastl::clamp(request.m_buffer[y * dims * 3 + 3 * x + 1], 0.f, 1.f),
-                        eastl::clamp(request.m_buffer[y * dims * 3 + 3 * x + 2], 0.f, 1.f),
-                        1.f,
-                    };
-                    *pixels = pixelColor.ToRgba8();
+                    memset(pixels, 0, (pixelsEnd - pixels) * sizeof(u32));
+                    localProgress += footprint.m_lineByteAlignedSize;
+                    continue;
+                }
+
+                for (u32 x = request.m_dstRegion.m_left; x < request.m_dstRegion.m_right; ++x)
+                {
+                    s32 rx = static_cast<s32>(x) - static_cast<s32>(slot.m_offsetX);
+
+                    if (rx < 0 || rx >= slot.m_width)
+                    {
+                        *pixels = 0;
+                    }
+                    else
+                    {
+                        const Color pixelColor {
+                            eastl::clamp(request.m_buffer[ry * slot.m_width * 3 + 3 * rx + 0], 0.f, 1.f),
+                            eastl::clamp(request.m_buffer[ry * slot.m_width * 3 + 3 * rx + 1], 0.f, 1.f),
+                            eastl::clamp(request.m_buffer[ry * slot.m_width * 3 + 3 * rx + 2], 0.f, 1.f),
+                            1.f,
+                        };
+                        *pixels = pixelColor.ToRgba8();
+                    }
                     ++pixels;
                 }
+
                 if (pixels != pixelsEnd)
                 {
                     memset(pixels, 0, (pixelsEnd - pixels) * sizeof(u32));
@@ -258,19 +274,19 @@ namespace KryneEngine::Modules::TextRendering
             }
             m_allocator.deallocate(request.m_buffer);
 
-            const uint3 offset {
-                m_glyphBaseSize * (slot.m_index % slotsPerRow),
-                m_glyphBaseSize * (slot.m_index / slotsPerRow),
-                0
-            };
+            const uint3 offset ;
             _graphicsContext.SetTextureRegionData(
                 _transfer,
                 { .m_size = size, .m_offset = progress, .m_buffer = stagingBuffer.m_buffer },
                 m_atlasTexture,
                 footprint,
                 m_atlasTextureSubresourceIndex,
-                offset,
-                { dims, dims, 1 });
+                { request.m_dstRegion.m_left, request.m_dstRegion.m_top, 0 },
+                {
+                    request.m_dstRegion.m_right - request.m_dstRegion.m_left,
+                    request.m_dstRegion.m_bottom - request.m_dstRegion.m_top,
+                    1
+                });
             progress += size;
         }
         _graphicsContext.UnmapBuffer(mapping);
@@ -290,77 +306,9 @@ namespace KryneEngine::Modules::TextRendering
         }
     }
 
-    size_t MsdfAtlasManager::GlyphKey::Hasher::operator()(const GlyphKey& _key) const noexcept
+    u16 MsdfAtlasManager::GetPxRange(const u32 _fontSize)
     {
-        return Hashing::Hash64(&_key, offsetof(GlyphKey, m_unicodeCodepoint) + sizeof(m_unicodeCodepoint));
-    }
-
-    uint2 MsdfAtlasManager::FindFreeSlot(u8 _slotSize) const
-    {
-        const u32 slotsPerRow = m_atlasSize / m_glyphBaseSize;
-
-        // Fast path: slot size is one, we only need to check for the first available bit.
-        if (_slotSize == 1)
-        {
-            const u64 lineBitMask = BitUtils::BitMask<u64>(slotsPerRow);
-            for (u32 y = 0; y < m_slotsBitMap.Size(); y++)
-            {
-                const u64 available = ~m_slotsBitMap[y] & lineBitMask;
-                if (available != 0)
-                {
-                    return { BitUtils::GetLeastSignificantBit(available), y };
-                }
-            }
-            return { ~0u, ~0u };
-        }
-
-        u64 horizontal[64];
-        const u64 slotBitMask = BitUtils::BitMask<u64>(_slotSize);
-        u64 cumulatedBits = 0;
-        u32 cumulationStart = 0;
-
-        for (u32 y = 0; y < m_slotsBitMap.Size(); y++)
-        {
-            horizontal[y] = 0;
-            for (u32 x = 0; x <= slotsPerRow - _slotSize; x++)
-            {
-                if ((m_slotsBitMap[y] & (slotBitMask << x)) == 0)
-                    horizontal[y] |= slotBitMask << x;
-            }
-
-            if (cumulationStart == y)
-            {
-                cumulatedBits = horizontal[y];
-            }
-            else
-            {
-                cumulatedBits &= horizontal[y];
-            }
-
-            if (horizontal[y] == 0)
-            {
-                cumulationStart = y + 1;
-            }
-            else if (cumulatedBits == 0)
-            {
-                cumulatedBits = horizontal[y];
-                for (u32 i = y - 1; y > cumulationStart; --y)
-                {
-                    const u32 testCumulation = horizontal[i] & cumulatedBits;
-                    if (testCumulation == 0)
-                    {
-                        cumulationStart = i + 1;
-                        break;
-                    }
-                    cumulatedBits = testCumulation;
-                }
-            }
-            else if (y - cumulationStart + 1 >= _slotSize)
-            {
-                return { BitUtils::GetLeastSignificantBit(cumulatedBits), cumulationStart };
-            }
-        }
-
-        return { ~0u, ~0u };
+        // Keep the minimal pxRange at 4px and scale it in increments of 2px proportionally to the font size
+        return 2u * static_cast<u16>(std::round(eastl::max(32.f, static_cast<float>(_fontSize)) / 16.f));
     }
 } // namespace KryneEngine::Modules::TextRendering

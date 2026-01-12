@@ -39,7 +39,7 @@ namespace KryneEngine::Modules::TextRendering
         float GetHorizontalAdvance(u32 _unicodeCodepoint, float _fontSize);
         GlyphLayoutMetrics GetGlyphLayoutMetrics(u32 _unicodeCodepoint, float _fontSize);
 
-        bool GenerateMsdf(u32 _unicodeCodepoint, u16 _glyphSize, u16 _pxRange, eastl::span<float> _output);
+        float* GenerateMsdf(u32 _unicodeCodepoint, float _fontSize, u16 _pxRange, AllocatorInstance _allocator);
 
         [[nodiscard]] u16 GeId() const { return m_fontId; }
 

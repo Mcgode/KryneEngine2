@@ -77,46 +77,45 @@ namespace KryneEngine::Modules::TextRendering
         return { 0, 0, 0, 0, 0 };
     }
 
-    bool Font::GenerateMsdf(
+    float* Font::GenerateMsdf(
         const u32 _unicodeCodepoint,
-        const u16 _glyphSize,
+        const float _fontSize,
         const u16 _pxRange,
-        const eastl::span<float> _output)
+        AllocatorInstance _allocator)
     {
-        KE_ASSERT(_output.size() >= _glyphSize * _glyphSize * 3);
-
         KE_ZoneScopedF("Generate MSDF for U+%x", _unicodeCodepoint);
 
         const auto it = m_glyphs.find(_unicodeCodepoint);
         if (it == m_glyphs.end())
-            return false;
+            return nullptr;
 
         GlyphEntry& entry = it->second;
         if (std::atomic_ref(entry.m_loaded).load(std::memory_order_relaxed) == false) [[unlikely]]
             LoadGlyphSafe(eastl::distance(m_glyphs.begin(), it));
 
+        const double fontScale = _fontSize / static_cast<double>(m_face->units_per_EM);
+
         msdfgen::Vector2 scale = 1;
         msdfgen::Vector2 translate = 0;
-        {
-            const auto glyphWidth = static_cast<double>(entry.m_baseWidth);
-            const auto glyphXMin = static_cast<double>(entry.m_baseBearingX);
-            const auto glyphHeight = static_cast<double>(entry.m_baseHeight);
-            const auto glyphYMin = static_cast<double>(entry.m_baseBearingY) - glyphHeight;
 
-            const auto dims = static_cast<double>(_glyphSize - _pxRange);
+        const auto pxRange = static_cast<double>(_pxRange);
+        const auto glyphWidth = fontScale * static_cast<double>(entry.m_baseWidth);
+        const auto glyphXMin = fontScale * static_cast<double>(entry.m_baseBearingX);
+        const auto glyphHeight = fontScale * static_cast<double>(entry.m_baseHeight);
+        const auto glyphYBearing = fontScale * static_cast<double>(entry.m_baseBearingY);
 
-            if (glyphHeight > glyphWidth)
-            {
-                translate.set(0.5 * (glyphHeight - glyphWidth) - glyphXMin, -glyphYMin);
-                scale = dims / glyphHeight;
-            }
-            else
-            {
-                translate.set(-glyphXMin, 0.5 * (glyphWidth - glyphHeight) - glyphYMin);
-                scale = dims / glyphWidth;
-            }
-            translate += (_pxRange * 0.5) / scale;
-        }
+        const double baseLineYOffset = std::ceil(glyphHeight - glyphYBearing);
+
+        const uint2 finalGlyphDims {
+            std::ceil(glyphWidth) + _pxRange,
+            baseLineYOffset + std::ceil(glyphYBearing) + _pxRange
+        };
+
+        scale = fontScale;
+        translate.set(
+            -static_cast<double>(entry.m_baseBearingX),
+            baseLineYOffset / fontScale);
+        translate += (pxRange * 0.5) / scale;
 
         msdfgen::Shape shape;
         {
@@ -178,7 +177,13 @@ namespace KryneEngine::Modules::TextRendering
             msdfgen::Projection(scale, translate),
             msdfgen::Range(_pxRange / scale.x)
         };
-        const msdfgen::BitmapSection<float, 3> bitmapSection { _output.data(), _glyphSize, _glyphSize, msdfgen::Y_DOWNWARD };
+        auto* pixels = _allocator.Allocate<float>(3 * finalGlyphDims.x * finalGlyphDims.y);
+        const msdfgen::BitmapSection<float, 3> bitmapSection {
+            pixels,
+            static_cast<s32>(finalGlyphDims.x),
+            static_cast<s32>(finalGlyphDims.y),
+            msdfgen::Y_DOWNWARD
+        };
         msdfgen::MSDFGeneratorConfig generatorConfig {
             true,
             msdfgen::ErrorCorrectionConfig { msdfgen::ErrorCorrectionConfig::EDGE_PRIORITY }
@@ -189,7 +194,9 @@ namespace KryneEngine::Modules::TextRendering
             transformation,
             generatorConfig);
 
-        return true;
+        msdfgen::saveBmp(bitmapSection, eastl::string().sprintf("U+%x.bmp", _unicodeCodepoint).c_str());
+
+        return pixels;
     }
 
     Font::Font(AllocatorInstance _allocator)
