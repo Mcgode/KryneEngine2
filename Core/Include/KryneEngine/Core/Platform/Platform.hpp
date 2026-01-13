@@ -29,11 +29,8 @@ namespace KryneEngine::Platform
 
     struct GlyphMetrics
     {
+        double4 m_bounds;
         double m_advance;
-        double m_width;
-        double m_height;
-        double m_bearingX;
-        double m_bearingY;
     };
 
     using FontGlyphMetricsFunction = void (*)(const FontMetrics&, const GlyphMetrics&, void*);

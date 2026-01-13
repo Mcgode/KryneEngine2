@@ -59,26 +59,23 @@ namespace KryneEngine::Platform
                 CGPathRef outline = CTFontCreatePathForGlyph(font, glyphs.front(), nullptr);
                 if (outline != nullptr)
                 {
-                    KE_ASSERT_MSG(!_verticalLayout, "Vertical layout not implemented");
-
                     const FontMetrics fontMetrics {
                         .m_ascender = CTFontGetAscent(font),
                         .m_descender = CTFontGetDescent(font),
                         .m_lineHeight = CTFontGetLeading(font) + CTFontGetAscent(font) + CTFontGetDescent(font),
                     };
 
+                    const CTFontOrientation orientation = _verticalLayout ? kCTFontOrientationVertical : kCTFontOrientationHorizontal;
+
                     CGSize advances;
-                    CTFontGetAdvancesForGlyphs(font, kCTFontOrientationHorizontal, glyphs.data(), &advances, 1);
+                    CTFontGetAdvancesForGlyphs(font, orientation, glyphs.data(), &advances, 1);
 
                     CGRect bbox;
-                    CTFontGetBoundingRectsForGlyphs(font, kCTFontOrientationHorizontal, glyphs.data(), &bbox, 1);
+                    CTFontGetBoundingRectsForGlyphs(font, orientation, glyphs.data(), &bbox, 1);
 
                     const GlyphMetrics glyphMetrics {
-                        .m_advance = advances.width,
-                        .m_width = bbox.size.width,
-                        .m_height = bbox.size.height,
-                        .m_bearingX = bbox.origin.x,
-                        .m_bearingY = bbox.size.height + bbox.origin.y,
+                        .m_bounds = { bbox.origin.x, bbox.origin.y, bbox.size.width, bbox.size.height },
+                        .m_advance = _verticalLayout ? advances.height : advances.width,
                     };
 
                     _fontMetrics(fontMetrics, glyphMetrics, _userData);
