@@ -98,10 +98,18 @@ set(MemorySrc
         Include/KryneEngine/Core/Memory/Containers/VectorDeLinkedList.hpp
 )
 
+message(STATUS "Loading implementation for platform '${CMAKE_SYSTEM_NAME}'")
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Src/Platform/${CMAKE_SYSTEM_NAME}/CMakeLists.txt")
+        message(FATAL_ERROR "Could not find platform implementation for platform ${CMAKE_SYSTEM_NAME}")
+endif ()
+add_subdirectory("Src/Platform/${CMAKE_SYSTEM_NAME}")
+
 set(PlatformSrc
         Include/KryneEngine/Core/Platform/Windows.h
         Src/Platform/StdAlloc.cpp
         Include/KryneEngine/Core/Platform/StdAlloc.hpp
+        Include/KryneEngine/Core/Platform/Platform.hpp
+        ${KE_PLATFORM_IMPLEMENTATION_FILES}
 )
 
 set(ProfilingSrc
