@@ -144,7 +144,7 @@ s32 main(s32 argc, const char** argv)
                         })}
                     })
                     {}
-                    CLAY_TEXT(CLAY_STRING("Clay - UI Library"), CLAY_TEXT_CONFIG({  .textColor = {255, 255, 255, 255}, .fontId = font->GeId(), .fontSize = 20 }));
+                    CLAY_TEXT(CLAY_STRING("Clay - UI Library"), CLAY_TEXT_CONFIG({  .textColor = {255, 255, 255, 255}, .fontId = font->GetId(), .fontSize = 20 }));
                 }
 
                 // Standard C code like loops etc work inside components
@@ -183,7 +183,7 @@ s32 main(s32 argc, const char** argv)
                 {
                     CLAY_TEXT(CLAY_STRING("Mangé, à, è"), CLAY_TEXT_CONFIG({
                         .textColor = { 255, 80, 80, 255 },
-                        .fontId = font->GeId(),
+                        .fontId = font->GetId(),
                         .fontSize = 60,
                         .letterSpacing = 2,
                         .textAlignment = CLAY_TEXT_ALIGN_CENTER,

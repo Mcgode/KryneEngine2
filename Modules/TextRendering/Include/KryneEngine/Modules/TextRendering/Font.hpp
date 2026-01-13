@@ -43,7 +43,7 @@ namespace KryneEngine::Modules::TextRendering
 
         float* GenerateMsdf(u32 _unicodeCodepoint, float _fontSize, u16 _pxRange, AllocatorInstance _allocator);
 
-        void SetFallbackFont(const Font* _fallbackFont) { m_fallbackFontId = _fallbackFont->GeId(); }
+        void SetFallbackFont(const Font* _fallbackFont) { m_fallbackFontId = _fallbackFont->GetId(); }
         void SetFallbackSystemFont() { m_fallbackFontId = kSystemFontFallback; }
         void SetNoFallback() { m_fallbackFontId = kNoFallback; }
 
@@ -51,7 +51,7 @@ namespace KryneEngine::Modules::TextRendering
         [[nodiscard]] bool IsSystemFontFallback() const { return m_fallbackFontId == kSystemFontFallback; }
         [[nodiscard]] u16 GetFallbackFont() const { return m_fallbackFontId; }
 
-        [[nodiscard]] u16 GeId() const { return m_fontId; }
+        [[nodiscard]] u16 GetId() const { return m_fontId; }
 
     private:
         explicit Font(AllocatorInstance _allocator, FontManager* _fontManager);
