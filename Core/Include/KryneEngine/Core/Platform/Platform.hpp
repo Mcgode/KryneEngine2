@@ -29,8 +29,8 @@ namespace KryneEngine::Platform
 
     struct GlyphMetrics
     {
-        double4 m_bounds;
-        double m_advance;
+        double4 m_bounds {};
+        double m_advance {};
     };
 
     using FontGlyphMetricsFunction = void (*)(const FontMetrics&, const GlyphMetrics&, void*);
@@ -41,7 +41,7 @@ namespace KryneEngine::Platform
     using FontEndContourFunction = void (*)(void*);
 
     /**
-     * @brief A function that retrieves the outline of a glyph from the system default font.
+     * @brief A function that retrieves glyph data from the system default font.
      *
      * @returns `true` if the glyph was successfully retrieved, `false` otherwise.
      */
