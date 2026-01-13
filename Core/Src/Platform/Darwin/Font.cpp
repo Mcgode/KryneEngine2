@@ -34,7 +34,7 @@ namespace KryneEngine::Platform
             utf16.push_back(static_cast<UniChar>(0xDC00 + (cp & 0x3FF)));
         }
 
-        const CTFontRef defaultFont = CTFontCreateUIFontForLanguage(kCTFontUIFontSystem, 16.f, nullptr);
+        const CTFontRef defaultFont = CTFontCreateUIFontForLanguage(kCTFontUIFontSystem, 0.f, nullptr);
         const CFArrayRef cascadeDescriptors = CTFontCopyDefaultCascadeListForLanguages(defaultFont, nullptr);
         if (cascadeDescriptors == nullptr) return false;
 
@@ -46,7 +46,7 @@ namespace KryneEngine::Platform
             if (descriptor == nullptr)
                 continue;
 
-            const CTFontRef font = CTFontCreateWithFontDescriptor(descriptor, 16.f, nullptr);
+            const CTFontRef font = CTFontCreateWithFontDescriptor(descriptor, 0.f, nullptr);
             if (font == nullptr) continue;
 
             eastl::fixed_vector<CGGlyph, 2, false> glyphs(utf16.size());
@@ -56,13 +56,16 @@ namespace KryneEngine::Platform
             {
                 found = true;
 
+                const double scale = CTFontGetUnitsPerEm(font) / CTFontGetSize(font);
+
                 CGPathRef outline = CTFontCreatePathForGlyph(font, glyphs.front(), nullptr);
                 if (outline != nullptr)
                 {
                     const FontMetrics fontMetrics {
-                        .m_ascender = CTFontGetAscent(font),
-                        .m_descender = CTFontGetDescent(font),
-                        .m_lineHeight = CTFontGetLeading(font) + CTFontGetAscent(font) + CTFontGetDescent(font),
+                        .m_ascender = CTFontGetAscent(font) * scale,
+                        .m_descender = CTFontGetDescent(font) * scale,
+                        .m_lineHeight = scale * (CTFontGetLeading(font) + CTFontGetAscent(font) + CTFontGetDescent(font)),
+                        .m_unitPerEm = static_cast<double>(CTFontGetUnitsPerEm(font))
                     };
 
                     const CTFontOrientation orientation = _verticalLayout ? kCTFontOrientationVertical : kCTFontOrientationHorizontal;
@@ -74,8 +77,12 @@ namespace KryneEngine::Platform
                     CTFontGetBoundingRectsForGlyphs(font, orientation, glyphs.data(), &bbox, 1);
 
                     const GlyphMetrics glyphMetrics {
-                        .m_bounds = { bbox.origin.x, bbox.origin.y, bbox.size.width, bbox.size.height },
-                        .m_advance = _verticalLayout ? advances.height : advances.width,
+                        .m_bounds = {
+                            bbox.origin.x * scale,
+                            bbox.origin.y * scale,
+                            bbox.size.width * scale,
+                            bbox.size.height * scale },
+                        .m_advance = (_verticalLayout ? advances.height : advances.width) * scale,
                     };
 
                     _fontMetrics(fontMetrics, glyphMetrics, _userData);
@@ -83,6 +90,7 @@ namespace KryneEngine::Platform
                     struct Context
                     {
                         void* m_userData;
+                        double scale;
                         FontNewContourFunction m_newContour;
                         FontNewEdgeFunction m_newEdge;
                         FontNewConicFunction m_newConic;
@@ -90,7 +98,7 @@ namespace KryneEngine::Platform
                         FontEndContourFunction m_endContour;
                         CGPoint m_firstPoint {};
                     };
-                    Context context { _userData, _newContour, _newEdge, _newConic, _newCubic, _endContour };
+                    Context context { _userData, scale, _newContour, _newEdge, _newConic, _newCubic, _endContour };
                     constexpr auto applier = [](void* _info, const CGPathElement* _element)
                     {
                         auto& context = *static_cast<Context*>(_info);
@@ -101,25 +109,25 @@ namespace KryneEngine::Platform
                         case kCGPathElementMoveToPoint:
                             context.m_firstPoint = _element->points[0];
                             context.m_newContour(
-                                { _element->points[0].x, _element->points[0].y },
+                                { _element->points[0].x * context.scale, _element->points[0].y * context.scale },
                                 context.m_userData);
                             break;
                         case kCGPathElementAddLineToPoint:
                             context.m_newEdge(
-                                { _element->points[0].x, _element->points[0].y },
+                                { _element->points[0].x * context.scale, _element->points[0].y * context.scale },
                                 context.m_userData);
                             break;
                         case kCGPathElementAddQuadCurveToPoint:
                             context.m_newConic(
-                                { _element->points[0].x, _element->points[0].y },
-                                { _element->points[1].x, _element->points[1].y },
+                                { _element->points[0].x * context.scale, _element->points[0].y * context.scale },
+                                { _element->points[1].x * context.scale, _element->points[1].y * context.scale },
                                 context.m_userData);
                             break;
                         case kCGPathElementAddCurveToPoint:
                             context.m_newCubic(
-                                { _element->points[0].x, _element->points[0].y },
-                                { _element->points[1].x, _element->points[1].y },
-                                { _element->points[2].x, _element->points[2].y },
+                                { _element->points[0].x * context.scale, _element->points[0].y * context.scale },
+                                { _element->points[1].x * context.scale, _element->points[1].y * context.scale },
+                                { _element->points[2].x * context.scale, _element->points[2].y * context.scale },
                                 context.m_userData);
                             break;
                         case kCGPathElementCloseSubpath:

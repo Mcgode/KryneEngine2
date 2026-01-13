@@ -25,6 +25,7 @@ namespace KryneEngine::Platform
         double m_ascender;
         double m_descender;
         double m_lineHeight;
+        double m_unitPerEm;
     };
 
     struct GlyphMetrics
