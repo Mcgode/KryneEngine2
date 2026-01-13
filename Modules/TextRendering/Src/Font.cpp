@@ -8,6 +8,8 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include "KryneEngine/Modules/TextRendering/FontManager.hpp"
+
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <msdfgen.h>
 
@@ -49,7 +51,18 @@ namespace KryneEngine::Modules::TextRendering
 
             return _fontSize * static_cast<float>(entry.m_baseAdvanceX) / static_cast<float>(m_face->units_per_EM);
         }
-        return 0;
+        if (IsNoFallback())
+            return 0;
+        else if (IsSystemFontFallback())
+        {
+            // TODO
+            return 0;
+        }
+        else
+        {
+            Font* font = m_fontManager->GetFont(m_fallbackFontId);
+            return font != nullptr ? font->GetHorizontalAdvance(_unicodeCodepoint, _fontSize) : 0;
+        }
     }
 
     Font::GlyphLayoutMetrics Font::GetGlyphLayoutMetrics(u32 _unicodeCodepoint, float _fontSize)
@@ -74,7 +87,21 @@ namespace KryneEngine::Modules::TextRendering
                 _fontSize * emScale * static_cast<float>(entry.m_baseHeight)
             };
         }
-        return { 0, 0, 0, 0, 0 };
+
+        if (IsNoFallback())
+            return { 0, 0, 0, 0, 0 };
+        else if (IsSystemFontFallback())
+        {
+            // TODO
+            return { 0, 0, 0, 0, 0 };
+        }
+        else
+        {
+            Font* font = m_fontManager->GetFont(m_fallbackFontId);
+            return font != nullptr
+            ? font->GetGlyphLayoutMetrics(_unicodeCodepoint, _fontSize)
+            : GlyphLayoutMetrics { 0, 0, 0, 0, 0 };
+        }
     }
 
     float* Font::GenerateMsdf(
@@ -87,7 +114,20 @@ namespace KryneEngine::Modules::TextRendering
 
         const auto it = m_glyphs.find(_unicodeCodepoint);
         if (it == m_glyphs.end())
-            return nullptr;
+        {
+            if (IsNoFallback())
+                return nullptr;
+            else if (IsSystemFontFallback())
+                // TODO
+                return nullptr;
+            else
+            {
+                Font* font = m_fontManager->GetFont(m_fallbackFontId);
+                return font != nullptr
+                    ? font->GenerateMsdf(_unicodeCodepoint, _fontSize, _pxRange, _allocator)
+                    : nullptr;
+            }
+        }
 
         GlyphEntry& entry = it->second;
         if (std::atomic_ref(entry.m_loaded).load(std::memory_order_relaxed) == false) [[unlikely]]
@@ -199,8 +239,9 @@ namespace KryneEngine::Modules::TextRendering
         return pixels;
     }
 
-    Font::Font(AllocatorInstance _allocator)
-        : m_points(_allocator)
+    Font::Font(AllocatorInstance _allocator, FontManager* _fontManager)
+        : m_fontManager(_fontManager)
+        , m_points(_allocator)
         , m_tags(_allocator)
         , m_glyphs(_allocator)
     {

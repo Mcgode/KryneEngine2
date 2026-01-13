@@ -114,7 +114,7 @@ namespace KryneEngine::Modules::TextRendering
             }
         }
 
-        auto* newFont = new (m_allocator.Allocate<Font>()) Font(m_allocator);
+        auto* newFont = new (m_allocator.Allocate<Font>()) Font(m_allocator, this);
         newFont->m_face = face;
         newFont->m_fileBuffer = reinterpret_cast<std::byte*>(buffer);
         newFont->m_fileBufferAllocator = m_allocator;

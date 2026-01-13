@@ -16,6 +16,8 @@ struct FT_FaceRec_;
 
 namespace KryneEngine::Modules::TextRendering
 {
+    class FontManager;
+
     class Font
     {
         friend class FontManager;
@@ -41,10 +43,18 @@ namespace KryneEngine::Modules::TextRendering
 
         float* GenerateMsdf(u32 _unicodeCodepoint, float _fontSize, u16 _pxRange, AllocatorInstance _allocator);
 
+        void SetFallbackFont(const Font* _fallbackFont) { m_fallbackFontId = _fallbackFont->GeId(); }
+        void SetFallbackSystemFont() { m_fallbackFontId = kSystemFontFallback; }
+        void SetNoFallback() { m_fallbackFontId = kNoFallback; }
+
+        [[nodiscard]] bool IsNoFallback() const { return m_fallbackFontId == kNoFallback; }
+        [[nodiscard]] bool IsSystemFontFallback() const { return m_fallbackFontId == kSystemFontFallback; }
+        [[nodiscard]] u16 GetFallbackFont() const { return m_fallbackFontId; }
+
         [[nodiscard]] u16 GeId() const { return m_fontId; }
 
     private:
-        explicit Font(AllocatorInstance _allocator);
+        explicit Font(AllocatorInstance _allocator, FontManager* _fontManager);
 
         enum class OutlineTag: u8
         {
@@ -74,6 +84,10 @@ namespace KryneEngine::Modules::TextRendering
             u32 m_outlineTagCount;
         };
 
+        static constexpr u32 kSystemFontFallback = 0x10000;
+        static constexpr u32 kNoFallback = 0x20000;
+
+        FontManager* m_fontManager = nullptr;
         u16 m_fontId = 0;
         FT_FaceRec_* m_face = nullptr;
         std::byte* m_fileBuffer = nullptr;
@@ -83,6 +97,7 @@ namespace KryneEngine::Modules::TextRendering
         eastl::vector_map<u32, GlyphEntry> m_glyphs;
         SpinLock m_loadLock {};
         SpinLock m_outlinesLock {};
+        u32 m_fallbackFontId = kSystemFontFallback;
 
         void LoadGlyph(size_t _vectorMapIndex);
         void LoadGlyphSafe(size_t _vectorMapIndex);
