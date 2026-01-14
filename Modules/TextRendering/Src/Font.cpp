@@ -39,7 +39,7 @@ namespace KryneEngine::Modules::TextRendering
     float Font::GetHorizontalAdvance(const u32 _unicodeCodepoint, const float _fontSize)
     {
         auto it = m_glyphs.find(_unicodeCodepoint);
-        if (it != m_glyphs.end() || m_glyphs.begin()->first == 0)
+        if (it != m_glyphs.end())
         {
             if (it == m_glyphs.end())
                 it = m_glyphs.begin();
@@ -55,8 +55,7 @@ namespace KryneEngine::Modules::TextRendering
             return 0;
         else if (IsSystemFontFallback())
         {
-            // TODO
-            return 0;
+            return m_fontManager->GetSystemFont().GetHorizontalAdvance(_unicodeCodepoint, _fontSize);
         }
         else
         {
@@ -68,7 +67,7 @@ namespace KryneEngine::Modules::TextRendering
     GlyphLayoutMetrics Font::GetGlyphLayoutMetrics(u32 _unicodeCodepoint, float _fontSize)
     {
         auto it = m_glyphs.find(_unicodeCodepoint);
-        if (it != m_glyphs.end() || m_glyphs.begin()->first == 0)
+        if (it != m_glyphs.end())
         {
             if (it == m_glyphs.end())
                 it = m_glyphs.begin();
@@ -92,8 +91,7 @@ namespace KryneEngine::Modules::TextRendering
             return { 0, 0, 0, 0, 0 };
         else if (IsSystemFontFallback())
         {
-            // TODO
-            return { 0, 0, 0, 0, 0 };
+            return m_fontManager->GetSystemFont().GetGlyphLayoutMetrics(_unicodeCodepoint, _fontSize);
         }
         else
         {
@@ -110,7 +108,6 @@ namespace KryneEngine::Modules::TextRendering
         const u16 _pxRange,
         AllocatorInstance _allocator)
     {
-        KE_ZoneScopedF("Generate MSDF for U+%x", _unicodeCodepoint);
 
         const auto it = m_glyphs.find(_unicodeCodepoint);
         if (it == m_glyphs.end())
@@ -118,8 +115,7 @@ namespace KryneEngine::Modules::TextRendering
             if (IsNoFallback())
                 return nullptr;
             else if (IsSystemFontFallback())
-                // TODO
-                return nullptr;
+                return m_fontManager->GetSystemFont().GenerateMsdf(_unicodeCodepoint, _fontSize, _pxRange, _allocator);
             else
             {
                 Font* font = m_fontManager->GetFont(m_fallbackFontId);
@@ -128,6 +124,8 @@ namespace KryneEngine::Modules::TextRendering
                     : nullptr;
             }
         }
+
+        KE_ZoneScopedF("Generate MSDF for U+%x", _unicodeCodepoint);
 
         GlyphEntry& entry = it->second;
         if (std::atomic_ref(entry.m_loaded).load(std::memory_order_relaxed) == false) [[unlikely]]
