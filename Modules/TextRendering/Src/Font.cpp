@@ -232,8 +232,6 @@ namespace KryneEngine::Modules::TextRendering
             transformation,
             generatorConfig);
 
-        msdfgen::saveBmp(bitmapSection, eastl::string().sprintf("U+%x.bmp", _unicodeCodepoint).c_str());
-
         return pixels;
     }
 
