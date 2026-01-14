@@ -6,11 +6,12 @@
 
 #pragma once
 
-#include <EASTL/span.h>
 #include <EASTL/vector_map.h>
 #include <KryneEngine/Core/Math/Vector.hpp>
 #include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
 #include <KryneEngine/Core/Threads/SpinLock.hpp>
+
+#include "KryneEngine/Modules/TextRendering/FontCommon.hpp"
 
 struct FT_FaceRec_;
 
@@ -24,15 +25,6 @@ namespace KryneEngine::Modules::TextRendering
 
     public:
         ~Font();
-
-        struct GlyphLayoutMetrics
-        {
-            float m_advanceX;
-            float m_bearingX;
-            float m_width;
-            float m_bearingY;
-            float m_height;
-        };
 
         float GetAscender(float _fontSize) const;
         float GetDescender(float _fontSize) const;
@@ -55,14 +47,6 @@ namespace KryneEngine::Modules::TextRendering
 
     private:
         explicit Font(AllocatorInstance _allocator, FontManager* _fontManager);
-
-        enum class OutlineTag: u8
-        {
-            NewContour,
-            Line,
-            Conic,
-            Cubic
-        };
 
         struct GlyphEntry
         {

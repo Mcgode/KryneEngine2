@@ -65,7 +65,7 @@ namespace KryneEngine::Modules::TextRendering
         }
     }
 
-    Font::GlyphLayoutMetrics Font::GetGlyphLayoutMetrics(u32 _unicodeCodepoint, float _fontSize)
+    GlyphLayoutMetrics Font::GetGlyphLayoutMetrics(u32 _unicodeCodepoint, float _fontSize)
     {
         auto it = m_glyphs.find(_unicodeCodepoint);
         if (it != m_glyphs.end() || m_glyphs.begin()->first == 0)

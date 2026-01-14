@@ -79,7 +79,7 @@ namespace KryneEngine::Modules::TextRendering
             }
         }
 
-        const Font::GlyphLayoutMetrics glyphMetrics = _font->GetGlyphLayoutMetrics(_unicodeCodepoint, static_cast<float>(_fontSize));
+        const GlyphLayoutMetrics glyphMetrics = _font->GetGlyphLayoutMetrics(_unicodeCodepoint, static_cast<float>(_fontSize));
         KE_ASSERT(glyphMetrics.m_advanceX != 0.f);
 
         // Special characters that have no outline are not rendered

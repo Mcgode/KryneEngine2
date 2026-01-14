@@ -699,7 +699,7 @@ namespace KryneEngine::Modules::GuiLib
                     };
                     for (Utf8Iterator utf8Iterator { stringContents }; utf8Iterator != stringContents.end(); ++utf8Iterator)
                     {
-                        const TextRendering::Font::GlyphLayoutMetrics glyphLayoutMetrics = font->GetGlyphLayoutMetrics(*utf8Iterator, fontSize);
+                        const TextRendering::GlyphLayoutMetrics glyphLayoutMetrics = font->GetGlyphLayoutMetrics(*utf8Iterator, fontSize);
 
                         constexpr float msdfFontSize = 32;
                         const TextRendering::MsdfAtlasManager::GlyphRegion glyphRegion =
