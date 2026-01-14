@@ -12,7 +12,10 @@ add_library(KryneEngine_Modules_TextRendering STATIC
         Src/FontManager.cpp
         Include/KryneEngine/Modules/TextRendering/FontManager.hpp
         Src/MsdfAtlasManager.cpp
-        Include/KryneEngine/Modules/TextRendering/MsdfAtlasManager.hpp)
+        Include/KryneEngine/Modules/TextRendering/MsdfAtlasManager.hpp
+        Src/SystemFont.cpp
+        Include/KryneEngine/Modules/TextRendering/SystemFont.hpp
+        Include/KryneEngine/Modules/TextRendering/FontCommon.hpp)
 
 find_package(Freetype REQUIRED)
 

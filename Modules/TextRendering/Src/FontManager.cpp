@@ -22,6 +22,7 @@ namespace KryneEngine::Modules::TextRendering
 
     FontManager::FontManager(AllocatorInstance _allocator)
         : m_allocator(_allocator)
+        , m_systemFont(_allocator)
         , m_fonts(_allocator)
     {
         const FT_Error error = FT_Init_FreeType(&m_ftLibrary);

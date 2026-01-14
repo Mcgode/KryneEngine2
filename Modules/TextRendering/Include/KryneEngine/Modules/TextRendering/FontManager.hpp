@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Common/Types.hpp"
-
-
 #include <EASTL/string_view.h>
 #include <EASTL/vector.h>
+#include <KryneEngine/Core/Common/Types.hpp>
 #include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
+
+#include "KryneEngine/Modules/TextRendering/SystemFont.hpp"
 
 struct FT_LibraryRec_;
 
@@ -26,11 +26,13 @@ namespace KryneEngine::Modules::TextRendering
 
         ~FontManager();
 
+        SystemFont& GetSystemFont() { return m_systemFont; }
         Font* LoadFont(eastl::string_view _path);
         [[nodiscard]] Font* GetFont(u16 _fontId) const;
 
     private:
         AllocatorInstance m_allocator;
+        SystemFont m_systemFont;
         eastl::vector<Font*> m_fonts;
         FT_LibraryRec_* m_ftLibrary {};
     };
