@@ -181,10 +181,10 @@ s32 main(s32 argc, const char** argv)
             {
                 CLAY({ .layout = { .sizing = { .height = CLAY_SIZING_GROW() } } })
                 {
-                    CLAY_TEXT(CLAY_STRING("Mangé, à, è"), CLAY_TEXT_CONFIG({
+                    CLAY_TEXT(CLAY_STRING("Un peu de français à afficher, bébé!"), CLAY_TEXT_CONFIG({
                         .textColor = { 255, 80, 80, 255 },
                         .fontId = font->GetId(),
-                        .fontSize = 60,
+                        .fontSize = 50,
                         .letterSpacing = 2,
                         .textAlignment = CLAY_TEXT_ALIGN_CENTER,
                     }));
