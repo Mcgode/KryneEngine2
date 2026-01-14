@@ -6,12 +6,80 @@
 
 #include "KryneEngine/Modules/TextRendering/SystemFont.hpp"
 
+#include <EASTL/sort.h>
+#include <KryneEngine/Core/Memory/DynamicArray.hpp>
 #include <KryneEngine/Core/Platform/Platform.hpp>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
 #include <msdfgen.h>
 
 namespace KryneEngine::Modules::TextRendering
 {
+    void FixShapeWinding(msdfgen::Shape& _shape, AllocatorInstance _allocator)
+    {
+        struct Intersection
+        {
+            float m_x;
+            s8 m_winding;
+        };
+
+        eastl::vector<Intersection> intersections(_allocator);
+        DynamicArray<s8> orientations(_allocator, _shape.contours.size(), 0);
+
+        for (u32 i = 0; i < _shape.contours.size(); ++i)
+        {
+            const msdfgen::Contour& contour = _shape.contours[i];
+
+            if (orientations[i] != 0 || contour.edges.empty())
+                continue;
+
+            // an irrational number to minimize chance of intersecting a corner or other point of interest
+            const double ratio = .5*(sqrt(5)-1);
+
+            double y0 = contour.edges.front()->point(0).y;
+            double y1 = y0;
+
+            for (auto it = contour.edges.begin(); it != contour.edges.end() && y0 == y1; ++it)
+                y1 = (*it)->point(1).y;
+
+            for (auto it = contour.edges.begin(); it != contour.edges.end() && y0 == y1; ++it)
+                y1 = (*it)->point(ratio).y;
+
+            const double y = y0 * ratio + y1 * (1 - ratio);
+
+            double x[3];
+            s32 dy[3];
+            for (u32 j = 0; j < _shape.contours.size(); ++j)
+            {
+                for (const auto& edge: _shape.contours[j].edges)
+                {
+                    const s32 n = edge->scanlineIntersections(x, dy, y);
+                    for (s32 k = 0; k < n; ++k)
+                        intersections.emplace_back(Intersection {
+                            .m_x = static_cast<float>(x[k]),
+                            .m_winding = static_cast<s8>(dy[k]),
+                        });
+                }
+            }
+
+            if (intersections.empty())
+                continue;
+
+            const Intersection* outerIntersection = eastl::min_element(
+                intersections.begin(), intersections.end(), [](const Intersection& a, const Intersection& b) {
+                    return a.m_x < b.m_x;
+                });
+
+            constexpr s8 expectedWinding = 1;
+            const bool isExpectedWinding = outerIntersection->m_winding == expectedWinding;
+            if (!isExpectedWinding)
+            {
+                for (auto& contourToReverse: _shape.contours)
+                    contourToReverse.reverse();
+            }
+            return;
+        }
+    }
+
     float SystemFont::GetHorizontalAdvance(const u32 _unicodeCodePoint, const float _fontSize)
     {
         const auto lock = m_lock.AutoLock();
@@ -134,6 +202,8 @@ namespace KryneEngine::Modules::TextRendering
                 }
             }
         }
+
+        FixShapeWinding(shape, m_tags.get_allocator());
 
         KE_ASSERT(shape.validate());
 
