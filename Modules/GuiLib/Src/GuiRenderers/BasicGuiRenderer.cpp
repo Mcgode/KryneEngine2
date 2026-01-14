@@ -720,7 +720,7 @@ namespace KryneEngine::Modules::GuiLib
                             static_cast<float>(glyphRegion.m_height) * 0.5f * scale,
                         };
                         const float2_simd glyphOffset {
-                            -static_cast<float>(glyphRegion.m_pxRange) * 0.5f * scale,
+                            -static_cast<float>(glyphRegion.m_pxRange) * 0.5f * scale + glyphLayoutMetrics.m_bearingX,
                             -static_cast<float>(glyphRegion.m_baseline) * scale,
                         };
                         const float2_simd glyphCenter = writePoint + glyphOffset + glyphHalfSize;
