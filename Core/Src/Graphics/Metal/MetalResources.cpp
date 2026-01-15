@@ -448,6 +448,7 @@ namespace KryneEngine
                 KE_ASSERT_FATAL(libHot != nullptr);
                 const MTL::Function* function = libHot->m_library->newFunction(NS::String::string(
                     stage.m_entryPoint.c_str(), NS::UTF8StringEncoding));
+                KE_ASSERT_FATAL(function != nullptr);
 
                 switch (stage.m_stage)
                 {
