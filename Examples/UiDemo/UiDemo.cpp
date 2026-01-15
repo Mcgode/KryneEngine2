@@ -7,6 +7,7 @@
 #include "KryneEngine/Modules/TextRendering/Font.hpp"
 #include "KryneEngine/Modules/TextRendering/MsdfAtlasManager.hpp"
 #include "TextureGenerator.hpp"
+#include "UiCube.hpp"
 
 
 #include <KryneEngine/Core/Graphics/GraphicsContext.hpp>
@@ -104,6 +105,8 @@ s32 main(s32 argc, const char** argv)
             graphicsContext->GetApplicationInfo().m_displayOptions.m_width,
             graphicsContext->GetApplicationInfo().m_displayOptions.m_height
         });
+
+    UiCube uiCube { allocatorInstance, *graphicsContext, &fontManager, renderPassHandles[0] };
 
     do
     {
@@ -244,6 +247,8 @@ s32 main(s32 argc, const char** argv)
         const KryneEngine::RenderPassHandle currentPass = renderPassHandles[graphicsContext->GetCurrentPresentImageIndex()];
         graphicsContext->BeginRenderPass(renderCommandList, currentPass);
         clayContext.EndLayout(*graphicsContext, transferCommandList, renderCommandList);
+
+        uiCube.Render(*graphicsContext, transferCommandList, renderCommandList);
         graphicsContext->EndRenderPass(renderCommandList);
 
         msdfAtlasManager.FlushLoads(*graphicsContext, transferCommandList);
