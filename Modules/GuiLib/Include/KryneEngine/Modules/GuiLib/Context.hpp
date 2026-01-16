@@ -6,10 +6,13 @@
 
 #pragma once
 
+#include "KryneEngine/Core/Math/Matrix.hpp"
+
+
 #include <KryneEngine/Core/Common/Utils/Macros.hpp>
 #include <KryneEngine/Core/Graphics/GraphicsContext.hpp>
-#include <KryneEngine/Core/Memory/Containers/StableVector.hpp>
 #include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
+#include <KryneEngine/Core/Memory/Containers/StableVector.hpp>
 #include <clay.h>
 
 #include "KryneEngine/Modules/GuiLib/TextureRegion.hpp"
@@ -34,7 +37,7 @@ namespace KryneEngine::Modules::GuiLib
 
         void Destroy();
 
-        void BeginLayout(const uint2& _viewportSize);
+        void BeginLayout(const uint2& _viewportSize, const float4x4& _projectionMatrix = float4x4());
         void EndLayout(
             GraphicsContext& _graphicsContext,
             CommandListHandle _transferCommandList,
