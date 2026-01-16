@@ -220,7 +220,7 @@ UiCube::UiCube(
         _allocator.deallocate(vertexShaderSource.data());
     }
 
-    m_guiContext.Initialize(&m_guiRenderer, {});
+    m_guiContext.Initialize(&m_guiRenderer, m_uiViewportSize);
     m_guiRenderer.SetAtlasManager(_atlasManager);
 }
 
@@ -270,22 +270,22 @@ void UiCube::Render(
         .m_bottom = appInfo.m_displayOptions.m_height,
     };
 
+    const float4x4 projection = Math::PerspectiveProjection(60.f * M_PI / 180.f, 1, 0.1f, 100.f, false);
+
+    const float time = static_cast<float>(_graphicsContext.GetFrameId()) / 60.f;
+    Math::Quaternion rotation;
+    rotation.FromAxisAngle(float3(1, 0, 0).Normalized(), -M_PI_4);
+    rotation = rotation * Math::Quaternion().FromAxisAngle(float3(0, 0, 1), -M_PI_2) * rotation.Conjugate();
+    rotation = rotation * Math::Quaternion().FromAxisAngle(float3(0, 1, 0), time * 2.f) * rotation.Conjugate();
+
+    // Move the cube to the bottom left third of the screen
+    const float3 position = { 0, 5, 0 };
+    const auto model = Math::ComputeTransformMatrix<float4x4>(position, rotation, float3(1));
+
     {
         m_constantBuffer.PrepareBuffers(&_graphicsContext, _transferCommandList, BarrierAccessFlags::ConstantBuffer, frameIndex);
 
         auto* data = static_cast<UiCubeData*>(m_constantBuffer.Map(&_graphicsContext, frameIndex));
-
-        const float4x4 projection = Math::PerspectiveProjection(60.f * M_PI / 180.f, 1, 0.1f, 100.f, false);
-
-        const float time = static_cast<float>(_graphicsContext.GetFrameId()) / 60.f;
-        Math::Quaternion rotation;
-        rotation.FromAxisAngle(float3(1, 0, 0).Normalized(), -M_PI_4);
-        rotation = rotation * Math::Quaternion().FromAxisAngle(float3(0, 0, 1), -M_PI_2) * rotation.Conjugate();
-        rotation = rotation * Math::Quaternion().FromAxisAngle(float3(0, 1, 0), time * 2.f) * rotation.Conjugate();
-
-        // Move the cube to the bottom left third of the screen
-        const float3 position = { 0, 5, 0 };
-        const auto model = Math::ComputeTransformMatrix<float4x4>(position, rotation, float3(1));
 
         data->m_mvpMatrix = projection * model;
 
@@ -324,7 +324,28 @@ void UiCube::Render(
 
     _graphicsContext.DrawIndexedInstanced(_renderCommandList, { .m_elementCount = 36, });
 
-    m_guiContext.BeginLayout({});
-    // TODO: render small ui
-    m_guiContext.EndLayout(_graphicsContext, _transferCommandList, _renderCommandList);
+    {
+        const auto localTransform = Math::ComputeTransformMatrix<float4x4>(
+            float3(0, 0, -1),
+            Math::Quaternion().FromAxisAngle(float3(0, 1, 0), M_PI),
+            float3(1.f));
+        const float4x4 uiProjection = projection * model * localTransform;
+
+        m_guiContext.BeginLayout(m_uiViewportSize, uiProjection);
+        CLAY({
+            .layout = {
+                .sizing =  { .width = CLAY_SIZING_GROW(), .height = CLAY_SIZING_GROW() },
+                .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER },
+            },
+            .border = { .color = { 0, 0, 0, 255 }, .width = {4, 4, 4, 4 } }
+        })
+        {
+            CLAY_TEXT(CLAY_STRING("Face 0"), CLAY_TEXT_CONFIG({
+                .textColor = { 0, 0, 0, 255 },
+                .fontId = 0,
+                .fontSize = 32,
+            }));
+        }
+        m_guiContext.EndLayout(_graphicsContext, _transferCommandList, _renderCommandList);
+    }
 }
