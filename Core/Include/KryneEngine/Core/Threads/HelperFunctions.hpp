@@ -27,6 +27,10 @@ namespace KryneEngine::Threads
 #endif
     }
 
+    constexpr size_t kCacheLineSize = std::hardware_destructive_interference_size > 1
+        ? std::hardware_destructive_interference_size
+        : 64; // Default to 64-byte cache line size, as consumer-grade CPUs almost always use it.
+
     template<class SyncPrimitive, void (SyncPrimitive::*LockMethod)(), void (SyncPrimitive::*UnlockMethod)()>
     struct SyncLockGuard
     {
