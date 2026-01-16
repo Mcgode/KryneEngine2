@@ -44,8 +44,8 @@ UiCube::UiCube(
     RenderPassHandle _renderPass,
     Modules::TextRendering::MsdfAtlasManager* _atlasManager)
         : m_allocator(_allocator)
-        , m_guiContext(_allocator, _fontManager)
-        , m_guiRenderer(_allocator, _graphicsContext, _renderPass)
+        , m_guiContexts(_allocator, 6)
+        , m_guiRenderers(_allocator, 6)
         , m_constantBuffer(_allocator)
         , m_constantBufferViews(_allocator)
 {
@@ -220,8 +220,13 @@ UiCube::UiCube(
         _allocator.deallocate(vertexShaderSource.data());
     }
 
-    m_guiContext.Initialize(&m_guiRenderer, m_uiViewportSize);
-    m_guiRenderer.SetAtlasManager(_atlasManager);
+    for (u32 i = 0; i < 6; ++i)
+    {
+        m_guiContexts.Init(i, _allocator, _fontManager);
+        new (m_guiRenderers.Data() + i) Modules::GuiLib::BasicGuiRenderer(_allocator, _graphicsContext, _renderPass);
+        m_guiContexts[i].Initialize(&m_guiRenderers[i], m_uiViewportSize);
+        m_guiRenderers[i].SetAtlasManager(_atlasManager);
+    }
 }
 
 
@@ -275,7 +280,7 @@ void UiCube::Render(
     const float time = static_cast<float>(_graphicsContext.GetFrameId()) / 60.f;
     Math::Quaternion rotation;
     rotation.FromAxisAngle(float3(1, 0, 0).Normalized(), -M_PI_4);
-    rotation = rotation * Math::Quaternion().FromAxisAngle(float3(0, 0, 1), -M_PI_2) * rotation.Conjugate();
+    rotation = rotation * Math::Quaternion().FromAxisAngle(float3(0, 0, 1), -M_PI_2 * 1.5) * rotation.Conjugate();
     rotation = rotation * Math::Quaternion().FromAxisAngle(float3(0, 1, 0), time * 2.f) * rotation.Conjugate();
 
     // Move the cube to the bottom left third of the screen
@@ -324,14 +329,52 @@ void UiCube::Render(
 
     _graphicsContext.DrawIndexedInstanced(_renderCommandList, { .m_elementCount = 36, });
 
+    for (u32 i = 0; i < 6; ++i)
     {
-        const auto localTransform = Math::ComputeTransformMatrix<float4x4>(
-            float3(0, 0, -1),
-            Math::Quaternion().FromAxisAngle(float3(0, 1, 0), M_PI),
-            float3(1.f));
+        float4x4 localTransform;
+        switch (i)
+        {
+        case 0:
+            localTransform= Math::ComputeTransformMatrix<float4x4>(
+                float3(0, 0, -1),
+                Math::Quaternion().FromAxisAngle(float3(0, 1, 0), M_PI),
+                float3(1.f));
+            break;
+        case 1:
+            localTransform = Math::ComputeTransformMatrix<float4x4>(
+                float3(1, 0, 0),
+                Math::Quaternion().FromAxisAngle(float3(0, 1, 0), M_PI_2),
+                float3(1.f));
+            break;
+        case 2:
+            localTransform = Math::ComputeTransformMatrix<float4x4>(
+                float3(0, -1, 0),
+                Math::Quaternion().FromAxisAngle(float3(1, 0, 0), M_PI_2),
+                float3(1.f));
+            break;
+        case 3:
+            localTransform = Math::ComputeTransformMatrix<float4x4>(
+                float3(0, 0, 1),
+                Math::Quaternion(),
+                float3(1.f));
+            break;
+        case 4:
+            localTransform = Math::ComputeTransformMatrix<float4x4>(
+                float3(-1, 0, 0),
+                Math::Quaternion().FromAxisAngle(float3(0, 1, 0), -M_PI_2),
+                float3(1.f));
+            break;
+        case 5:
+            localTransform = Math::ComputeTransformMatrix<float4x4>(
+                float3(0, 1, 0),
+                Math::Quaternion().FromAxisAngle(float3(1, 0, 0), -M_PI_2),
+                float3(1.f));
+            break;
+        default: KE_ASSERT_FATAL(false);
+        }
         const float4x4 uiProjection = projection * model * localTransform;
 
-        m_guiContext.BeginLayout(m_uiViewportSize, uiProjection);
+        m_guiContexts[i].BeginLayout(m_uiViewportSize, uiProjection);
         CLAY({
             .layout = {
                 .sizing =  { .width = CLAY_SIZING_GROW(), .height = CLAY_SIZING_GROW() },
@@ -340,12 +383,14 @@ void UiCube::Render(
             .border = { .color = { 0, 0, 0, 255 }, .width = {4, 4, 4, 4 } }
         })
         {
-            CLAY_TEXT(CLAY_STRING("Face 0"), CLAY_TEXT_CONFIG({
+            const auto string = eastl::string().sprintf("Face %u", i);
+            const Clay_String clayString { false, static_cast<s32>(string.size()), string.data() };
+            CLAY_TEXT(clayString, CLAY_TEXT_CONFIG({
                 .textColor = { 0, 0, 0, 255 },
                 .fontId = 0,
                 .fontSize = 32,
             }));
         }
-        m_guiContext.EndLayout(_graphicsContext, _transferCommandList, _renderCommandList);
+        m_guiContexts[i].EndLayout(_graphicsContext, _transferCommandList, _renderCommandList);
     }
 }

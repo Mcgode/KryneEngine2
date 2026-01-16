@@ -32,8 +32,8 @@ private:
     AllocatorInstance m_allocator;
 
     uint2 m_uiViewportSize { 256, 256 };
-    Modules::GuiLib::Context m_guiContext;
-    Modules::GuiLib::BasicGuiRenderer m_guiRenderer;
+    DynamicArray<Modules::GuiLib::Context> m_guiContexts;
+    DynamicArray<Modules::GuiLib::BasicGuiRenderer> m_guiRenderers;
 
     BufferHandle m_vertexBuffer;
     BufferHandle m_indexBuffer;
