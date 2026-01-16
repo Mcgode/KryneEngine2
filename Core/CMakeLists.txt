@@ -141,6 +141,8 @@ set(ThreadsSrc
         Src/Threads/LightweightSemaphore.cpp
         Src/Threads/SpinLock.cpp
         Include/KryneEngine/Core/Threads/SpinLock.hpp
+        Src/Threads/RwSpinLock.cpp
+        Include/KryneEngine/Core/Threads/RwSpinLock.hpp
 )
 
 set(WindowSrc
