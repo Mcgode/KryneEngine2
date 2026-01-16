@@ -24,12 +24,12 @@ static const float3 positions[8] = {
 };
 
 const u16 indices[36] = {
-    0, 1, 2, 2, 1, 3,
-    4, 5, 6, 6, 5, 7,
-    0, 4, 1, 1, 4, 5,
-    2, 6, 3, 3, 6, 7,
-    0, 2, 4, 4, 2, 6,
+    0, 2, 1, 2, 3, 1,
     1, 3, 5, 5, 3, 7,
+    0, 1, 4, 1, 5, 4,
+    4, 5, 6, 6, 5, 7,
+    0, 4, 2, 4, 6, 2,
+    2, 6, 3, 3, 6, 7,
 };
 
 UiCube::UiCube(
@@ -192,6 +192,9 @@ UiCube::UiCube(
                 .m_elements = vertexElements,
                 .m_bindings = vertexBindings
             },
+            .m_rasterState = {
+                // .m_cullMode = RasterStateDesc::CullMode::None,
+            },
             .m_colorBlending = {
                 .m_attachments = { kDefaultColorAttachmentAlphaBlendDesc }
             },
@@ -251,24 +254,33 @@ void UiCube::Render(
 
     const u8 frameIndex = _graphicsContext.GetCurrentFrameContextIndex();
 
+    const GraphicsCommon::ApplicationInfo& appInfo = _graphicsContext.GetApplicationInfo();
+    constexpr u32 viewportSize = 332u;
+    const Rect cubeViewport {
+        .m_left = 0,
+        .m_top = appInfo.m_displayOptions.m_height - viewportSize,
+        .m_right = viewportSize,
+        .m_bottom = appInfo.m_displayOptions.m_height,
+    };
+
     {
         m_constantBuffer.PrepareBuffers(&_graphicsContext, _transferCommandList, BarrierAccessFlags::ConstantBuffer, frameIndex);
 
         auto* data = static_cast<UiCubeData*>(m_constantBuffer.Map(&_graphicsContext, frameIndex));
 
-        const GraphicsCommon::ApplicationInfo& appInfo = _graphicsContext.GetApplicationInfo();
-        const float aspect = static_cast<float>(appInfo.m_displayOptions.m_width) / static_cast<float>(appInfo.m_displayOptions.m_height);
-        const float4x4 projection = Math::PerspectiveProjection(60.f * M_PI / 180.f, aspect, 0.1f, 100.f, true);
+        const float4x4 projection = Math::PerspectiveProjection(60.f * M_PI / 180.f, 1, 0.1f, 100.f, false);
 
         const float time = static_cast<float>(_graphicsContext.GetFrameId()) / 60.f;
         Math::Quaternion rotation;
-        rotation.FromAxisAngle(float3(0, 1, 0), time);
+        rotation.FromAxisAngle(float3(1, 0, 0).Normalized(), -M_PI_4);
+        rotation = rotation * Math::Quaternion().FromAxisAngle(float3(0, 0, 1), -M_PI_2) * rotation.Conjugate();
+        rotation = rotation * Math::Quaternion().FromAxisAngle(float3(0, 1, 0), time * 2.f) * rotation.Conjugate();
 
         // Move the cube to the bottom left third of the screen
-        const float3 position = { -1.5f, -1.5f, -5.f };
+        const float3 position = { 0, 5, 0 };
         const auto model = Math::ComputeTransformMatrix<float4x4>(position, rotation, float3(1));
 
-        data->m_mvpMatrix = (projection * model).Transposed();
+        data->m_mvpMatrix = projection * model;
 
         m_constantBuffer.Unmap(&_graphicsContext);
         m_constantBuffer.PrepareBuffers(&_graphicsContext, _transferCommandList, BarrierAccessFlags::ConstantBuffer, frameIndex);
@@ -282,17 +294,26 @@ void UiCube::Render(
             .m_index = m_descriptorSetIndex,
             .m_descriptorData = { &descriptorData, 1 },
         };
+        _graphicsContext.DeclarePassBufferViewUsage(_renderCommandList, { &m_constantBufferViews[frameIndex], 1 }, BufferViewAccessType::Read);
         _graphicsContext.UpdateDescriptorSet(m_descriptorSet, { &writeInfo, 1 }, true);
     }
 
-    _graphicsContext.SetGraphicsPipeline(_renderCommandList, m_pso);
-    _graphicsContext.SetGraphicsDescriptorSets(_renderCommandList, m_pipelineLayout, { &m_descriptorSet, 1 });
 
     const BufferSpan vbSpan { .m_size = sizeof(positions), .m_offset = 0, .m_stride = sizeof(float3), .m_buffer = m_vertexBuffer };
     _graphicsContext.SetVertexBuffers(_renderCommandList, { &vbSpan, 1 });
-    
+
     const BufferSpan ibSpan { .m_size = sizeof(indices), .m_offset = 0, .m_stride = sizeof(u16), .m_buffer = m_indexBuffer };
     _graphicsContext.SetIndexBuffer(_renderCommandList, ibSpan, true);
+
+    _graphicsContext.SetViewport(_renderCommandList, {
+        .m_topLeftX = static_cast<s32>(cubeViewport.m_left),
+        .m_topLeftY = static_cast<s32>(cubeViewport.m_top),
+        .m_width = static_cast<s32>(cubeViewport.m_right - cubeViewport.m_left),
+        .m_height = static_cast<s32>(cubeViewport.m_bottom - cubeViewport.m_top),
+    });
+
+    _graphicsContext.SetGraphicsPipeline(_renderCommandList, m_pso);
+    _graphicsContext.SetGraphicsDescriptorSets(_renderCommandList, m_pipelineLayout, { &m_descriptorSet, 1 });
 
     _graphicsContext.DrawIndexedInstanced(_renderCommandList, { .m_elementCount = 36, });
 

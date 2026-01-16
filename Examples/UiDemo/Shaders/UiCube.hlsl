@@ -30,12 +30,12 @@ VsOutput MainVS(VsInput _input)
 }
 
 static const float3 colors[6] = {
-    float3(0.8f, 0.8f, 0.8f),
-    float3(0.9f, 0.8f, 0.8f),
-    float3(0.8f, 0.9f, 0.8f),
-    float3(0.9f, 0.9f, 0.8f),
-    float3(0.8f, 0.8f, 0.9f),
-    float3(0.9f, 0.8f, 0.9f),
+    float3(1, 0, 0),
+    float3(0, 1, 0),
+    float3(0, 0, 1),
+    float3(0, 1, 1),
+    float3(1, 0, 1),
+    float3(1, 1, 0),
 };
 
 [shader("pixel")]
