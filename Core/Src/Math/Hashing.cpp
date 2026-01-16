@@ -35,7 +35,7 @@ namespace KryneEngine
         return hash;
     }
 
-    static constexpr u64 kMurmurSeed = 123'456'789u;
+    static constexpr u64 kMurmurSeed = 0x9E37'79B9'7F4A'7C15ull;
     static constexpr u64 kMurmurPrime = 14'313'749'767'032'793'493u;
     static constexpr u64 kMurmurShift = 47u;
 
