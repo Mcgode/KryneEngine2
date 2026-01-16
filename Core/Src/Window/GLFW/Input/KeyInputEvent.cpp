@@ -120,7 +120,6 @@ namespace KryneEngine::GLFW
             MAP(GLFW_KEY_RIGHT_SUPER, RightSuper);
             MAP(GLFW_KEY_MENU, Menu);
         default:
-            KE_ERROR("Unknown key %d", _glfwKey);
             return InputKeys::Unknown;
         }
 
