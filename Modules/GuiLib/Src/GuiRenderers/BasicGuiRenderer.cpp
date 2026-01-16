@@ -595,19 +595,22 @@ namespace KryneEngine::Modules::GuiLib
         const DescriptorSetHandle descriptorSets[] = { m_commonDescriptorSet, m_texturesDescriptorSets[0] };
         _graphicsContext.SetGraphicsDescriptorSets(_renderCommandList, m_commonPipelineLayout, descriptorSets);
 
-        _graphicsContext.SetViewport(_renderCommandList, {
-            .m_width = static_cast<s32>(m_viewportConstants.viewportSize.x),
-            .m_height = static_cast<s32>(m_viewportConstants.viewportSize.y)
-        });
-
         eastl::fixed_vector<Rect, 16, false> scissors;
-        scissors.push_back({
-            .m_left = 0,
-            .m_top = 0,
-            .m_right = static_cast<u32>(m_viewportConstants.viewportSize.x),
-            .m_bottom = static_cast<u32>(m_viewportConstants.viewportSize.y)
-        });
-        _graphicsContext.SetScissorsRect(_renderCommandList, scissors.back());
+        if (m_viewportConstants.ndcProjectionMatrix == float4x4())
+        {
+            _graphicsContext.SetViewport(_renderCommandList, {
+               .m_width = static_cast<s32>(m_viewportConstants.viewportSize.x),
+               .m_height = static_cast<s32>(m_viewportConstants.viewportSize.y)
+           });
+
+            scissors.push_back({
+                .m_left = 0,
+                .m_top = 0,
+                .m_right = static_cast<u32>(m_viewportConstants.viewportSize.x),
+                .m_bottom = static_cast<u32>(m_viewportConstants.viewportSize.y)
+            });
+            _graphicsContext.SetScissorsRect(_renderCommandList, scissors.back());
+        }
 
         {
             KE_ZoneScoped("Fill instance data and dispatch render commands");
@@ -899,7 +902,7 @@ namespace KryneEngine::Modules::GuiLib
             }
         }
 
-        KE_ASSERT(scissors.size() == 1);
+        KE_ASSERT(scissors.size() == 1 || m_viewportConstants.ndcProjectionMatrix != float4x4());
 
         {
             KE_ZoneScoped("Upload instance data");
