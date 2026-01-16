@@ -106,7 +106,7 @@ s32 main(s32 argc, const char** argv)
             graphicsContext->GetApplicationInfo().m_displayOptions.m_height
         });
 
-    UiCube uiCube { allocatorInstance, *graphicsContext, &fontManager, renderPassHandles[0] };
+    UiCube uiCube { allocatorInstance, *graphicsContext, &fontManager, renderPassHandles[0], &msdfAtlasManager };
 
     do
     {

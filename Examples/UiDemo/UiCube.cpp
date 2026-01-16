@@ -36,7 +36,8 @@ UiCube::UiCube(
     AllocatorInstance _allocator,
     GraphicsContext& _graphicsContext,
     Modules::TextRendering::FontManager* _fontManager,
-    RenderPassHandle _renderPass)
+    RenderPassHandle _renderPass,
+    Modules::TextRendering::MsdfAtlasManager* _atlasManager)
         : m_allocator(_allocator)
         , m_guiContext(_allocator, _fontManager)
         , m_guiRenderer(_allocator, _graphicsContext, _renderPass)
@@ -215,6 +216,7 @@ UiCube::UiCube(
     }
 
     m_guiContext.Initialize(&m_guiRenderer, {});
+    m_guiRenderer.SetAtlasManager(_atlasManager);
 }
 
 
