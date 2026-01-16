@@ -39,16 +39,11 @@ private:
     BufferHandle m_transferBuffer;
     u32 m_transferFrameId = ~0u;
 
-    struct UiCubeData
-    {
-        float4x4 m_mvpMatrix;
-    };
-
     Modules::GraphicsUtils::DynamicBuffer m_constantBuffer;
     DynamicArray<BufferViewHandle> m_constantBufferViews;
 
     DescriptorSetHandle m_descriptorSet;
-    u32 m_descriptorSetIndex;
+    u32 m_descriptorSetIndex {};
     PipelineLayoutHandle m_pipelineLayout;
     GraphicsPipelineHandle m_pso;
 };

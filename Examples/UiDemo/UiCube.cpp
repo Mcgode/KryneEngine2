@@ -32,6 +32,11 @@ const u16 indices[36] = {
     2, 6, 3, 3, 6, 7,
 };
 
+struct UiCubeData
+{
+    float4x4 m_mvpMatrix;
+};
+
 UiCube::UiCube(
     AllocatorInstance _allocator,
     GraphicsContext& _graphicsContext,
