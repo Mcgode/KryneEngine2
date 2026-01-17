@@ -147,7 +147,7 @@ namespace KryneEngine
         }
 
         // Pop the top of the index stack
-        GenPool::IndexType index = m_availableIndices.back();
+        u32 index = m_availableIndices.back();
         m_availableIndices.pop_back();
 
         return { index, m_hotDataArray[index].m_generation };

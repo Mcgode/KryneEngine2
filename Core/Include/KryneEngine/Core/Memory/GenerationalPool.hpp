@@ -12,20 +12,19 @@ namespace KryneEngine
 {
     namespace GenPool
     {
-        using IndexType = u16;
-        using GenerationType = u16;
+        static constexpr size_t kIndexBits = 20;
 
         struct Handle
         {
-            IndexType m_index;
-            GenerationType m_generation;
+            u32 m_index: kIndexBits;
+            u32 m_generation: 32 - kIndexBits;
 
-            inline bool operator==(const Handle &rhs) const
+            bool operator==(const Handle &rhs) const
             {
                 return static_cast<u32>(*this) == static_cast<u32>(rhs);
             }
 
-            inline explicit operator u32() const
+            explicit operator u32() const
             {
                 static_assert(sizeof(Handle) == sizeof(u32));
                 return *reinterpret_cast<const u32*>(this);
@@ -40,13 +39,13 @@ namespace KryneEngine
         };
 
         static constexpr Handle kInvalidHandle = {
-                static_cast<IndexType>(0),
-                static_cast<GenerationType>(~0)
+                0u,
+                0u
         };
 
         static constexpr Handle kUndefinedHandle = {
-                static_cast<IndexType>(~0),
-                static_cast<GenerationType>(~0)
+                ~0u,
+                ~0u
         };
     }
 
@@ -65,11 +64,11 @@ namespace KryneEngine
         struct HotData
         {
             HotDataStruct m_userHotData;
-            GenPool::GenerationType m_generation;
+            u32 m_generation;
         };
 
         static constexpr u64 kInitialSize = 32;
-        static constexpr u64 kMaxSize = 1 << 16;
+        static constexpr u64 kMaxSize = 1 << 20;
         static constexpr bool kHasColdData = !eastl::is_same<void, ColdDataStruct>::value;
 
         Allocator m_allocator {};
@@ -79,7 +78,7 @@ namespace KryneEngine
 
         u64 m_size = 0;
 
-        eastl::vector<GenPool::IndexType, Allocator> m_availableIndices;
+        eastl::vector<u32, Allocator> m_availableIndices;
 
         void _Grow(u64 _toSize);
 
