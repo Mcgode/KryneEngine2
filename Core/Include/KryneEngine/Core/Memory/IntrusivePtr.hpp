@@ -32,6 +32,9 @@ namespace KryneEngine
     && std::is_integral_v<decltype(T::m_refCount)>
     && sizeof(T::m_refCount) >= sizeof(u32);
 
+    template <class T>
+    concept HasReleaseNotifier = requires(T _t) { _t.OnRelease(); };
+
     template <class T> requires IsAllocatorIntrusible<T>
     class IntrusiveUniquePtr
     {
@@ -91,6 +94,8 @@ namespace KryneEngine
             if (m_ptr != nullptr)
             {
                 const s64 count = std::atomic_ref(m_ptr->m_refCount).fetch_sub(1, std::memory_order::release) - 1;
+                if constexpr (HasReleaseNotifier<T>)
+                    m_ptr->OnRelease();
                 if (count <= 0)
                 {
                     if constexpr (IsAllocatorVarIntrusible<T>)
