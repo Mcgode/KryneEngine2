@@ -13,6 +13,7 @@ namespace KryneEngine
     namespace GenPool
     {
         static constexpr size_t kIndexBits = 20;
+        static constexpr size_t minGenerationIntegerByteSize = (32 - kIndexBits + 7) / 8;
 
         struct Handle
         {
@@ -47,6 +48,14 @@ namespace KryneEngine
                 ~0u,
                 ~0u
         };
+
+        template <class T>
+        concept IsValidIntrusiveGeneration = requires(T _t)
+        {
+            _t.m_generation;
+        }
+        && eastl::is_integral_v<decltype(T::m_generation)>
+        && sizeof(T::m_generation) >= minGenerationIntegerByteSize;
     }
 
 #define KE_GENPOOL_DECLARE_HANDLE(HandleName) struct HandleName                                 \
@@ -61,14 +70,16 @@ namespace KryneEngine
     template <class HotDataStruct, class ColdDataStruct = void, class Allocator = AllocatorInstance>
     class GenerationalPool
     {
-        struct HotData
+        struct HotDataWithGeneration
         {
             HotDataStruct m_userHotData;
             u32 m_generation;
         };
 
+        using HotData = eastl::conditional_t<GenPool::IsValidIntrusiveGeneration<HotDataStruct>, HotDataStruct, HotDataWithGeneration>;
+
         static constexpr u64 kInitialSize = 32;
-        static constexpr u64 kMaxSize = 1 << 20;
+        static constexpr u64 kMaxSize = 1 << GenPool::kIndexBits;
         static constexpr bool kHasColdData = !eastl::is_same<void, ColdDataStruct>::value;
 
         Allocator m_allocator {};
