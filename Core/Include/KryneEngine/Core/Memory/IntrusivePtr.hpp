@@ -115,4 +115,16 @@ namespace KryneEngine
     private:
         T* m_ptr = nullptr;
     };
+
+    template <class T, class... Args> requires IsAllocatorIntrusible<T>
+    IntrusiveUniquePtr<T>&& MakeIntrusiveUniquePtr(AllocatorInstance _allocator, Args... _args)
+    {
+        return std::move(IntrusiveUniquePtr<T>(_allocator.New<T>(_allocator, _args...)));
+    }
+
+    template <class T, class... Args> requires IsAllocatorIntrusible<T> && IsRefCountIntrusible<T>
+    IntrusiveSharedPtr<T>&& MakeIntrusiveSharedPtr(AllocatorInstance _allocator, Args... _args)
+    {
+        return std::move(IntrusiveSharedPtr<T>(_allocator.New<T>(_allocator, _args...)));
+    }
 }
