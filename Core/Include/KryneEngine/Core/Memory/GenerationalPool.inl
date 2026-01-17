@@ -168,8 +168,8 @@ namespace KryneEngine
 
         VERIFY_OR_RETURN(_handle.m_index < m_size.load(std::memory_order::acquire), false);
 
-        const size_t segmentIndex = BitUtils::GetMostSignificantBit((_handle.m_index + kInitialSize) >> kInitialSizePot);
-        const size_t localIndex = _handle.m_index - ((1 << segmentIndex) - kInitialSize);
+        const size_t segmentIndex = GetSegmentIndex(_handle.m_index);
+        const size_t localIndex = GetLocalIndex(_handle.m_index, segmentIndex);
         Segment segment = m_segments[segmentIndex].load(std::memory_order::acquire);
 
         auto& hotData = segment[localIndex];
