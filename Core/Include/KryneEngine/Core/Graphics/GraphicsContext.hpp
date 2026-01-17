@@ -66,6 +66,8 @@ namespace KryneEngine
         inline void WaitForLastFrame() const { WaitForFrame(m_frameId - 1); }
         [[nodiscard]] virtual bool IsFrameExecuted(u64 _frameId) const = 0;
 
+        [[nodiscard]] AllocatorInstance GetAllocator() const { return m_allocator; }
+
         [[nodiscard]] const GraphicsCommon::ApplicationInfo& GetApplicationInfo() const { return m_appInfo; }
         [[nodiscard]] static const char* GetShaderFileExtension();
 
