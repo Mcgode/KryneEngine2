@@ -35,6 +35,8 @@ namespace KryneEngine
 
         void Init(u8 _inFlightFrameCount, u8 _frameIndex);
 
+        void FlushPools();
+
     private:
         u8 m_inFlightFrameCount {};
 

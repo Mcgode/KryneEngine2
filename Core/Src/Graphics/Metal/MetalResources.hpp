@@ -36,6 +36,8 @@ namespace KryneEngine
         explicit MetalResources(AllocatorInstance _allocator);
         ~MetalResources();
 
+        void FlushPools();
+
     private:
         [[nodiscard]] AllocatorInstance GetAllocator() const;
 

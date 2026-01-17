@@ -39,6 +39,13 @@ namespace KryneEngine
         m_multiFrameTracker.Init(GetAllocator(), _inFlightFrameCount, _frameIndex);
     }
 
+    void MetalArgumentBufferManager::FlushPools()
+    {
+        m_argumentDescriptors.FlushDeferredFrees();
+        m_argumentBufferSets.FlushDeferredFrees();
+        m_pipelineLayouts.FlushDeferredFrees();
+    }
+
     AllocatorInstance MetalArgumentBufferManager::GetAllocator() const
     {
         return m_argumentDescriptors.GetAllocator();

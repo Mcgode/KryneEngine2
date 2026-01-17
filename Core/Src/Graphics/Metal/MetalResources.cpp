@@ -20,18 +20,32 @@ namespace KryneEngine
 {
     MetalResources::MetalResources(AllocatorInstance _allocator)
         : m_buffers(_allocator)
-        , m_bufferViews(_allocator)
         , m_textures(_allocator)
         , m_samplers(_allocator)
         , m_textureViews(_allocator)
+        , m_bufferViews(_allocator)
         , m_renderTargetViews(_allocator)
         , m_renderPasses(_allocator)
         , m_libraries(_allocator)
-        , m_computePso(_allocator)
         , m_graphicsPso(_allocator)
+        , m_computePso(_allocator)
     {}
 
     MetalResources::~MetalResources() = default;
+
+    void MetalResources::FlushPools()
+    {
+        m_buffers.FlushDeferredFrees();
+        m_textures.FlushDeferredFrees();
+        m_samplers.FlushDeferredFrees();
+        m_textureViews.FlushDeferredFrees();
+        m_bufferViews.FlushDeferredFrees();
+        m_renderTargetViews.FlushDeferredFrees();
+        m_renderPasses.FlushDeferredFrees();
+        m_libraries.FlushDeferredFrees();
+        m_graphicsPso.FlushDeferredFrees();
+        m_computePso.FlushDeferredFrees();
+    }
 
     AllocatorInstance MetalResources::GetAllocator() const
     {

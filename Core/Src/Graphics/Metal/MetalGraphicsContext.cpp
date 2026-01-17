@@ -125,6 +125,8 @@ namespace KryneEngine
 
             m_frameContexts[newFrameIndex].PrepareForNextFrame(nextFrame);
 
+            m_resources.FlushPools();
+            m_argumentBufferManager.FlushPools();
             m_argumentBufferManager.UpdateAndFlushArgumentBuffers(m_resources, newFrameIndex);
         }
     }
