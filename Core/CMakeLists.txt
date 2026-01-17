@@ -96,6 +96,7 @@ set(MemorySrc
         Include/KryneEngine/Core/Memory/Containers/StableVector.hpp
         Include/KryneEngine/Core/Memory/Containers/StableVector.inl
         Include/KryneEngine/Core/Memory/Containers/VectorDeLinkedList.hpp
+        Include/KryneEngine/Core/Memory/IntrusivePtr.hpp
 )
 
 message(STATUS "Loading implementation for platform '${CMAKE_SYSTEM_NAME}'")
