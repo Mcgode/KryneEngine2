@@ -25,6 +25,7 @@ namespace KryneEngine
         , m_textures(_allocator)
         , m_imageViews(_allocator)
         , m_samplers(_allocator)
+        , m_bufferViews(_allocator)
         , m_renderTargetViews(_allocator)
         , m_renderPasses(_allocator)
         , m_shaderModules(_allocator)

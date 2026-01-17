@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <EASTL/span.h>
 #include <vulkan/vulkan_core.h>
 
 #include "KryneEngine/Core/Graphics/Enums.hpp"
@@ -14,6 +13,7 @@
 #include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
 #include "KryneEngine/Core/Graphics/ShaderPipeline.hpp"
 #include "KryneEngine/Core/Graphics/Texture.hpp"
+#include "KryneEngine/Core/Memory/DynamicArray.hpp"
 
 namespace KryneEngine
 {

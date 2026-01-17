@@ -20,12 +20,14 @@ namespace KryneEngine
 {
     MetalResources::MetalResources(AllocatorInstance _allocator)
         : m_buffers(_allocator)
+        , m_bufferViews(_allocator)
         , m_textures(_allocator)
         , m_samplers(_allocator)
         , m_textureViews(_allocator)
         , m_renderTargetViews(_allocator)
         , m_renderPasses(_allocator)
         , m_libraries(_allocator)
+        , m_computePso(_allocator)
         , m_graphicsPso(_allocator)
     {}
 
