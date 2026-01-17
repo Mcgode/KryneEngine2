@@ -14,8 +14,15 @@
 namespace KryneEngine
 {
     template <class T>
-    concept IsAllocatorIntrusible = requires(T _t) { _t.m_allocator; }
-        && std::is_same_v<decltype(T::m_allocator), AllocatorInstance>;
+    concept IsAllocatorVarIntrusible = requires(T)
+    { { T::m_allocator } -> std::same_as<AllocatorInstance>; };
+
+    template <class T>
+    concept IsAllocatorGetterIntrusible = requires(T _t)
+    { { _t.GetAllocator() } -> std::convertible_to<AllocatorInstance>; };
+
+    template <class T>
+    concept IsAllocatorIntrusible = IsAllocatorVarIntrusible<T> || IsAllocatorGetterIntrusible<T>;
 
     template <class T>
     concept IsRefCountIntrusible = requires(T _t)
@@ -41,7 +48,16 @@ namespace KryneEngine
         void Reset(T* _ptr = nullptr)
         { m_ptr = _ptr;
             if (m_ptr != nullptr)
-                m_ptr->m_allocator.Delete(m_ptr);
+            {
+                if constexpr (IsAllocatorVarIntrusible<T>)
+                {
+                    m_ptr->m_allocator.Delete(m_ptr);
+                }
+                else if constexpr (IsAllocatorGetterIntrusible<T>)
+                {
+                    m_ptr->GetAllocator().Delete(m_ptr);
+                }
+            }
             m_ptr = _ptr;
         }
 
@@ -76,7 +92,16 @@ namespace KryneEngine
             {
                 const s64 count = std::atomic_ref(m_ptr->m_refCount).fetch_sub(1, std::memory_order::release) - 1;
                 if (count <= 0)
-                    m_ptr->m_allocator.Delete(m_ptr);
+                {
+                    if constexpr (IsAllocatorVarIntrusible<T>)
+                    {
+                        m_ptr->m_allocator.Delete(m_ptr);
+                    }
+                    else if constexpr (IsAllocatorGetterIntrusible<T>)
+                    {
+                        m_ptr->GetAllocator().Delete(m_ptr);
+                    }
+                }
             }
             m_ptr = _ptr;
             if (m_ptr != nullptr)
