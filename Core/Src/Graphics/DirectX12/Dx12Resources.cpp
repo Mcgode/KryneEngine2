@@ -24,6 +24,8 @@ namespace KryneEngine
         , m_textures(_allocator)
         , m_cbvSrvUav(_allocator)
         , m_samplers(_allocator)
+        , m_textureViews(_allocator)
+        , m_bufferViews(_allocator)
         , m_renderTargetViews(_allocator)
         , m_renderPasses(_allocator)
         , m_pipelineLayouts(_allocator)
@@ -60,6 +62,21 @@ namespace KryneEngine
             Dx12SetName(m_cbvSrvUavDescriptorStorageHeap.Get(), L"CBV/SRV/UAV Descriptor Storage Heap");
 #endif
         }
+    }
+
+    void Dx12Resources::FlushPools()
+    {
+        m_buffers.FlushDeferredFrees();
+        m_textures.FlushDeferredFrees();
+        m_samplers.FlushDeferredFrees();
+        m_textureViews.FlushDeferredFrees();
+        m_bufferViews.FlushDeferredFrees();
+        m_renderTargetViews.FlushDeferredFrees();
+        m_depthStencilViews.FlushDeferredFrees();
+        m_renderPasses.FlushDeferredFrees();
+        m_pipelineLayouts.FlushDeferredFrees();
+        m_shaderBytecodes.FlushDeferredFrees();
+        m_pipelineStateObjects.FlushDeferredFrees();
     }
 
     BufferHandle Dx12Resources::CreateBuffer(const BufferCreateDesc& _desc)
