@@ -290,19 +290,19 @@ namespace KryneEngine
             switch (type)
             {
             case DescriptorBindingDesc::Type::Sampler:
-                encoder->setSamplerState(_resources.m_samplers.Get(update.m_object)->m_sampler.get(), index.m_index);
+                encoder->setSamplerState(_resources.m_samplers.Get(update.m_object)->m_sampler, index.m_index);
                 break;
             case DescriptorBindingDesc::Type::SampledTexture:
             case DescriptorBindingDesc::Type::StorageReadOnlyTexture:
             case DescriptorBindingDesc::Type::StorageReadWriteTexture:
-                encoder->setTexture(_resources.m_textureViews.Get(update.m_object)->m_texture.get(), index.m_index);
+                encoder->setTexture(_resources.m_textureViews.Get(update.m_object)->m_texture, index.m_index);
                 break;
             case DescriptorBindingDesc::Type::ConstantBuffer:
             case DescriptorBindingDesc::Type::StorageReadOnlyBuffer:
             case DescriptorBindingDesc::Type::StorageReadWriteBuffer:
             {
                 MetalResources::BufferViewHotData* bufferView = _resources.m_bufferViews.Get(update.m_object);
-                encoder->setBuffer(bufferView->m_buffer.get(), bufferView->m_offset, index.m_index);
+                encoder->setBuffer(bufferView->m_buffer, bufferView->m_offset, index.m_index);
                 break;
             }
             }

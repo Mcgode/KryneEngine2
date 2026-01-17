@@ -345,7 +345,7 @@ namespace KryneEngine
             VERIFY_OR_RETURN_VOID(rtvHot != nullptr);
 
             rpHot->m_descriptor->colorAttachments()->object(systemRtv.m_index)
-                ->setTexture(rtvHot->m_texture.get());
+                ->setTexture(rtvHot->m_texture);
         }
 
         // Leaving dangling encoders is expected behaviour.
@@ -356,7 +356,7 @@ namespace KryneEngine
         KE_AUTO_RELEASE_POOL;
 
         commandList->m_encoder =
-            commandList->m_commandBuffer->renderCommandEncoder(rpHot->m_descriptor.get())->retain();
+            commandList->m_commandBuffer->renderCommandEncoder(rpHot->m_descriptor)->retain();
 
 #if !defined(KE_FINAL)
         auto* string = NS::String::string(rpHot->m_debugName.c_str(), NS::UTF8StringEncoding);
@@ -404,7 +404,7 @@ namespace KryneEngine
     {
         auto commandList = reinterpret_cast<CommandList>(_commandList);
 
-        MTL::Buffer* stagingBuffer = m_resources.m_buffers.Get(_stagingBuffer.m_handle)->m_buffer.get();
+        MTL::Buffer* stagingBuffer = m_resources.m_buffers.Get(_stagingBuffer.m_handle)->m_buffer;
 
         const auto stagingBufferContent = reinterpret_cast<uintptr_t>(stagingBuffer->contents());
         memcpy(
@@ -426,7 +426,7 @@ namespace KryneEngine
             _footprint.m_lineByteAlignedSize,
             _footprint.m_depth == 1 ? 0 : _footprint.m_lineByteAlignedSize * _footprint.m_height,
             MTL::Size { _footprint.m_width, _footprint.m_height, _footprint.m_depth },
-            m_resources.m_textures.Get(_dstTexture.m_handle)->m_texture.get(),
+            m_resources.m_textures.Get(_dstTexture.m_handle)->m_texture,
             _subResourceIndex.m_arraySlice,
             _subResourceIndex.m_mipIndex,
             MTL::Origin { 0, 0, 0 });
@@ -451,8 +451,8 @@ namespace KryneEngine
         }
         auto* encoder = reinterpret_cast<MTL::BlitCommandEncoder*>(commandList->m_encoder.get());
 
-        MTL::Buffer* srcBuffer = m_resources.m_buffers.Get(_srcBuffer.m_buffer.m_handle)->m_buffer.get();
-        MTL::Texture* dstTexture = m_resources.m_textures.Get(_dstTexture.m_handle)->m_texture.get();
+        MTL::Buffer* srcBuffer = m_resources.m_buffers.Get(_srcBuffer.m_buffer.m_handle)->m_buffer;
+        MTL::Texture* dstTexture = m_resources.m_textures.Get(_dstTexture.m_handle)->m_texture;
 
         encoder->copyFromBuffer(
             srcBuffer,
@@ -468,7 +468,7 @@ namespace KryneEngine
 
     void MetalGraphicsContext::MapBuffer(BufferMapping& _mapping)
     {
-        MTL::Buffer* buffer = m_resources.m_buffers.Get(_mapping.m_buffer.m_handle)->m_buffer.get();
+        MTL::Buffer* buffer = m_resources.m_buffers.Get(_mapping.m_buffer.m_handle)->m_buffer;
 
         KE_ASSERT_MSG(_mapping.m_ptr == nullptr, "Did not unmap previous map");
 
@@ -501,9 +501,9 @@ namespace KryneEngine
         auto* encoder = reinterpret_cast<MTL::BlitCommandEncoder*>(commandList->m_encoder.get());
 
         encoder->copyFromBuffer(
-            m_resources.m_buffers.Get(_params.m_bufferSrc.m_handle)->m_buffer.get(),
+            m_resources.m_buffers.Get(_params.m_bufferSrc.m_handle)->m_buffer,
             _params.m_offsetSrc,
-            m_resources.m_buffers.Get(_params.m_bufferDst.m_handle)->m_buffer.get(),
+            m_resources.m_buffers.Get(_params.m_bufferDst.m_handle)->m_buffer,
             _params.m_offsetDst,
             _params.m_copySize);
     }
@@ -630,14 +630,14 @@ namespace KryneEngine
         {
             processBarrier(
                 barrier,
-                m_resources.m_buffers.Get(barrier.m_buffer.m_handle)->m_buffer.get());
+                m_resources.m_buffers.Get(barrier.m_buffer.m_handle)->m_buffer);
         }
 
         for (const TextureMemoryBarrier& barrier: _textureMemoryBarriers)
         {
             processBarrier(
                 barrier,
-                m_resources.m_textures.Get(barrier.m_texture.m_handle)->m_texture.get());
+                m_resources.m_textures.Get(barrier.m_texture.m_handle)->m_texture);
         }
 
         const auto processTransitions = [&]<class T>(T* _encoder)
@@ -708,7 +708,7 @@ namespace KryneEngine
 
         for (auto i = 0u; i < _textures.size(); ++i)
         {
-            resources[i] = m_resources.m_textureViews.Get(_textures[i].m_handle)->m_texture.get();
+            resources[i] = m_resources.m_textureViews.Get(_textures[i].m_handle)->m_texture;
         }
 
         UseResources(commandList, {resources.Data(), resources.Size()}, usage);
@@ -738,7 +738,7 @@ namespace KryneEngine
 
         for (auto i = 0u; i < _buffers.size(); ++i)
         {
-            resources[i] = m_resources.m_bufferViews.Get(_buffers[i].m_handle)->m_buffer.get();
+            resources[i] = m_resources.m_bufferViews.Get(_buffers[i].m_handle)->m_buffer;
         }
 
         UseResources(commandList, {resources.Data(), resources.Size()}, usage);
@@ -882,7 +882,7 @@ namespace KryneEngine
 
         MetalResources::GraphicsPsoHotData* graphicsPsoData = m_resources.m_graphicsPso.Get(_graphicsPipeline.m_handle);
 
-        encoder->setRenderPipelineState(graphicsPsoData->m_pso.get());
+        encoder->setRenderPipelineState(graphicsPsoData->m_pso);
 
         renderState->m_topology = graphicsPsoData->m_topology;
         if (memcmp(&renderState->m_dynamicState, &graphicsPsoData->m_staticState, sizeof(RenderDynamicState)) != 0)
@@ -902,7 +902,7 @@ namespace KryneEngine
 
             if (current.m_depthStencilHash != ref.m_depthStencilHash)
             {
-                encoder->setDepthStencilState(graphicsPsoData->m_depthStencilState.get());
+                encoder->setDepthStencilState(graphicsPsoData->m_depthStencilState);
                 current.m_depthStencilHash = ref.m_depthStencilHash;
             }
 
@@ -949,7 +949,7 @@ namespace KryneEngine
         for (const BufferSpan& vertexBufferView: renderState->m_vertexBuffers)
         {
             encoder->setVertexBuffer(
-                m_resources.m_buffers.Get(vertexBufferView.m_buffer.m_handle)->m_buffer.get(),
+                m_resources.m_buffers.Get(vertexBufferView.m_buffer.m_handle)->m_buffer,
                 vertexBufferView.m_offset,
                 i + graphicsPsoData->m_vertexBufferFirstIndex);
             i++;
@@ -1060,7 +1060,7 @@ namespace KryneEngine
             MetalConverters::GetPrimitiveType(renderState->m_topology),
             _desc.m_elementCount,
             indexType,
-            m_resources.m_buffers.Get(renderState->m_indexBufferView.m_buffer.m_handle)->m_buffer.get(),
+            m_resources.m_buffers.Get(renderState->m_indexBufferView.m_buffer.m_handle)->m_buffer,
             indexBufferOffset,
             _desc.m_instanceCount,
             _desc.m_vertexOffset,
@@ -1074,7 +1074,7 @@ namespace KryneEngine
         auto* encoder = reinterpret_cast<MTL::ComputeCommandEncoder*>(commandList->m_encoder.get());
 
         MetalResources::ComputePsoHotData* hot = m_resources.m_computePso.Get(_pipeline.m_handle);
-        encoder->setComputePipelineState(hot->m_pso.get());
+        encoder->setComputePipelineState(hot->m_pso);
     }
 
     void MetalGraphicsContext::SetComputeDescriptorSetsWithOffset(
