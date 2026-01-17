@@ -103,6 +103,8 @@ namespace KryneEngine
         VkResources(AllocatorInstance _allocator);
         ~VkResources();
 
+        void FlushPools();
+
         void InitAllocator(
             const GraphicsCommon::ApplicationInfo& _appInfo,
             VkDevice _device,

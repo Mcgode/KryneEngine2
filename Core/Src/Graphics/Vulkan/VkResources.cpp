@@ -35,6 +35,21 @@ namespace KryneEngine
 
     VkResources::~VkResources() = default;
 
+    void VkResources::FlushPools()
+    {
+        m_buffers.FlushDeferredFrees();
+        m_textures.FlushDeferredFrees();
+        m_imageViews.FlushDeferredFrees();
+        m_samplers.FlushDeferredFrees();
+        m_bufferViews.FlushDeferredFrees();
+        m_renderTargetViews.FlushDeferredFrees();
+        m_renderPasses.FlushDeferredFrees();
+        m_shaderModules.FlushDeferredFrees();
+        m_pipelineLayouts.FlushDeferredFrees();
+        m_pipelines.FlushDeferredFrees();
+
+    }
+
     void VkResources::InitAllocator(
         const GraphicsCommon::ApplicationInfo& _appInfo,
         VkDevice _device,
