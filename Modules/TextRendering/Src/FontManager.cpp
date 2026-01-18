@@ -42,35 +42,26 @@ namespace KryneEngine::Modules::TextRendering
         KE_ASSERT_MSG(error == FT_Err_Ok, FT_Error_String(error));
     }
 
-    Font* FontManager::LoadFont(eastl::string_view _path)
+    void FontManager::LoadResource(
+        Resources::ResourceEntry* _entry,
+        const eastl::span<std::byte> _resourceRawData,
+        const eastl::string_view _path)
     {
-        KE_ZoneScopedF("Loading font '%s'", _path.data());
-
         FT_Face face;
-        char* buffer;
-        {
-            std::ifstream file(_path.data(), std::ios::binary);
-            VERIFY_OR_RETURN(file, {});
+        const FT_Error error = FT_New_Memory_Face(
+            m_ftLibrary,
+            reinterpret_cast<FT_Byte*>(_resourceRawData.data()),
+            static_cast<FT_Long>(_resourceRawData.size()),
+            0,
+            &face);
 
-            file.seekg(0, std::ios::end);
-            const std::streamsize size = file.tellg();
-            file.seekg(0, std::ios::beg);
-
-            buffer = m_allocator.Allocate<char>(size);
-            KE_VERIFY(file.read(buffer, size));
-
-            file.close();
-
-            const FT_Error error = FT_New_Memory_Face(m_ftLibrary, reinterpret_cast<FT_Byte*>(buffer), size, 0, &face);
-
-            if (!KE_VERIFY_MSG(error == FT_Err_Ok, "Failed to load font '%s': %s", _path.data(), FT_Error_String(error))) [[unlikely]]
-                return nullptr;
-        }
+        if (!KE_VERIFY_MSG(error == FT_Err_Ok, "Failed to load font '%s': %s", _path.data(), FT_Error_String(error))) [[unlikely]]
+            return;
 
         if (!KE_VERIFY_MSG(face->face_flags & FT_FACE_FLAG_SCALABLE, "The API only supports scalable/vector fonts"))
         {
             KE_VERIFY(FT_Done_Face(face) == FT_Err_Ok);
-            return nullptr;
+            return;
         }
 
         // Select best charmap
@@ -105,19 +96,20 @@ namespace KryneEngine::Modules::TextRendering
             if (!KE_VERIFY_MSG(bestCharMap >= 0, "No available unicode char map")) [[unlikely]]
             {
                 KE_VERIFY(FT_Done_Face(face) == FT_Err_Ok);
-                return nullptr;
+                return;
             }
             const FT_Error error = FT_Set_Charmap(face, face->charmaps[bestCharMap]);
             if (!KE_VERIFY_MSG(error == FT_Err_Ok, FT_Error_String(error))) [[unlikely]]
             {
                 KE_VERIFY(FT_Done_Face(face) == FT_Err_Ok);
-                return nullptr;
+                return;
             }
         }
 
-        auto* newFont = new (m_allocator.Allocate<Font>()) Font(m_allocator, this);
+        size_t plannedVersion = _entry->m_version.load(std::memory_order_acquire) + 1;
+        auto* newFont = new (m_allocator.Allocate<Font>()) Font(m_allocator, this, plannedVersion);
         newFont->m_face = face;
-        newFont->m_fileBuffer = reinterpret_cast<std::byte*>(buffer);
+        newFont->m_fileBuffer = _resourceRawData.data();
         newFont->m_fileBufferAllocator = m_allocator;
 
         // Parse all glyphs
@@ -130,7 +122,7 @@ namespace KryneEngine::Modules::TextRendering
             {
                 m_allocator.Delete(newFont);
                 KE_VERIFY(FT_Done_Face(face) == FT_Err_Ok);
-                return nullptr;
+                return;
             }
 
             auto& pair = newFont->m_glyphs.emplace_back_unsorted(unicodeCodepoint, Font::GlyphEntry {});
@@ -155,7 +147,15 @@ namespace KryneEngine::Modules::TextRendering
 
         newFont->m_fontId = m_fonts.size();
         m_fonts.push_back(newFont);
-        return newFont;
+
+        _entry->m_resource.store(newFont, std::memory_order_release);
+        size_t expected = plannedVersion - 1;
+        KE_VERIFY(_entry->m_version.compare_exchange_strong(expected, plannedVersion, std::memory_order::acq_rel));
+    }
+
+    void FontManager::ReportFailedLoad(Resources::ResourceEntry* _entry, eastl::string_view _path)
+    {
+        KE_ERROR("Failed to load font '%s'", _path.data());
     }
 
     Font* FontManager::GetFont(const u16 _fontId) const
