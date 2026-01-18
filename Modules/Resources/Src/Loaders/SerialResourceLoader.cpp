@@ -33,7 +33,7 @@ namespace KryneEngine::Modules::Resources
 
             if (!file)
             {
-                _resourceManager->ReportFailedLoad(_entry);
+                _resourceManager->ReportFailedLoad(_entry, _path.m_string);
             }
             else
             {
@@ -44,7 +44,10 @@ namespace KryneEngine::Modules::Resources
                 void* buffer = _resourceManager->GetAllocator().allocate(size);
                 file.read(static_cast<char*>(buffer), size);
 
-                _resourceManager->LoadResource(_entry, { static_cast<std::byte*>(buffer), static_cast<size_t>(size) });
+                _resourceManager->LoadResource(
+                    _entry,
+                    {static_cast<std::byte*>(buffer), static_cast<size_t>(size)},
+                    _path.m_string);
             }
         }
 
