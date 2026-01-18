@@ -21,6 +21,8 @@ namespace KryneEngine::Modules::Resources
         , m_resourceEntries(_allocator)
     {}
 
+    RuntimeResourceSystem::~RuntimeResourceSystem() = default;
+
     ResourceEntry* RuntimeResourceSystem::GetResourceEntry(const StringHash& _name, u64 _typeId)
     {
         {

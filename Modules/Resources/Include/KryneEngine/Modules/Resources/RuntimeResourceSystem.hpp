@@ -24,6 +24,7 @@ namespace KryneEngine::Modules::Resources
     {
     public:
         explicit RuntimeResourceSystem(AllocatorInstance _allocator, IResourceLoader* _resourceLoader);
+        ~RuntimeResourceSystem();
 
         template <class Resource>
         void RegisterResourceManager(IResourceManager* _resourceManager)
