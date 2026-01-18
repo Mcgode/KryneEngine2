@@ -42,6 +42,4 @@ namespace KryneEngine::Modules::Resources
         constexpr size_t len = (N == 0 ? 0 : N - 1); // N is >=1 for string literal
         return GenerateResourceTypeId(_name, len);
     }
-
-    constexpr ResourceTypeId myId = GenerateResourceTypeId(".myid");
 }
