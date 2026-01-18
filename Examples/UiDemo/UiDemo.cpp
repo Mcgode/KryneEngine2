@@ -4,12 +4,8 @@
  * @date 24/11/2025.
  */
 
-#include "KryneEngine/Modules/TextRendering/Font.hpp"
-#include "KryneEngine/Modules/TextRendering/MsdfAtlasManager.hpp"
 #include "TextureGenerator.hpp"
 #include "UiCube.hpp"
-
-
 #include <KryneEngine/Core/Graphics/GraphicsContext.hpp>
 #include <KryneEngine/Core/Graphics/RenderPass.hpp>
 #include <KryneEngine/Core/Memory/Allocators/TlsfAllocator.hpp>
@@ -17,7 +13,11 @@
 #include <KryneEngine/Core/Window/Window.hpp>
 #include <KryneEngine/Modules/GuiLib/Context.hpp>
 #include <KryneEngine/Modules/GuiLib/GuiRenderers/BasicGuiRenderer.hpp>
+#include <KryneEngine/Modules/Resources/Loaders/SerialResourceLoader.hpp>
+#include <KryneEngine/Modules/Resources/RuntimeResourceSystem.hpp>
+#include <KryneEngine/Modules/TextRendering/Font.hpp>
 #include <KryneEngine/Modules/TextRendering/FontManager.hpp>
+#include <KryneEngine/Modules/TextRendering/MsdfAtlasManager.hpp>
 
 using KryneEngine::s32;
 
@@ -43,14 +43,14 @@ void SidebarItemComponent() {
 
 s32 main(s32 argc, const char** argv)
 {
-    auto* allocator = KryneEngine::TlsfAllocator::Create({}, 16 << 20);
-    KryneEngine::AllocatorInstance allocatorInstance {allocator};
+    auto* allocator = TlsfAllocator::Create({}, 16 << 20);
+    AllocatorInstance allocatorInstance {allocator};
 
-    auto appInfo = KryneEngine::GraphicsCommon::ApplicationInfo {
+    auto appInfo = GraphicsCommon::ApplicationInfo {
         .m_applicationName { "UiDemo - Kryne Engine 2", allocator }
     };
 #if defined(KE_GRAPHICS_API_VK)
-    appInfo.m_api = KryneEngine::GraphicsCommon::Api::Vulkan_1_3;
+    appInfo.m_api = GraphicsCommon::Api::Vulkan_1_3;
     appInfo.m_applicationName += " - Vulkan";
 #elif defined(KE_GRAPHICS_API_DX12)
     appInfo.m_api = KryneEngine::GraphicsCommon::Api::DirectX12_1;
@@ -59,25 +59,25 @@ s32 main(s32 argc, const char** argv)
     appInfo.m_api = KryneEngine::GraphicsCommon::Api::Metal_3;
     appInfo.m_applicationName += " - Metal";
 #endif
-    KryneEngine::Window mainWindow(appInfo, allocator);
-    KryneEngine::GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
+    Window mainWindow(appInfo, allocator);
+    GraphicsContext* graphicsContext = mainWindow.GetGraphicsContext();
 
     TextureGenerator textureGenerator { allocatorInstance, 33 };
-    KryneEngine::SamplerHandle sampler = graphicsContext->CreateSampler({
+    SamplerHandle sampler = graphicsContext->CreateSampler({
         .m_minFilter = SamplerDesc::Filter::Point,
         .m_magFilter = SamplerDesc::Filter::Point,
     });
 
-    KryneEngine::DynamicArray<KryneEngine::RenderPassHandle> renderPassHandles(allocator);
+    DynamicArray<RenderPassHandle> renderPassHandles(allocator);
     renderPassHandles.Resize(graphicsContext->GetFrameContextCount());
     for (auto i = 0u; i < renderPassHandles.Size(); i++)
     {
         renderPassHandles[i] = graphicsContext->CreateRenderPass({
             .m_colorAttachments = {
-                KryneEngine::RenderPassDesc::Attachment {
-                    .m_loadOperation = KryneEngine::RenderPassDesc::Attachment::LoadOperation::Clear,
-                    .m_storeOperation = KryneEngine::RenderPassDesc::Attachment::StoreOperation::Store,
-                    .m_finalLayout = KryneEngine::TextureLayout::Present,
+                RenderPassDesc::Attachment {
+                    .m_loadOperation = RenderPassDesc::Attachment::LoadOperation::Clear,
+                    .m_storeOperation = RenderPassDesc::Attachment::StoreOperation::Store,
+                    .m_finalLayout = TextureLayout::Present,
                     .m_rtv = graphicsContext->GetPresentRenderTargetView(i),
                 }
             },
@@ -87,12 +87,21 @@ s32 main(s32 argc, const char** argv)
         });
     }
 
-    KryneEngine::Modules::TextRendering::FontManager fontManager(allocatorInstance);
-    KryneEngine::Modules::TextRendering::MsdfAtlasManager msdfAtlasManager(allocatorInstance, *graphicsContext, &fontManager, 1024, 32);
-    KryneEngine::Modules::TextRendering::Font* font = fontManager.LoadFont("Resources/Modules/TextRendering/NotoSerif-Regular.ttf");
+    Modules::Resources::SerialResourceLoader resourceLoader { allocatorInstance };
+    Modules::Resources::RuntimeResourceSystem resourceSystem { allocatorInstance, &resourceLoader };
 
-    KryneEngine::Modules::GuiLib::Context clayContext { allocatorInstance, &fontManager };
-    KryneEngine::Modules::GuiLib::BasicGuiRenderer guiRenderer {
+    Modules::TextRendering::FontManager fontManager(allocatorInstance);
+    resourceSystem.RegisterResourceManager<Modules::TextRendering::Font>(&fontManager);
+
+    Modules::TextRendering::MsdfAtlasManager msdfAtlasManager(allocatorInstance, *graphicsContext, &fontManager, 1024, 32);
+
+    const StringHash notoFontPath { "Resources/Modules/TextRendering/NotoSerif-Regular.ttf" };
+    Modules::Resources::ResourceEntry* notFontEntry = resourceSystem.GetResourceEntry<Modules::TextRendering::Font>(notoFontPath);
+    resourceSystem.LoadResource(notoFontPath, notFontEntry);
+    auto* font = notFontEntry->UseResource<Modules::TextRendering::Font>();
+
+    Modules::GuiLib::Context clayContext { allocatorInstance, &fontManager };
+    Modules::GuiLib::BasicGuiRenderer guiRenderer {
         allocatorInstance,
         *graphicsContext,
         renderPassHandles[0],
@@ -112,8 +121,8 @@ s32 main(s32 argc, const char** argv)
     {
         KE_ZoneScoped("Render loop");
 
-        KryneEngine::CommandListHandle transferCommandList = graphicsContext->BeginGraphicsCommandList();
-        KryneEngine::CommandListHandle renderCommandList = graphicsContext->BeginGraphicsCommandList();
+        CommandListHandle transferCommandList = graphicsContext->BeginGraphicsCommandList();
+        CommandListHandle renderCommandList = graphicsContext->BeginGraphicsCommandList();
 
         {
             KE_ZoneScoped("Texture upload");
@@ -244,7 +253,7 @@ s32 main(s32 argc, const char** argv)
             }
         }
 
-        const KryneEngine::RenderPassHandle currentPass = renderPassHandles[graphicsContext->GetCurrentPresentImageIndex()];
+        const RenderPassHandle currentPass = renderPassHandles[graphicsContext->GetCurrentPresentImageIndex()];
         graphicsContext->BeginRenderPass(renderCommandList, currentPass);
         clayContext.EndLayout(*graphicsContext, transferCommandList, renderCommandList);
 
@@ -259,7 +268,7 @@ s32 main(s32 argc, const char** argv)
     while (graphicsContext->EndFrame());
 
     clayContext.Destroy();
-    KryneEngine::GraphicsContext::Destroy(graphicsContext);
+    GraphicsContext::Destroy(graphicsContext);
 
     return 0;
 }
