@@ -395,6 +395,7 @@ namespace KryneEngine
         }
         nextFrameContext.m_frameId = nextFrameId;
 
+        m_resources.FlushPools();
         m_descriptorSetManager.NextFrame(m_device, m_resources, nextFrameContextIndex);
 
         // Acquire next image

@@ -6,10 +6,11 @@
 
 #pragma once
 
-#include "KryneEngine/Core/Graphics/Buffer.hpp"
-#include "KryneEngine/Core/Graphics/GraphicsContext.hpp"
-#include "KryneEngine/Core/Graphics/Handles.hpp"
-#include "KryneEngine/Core/Graphics/MemoryBarriers.hpp"
+#include <KryneEngine/Core/Graphics/Buffer.hpp>
+#include <KryneEngine/Core/Graphics/GraphicsContext.hpp>
+#include <KryneEngine/Core/Graphics/Handles.hpp>
+#include <KryneEngine/Core/Graphics/MemoryBarriers.hpp>
+#include <KryneEngine/Core/Memory/DynamicArray.hpp>
 
 namespace KryneEngine::Modules::GraphicsUtils
 {

@@ -13,6 +13,7 @@
 #include <EASTL/sort.h>
 #include <imgui.h>
 #include <KryneEngine/Core/Profiling/TracyHeader.hpp>
+#include <KryneEngine/Core/Memory/DynamicArray.hpp>
 
 #include "KryneEngine/Modules/RenderGraph/Builder.hpp"
 #include "KryneEngine/Modules/RenderGraph/Registry.hpp"

@@ -23,13 +23,29 @@ namespace KryneEngine
         , m_textures(_allocator)
         , m_samplers(_allocator)
         , m_textureViews(_allocator)
+        , m_bufferViews(_allocator)
         , m_renderTargetViews(_allocator)
         , m_renderPasses(_allocator)
         , m_libraries(_allocator)
         , m_graphicsPso(_allocator)
+        , m_computePso(_allocator)
     {}
 
     MetalResources::~MetalResources() = default;
+
+    void MetalResources::FlushPools()
+    {
+        m_buffers.FlushDeferredFrees();
+        m_textures.FlushDeferredFrees();
+        m_samplers.FlushDeferredFrees();
+        m_textureViews.FlushDeferredFrees();
+        m_bufferViews.FlushDeferredFrees();
+        m_renderTargetViews.FlushDeferredFrees();
+        m_renderPasses.FlushDeferredFrees();
+        m_libraries.FlushDeferredFrees();
+        m_graphicsPso.FlushDeferredFrees();
+        m_computePso.FlushDeferredFrees();
+    }
 
     AllocatorInstance MetalResources::GetAllocator() const
     {
@@ -45,7 +61,7 @@ namespace KryneEngine
 
         auto [bufferHot, bufferCold] = m_buffers.GetAll(handle);
         const MTL::ResourceOptions options = MetalConverters::GetResourceStorage(_desc.m_usage);
-        bufferHot->m_buffer = _device.newBuffer(_desc.m_desc.m_size, options);
+        bufferHot->m_buffer = _device.newBuffer(_desc.m_desc.m_size, options)->retain();
         KE_ASSERT_FATAL(bufferHot->m_buffer != nullptr);
         bufferCold->m_options = options;
 
@@ -62,7 +78,7 @@ namespace KryneEngine
         BufferHotData hotData;
         if (m_buffers.Free(_buffer.m_handle, &hotData))
         {
-            hotData.m_buffer.reset();
+            hotData.m_buffer->release();
             return true;
         }
         return false;
@@ -73,7 +89,7 @@ namespace KryneEngine
         const GenPool::Handle handle = m_textures.Allocate();
         TextureHotData* hot = m_textures.Get(handle);
 
-        NsPtr<MTL::TextureDescriptor> desc(MTL::TextureDescriptor::alloc()->init());
+        NsPtr desc(MTL::TextureDescriptor::alloc()->init());
         desc->setWidth(_desc.m_desc.m_dimensions.x);
         desc->setHeight(_desc.m_desc.m_dimensions.y);
         desc->setDepth(_desc.m_desc.m_dimensions.z);
@@ -100,8 +116,9 @@ namespace KryneEngine
     TextureHandle MetalResources::RegisterSystemTexture()
     {
         const GenPool::Handle handle = m_textures.Allocate();
-        m_textures.Get(handle)->m_texture = nullptr;
-        m_textures.Get(handle)->m_isSystemTexture = true;
+        TextureHotData* hot = m_textures.Get(handle);
+        hot->m_texture = nullptr;
+        hot->m_isSystemTexture = true;
         return { handle };
     }
 
@@ -110,7 +127,7 @@ namespace KryneEngine
         TextureHotData textureHot;
         if (m_textures.Free(_handle.m_handle, &textureHot))
         {
-            textureHot.m_texture.reset();
+            textureHot.m_texture->release();
             return true;
         }
         return false;
@@ -121,7 +138,9 @@ namespace KryneEngine
         TextureHotData* textureHotData = m_textures.Get(_handle.m_handle);
         if (textureHotData != nullptr)
         {
-            textureHotData->m_texture.reset(_texture->retain());
+            if (textureHotData->m_texture != nullptr)
+                textureHotData->m_texture->release();
+            textureHotData->m_texture = _texture->retain();
         }
     }
 
@@ -159,10 +178,10 @@ namespace KryneEngine
 
     bool MetalResources::DestroySampler(SamplerHandle _sampler)
     {
-        SamplerHotData hot;
+        SamplerHotData hot {};
         if (m_samplers.Free(_sampler.m_handle, &hot))
         {
-            hot.m_sampler.reset();
+            hot.m_sampler->release();
             return true;
         }
         return false;
@@ -199,10 +218,10 @@ namespace KryneEngine
 
     bool MetalResources::UnregisterTextureView(TextureViewHandle _textureView)
     {
-        TextureViewHotData hot;
+        TextureViewHotData hot {};
         if (m_textureViews.Free(_textureView.m_handle, &hot))
         {
-            hot.m_texture.reset();
+            hot.m_texture->release();
             return true;
         }
         return false;
@@ -223,10 +242,10 @@ namespace KryneEngine
 
     bool MetalResources::UnregisterBufferView(BufferViewHandle _handle)
     {
-        BufferViewHotData hot;
+        BufferViewHotData hot {};
         if (m_bufferViews.Free(_handle.m_handle, &hot))
         {
-            hot.m_buffer.reset();
+            hot.m_buffer->release();
             return true;
         }
         return false;
@@ -234,16 +253,16 @@ namespace KryneEngine
 
     RenderTargetViewHandle MetalResources::RegisterRtv(const RenderTargetViewDesc& _desc)
     {
-        MTL::Texture* texture = m_textures.Get(_desc.m_texture.m_handle)->m_texture.get();
+        MTL::Texture* texture = m_textures.Get(_desc.m_texture.m_handle)->m_texture;
         return InternalRegisterRtv(_desc, texture);
     }
 
     bool MetalResources::UnregisterRtv(RenderTargetViewHandle _handle)
     {
-        RtvHotData hotData;
+        RtvHotData hotData {};
         bool freed = m_renderTargetViews.Free(_handle.m_handle, &hotData);
         if (freed)
-            hotData.m_texture.reset();
+            hotData.m_texture->release();
         return freed;
     }
 
@@ -258,7 +277,9 @@ namespace KryneEngine
         RtvHotData* rtvHotData = m_renderTargetViews.Get(_handle.m_handle);
         if (rtvHotData != nullptr)
         {
-            rtvHotData->m_texture.reset(_newTexture->retain());
+            if (rtvHotData->m_texture != nullptr)
+                rtvHotData->m_texture->release();
+            rtvHotData->m_texture = _newTexture->retain();
         }
     }
 
@@ -301,7 +322,7 @@ namespace KryneEngine
             const RenderPassDesc::Attachment& attachmentDesc = _desc.m_colorAttachments[i];
 
             auto [rtvHotData, rtvColdData] = m_renderTargetViews.GetAll(attachmentDesc.m_rtv.m_handle);
-            MTL::Texture* texture = rtvHotData->m_texture.get();
+            MTL::Texture* texture = rtvHotData->m_texture;
             KE_ASSERT_FATAL(texture != nullptr || rtvHotData->m_isSystemTexture);
             if (rtvHotData->m_isSystemTexture)
             {
@@ -330,7 +351,7 @@ namespace KryneEngine
             if (BitUtils::EnumHasAny(rtvCold->m_plane, TexturePlane::Depth))
             {
                 MTL::RenderPassDepthAttachmentDescriptor* attachment = hotData->m_descriptor->depthAttachment();
-                attachment->setTexture(rtvHot->m_texture.get());
+                attachment->setTexture(rtvHot->m_texture);
                 attachment->setLoadAction(MetalConverters::GetMetalLoadOperation(attachmentDesc.m_loadOperation));
                 attachment->setStoreAction(MetalConverters::GetMetalStoreOperation(attachmentDesc.m_storeOperation));
                 attachment->setClearDepth(attachmentDesc.m_clearColor.r);
@@ -339,7 +360,7 @@ namespace KryneEngine
             if (BitUtils::EnumHasAny(rtvCold->m_plane, TexturePlane::Stencil))
             {
                 MTL::RenderPassStencilAttachmentDescriptor* attachment = hotData->m_descriptor->stencilAttachment();
-                attachment->setTexture(rtvHot->m_texture.get());
+                attachment->setTexture(rtvHot->m_texture);
                 attachment->setLoadAction(MetalConverters::GetMetalLoadOperation(attachmentDesc.m_stencilLoadOperation));
                 attachment->setStoreAction(MetalConverters::GetMetalStoreOperation(attachmentDesc.m_stencilStoreOperation));
                 attachment->setClearStencil(attachmentDesc.m_stencilClearValue);
@@ -365,7 +386,7 @@ namespace KryneEngine
         RenderPassColdData coldData;
         if (m_renderPasses.Free(_handle.m_handle, &data, &coldData))
         {
-            data.m_descriptor.reset();
+            data.m_descriptor->release();
             coldData.m_colorFormats.clear();
             return true;
         }
@@ -380,17 +401,17 @@ namespace KryneEngine
 
         KE_AUTO_RELEASE_POOL;
         dispatch_data_t data = dispatch_data_create(_bytecode, _size, nullptr, {});
-        hot->m_library = _device.newLibrary(data, nullptr);
+        hot->m_library = _device.newLibrary(data, nullptr)->retain();
 
         return { handle };
     }
 
     bool MetalResources::FreeLibrary(ShaderModuleHandle _library)
     {
-        ShaderModuleHotData hot;
+        ShaderModuleHotData hot {};
         if (m_libraries.Free(_library.m_handle, &hot))
         {
-            hot.m_library.reset();
+            hot.m_library->release();
             return true;
         }
         return false;
@@ -637,10 +658,11 @@ namespace KryneEngine
 
     bool MetalResources::DestroyGraphicsPso(GraphicsPipelineHandle _pso)
     {
-        GraphicsPsoHotData hot;
+        GraphicsPsoHotData hot {};
         if (m_graphicsPso.Free(_pso.m_handle, &hot))
         {
-            hot.m_pso.reset();
+            hot.m_depthStencilState->release();
+            hot.m_pso->release();
             return true;
         }
         return false;
@@ -658,7 +680,7 @@ namespace KryneEngine
         {
             ShaderModuleHotData* libHot = m_libraries.Get(_desc.m_computeStage.m_shaderModule.m_handle);
             KE_ASSERT_FATAL(libHot != nullptr);
-            MTL::Library* library = libHot->m_library.get();
+            MTL::Library* library = libHot->m_library;
             MTL::Function* function = library->newFunction(NS::String::string(_desc.m_computeStage.m_entryPoint.c_str(), NS::UTF8StringEncoding));
             descriptor->setComputeFunction(function);
         }
@@ -681,10 +703,10 @@ namespace KryneEngine
 
     bool MetalResources::DestroyComputePso(ComputePipelineHandle _pso)
     {
-        ComputePsoHotData hot;
+        ComputePsoHotData hot {};
         if (m_computePso.Free(_pso.m_handle, &hot))
         {
-            hot.m_pso.reset();
+            hot.m_pso->release();
             return true;
         }
         return false;

@@ -96,6 +96,7 @@ set(MemorySrc
         Include/KryneEngine/Core/Memory/Containers/StableVector.hpp
         Include/KryneEngine/Core/Memory/Containers/StableVector.inl
         Include/KryneEngine/Core/Memory/Containers/VectorDeLinkedList.hpp
+        Include/KryneEngine/Core/Memory/IntrusivePtr.hpp
 )
 
 message(STATUS "Loading implementation for platform '${CMAKE_SYSTEM_NAME}'")
@@ -141,6 +142,8 @@ set(ThreadsSrc
         Src/Threads/LightweightSemaphore.cpp
         Src/Threads/SpinLock.cpp
         Include/KryneEngine/Core/Threads/SpinLock.hpp
+        Src/Threads/RwSpinLock.cpp
+        Include/KryneEngine/Core/Threads/RwSpinLock.hpp
 )
 
 set(WindowSrc

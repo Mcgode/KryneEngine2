@@ -41,6 +41,8 @@ namespace KryneEngine
         void InitAllocator(ID3D12Device* _device, IDXGIAdapter* _adapter);
         void InitHeaps(ID3D12Device* _device);
 
+        void FlushPools();
+
         [[nodiscard]] BufferHandle CreateBuffer(const BufferCreateDesc& _desc);
         [[nodiscard]] BufferHandle CreateStagingBuffer(
             const TextureDesc& _desc,

@@ -55,11 +55,11 @@ namespace KryneEngine::Modules::TextRendering
             return 0;
         else if (IsSystemFontFallback())
         {
-            return m_fontManager->GetSystemFont().GetHorizontalAdvance(_unicodeCodepoint, _fontSize);
+            return m_resourceManager->GetSystemFont().GetHorizontalAdvance(_unicodeCodepoint, _fontSize);
         }
         else
         {
-            Font* font = m_fontManager->GetFont(m_fallbackFontId);
+            Font* font = m_resourceManager->GetFont(m_fallbackFontId);
             return font != nullptr ? font->GetHorizontalAdvance(_unicodeCodepoint, _fontSize) : 0;
         }
     }
@@ -91,11 +91,11 @@ namespace KryneEngine::Modules::TextRendering
             return { 0, 0, 0, 0, 0 };
         else if (IsSystemFontFallback())
         {
-            return m_fontManager->GetSystemFont().GetGlyphLayoutMetrics(_unicodeCodepoint, _fontSize);
+            return m_resourceManager->GetSystemFont().GetGlyphLayoutMetrics(_unicodeCodepoint, _fontSize);
         }
         else
         {
-            Font* font = m_fontManager->GetFont(m_fallbackFontId);
+            Font* font = m_resourceManager->GetFont(m_fallbackFontId);
             return font != nullptr
             ? font->GetGlyphLayoutMetrics(_unicodeCodepoint, _fontSize)
             : GlyphLayoutMetrics { 0, 0, 0, 0, 0 };
@@ -115,10 +115,10 @@ namespace KryneEngine::Modules::TextRendering
             if (IsNoFallback())
                 return nullptr;
             else if (IsSystemFontFallback())
-                return m_fontManager->GetSystemFont().GenerateMsdf(_unicodeCodepoint, _fontSize, _pxRange, _allocator);
+                return m_resourceManager->GetSystemFont().GenerateMsdf(_unicodeCodepoint, _fontSize, _pxRange, _allocator);
             else
             {
-                Font* font = m_fontManager->GetFont(m_fallbackFontId);
+                Font* font = m_resourceManager->GetFont(m_fallbackFontId);
                 return font != nullptr
                     ? font->GenerateMsdf(_unicodeCodepoint, _fontSize, _pxRange, _allocator)
                     : nullptr;
@@ -235,8 +235,8 @@ namespace KryneEngine::Modules::TextRendering
         return pixels;
     }
 
-    Font::Font(AllocatorInstance _allocator, FontManager* _fontManager)
-        : m_fontManager(_fontManager)
+    Font::Font(AllocatorInstance _allocator, FontManager* _fontManager, size_t _version)
+        : ResourceBase(_allocator, _fontManager, _version)
         , m_points(_allocator)
         , m_tags(_allocator)
         , m_glyphs(_allocator)

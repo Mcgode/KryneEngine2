@@ -10,21 +10,24 @@
 #include <KryneEngine/Core/Math/Vector.hpp>
 #include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
 #include <KryneEngine/Core/Threads/SpinLock.hpp>
+#include <KryneEngine/Modules/Resources/ResourceBase.hpp>
+#include <KryneEngine/Modules/Resources/ResourceTypeId.hpp>
 
 #include "KryneEngine/Modules/TextRendering/FontCommon.hpp"
+#include "KryneEngine/Modules/TextRendering/FontManager.hpp"
 
 struct FT_FaceRec_;
 
 namespace KryneEngine::Modules::TextRendering
 {
-    class FontManager;
-
-    class Font
+    class Font final: public Resources::ResourceBase<FontManager>
     {
-        friend class FontManager;
+        friend FontManager;
 
     public:
-        ~Font();
+        ~Font() override;
+
+        static constexpr Resources::ResourceTypeId kTypeId = Resources::GenerateResourceTypeId("Font");
 
         float GetAscender(float _fontSize) const;
         float GetDescender(float _fontSize) const;
@@ -46,7 +49,7 @@ namespace KryneEngine::Modules::TextRendering
         [[nodiscard]] u16 GetId() const { return m_fontId; }
 
     private:
-        explicit Font(AllocatorInstance _allocator, FontManager* _fontManager);
+        explicit Font(AllocatorInstance _allocator, FontManager* _fontManager, size_t _version);
 
         struct GlyphEntry
         {
@@ -71,7 +74,6 @@ namespace KryneEngine::Modules::TextRendering
         static constexpr u32 kSystemFontFallback = 0x10000;
         static constexpr u32 kNoFallback = 0x20000;
 
-        FontManager* m_fontManager = nullptr;
         u16 m_fontId = 0;
         FT_FaceRec_* m_face = nullptr;
         std::byte* m_fileBuffer = nullptr;

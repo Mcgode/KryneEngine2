@@ -19,8 +19,8 @@ namespace KryneEngine::Tests
 
         ScopedAssertCatcher catcher;
 
-        GenerationalPool<u32> hotPool;
-        GenerationalPool<u32, u32> hotAndColdPool;
+        GenerationalPool<u32> hotPool {{}};
+        GenerationalPool<u32, u32> hotAndColdPool {{}};
 
         u32 expectedCaughtCount = 0;
 
@@ -81,7 +81,7 @@ namespace KryneEngine::Tests
         ScopedAssertCatcher catcher;
         u32 expectedAssertCount = 0;
 
-        GenerationalPool<u32, u32> pool;
+        GenerationalPool<u32, u32> pool {{}};
 
         // -----------------------------------------------------------------------
         // Execute

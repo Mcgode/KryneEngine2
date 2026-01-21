@@ -235,6 +235,9 @@ namespace KryneEngine
         _ProcessUpdates(m_multiFrameTracker.GetData(), _device, _resources, _frameIndex);
 
         m_multiFrameTracker.ClearData();
+
+        m_descriptorSetPools.FlushDeferredFrees();
+        m_descriptorSetLayouts.FlushDeferredFrees();
     }
 
     AllocatorInstance VkDescriptorSetManager::GetAllocator() const

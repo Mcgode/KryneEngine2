@@ -10,6 +10,7 @@
 #include <EASTL/vector.h>
 #include <KryneEngine/Core/Common/Types.hpp>
 #include <KryneEngine/Core/Memory/Allocators/Allocator.hpp>
+#include <KryneEngine/Modules/Resources/IResourceManager.hpp>
 
 #include "KryneEngine/Modules/TextRendering/SystemFont.hpp"
 
@@ -19,15 +20,23 @@ namespace KryneEngine::Modules::TextRendering
 {
     class Font;
 
-    class FontManager
+    class FontManager final: public Resources::IResourceManager
     {
     public:
         explicit FontManager(AllocatorInstance _allocator);
 
-        ~FontManager();
+        ~FontManager() override;
+
+        void LoadResource(
+            Resources::ResourceEntry* _entry,
+            eastl::span<std::byte> _resourceRawData,
+            eastl::string_view _path) override;
+
+        void ReportFailedLoad(Resources::ResourceEntry* _entry, eastl::string_view _path) override;
+
+        [[nodiscard]] AllocatorInstance GetAllocator() const override { return m_allocator; }
 
         SystemFont& GetSystemFont() { return m_systemFont; }
-        Font* LoadFont(eastl::string_view _path);
         [[nodiscard]] Font* GetFont(u16 _fontId) const;
 
     private:

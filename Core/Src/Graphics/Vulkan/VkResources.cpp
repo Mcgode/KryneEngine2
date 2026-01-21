@@ -25,6 +25,7 @@ namespace KryneEngine
         , m_textures(_allocator)
         , m_imageViews(_allocator)
         , m_samplers(_allocator)
+        , m_bufferViews(_allocator)
         , m_renderTargetViews(_allocator)
         , m_renderPasses(_allocator)
         , m_shaderModules(_allocator)
@@ -33,6 +34,21 @@ namespace KryneEngine
     {}
 
     VkResources::~VkResources() = default;
+
+    void VkResources::FlushPools()
+    {
+        m_buffers.FlushDeferredFrees();
+        m_textures.FlushDeferredFrees();
+        m_imageViews.FlushDeferredFrees();
+        m_samplers.FlushDeferredFrees();
+        m_bufferViews.FlushDeferredFrees();
+        m_renderTargetViews.FlushDeferredFrees();
+        m_renderPasses.FlushDeferredFrees();
+        m_shaderModules.FlushDeferredFrees();
+        m_pipelineLayouts.FlushDeferredFrees();
+        m_pipelines.FlushDeferredFrees();
+
+    }
 
     void VkResources::InitAllocator(
         const GraphicsCommon::ApplicationInfo& _appInfo,

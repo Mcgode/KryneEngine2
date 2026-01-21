@@ -206,6 +206,8 @@ namespace KryneEngine
         // Wait for the previous frame with this index.
         WaitForFrame(m_frameContexts[nextFrameIndex].m_frameId);
 
+        m_resources.FlushPools();
+
         // Duplicate descriptor in multi-frame heaps
         m_descriptorSetManager.NextFrame(m_device.Get(), m_resources, nextFrameIndex);
     }

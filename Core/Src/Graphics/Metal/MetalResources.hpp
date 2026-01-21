@@ -36,6 +36,8 @@ namespace KryneEngine
         explicit MetalResources(AllocatorInstance _allocator);
         ~MetalResources();
 
+        void FlushPools();
+
     private:
         [[nodiscard]] AllocatorInstance GetAllocator() const;
 
@@ -46,7 +48,7 @@ namespace KryneEngine
     private:
         struct BufferHotData
         {
-            NsPtr<MTL::Buffer> m_buffer;
+            MTL::Buffer* m_buffer;
         };
 
         struct BufferColdData
@@ -65,7 +67,7 @@ namespace KryneEngine
     private:
         struct TextureHotData
         {
-            NsPtr<MTL::Texture> m_texture;
+            MTL::Texture* m_texture;
             bool m_isSystemTexture;
         };
 
@@ -78,7 +80,7 @@ namespace KryneEngine
     private:
         struct SamplerHotData
         {
-            NsPtr<MTL::SamplerState> m_sampler;
+            MTL::SamplerState* m_sampler;
         };
 
         GenerationalPool<SamplerHotData> m_samplers;
@@ -90,7 +92,7 @@ namespace KryneEngine
     private:
         struct TextureViewHotData
         {
-            NsPtr<MTL::Texture> m_texture;
+            MTL::Texture* m_texture;
         };
 
         GenerationalPool<TextureViewHotData> m_textureViews;
@@ -102,7 +104,7 @@ namespace KryneEngine
     private:
         struct BufferViewHotData
         {
-            NsPtr<MTL::Buffer> m_buffer;
+            MTL::Buffer* m_buffer;
             size_t m_offset;
         };
 
@@ -118,7 +120,7 @@ namespace KryneEngine
     private:
         struct RtvHotData
         {
-            NsPtr<MTL::Texture> m_texture;
+            MTL::Texture* m_texture;
             bool m_isSystemTexture;
         };
 
@@ -142,7 +144,7 @@ namespace KryneEngine
     private:
         struct RenderPassHotData
         {
-            NsPtr<MTL::RenderPassDescriptor> m_descriptor;
+            MTL::RenderPassDescriptor* m_descriptor;
 
             struct SystemRtv
             {
@@ -171,7 +173,7 @@ namespace KryneEngine
     private:
         struct ShaderModuleHotData
         {
-            NsPtr<MTL::Library> m_library;
+            MTL::Library* m_library;
         };
 
         GenerationalPool<ShaderModuleHotData> m_libraries;
@@ -186,8 +188,8 @@ namespace KryneEngine
     private:
         struct GraphicsPsoHotData
         {
-            NsPtr<MTL::RenderPipelineState> m_pso;
-            NsPtr<MTL::DepthStencilState> m_depthStencilState;
+            MTL::RenderPipelineState* m_pso;
+            MTL::DepthStencilState* m_depthStencilState;
             RenderDynamicState m_staticState;
             InputAssemblyDesc::PrimitiveTopology m_topology;
             bool m_dynamicBlendFactor;
@@ -207,7 +209,7 @@ namespace KryneEngine
     private:
         struct ComputePsoHotData
         {
-            NsPtr<MTL::ComputePipelineState> m_pso;
+            MTL::ComputePipelineState* m_pso;
         };
 
         GenerationalPool<ComputePsoHotData> m_computePso;

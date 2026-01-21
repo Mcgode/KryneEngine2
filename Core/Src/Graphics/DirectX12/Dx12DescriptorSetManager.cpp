@@ -289,6 +289,9 @@ namespace KryneEngine
         }
 
         m_multiFrameUpdateTracker.ClearData();
+
+        m_descriptorSets.FlushDeferredFrees();
+        m_descriptorSetLayout.FlushDeferredFrees();
     }
 
     const Dx12DescriptorSetManager::LayoutData* Dx12DescriptorSetManager::GetDescriptorSetLayoutData(
